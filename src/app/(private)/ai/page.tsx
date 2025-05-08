@@ -1,5 +1,5 @@
 import { aiHistory } from "@/@staticData/ai";
-import { Input } from "@/components/Input";
+import { Input } from "@/components/ui/Input";
 import { cn } from "@/lib/utils";
 import { ArrowRight, ChevronDown, Search } from "lucide-react";
 import { AiList } from "./components/aiList";

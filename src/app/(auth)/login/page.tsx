@@ -1,4 +1,4 @@
-import { Input } from "@/components/Input";
+import { Input } from "@/components/ui/Input";
 import { Lock, Mail } from "lucide-react";
 import Image from "next/image";
 
