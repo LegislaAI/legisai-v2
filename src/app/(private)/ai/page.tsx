@@ -7,7 +7,7 @@ import { AiList } from "./components/aiList";
 export default function Ai() {
   return (
     <div className="flex w-full items-center justify-center gap-2">
-      <div className="flex h-[calc(100vh-200px)] w-9/12 flex-col justify-between rounded-2xl bg-white p-4">
+      <div className="flex h-[calc(100vh-150px)] w-9/12 flex-col justify-between rounded-2xl bg-white p-4">
         <div className="relative">
           <h1 className="text-4xl font-bold">Olá Leonardo</h1>
           <br />
@@ -40,7 +40,7 @@ export default function Ai() {
           </button>
         </div>
       </div>
-      <div className="flex h-[calc(100vh-200px)] w-3/12 flex-col justify-between rounded-2xl bg-white">
+      <div className="flex h-[calc(100vh-150px)] w-3/12 flex-col justify-between rounded-2xl bg-white">
         <div className="flex h-full flex-col justify-between gap-4 pb-8">
           <div>
             <div className="relative w-full border-b border-gray-400 p-2">
