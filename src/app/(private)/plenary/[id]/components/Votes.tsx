@@ -1,6 +1,26 @@
 "use client";
+import { Avatar, AvatarGroup } from "@/components/ui/avatar";
+import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { Check, ChevronLeft, ChevronRight, Search, X } from "lucide-react";
+import {
+  Check,
+  ChevronLeft,
+  ChevronRight,
+  Ellipsis,
+  MessageCircle,
+  Search,
+  Tv,
+  X,
+} from "lucide-react";
+import Image from "next/image";
 import { useEffect, useState } from "react";
 
 export function Votes() {
@@ -32,6 +52,77 @@ export function Votes() {
     { name: "Patrícia Gomes", party: "DEM", state: "BA" },
     { name: "Roberto Nunes", party: "PSOL", state: "RS" },
     { name: "Gabriela Martins", party: "Novo", state: "PR" },
+  ];
+
+  const columns = [
+    {
+      key: "authors",
+      label: "Autores",
+    },
+    {
+      key: "proposal",
+      label: "Proposta",
+    },
+    {
+      key: "other",
+      label: "Outro Dado",
+    },
+    {
+      key: "result",
+      label: "Resultado",
+    },
+  ];
+
+  const tableData = [
+    {
+      author: "Samuel Viana",
+      proposal: "Proposta 1",
+      other: "Outro dado",
+      result: "approved",
+      id: 1,
+    },
+    {
+      author: "Ana Silva",
+      proposal: "Proposta 2",
+      other: "Outro dado",
+      result: "rejected",
+      id: 2,
+    },
+    {
+      author: "Carlos Souza",
+      proposal: "Proposta 3",
+      other: "Outro dado",
+      result: "changed",
+      id: 3,
+    },
+    {
+      author: "Mariana Lima",
+      proposal: "Proposta 4",
+      other: "Outro dado",
+      result: "rejected",
+      id: 4,
+    },
+    {
+      author: "Pedro Santos",
+      proposal: "Proposta 5",
+      other: "Outro dado",
+      result: "changed",
+      id: 5,
+    },
+    {
+      author: "Lucas Oliveira",
+      proposal: "Proposta 6",
+      other: "Outro dado",
+      result: "approved",
+      id: 6,
+    },
+    {
+      author: "Fernanda Costa",
+      proposal: "Proposta 7",
+      other: "Outro dado",
+      result: "approved",
+      id: 7,
+    },
   ];
 
   const getCurrentDate = () => {
@@ -77,9 +168,161 @@ export function Votes() {
     return () => clearInterval(interval);
   }, []);
 
+  const [selectedStep, setSelectedStep] = useState(0);
+
   return (
     <div className="grid w-full grid-cols-12 gap-8">
-      <div className="relative col-span-4 flex h-full flex-col items-center justify-between rounded-xl bg-[url(/static/live-plenary.png)] bg-cover bg-no-repeat p-4">
+      <div className="col-span-8 flex flex-col rounded-lg bg-white">
+        <div className="flex w-full items-center justify-between border-b border-b-zinc-200 p-4">
+          <span className="text-secondary text-lg font-bold">
+            SESSÃO DELIBERATIVA EXTRAORDINÁRIA (SEMIPRESENCIAL)
+          </span>
+          <div className="flex items-center gap-2">
+            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-zinc-200">
+              <MessageCircle className="fill-secondary text-secondary" />
+            </div>
+            <div className="flex h-10 w-10 items-center justify-center rounded-md bg-zinc-200">
+              <Ellipsis className="fill-secondary text-secondary" />
+            </div>
+          </div>
+        </div>
+        <div className="flex w-full items-start justify-between p-4">
+          <div className="flex items-center gap-2">
+            <Image
+              src="/static/plenary-details.png"
+              alt=""
+              width={500}
+              height={500}
+              className="h-40 w-40 rounded-lg object-contain"
+            />
+            <div className="text-secondary flex flex-col gap-2">
+              <div className="flex items-center gap-2">
+                <span className="text-lg">
+                  {new Date().toLocaleDateString("pt-BR")}
+                </span>
+                -<span className="text-lg font-bold">PLENÁRIO</span>
+              </div>
+              <span>Sessão para a votação de propostas legislativas</span>
+              <div className="flex items-center gap-2">
+                <div className="border-secondary flex flex-col rounded-md border border-dashed p-2">
+                  <span className="text-sm text-black">Início:</span>
+                  <span className="text-sm">
+                    {new Date().toLocaleTimeString("pt-BR")} às{" "}
+                    {new Date().toLocaleTimeString("pt-BR")}
+                  </span>
+                </div>
+                <div className="border-secondary flex flex-col rounded-md border border-dashed p-2">
+                  <span className="text-sm text-black">Término:</span>
+                  <span className="text-sm">
+                    {new Date().toLocaleTimeString("pt-BR")} às{" "}
+                    {new Date().toLocaleTimeString("pt-BR")}
+                  </span>
+                </div>
+                <div className="border-secondary flex flex-col rounded-md border border-dashed p-2">
+                  <span className="text-sm text-black">Situação:</span>
+                  <span className="text-sm">Encerrado</span>
+                </div>
+              </div>
+              <div className="flex items-center gap-2 text-sm">
+                <span className="text-black">Local:</span>
+                <span>Plenário da Câmara de Deputados</span>
+              </div>
+            </div>
+          </div>
+          <AvatarGroup max={4} total={0}>
+            <Avatar className="ring-primary-500 ring-offset-primary-500 ring-1 ring-offset-[1px]">
+              <div className="h-full w-full bg-zinc-700"></div>
+            </Avatar>
+            <Avatar className="ring-primary-500 ring-offset-primary-500 ring-1 ring-offset-[1px]">
+              <div className="h-full w-full bg-zinc-700"></div>
+            </Avatar>
+            <Avatar className="ring-primary-500 ring-offset-primary-500 ring-1 ring-offset-[1px]">
+              <div className="h-full w-full bg-zinc-700"></div>
+            </Avatar>
+            <Avatar className="ring-primary-500 ring-offset-primary-500 ring-1 ring-offset-[1px]">
+              <div className="h-full w-full bg-zinc-700"></div>
+            </Avatar>
+          </AvatarGroup>
+        </div>
+        <div className="flex h-12 w-full items-center gap-8 border-t border-t-zinc-200 p-4">
+          <span
+            className={cn(
+              "hover:text-secondary cursor-pointer",
+              selectedStep === 0 ? "text-secondary font-bold" : "text-zinc-400",
+            )}
+            onClick={() => setSelectedStep(0)}
+          >
+            VISÃO GERAL
+            <div
+              className={cn(
+                "h-px w-full bg-transparent",
+                selectedStep === 0 && "bg-secondary",
+              )}
+            />
+          </span>
+          <span
+            className={cn(
+              "hover:text-secondary cursor-pointer",
+              selectedStep === 1 ? "text-secondary font-bold" : "text-zinc-400",
+            )}
+            onClick={() => setSelectedStep(1)}
+          >
+            VOTAÇÃO
+            <div
+              className={cn(
+                "h-px w-full bg-transparent",
+                selectedStep === 1 && "bg-secondary",
+              )}
+            />
+          </span>
+          <span
+            className={cn(
+              "hover:text-secondary cursor-pointer",
+              selectedStep === 2 ? "text-secondary font-bold" : "text-zinc-400",
+            )}
+            onClick={() => setSelectedStep(2)}
+          >
+            DOCUMENTOS
+            <div
+              className={cn(
+                "h-px w-full bg-transparent",
+                selectedStep === 2 && "bg-secondary",
+              )}
+            />
+          </span>
+          <span
+            className={cn(
+              "hover:text-secondary cursor-pointer",
+              selectedStep === 3 ? "text-secondary font-bold" : "text-zinc-400",
+            )}
+            onClick={() => setSelectedStep(3)}
+          >
+            PRESENÇAS
+            <div
+              className={cn(
+                "h-px w-full bg-transparent",
+                selectedStep === 3 && "bg-secondary",
+              )}
+            />
+          </span>
+          <span
+            className={cn(
+              "hover:text-secondary cursor-pointer",
+              selectedStep === 4 ? "text-secondary font-bold" : "text-zinc-400",
+            )}
+            onClick={() => setSelectedStep(4)}
+          >
+            ORDEM DO DIA
+            <div
+              className={cn(
+                "h-px w-full bg-transparent",
+                selectedStep === 4 && "bg-secondary",
+              )}
+            />
+          </span>
+        </div>
+      </div>
+      <div className="relative col-span-4 flex h-full flex-col items-center justify-between gap-8 rounded-xl bg-[url(/static/live-plenary.png)] bg-cover bg-no-repeat p-4">
         <div className="flex h-12 w-full flex-row justify-between">
           <div className="flex w-full justify-between">
             {dates.map((date, index) => {
@@ -91,14 +334,14 @@ export function Votes() {
                   className={cn(
                     "flex flex-col items-center justify-center gap-1 rounded-lg p-2",
                     isToday
-                      ? "bg-primary text-white"
-                      : "bg-transparent text-black",
+                      ? "bg-secondary text-white"
+                      : "bg-transparent text-white",
                   )}
                 >
                   <span
                     className={cn(
                       "text-xs",
-                      isToday ? "text-white" : "text-[#0D5F3E]",
+                      isToday ? "text-white" : "text-white",
                     )}
                   >
                     {date.toLocaleDateString("pt-BR", { weekday: "short" })}
@@ -114,19 +357,167 @@ export function Votes() {
             })}
           </div>
         </div>
-        <div className="text-6xl font-bold text-[#0D5F3E]">
+        <div className="text-6xl font-bold text-white">
           {formatTime(timeLeft)}
         </div>
-        <div className="px-8 text-center text-lg font-bold text-[#0D5F3E] uppercase">
+        <div className="px-8 text-center text-sm font-bold text-white uppercase">
           {" "}
           LOGO VOCÊ ACESSARÁ O LINK PARA acompanhamento{" "}
           <span className="font-black">ao vivo</span> O PRÓXIMO PLENÁRIO
         </div>
-        <button className="overflow-hidden rounded-full bg-black">
-          <div className="h-full w-full bg-[#00A15D] p-2 opacity-40">
-            EM BREVE DISPONÍVEL
+        <button className="overflow-hidden rounded-full">
+          <div className="bg-primary flex h-full w-full items-center gap-2 p-2 text-white opacity-40">
+            <Tv />
+            <span>EM BREVE DISPONÍVEL</span>
           </div>
         </button>
+      </div>
+      <div className="col-span-8 flex flex-col overflow-hidden rounded-lg bg-white">
+        <span className="text-secondary p-4 text-xl font-bold">
+          Propostas a Serem Analisadas
+        </span>
+        <ScrollArea className="h-80">
+          <Table>
+            <TableHeader className="bg-secondary">
+              <TableRow>
+                {columns.map((column) => (
+                  <TableHead
+                    key={column.key}
+                    className="h-12 justify-end text-center text-sm font-semibold text-white"
+                  >
+                    <div
+                      className={cn(
+                        "flex w-max items-center gap-2",
+                        column.key === "result" && "ml-auto",
+                      )}
+                    >
+                      <Image
+                        src="/icons/circles.png"
+                        alt=""
+                        width={250}
+                        height={250}
+                        className="h-4 w-4 object-contain"
+                      />
+                      {column.label}
+                    </div>
+                  </TableHead>
+                ))}
+              </TableRow>
+            </TableHeader>
+            {tableData.map((row) => (
+              <TableBody key={row.id}>
+                <TableRow className="h-12">
+                  <TableCell className="h-4 py-1 text-sm font-medium whitespace-nowrap">
+                    {row.author}{" "}
+                    <span className="text-secondary font-semibold italic">
+                      Ver Todos *
+                    </span>
+                  </TableCell>
+                  <TableCell className="h-4 py-1 text-sm font-semibold whitespace-nowrap">
+                    {row.proposal}
+                  </TableCell>
+                  <TableCell className="h-4 py-1 text-sm">
+                    {row.other}
+                  </TableCell>
+                  <TableCell className="h-4 py-1 text-sm font-medium">
+                    <span
+                      className={cn(
+                        "rounded-lg px-2 py-1",
+                        row.result === "approved"
+                          ? "bg-secondary/20 text-secondary"
+                          : row.result === "changed"
+                            ? "bg-sky-500/20 text-sky-500"
+                            : "bg-rose-500/20 text-rose-500",
+                      )}
+                    >
+                      {row.result === "approved"
+                        ? "Aprovado"
+                        : row.result === "changed"
+                          ? "Aprovado com alterações"
+                          : "Não Analisada"}
+                    </span>
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            ))}
+          </Table>
+        </ScrollArea>
+      </div>
+      <div className="col-span-4 flex flex-col justify-between gap-4 rounded-lg bg-white p-4">
+        <div className="flex flex-col gap-4">
+          <span className="text-secondary text-xl font-bold">
+            Resumo da Proposta
+          </span>
+          <div className="flex w-full items-center justify-between gap-4">
+            <div className="relative flex h-28 w-1/3 overflow-hidden rounded-xl">
+              <Image
+                src="/static/parallax-card.png"
+                alt=""
+                width={500}
+                height={500}
+                className="absolute top-0 left-0 h-full w-full object-cover"
+              />
+              <div className="from-primary/20 to-primary/80 absolute top-0 left-0 z-10 flex h-full w-full flex-col justify-end gap-2 bg-gradient-to-b p-4 text-white">
+                <span className="w-max rounded-sm bg-[#27AE60] px-2 py-1 text-xs">
+                  sessão deliberativa
+                </span>
+                <span className="w-40 text-xs font-bold">
+                  Pauta da <br /> Sessão plenária
+                </span>
+              </div>
+            </div>
+            <div className="relative flex h-28 w-1/3 overflow-hidden rounded-xl">
+              <Image
+                src="/static/parallax-card.png"
+                alt=""
+                width={500}
+                height={500}
+                className="absolute top-0 left-0 h-full w-full object-cover"
+              />
+              <div className="from-primary/20 to-primary/80 absolute top-0 left-0 z-10 flex h-full w-full flex-col justify-end gap-2 bg-gradient-to-b p-4 text-white">
+                <span className="w-max rounded-sm bg-[#27AE60] px-2 py-1 text-xs">
+                  sessão deliberativa
+                </span>
+                <span className="w-40 text-xs font-bold">
+                  Oradores inscritos <br /> para discursar
+                </span>
+              </div>
+            </div>
+            <div className="relative flex h-28 w-1/3 overflow-hidden rounded-xl">
+              <Image
+                src="/static/parallax-card.png"
+                alt=""
+                width={500}
+                height={500}
+                className="absolute top-0 left-0 h-full w-full object-cover"
+              />
+              <div className="from-primary/20 to-primary/80 absolute top-0 left-0 z-10 flex h-full w-full flex-col justify-end gap-2 bg-gradient-to-b p-4 text-white">
+                <span className="w-max rounded-sm bg-[#27AE60] px-2 py-1 text-xs">
+                  sessão deliberativa
+                </span>
+                <span className="w-40 text-xs font-bold">
+                  Atas da Reunião <br /> Plenária
+                </span>
+              </div>
+            </div>
+          </div>
+          <button className="bg-secondary mx-auto w-max rounded-md px-2 py-1 text-white">
+            Clique acima e Acesse
+          </button>
+        </div>
+        <div className="flex flex-col gap-4">
+          <span className="text-secondary text-xl font-bold">
+            Sessão em Texto e Vídeo
+          </span>
+          <button className="bg-secondary/20 border-secondary text-secondary w-full rounded-md border p-2 text-xs underline">
+            <span className="font-bold">CLIQUE AQUI</span>
+            <span>PARA VER A SESSÃO PLENÁRIA EM FORMATO DE TEXTO</span>
+          </button>
+          <button className="bg-secondary/20 border-secondary text-secondary w-full rounded-md border p-2 text-xs underline">
+            <span className="font-bold">CLIQUE AQUI</span>
+            <span>PARA VER A SESSÃO PLENÁRIA EM FORMATO DE TEXTO</span>
+          </button>
+        </div>
       </div>
       <div className="col-span-12 flex flex-row gap-4 rounded-lg bg-white p-4">
         <div className="mt-4 flex w-full flex-col gap-4">
