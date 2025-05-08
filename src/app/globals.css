@@ -1,0 +1,33 @@
+@import "tailwindcss";
+
+@theme {
+  /* Changing the default fontFamily to Poppins */
+  --font-sans: "Poppins", sans-serif;
+
+  /* --color-primary: #ed6842; */
+
+  /* --animate-accordion-up: accordion-up 0.2s ease-out;
+  --animate-accordion-down: accordion-down 0.2s ease-out;
+
+  @keyframes accordion-up {
+    from {
+      height: var(--radix-accordion-content-height);
+    }
+    to {
+      height: 0;
+    }
+  }
+
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(--radix-accordion-content-height);
+    }
+  } */
+}
+
+.swiper-slide {
+  max-width: fit-content;
+}
