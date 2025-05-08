@@ -12,7 +12,7 @@ import Image from "next/image";
 
 export function Sidebar() {
   return (
-    <div className="hidden min-h-screen w-80 flex-col justify-between bg-white p-4 lg:flex">
+    <div className="hidden min-h-screen w-80 min-w-80 flex-col justify-between bg-white p-4 lg:flex">
       <div className="flex flex-col gap-4">
         <div className="flex w-full items-center justify-between">
           <Image
