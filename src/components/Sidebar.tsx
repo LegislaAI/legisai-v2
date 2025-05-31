@@ -1,3 +1,4 @@
+"use client";
 import {
   BellDot,
   ChevronRight,
@@ -9,8 +10,10 @@ import {
   Wallet,
 } from "lucide-react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 
 export function Sidebar() {
+  const router = useRouter();
   return (
     <div className="hidden min-h-screen w-80 min-w-80 flex-col justify-between bg-white p-4 lg:flex">
       <div className="flex flex-col gap-4">
@@ -25,7 +28,10 @@ export function Sidebar() {
           <Menu />
         </div>
         <div className="flex flex-col gap-4">
-          <div className="group flex w-full cursor-pointer items-center justify-between">
+          <div
+            onClick={() => router.push("/")}
+            className="group flex w-full cursor-pointer items-center justify-between"
+          >
             <div className="flex items-center gap-2">
               <Home className="text-light-dark" />
               <span>Home</span>
@@ -59,7 +65,10 @@ export function Sidebar() {
             </div>
             <ChevronRight className="text-secondary opacity-0 transition duration-200 group-hover:opacity-100" />
           </div>
-          <div className="group flex w-full cursor-pointer items-center justify-between">
+          <div
+            onClick={() => router.push("/ai")}
+            className="group flex w-full cursor-pointer items-center justify-between"
+          >
             <div className="flex items-center gap-2">
               <Sparkles className="text-light-dark" />
               <span>Inteligência Artificial - Legis AI</span>

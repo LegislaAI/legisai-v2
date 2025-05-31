@@ -1,0 +1,78 @@
+/* c:\Users\Gabriel\Desktop\AdvSpace\adv-space\src\app\(dashboard)\(apps)\chat\AudioPlayer\styles\audio.css */
+
+audio {
+  color: #fff;
+  /* Default height - adjust as needed */
+  height: 54px; /* Standard default height in many browsers */
+  vertical-align: middle; /* Helps align with surrounding text/elements */
+}
+
+/* --- Existing Styles --- */
+/* WebKit-based browsers (Safari, Chrome) */
+audio.ai::-webkit-media-controls-panel {
+  background-color: transparent;
+  filter: invert(100%);
+}
+
+audio::-webkit-media-controls-enclosure {
+  background-color: transparent;
+}
+
+/* Firefox */
+audio.ai::-moz-media-controls-panel {
+  background-color: transparent;
+  filter: invert(100%);
+}
+
+audio::-moz-media-controls-enclosure {
+  background-color: transparent;
+}
+
+/* Microsoft Edge */
+audio.ai::-ms-media-controls-panel {
+  background-color: transparent;
+  filter: invert(100%);
+}
+
+audio::-ms-media-controls-enclosure {
+  background-color: transparent;
+}
+
+/* Opera */
+audio.ai::-o-media-controls-panel {
+  background-color: transparent;
+  filter: invert(100%);
+}
+
+audio::-o-media-controls-enclosure {
+  background-color: transparent;
+}
+
+/* --- NEW Size Control Classes --- */
+
+/* Option A: Using transform: scale() */
+audio.audio-sm-scale {
+  transform: scale(0.8);
+  transform-origin: left center; /* Adjust origin as needed */
+}
+
+audio.audio-lg-scale {
+  transform: scale(1.2);
+  transform-origin: left center; /* Adjust origin as needed */
+}
+
+/* Option B: Using height (less precise scaling, might affect layout differently) */
+audio.audio-sm-height {
+  height: 40px; /* Smaller height */
+  width: 100%; /* You might need to adjust width too */
+}
+
+audio.audio-lg-height {
+  height: 70px; /* Larger height */
+  width: 100%; /* Adjust width as needed */
+}
+
+/* Example of combining with .ai class if needed */
+audio.ai.audio-sm-scale {
+  /* Specific styles for scaled AI audio if necessary */
+}
