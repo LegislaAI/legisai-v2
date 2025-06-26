@@ -1,9 +1,13 @@
+"use client";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { ArrowUpRight, ChevronRight, Info } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export function News() {
+  const router = useRouter();
+
   return (
-    <div className="flex h-96 w-1/2 flex-col rounded-lg bg-white p-4">
+    <div className="flex h-96 w-full flex-col rounded-lg bg-white p-4 lg:w-1/2">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-dark font-semibold">Notícias de Políticos</span>
@@ -18,6 +22,7 @@ export function News() {
         {Array.from({ length: 5 }).map((_, index) => (
           <div
             key={index}
+            onClick={() => router.push("/news")}
             className="group flex h-16 w-full items-center justify-between rounded-lg border border-transparent px-4 py-2 transition duration-200 hover:cursor-pointer hover:border-zinc-200 hover:shadow-sm"
           >
             <div className="flex items-center gap-2">

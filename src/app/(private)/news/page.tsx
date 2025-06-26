@@ -11,12 +11,12 @@ export default function News() {
   >("all");
 
   return (
-    <div className="flex h-full w-full flex-col items-center gap-12 rounded-xl bg-white">
-      <div className="flex w-full gap-6 px-8 pt-10">
+    <div className="flex h-full w-full flex-col items-center gap-4 rounded-xl bg-white lg:gap-12">
+      <div className="flex w-full gap-6 p-2 lg:px-8 lg:pt-10">
         <button
           onClick={() => setSelected("all")}
           className={cn(
-            "font-medium text-gray-600",
+            "text-sm font-medium text-gray-600 focus:outline-none lg:text-base",
             selected === "all" &&
               "border-primary text-primary rounded-4xl border-2 px-2 py-1 font-bold",
           )}
@@ -26,7 +26,7 @@ export default function News() {
         <button
           onClick={() => setSelected("websites")}
           className={cn(
-            "font-medium text-gray-600",
+            "text-sm font-medium text-gray-600 focus:outline-none lg:text-base",
             selected === "websites" &&
               "border-primary text-primary rounded-4xl border-2 px-2 py-1 font-bold",
           )}
@@ -36,7 +36,7 @@ export default function News() {
         <button
           onClick={() => setSelected("legis")}
           className={cn(
-            "font-medium text-gray-600",
+            "text-sm font-medium text-gray-600 focus:outline-none lg:text-base",
             selected === "legis" &&
               "border-primary text-primary rounded-4xl border-2 px-2 py-1 font-bold",
           )}
@@ -46,7 +46,7 @@ export default function News() {
         <button
           onClick={() => setSelected("others")}
           className={cn(
-            "font-medium text-gray-600",
+            "text-sm font-medium text-gray-600 focus:outline-none lg:text-base",
             selected === "others" &&
               "border-primary text-primary rounded-4xl border-2 px-2 py-1 font-bold",
           )}
@@ -54,18 +54,18 @@ export default function News() {
           Outros
         </button>
       </div>
-      <div className="flex w-full flex-col gap-6 px-8">
+      <div className="flex w-full flex-col gap-2 px-2 lg:gap-6 lg:px-8">
         <p className="text-sm font-medium text-gray-600">Hoje</p>
-        <div className="flex flex-col gap-8">
+        <div className="flex flex-col gap-4 overflow-hidden p-1 lg:gap-8">
           {staticNews.map((news, index) => (
             <NewsCard key={index} summary={news.summary} title={news.title} />
           ))}
         </div>
       </div>
 
-      <div className="flex w-full flex-col gap-8 px-8">
+      <div className="flex w-full flex-col gap-2 px-2 lg:gap-6 lg:px-8">
         <p className="text-sm font-medium text-gray-600">Anterior</p>
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-4 overflow-hidden p-1 lg:gap-8">
           {staticNews.map((news, index) => (
             <NewsCard key={index} summary={news.summary} title={news.title} />
           ))}

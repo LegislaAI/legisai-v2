@@ -2,7 +2,7 @@ import { ChevronDown, ChevronRight, Info, Search } from "lucide-react";
 
 export function Procedures() {
   return (
-    <div className="flex h-96 w-1/2 flex-col justify-between rounded-lg bg-white p-4">
+    <div className="flex h-96 w-full flex-col justify-between rounded-lg bg-white p-2 lg:w-1/2 lg:p-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-dark font-semibold">

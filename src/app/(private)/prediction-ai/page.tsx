@@ -4,13 +4,13 @@ export default function PredictionAi() {
   return (
     <div className="flex flex-col items-center">
       <h1 className="mb-4 text-3xl font-bold">IA Preditiva</h1>
-      <p className="mb-12 w-1/2 text-center text-lg">
+      <p className="mb-12 w-full text-center text-lg lg:w-1/2">
         Uma tecnologia revolucionária que permite prever votações em Projetos de
         Lei, analisar as intenções dos parlamentares, entender seus votos,
         identificar os setores beneficiados e muito mais — tudo isso com o poder
         da Inteligência Artificial preditiva do LegisDados
       </p>
-      <div className="flex items-center justify-center gap-4">
+      <div className="flex flex-col items-center justify-center gap-4 lg:flex-row">
         <SignatureCard
           benefits={[
             "Verificar Notícias",

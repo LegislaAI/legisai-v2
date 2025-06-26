@@ -4,7 +4,7 @@ import Image from "next/image";
 
 export default function Login() {
   return (
-    <div className="flex h-screen w-full items-center bg-white p-4">
+    <div className="flex h-full w-full flex-col-reverse items-center gap-4 bg-white p-4 lg:h-screen lg:flex-row lg:gap-0">
       <Image
         src="/static/login.png"
         alt=""
@@ -13,7 +13,7 @@ export default function Login() {
         className="h-full w-auto rounded-2xl object-cover"
       />
       <div className="relative flex h-full w-full items-center justify-center">
-        <div className="absolute top-4 right-4">
+        <div className="absolute top-4 right-4 hidden lg:block">
           <span>Ainda não tem conta?</span>
           <span className="text-primary ml-2 font-bold underline">
             Cadastre-se

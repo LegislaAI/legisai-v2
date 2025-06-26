@@ -38,14 +38,20 @@ export function Sidebar() {
             </div>
             <ChevronRight className="text-secondary opacity-0 transition duration-200 group-hover:opacity-100" />
           </div>
-          <div className="group flex w-full cursor-pointer items-center justify-between">
+          <div
+            onClick={() => router.push("/plenary")}
+            className="group flex w-full cursor-pointer items-center justify-between"
+          >
             <div className="flex items-center gap-2">
               <Wallet className="text-light-dark" />
               <span>Plenários e Reuniões</span>
             </div>
             <ChevronRight className="text-secondary opacity-0 transition duration-200 group-hover:opacity-100" />
           </div>
-          <div className="group flex w-full cursor-pointer items-center justify-between">
+          <div
+            onClick={() => router.push("/news")}
+            className="group flex w-full cursor-pointer items-center justify-between"
+          >
             <div className="flex items-center gap-2">
               <BellDot className="text-light-dark" />
               <span>Novidades e Mídias</span>

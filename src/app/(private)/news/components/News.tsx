@@ -12,7 +12,7 @@ export function NewsCard({ title, summary }: NewsCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <div className="flex w-full items-center justify-between">
+    <div className="flex w-full flex-col items-center justify-between lg:flex-row">
       <div className="flex items-center gap-2">
         <div className="bg-primary/10 border-primary h-max w-max rounded-full border-2 px-3 py-3">
           <Image
@@ -20,12 +20,17 @@ export function NewsCard({ title, summary }: NewsCardProps) {
             alt=""
             width={20}
             height={20}
-            className="h-5 w-5"
+            className="h-5 max-h-5 min-h-5 w-5 max-w-5 min-w-5"
           />
         </div>
         <div>
           <h2 className="text-dark text-lg font-medium">{title}</h2>
-          <p className="w-[750px] truncate text-gray-600">{summary}</p>
+          <p className="w-full text-gray-600 lg:hidden lg:w-[700px] lg:truncate">
+            {summary.length > 100 ? summary.slice(0, 100) + "..." : summary}
+          </p>
+          <p className="hidden w-full text-gray-600 lg:block lg:w-[700px] lg:truncate">
+            {summary}
+          </p>
         </div>
       </div>
       <div className="flex flex-col items-center gap-2">
@@ -41,7 +46,7 @@ export function NewsCard({ title, summary }: NewsCardProps) {
       <Modal
         isOpen={isModalOpen}
         close={() => setIsModalOpen(false)}
-        className="h-max w-max"
+        className="h-max lg:h-max lg:w-max"
       >
         <div className="relative flex h-full w-full flex-col items-center justify-center gap-4 py-2 pb-8">
           <button

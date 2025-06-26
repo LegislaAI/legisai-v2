@@ -172,7 +172,7 @@ export function Votes() {
 
   return (
     <div className="grid w-full grid-cols-12 gap-8">
-      <div className="col-span-8 flex flex-col rounded-lg bg-white">
+      <div className="col-span-12 flex flex-col rounded-lg bg-white lg:col-span-8">
         <div className="flex w-full items-center justify-between border-b border-b-zinc-200 p-4">
           <span className="text-secondary text-lg font-bold">
             SESSÃO DELIBERATIVA EXTRAORDINÁRIA (SEMIPRESENCIAL)
@@ -193,7 +193,7 @@ export function Votes() {
               alt=""
               width={500}
               height={500}
-              className="h-40 w-40 rounded-lg object-contain"
+              className="h-20 w-20 rounded-lg object-contain lg:h-40 lg:w-40"
             />
             <div className="text-secondary flex flex-col gap-2">
               <div className="flex items-center gap-2">
@@ -244,7 +244,7 @@ export function Votes() {
             </Avatar>
           </AvatarGroup>
         </div>
-        <div className="flex h-12 w-full items-center gap-8 border-t border-t-zinc-200 p-4">
+        <div className="flex h-12 w-full items-center gap-8 overflow-x-scroll overflow-y-hidden border-t border-t-zinc-200 p-2 lg:overflow-x-auto lg:p-4">
           <span
             className={cn(
               "hover:text-secondary cursor-pointer",
@@ -322,9 +322,9 @@ export function Votes() {
           </span>
         </div>
       </div>
-      <div className="relative col-span-4 flex h-full flex-col items-center justify-between gap-8 rounded-xl bg-[url(/static/live-plenary.png)] bg-cover bg-no-repeat p-4">
+      <div className="relative col-span-12 flex h-full flex-col items-center justify-between gap-8 rounded-xl bg-[url('/static/livePlenary.png')] bg-cover bg-no-repeat p-4 lg:col-span-4">
         <div className="flex h-12 w-full flex-row justify-between">
-          <div className="flex w-full justify-between">
+          <div className="flex w-full justify-between overflow-x-scroll lg:overflow-x-auto">
             {dates.map((date, index) => {
               const isToday =
                 date.toDateString() === getCurrentDate().toDateString();
@@ -372,7 +372,7 @@ export function Votes() {
           </div>
         </button>
       </div>
-      <div className="col-span-8 flex flex-col overflow-hidden rounded-lg bg-white">
+      <div className="col-span-12 flex flex-col overflow-hidden rounded-lg bg-white lg:col-span-8">
         <span className="text-secondary p-4 text-xl font-bold">
           Propostas a Serem Analisadas
         </span>
@@ -443,7 +443,7 @@ export function Votes() {
           </Table>
         </ScrollArea>
       </div>
-      <div className="col-span-4 flex flex-col justify-between gap-4 rounded-lg bg-white p-4">
+      <div className="col-span-12 flex flex-col justify-between gap-4 rounded-lg bg-white p-4 lg:col-span-4">
         <div className="flex flex-col gap-4">
           <span className="text-secondary text-xl font-bold">
             Resumo da Proposta
@@ -524,8 +524,8 @@ export function Votes() {
           <h2 className="text-secondary text-lg font-bold uppercase">
             Votação da Proposta Analisada
           </h2>
-          <div className="border-secondary shadow-secondary col-span-1 flex flex-row justify-between rounded-lg border bg-white p-2 shadow-sm md:col-span-2">
-            <div className="flex w-[45%] items-center justify-between gap-4 p-4">
+          <div className="border-secondary shadow-secondary col-span-1 flex flex-col justify-between rounded-lg border bg-white p-2 shadow-sm md:col-span-2 lg:flex-row">
+            <div className="flex w-full flex-col items-center justify-between gap-4 p-4 lg:w-[45%] lg:flex-row">
               <div className="flex w-60 flex-col">
                 <div className="flex items-center gap-2">
                   <div className="bg-secondary flex h-5 w-5 items-center justify-center rounded-full text-white">
@@ -551,8 +551,8 @@ export function Votes() {
                 </div>
               </div>
             </div>
-            <div className="bg-secondary h-[80%] w-0.5 self-center" />
-            <div className="flex w-[45%] items-center justify-between gap-4 p-4">
+            <div className="bg-secondary h-0.5 w-[80%] self-center lg:h-[80%] lg:w-0.5" />
+            <div className="flex w-full flex-col items-center justify-between gap-4 p-4 lg:w-[45%] lg:flex-row">
               <div className="flex flex-1 flex-col">
                 <div className="h-2 w-full rounded-full bg-[#4C4C4C]">
                   <div className="ml-auto h-2 w-1/3 rounded-full bg-rose-500" />
