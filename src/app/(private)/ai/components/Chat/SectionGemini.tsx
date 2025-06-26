@@ -1,229 +1,161 @@
 "use client";
-import { aiHistory } from "@/@staticData/ai";
-import { Input } from "@/components/ui/Input";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import { cn } from "@/lib/utils";
 import {
-  ChevronDown,
-  File,
+  FileIcon,
   ImageIcon,
   Mic,
   Paperclip,
-  Search,
   Send,
+  Square,
   X,
 } from "lucide-react";
 import moment from "moment";
 import Image from "next/image";
-import { KeyboardEvent, useEffect, useRef, useState } from "react";
+import { useEffect, useRef } from "react";
 import ReactMarkdown from "react-markdown";
 import remarkGfm from "remark-gfm";
+import { AudioPlayer } from "../AudioPlayer";
+import { useSectionChat } from "./chat-handler";
+import { ScrollArea } from "./scroll-area";
 import {
   Tooltip,
   TooltipArrow,
   TooltipContent,
   TooltipProvider,
   TooltipTrigger,
-} from "../../../../../components/ui/tooltip";
-import { AiList } from "../aiList";
-import { AudioPlayer } from "./AudioPlayer";
-import { useFileHandler } from "./fileManipulation";
-import { analyzeFile, useChatSession } from "./geminiai";
-import { Message } from "./types";
+} from "./tooltip";
+import { Prompt } from "./types";
+interface props {
+  setLoadHistory?: React.Dispatch<React.SetStateAction<boolean>>;
+  loadNewChat?: boolean;
+  setLoadNewChat?: React.Dispatch<React.SetStateAction<boolean>>;
+  loadOldChat?: string | null;
+  setLoadOldChat?: React.Dispatch<React.SetStateAction<string | null>>;
+  selectedPrompt?: Prompt;
+  setSelectedPrompt?: React.Dispatch<React.SetStateAction<Prompt>>;
+  prompts?: Prompt[];
+}
 
-export function Section() {
-  const [messages, setMessages] = useState<Message[]>([
-    {
-      role: "assistant",
-      content: "Ola, como posso ajudar?",
-    },
-  ]);
-  const [loading, setLoading] = useState(false);
-  const [inputMessage, setInputMessage] = useState("");
+export function Section({
+  // setLoadHistory,
+  // loadOldChat,
+  // setLoadOldChat,
+  loadNewChat,
+  setLoadNewChat,
+  // selectedPrompt,
+}: props) {
   const {
-    fileData,
+    messages,
+    loading,
+    inputMessage,
+    setInputMessage,
+    file,
+    setFile,
+    isRecording,
+    elapsedTime,
     handleFileUpload,
     startRecording,
     stopRecording,
-    clearFileData,
-    isRecording,
-    elapsedTime,
-  } = useFileHandler();
+    handleSendMessage,
+  } = useSectionChat({ loadNewChat, setLoadNewChat, shouldUseFunctions: true });
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  const chatSessionRef = useRef<any | null>(null);
-
-  useChatSession(chatSessionRef);
-
-  const appendMessage = (msg: Message) => setMessages((prev) => [...prev, msg]);
-
-  const handleSendFile = async () => {
-    if (!fileData) return;
-    appendMessage({
-      role: "user",
-      content: "Arquivo enviado " + fileData.mimeType,
-      file: fileData.dataUrl,
-      type: fileData.mimeType,
-      name: fileData.name,
-    });
-    appendMessage({
-      role: "assistant",
-      content: "...",
-    });
-    setLoading(true);
-    if (fileData.mimeType.startsWith("audio/")) {
-      clearFileData();
-    }
-    clearFileData();
-    const response = await analyzeFile(fileData);
-    sendMessage(response, true);
-    setLoading(false);
-    clearFileData();
-  };
-
-  const sendMessage = async (text: string, isFile?: boolean) => {
-    setInputMessage("");
-    if (!isFile) {
-      appendMessage({ role: "user", content: text });
-      appendMessage({ role: "assistant", content: "..." });
-    }
-
-    setLoading(true);
-    const res = await chatSessionRef.current.sendMessage({ message: text });
-    const reply = await res.text;
-    setMessages((prev) =>
-      prev.map((m) =>
-        m.content === "..." ? { ...m, content: reply as string } : m,
-      ),
-    );
-    setLoading(false);
-  };
-
+  const scrollAreaViewportRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    if (fileData) {
-      if (fileData.mimeType.startsWith("audio/")) {
-        return;
-      } else {
-        handleSendFile();
-      }
+    if (scrollAreaViewportRef.current) {
+      scrollAreaViewportRef.current.scrollTop =
+        scrollAreaViewportRef.current.scrollHeight;
     }
-  }, [fileData]);
-
-  console.log("messages", messages);
-
+  }, [messages]);
   return (
-    <>
-      <div className="flex w-full items-center justify-center gap-2">
-        <div className="flex h-[calc(100vh-150px)] w-9/12 flex-col justify-between rounded-2xl bg-white p-4">
-          <div className="relative">
-            <h1 className="text-4xl font-bold">Olá Leonardo</h1>
-            <br />
-            <h2 className="text-2xl font-medium">
-              Como podemos te ajudar hoje?
-            </h2>
-            <button className="bg-primary absolute top-4 right-4 flex items-center gap-2 rounded-full px-4 py-2 text-xl font-medium text-white">
-              Mudar IA <ChevronDown />
-            </button>
-          </div>
-          {messages.length === 0 ? (
-            <div className="mt-4 grid grid-cols-3 gap-4">
-              {AiList.map((ai) => (
-                <div
-                  key={ai.name}
-                  className="flex h-full w-full flex-col gap-6 rounded-xl p-4"
-                  style={{ backgroundColor: ai.background }}
-                >
-                  <h3 className="text-2xl font-semibold">{ai.name}</h3>
-                  <p className="text-lg text-gray-600">{ai.description}</p>
-                  <div
-                    className={cn("h-10 w-10 rounded-xl")}
-                    style={{ backgroundColor: ai.color }}
-                  />
-                </div>
-              ))}
-            </div>
-          ) : (
-            <>
-              <ScrollArea className="flex h-full w-full flex-col-reverse p-2 xl:p-8">
-                {messages.map((message, index) => (
-                  <div
-                    key={index}
-                    className={cn(
-                      "flex gap-2 self-end",
-                      message.role === "user" ? "justify-end" : "justify-start",
-                    )}
-                  >
+    <div className="flex h-full w-full flex-col">
+      <div className="flex h-full w-full flex-col items-center justify-between gap-2 rounded-lg xl:flex-row xl:gap-8">
+        <div className="bg-default-100 flex h-full w-full flex-col rounded-lg">
+          {/* ÁREA DE EXIBIÇÃO DAS MENSAGENS (Nenhuma alteração necessária aqui) */}
+          <ScrollArea
+            viewportRef={scrollAreaViewportRef}
+            className="flex h-[calc(100%-80px)] max-h-[calc(100%-80px)] w-full overflow-y-auto p-2 xl:p-8"
+          >
+            {messages.map((message, index) => (
+              <div
+                key={index}
+                className={cn(
+                  "flex gap-2 self-end",
+                  message.role === "user" ? "justify-end" : "justify-start",
+                )}
+              >
+                {message.type !== "hiddenText" && (
+                  <>
                     {message.role === "user" ? (
                       <div className="flex justify-end gap-2 text-end">
                         <div className="flex flex-col items-end">
                           <div className="bg-primary flex min-h-[40px] flex-col rounded-xl p-2 text-white">
+                            {/* Lógica de renderização de arquivos na mensagem (já compatível) */}
                             {message.type?.includes("image") ? (
-                              <>
-                                <Image
-                                  src={message.file as string}
-                                  alt=""
-                                  width={2500}
-                                  height={2500}
-                                  className="h-40 w-max rounded-md object-contain"
-                                />
-                              </>
-                            ) : message.type?.includes("audio") ? (
-                              <AudioPlayer
-                                className="ai z-[9999] h-full flex-1"
-                                size="default"
-                                audioUrl={message.file as string}
+                              <Image
+                                src={message.file as string}
+                                alt={message.name || "imagem"}
+                                width={2500}
+                                height={2500}
+                                className="h-40 w-max rounded-md object-contain"
                               />
+                            ) : message.type?.includes("audio") ? (
+                              <div className="flex flex-row justify-end">
+                                <div className="">
+                                  <AudioPlayer
+                                    className="ai z-[9999] m-0 max-w-60 md:max-w-full"
+                                    size="default"
+                                    audioUrl={message.file as string}
+                                  />
+                                </div>
+                              </div>
                             ) : message.type?.includes("video") ? (
                               <video
                                 src={message.file as string}
                                 controls
                                 className="h-60 rounded-md"
                               />
-                            ) : message.type?.includes("pdf") ? (
+                            ) : message.type?.includes("pdf") ||
+                              message.type?.includes("application") ? (
                               <a
                                 href={message.file as string}
-                                download
-                                className="flex flex-col items-center gap-1"
+                                download={message.name}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="flex flex-col items-center gap-1 p-2"
                               >
                                 <Paperclip />
-
                                 <span>{message.name}</span>
                               </a>
                             ) : (
-                              <span className="text-xs font-semibold xl:text-base">
-                                {message.content}
-                              </span>
+                              message.content && (
+                                <span className="text-xs font-semibold xl:text-base">
+                                  {message.content}
+                                </span>
+                              )
                             )}
                           </div>
-                          <span className="text-default-500">
+                          <span className="text-primary">
                             {moment().format("HH:mm")}
                           </span>
                         </div>
-                        <Image
-                          src="/logos/small-logo.png"
-                          alt=""
-                          width={250}
-                          height={250}
-                          className="h-6 w-6 xl:h-10 xl:w-10"
-                        />
                       </div>
                     ) : (
                       <div className="flex justify-start gap-2 text-start">
                         <Image
                           src="/logos/small-logo.png"
-                          alt=""
+                          alt="AI Avatar"
                           width={250}
                           height={250}
-                          className="h-6 w-6 xl:h-10 xl:w-10"
+                          className="h-6 w-max object-contain xl:h-10 xl:w-max"
                         />
                         <div className="flex flex-col">
-                          <div className="bg-primary/20 flex flex-col rounded-xl p-2 text-black">
+                          <div className="bg-primary/80 flex flex-col rounded-xl p-2 text-white">
                             {message.content === "..." ? (
                               <div className="mt-2 flex items-center justify-center space-x-2">
-                                <span className="sr-only">...</span>
-                                <div className="border-primary h-2 w-2 animate-bounce rounded-full border bg-black [animation-delay:-0.3s]"></div>
-                                <div className="border-primary h-2 w-2 animate-bounce rounded-full border bg-black [animation-delay:-0.15s]"></div>
-                                <div className="border-primary h-2 w-2 animate-bounce rounded-full border bg-black"></div>
+                                <span className="sr-only text-white">...</span>
+                                <div className="border-primary h-2 w-2 animate-bounce rounded-full border bg-white [animation-delay:-0.3s]"></div>
+                                <div className="border-primary h-2 w-2 animate-bounce rounded-full border bg-white [animation-delay:-0.15s]"></div>
+                                <div className="border-primary h-2 w-2 animate-bounce rounded-full border bg-white"></div>
                               </div>
                             ) : (
                               <div className="flex flex-col text-xs font-semibold xl:text-base">
@@ -233,41 +165,45 @@ export function Section() {
                               </div>
                             )}
                           </div>
-                          <span className="text-default-500">
+                          <span className="text-primary">
                             {moment().format("HH:mm")}
                           </span>
                         </div>
                       </div>
                     )}
-                  </div>
-                ))}
-              </ScrollArea>
-            </>
-          )}
+                  </>
+                )}
+              </div>
+            ))}
+          </ScrollArea>
 
-          <div className="flex h-20 w-full flex-row items-center gap-2 px-4">
+          {/* ÁREA DE INPUT (INTEGRADA E CORRIGIDA) */}
+          <div className="relative flex h-20 w-full flex-row items-center gap-2 px-2 lg:px-4">
+            {/* CORREÇÃO: Os inputs de arquivo agora usam a nova função e estado */}
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <button className="relative flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-500 xl:h-11 xl:w-11">
-                    <div className="absolute flex h-full w-full items-center justify-center p-1 text-zinc-400">
-                      <File />
+                  <button className="border-primary relative flex h-8 w-8 items-center justify-center rounded-lg border xl:h-11 xl:w-11">
+                    <div className="text-primary absolute flex h-full w-full items-center justify-center p-1">
+                      <FileIcon />{" "}
+                      {/* Renomeado para não conflitar com o tipo 'File' */}
                     </div>
                     <input
-                      className="z-[2] h-8 w-8 rounded-full opacity-0"
+                      className="z-[2] h-full w-full cursor-pointer rounded-full opacity-0"
                       type="file"
-                      accept="application/pdf*"
-                      onChange={(e) => handleFileUpload(e)}
-                      disabled={loading || !!fileData}
+                      // INTEGRADO: Aceita vários tipos
+                      accept="application/pdf"
+                      onChange={handleFileUpload} // CORREÇÃO: chamada corrigida
+                      disabled={loading || !!file} // CORREÇÃO: estado corrigido
                     />
                   </button>
                 </TooltipTrigger>
                 <TooltipContent
                   side="top"
                   align="start"
-                  className="border-primary border bg-black"
+                  className="border-primary bg-primary border"
                 >
-                  <p className="text-white">PDF</p>
+                  <p className="text-white">Documento</p>
                   <TooltipArrow className="fill-primary" />
                 </TooltipContent>
               </Tooltip>
@@ -275,346 +211,121 @@ export function Section() {
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <button className="relative flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-500 xl:h-11 xl:w-11">
-                    <div className="absolute flex h-full w-full items-center justify-center p-1 text-zinc-400">
+                  <button className="border-primary relative flex h-8 w-8 items-center justify-center rounded-lg border xl:h-11 xl:w-11">
+                    <div className="text-primary absolute flex h-full w-full items-center justify-center p-1">
                       <ImageIcon />
                     </div>
                     <input
-                      className="iz-[2] h-8 w-8 rounded-full opacity-0"
+                      className="z-[2] h-full w-full cursor-pointer rounded-full opacity-0"
                       type="file"
                       accept="image/*,video/*"
-                      onChange={(e) => handleFileUpload(e)}
-                      disabled={loading || !!fileData}
+                      onChange={handleFileUpload} // CORREÇÃO: chamada corrigida
+                      disabled={loading || !!file} // CORREÇÃO: estado corrigido
                     />
                   </button>
                 </TooltipTrigger>
                 <TooltipContent
                   side="top"
                   align="start"
-                  className="border-primary border bg-black"
+                  className="border-primary bg-primary border"
                 >
-                  <p className="text-white">Imagem ou video</p>
+                  <p className="text-white">Imagem ou vídeo</p>
                   <TooltipArrow className="fill-primary" />
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
-            <label className="flex h-8 w-full items-center gap-2 overflow-hidden rounded-lg border border-zinc-500 xl:h-11">
-              {fileData && fileData.mimeType.startsWith("audio/") ? (
-                <>
-                  <AudioPlayer
-                    className="ai h-full flex-1"
-                    size="default"
-                    audioUrl={fileData.dataUrl}
-                  />
-                  <button
-                    onClick={() => clearFileData()}
-                    className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-500/20"
-                  >
-                    <X className="text-red-500" />
-                  </button>
-                </>
-              ) : (
-                <div className="flex flex-1 flex-row items-center gap-1">
+
+            {/* BARRA DE INPUT PRINCIPAL */}
+            <div className="border-primary flex h-8 flex-1 items-center gap-2 rounded-lg border px-2 xl:h-11">
+              {/* CORREÇÃO: Lógica de preview de arquivo selecionado */}
+
+              <div className="flex-1 lg:relative">
+                {file && (
+                  <div className="border-primary absolute -top-6 right-2 left-2 flex h-10 items-center justify-between gap-2 rounded-t-md border px-4 pl-2 lg:-top-12 lg:left-0">
+                    <div className="flex flex-1 items-center gap-2">
+                      {file.type.startsWith("audio") ? (
+                        <AudioPlayer
+                          audioUrl={URL.createObjectURL(file)}
+                          className="h-8 w-full"
+                        />
+                      ) : (
+                        <>
+                          <Paperclip
+                            size={16}
+                            className="text-primary flex-shrink-0"
+                          />
+                          <span className="text-primary line-clamp-1 w-[100px] flex-1 truncate text-sm">
+                            {file.name}
+                          </span>
+                        </>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => setFile(null)} // CORREÇÃO: usa setFile(null) para limpar
+                      className="bg-primary/20 hover:bg-primary/30 flex h-6 min-h-6 w-6 min-w-6 flex-shrink-0 items-center justify-center rounded-full"
+                    >
+                      <X className="text-red-500" size={16} />
+                    </button>
+                  </div>
+                )}
+                {isRecording ? (
+                  <>
+                    <div className="flex w-full flex-1 flex-row md:hidden">
+                      <span className="text-primary text-sm">
+                        Gravando - {elapsedTime}
+                      </span>
+                    </div>
+                    <span className="text-primary hidden font-mono text-sm md:block">
+                      Gravando audio - {elapsedTime}
+                    </span>
+                  </>
+                ) : (
                   <input
-                    className="border-none bg-transparent px-2 text-black outline-none placeholder:text-black/50 focus:outline-none xl:px-4"
-                    placeholder="Digite aqui sua ideia"
+                    className="text-primary placeholder:text-primary w-full flex-1 border-none bg-transparent pr-2 outline-none focus:outline-none"
+                    placeholder="Digite aqui sua ideia..."
                     disabled={isRecording || loading}
                     value={inputMessage}
                     onChange={(e) => setInputMessage(e.target.value)}
-                    onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
+                    onKeyDown={(e) => {
                       if (e.key === "Enter" && !e.shiftKey) {
                         e.preventDefault();
-                        sendMessage(inputMessage);
-                        setInputMessage("");
+                        handleSendMessage(); // CORREÇÃO: Chama a nova função unificada
                       }
                     }}
                   />
-                </div>
-              )}
-
-              <div className="relative">
-                <button
-                  className="flex h-8 w-8 items-center justify-center gap-2 text-white"
-                  disabled={loading}
-                  onClick={() => {
-                    if (fileData?.mimeType.startsWith("audio/")) {
-                      console.log("entrou");
-                      handleSendFile();
-                    } else if (isRecording) {
-                      console.log("entrou2");
-                      stopRecording();
-                    } else {
-                      console.log("entrou3");
-                      startRecording();
-                    }
-                  }}
-                >
-                  {isRecording && elapsedTime}
-                  {fileData?.mimeType.startsWith("audio/") ? (
-                    <Send className="text-zinc-500" />
-                  ) : isRecording ? (
-                    <X className="text-zinc-500" />
-                  ) : (
-                    <Mic className="text-zinc-500" />
-                  )}
-                </button>
-              </div>
-            </label>
-          </div>
-          {/* <div className="relative">
-          <Input className="w-full rounded-full border-none p-4 text-xl font-medium" />
-          <button className="bg-primary absolute top-1/2 right-1 -translate-y-1/2 rounded-full px-2 py-2 text-white">
-            <ArrowRight />
-          </button>
-        </div> */}
-        </div>
-        <div className="flex h-[calc(100vh-150px)] w-3/12 flex-col justify-between rounded-2xl bg-white">
-          <div className="flex h-full flex-col justify-between gap-4 pb-8">
-            <div>
-              <div className="relative w-full border-b border-gray-400 p-2">
-                <Search className="text-dark absolute top-1/2 left-6 h-5 w-5 -translate-y-1/2" />
-                <Input
-                  className="w-full border-none bg-transparent pl-10"
-                  placeholder="Pesquisar"
-                />
-              </div>
-              <div className="flex flex-col gap-4 p-4">
-                {aiHistory.map((historic, index) => (
-                  <div key={index}>
-                    <h4 className="text-xl font-semibold">{historic.title}</h4>
-                    <p className="text-sm text-gray-600">
-                      {historic.description}
-                    </p>
-                  </div>
-                ))}
+                )}
               </div>
             </div>
-            <button className="bg-primary h-12 w-2/3 self-center rounded-3xl text-2xl font-semibold text-white">
-              Novo Chat
-            </button>
+
+            {/* BOTÃO DE AÇÃO UNIFICADO (Enviar / Gravar / Parar) */}
+            <div className="relative flex justify-center pr-1">
+              <button
+                className="border-primary text-primary flex h-8 w-8 items-center justify-center gap-2 rounded-lg border disabled:cursor-not-allowed disabled:opacity-50 xl:h-11 xl:w-11"
+                disabled={loading}
+                onClick={() => {
+                  if (isRecording) {
+                    stopRecording();
+                  } else if (inputMessage || file) {
+                    handleSendMessage();
+                  } else {
+                    startRecording();
+                  }
+                }}
+              >
+                {isRecording ? (
+                  <div className="text-primary flex items-center gap-2">
+                    <Square className="animate-pulse" />
+                  </div>
+                ) : inputMessage || file ? (
+                  <Send />
+                ) : (
+                  <Mic />
+                )}
+              </button>
+            </div>
           </div>
         </div>
       </div>
-      {/* <div className="h-[calc(100vh-200px)] w-full">
-        <div className="flex h-full w-full flex-col items-center justify-between gap-2 rounded-lg xl:flex-row xl:gap-8">
-          <div className="flex h-full w-full flex-1 flex-col justify-end rounded-lg bg-red-500">
-            <ScrollArea className="flex h-full w-full flex-col-reverse p-2 xl:p-8">
-              {messages.map((message, index) => (
-                <div
-                  key={index}
-                  className={cn(
-                    "flex gap-2 self-end",
-                    message.role === "user" ? "justify-end" : "justify-start",
-                  )}
-                >
-                  {message.role === "user" ? (
-                    <div className="flex justify-end gap-2 text-end">
-                      <div className="flex flex-col items-end">
-                        <div className="bg-primary flex min-h-[40px] flex-col rounded-xl p-2 text-white">
-                          {message.type?.includes("image") ? (
-                            <>
-                              <Image
-                                src={message.file as string}
-                                alt=""
-                                width={2500}
-                                height={2500}
-                                className="h-40 w-max rounded-md object-contain"
-                              />
-                            </>
-                          ) : message.type?.includes("audio") ? (
-                            <AudioPlayer
-                              className="ai z-[9999] h-full flex-1"
-                              size="default"
-                              audioUrl={message.file as string}
-                            />
-                          ) : message.type?.includes("video") ? (
-                            <video
-                              src={message.file as string}
-                              controls
-                              className="h-60 rounded-md"
-                            />
-                          ) : message.type?.includes("pdf") ? (
-                            <a
-                              href={message.file as string}
-                              download
-                              className="flex flex-col items-center gap-1"
-                            >
-                              <Paperclip />
-
-                              <span>{message.name}</span>
-                            </a>
-                          ) : (
-                            <span className="text-xs font-semibold xl:text-base">
-                              {message.content}
-                            </span>
-                          )}
-                        </div>
-                        <span className="text-default-500">
-                          {moment().format("HH:mm")}
-                        </span>
-                      </div>
-                      <Image
-                        src="/images/logo/icon.png"
-                        alt=""
-                        width={250}
-                        height={250}
-                        className="h-6 w-6 xl:h-10 xl:w-10"
-                      />
-                    </div>
-                  ) : (
-                    <div className="flex justify-start gap-2 text-start">
-                      <Image
-                        src="/images/logo/icon.png"
-                        alt=""
-                        width={250}
-                        height={250}
-                        className="h-6 w-6 xl:h-10 xl:w-10"
-                      />
-                      <div className="flex flex-col">
-                        <div className="bg-primary/20 flex flex-col rounded-xl p-2 text-white">
-                          {message.content === "..." ? (
-                            <div className="mt-2 flex items-center justify-center space-x-2">
-                              <span className="sr-only">...</span>
-                              <div className="border-primary h-2 w-2 animate-bounce rounded-full border bg-black [animation-delay:-0.3s]"></div>
-                              <div className="border-primary h-2 w-2 animate-bounce rounded-full border bg-black [animation-delay:-0.15s]"></div>
-                              <div className="border-primary h-2 w-2 animate-bounce rounded-full border bg-black"></div>
-                            </div>
-                          ) : (
-                            <div className="flex flex-col text-xs font-semibold xl:text-base">
-                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
-                                {message.content}
-                              </ReactMarkdown>
-                            </div>
-                          )}
-                        </div>
-                        <span className="text-default-500">
-                          {moment().format("HH:mm")}
-                        </span>
-                      </div>
-                    </div>
-                  )}
-                </div>
-              ))}
-            </ScrollArea>
-            <div className="flex h-20 w-full flex-row items-center gap-2 px-4">
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button className="relative flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-500 xl:h-11 xl:w-11">
-                      <div className="absolute flex h-full w-full items-center justify-center p-1 text-zinc-400">
-                        <File />
-                      </div>
-                      <input
-                        className="z-[2] h-8 w-8 rounded-full opacity-0"
-                        type="file"
-                        accept="application/pdf*"
-                        onChange={(e) => handleFileUpload(e)}
-                        disabled={loading || !!fileData}
-                      />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent
-                    side="top"
-                    align="start"
-                    className="border-primary border bg-black"
-                  >
-                    <p className="text-white">PDF</p>
-                    <TooltipArrow className="fill-primary" />
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <TooltipProvider>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <button className="relative flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-500 xl:h-11 xl:w-11">
-                      <div className="absolute flex h-full w-full items-center justify-center p-1 text-zinc-400">
-                        <ImageIcon />
-                      </div>
-                      <input
-                        className="iz-[2] h-8 w-8 rounded-full opacity-0"
-                        type="file"
-                        accept="image/*,video/*"
-                        onChange={(e) => handleFileUpload(e)}
-                        disabled={loading || !!fileData}
-                      />
-                    </button>
-                  </TooltipTrigger>
-                  <TooltipContent
-                    side="top"
-                    align="start"
-                    className="border-primary border bg-black"
-                  >
-                    <p className="text-white">Imagem ou video</p>
-                    <TooltipArrow className="fill-primary" />
-                  </TooltipContent>
-                </Tooltip>
-              </TooltipProvider>
-              <label className="flex h-8 w-full items-center gap-2 overflow-hidden rounded-lg border border-zinc-500 xl:h-11">
-                {fileData && fileData.mimeType.startsWith("audio/") ? (
-                  <>
-                    <AudioPlayer
-                      className="ai h-full flex-1"
-                      size="default"
-                      audioUrl={fileData.dataUrl}
-                    />
-                    <button
-                      onClick={() => clearFileData()}
-                      className="flex h-8 w-8 items-center justify-center rounded-full bg-zinc-500/20"
-                    >
-                      <X className="text-red-500" />
-                    </button>
-                  </>
-                ) : (
-                  <div className="flex flex-1 flex-row items-center gap-1">
-                    <input
-                      className="border-none bg-transparent px-2 text-white outline-none placeholder:text-zinc-500 focus:outline-none xl:px-4"
-                      placeholder="Digite aqui sua ideia"
-                      disabled={isRecording || loading}
-                      value={inputMessage}
-                      onChange={(e) => setInputMessage(e.target.value)}
-                      onKeyDown={(e: KeyboardEvent<HTMLInputElement>) => {
-                        if (e.key === "Enter" && !e.shiftKey) {
-                          e.preventDefault();
-                          sendMessage(inputMessage);
-                          setInputMessage("");
-                        }
-                      }}
-                    />
-                  </div>
-                )}
-
-                <div className="relative">
-                  <button
-                    className="flex h-8 w-8 items-center justify-center gap-2 text-white"
-                    disabled={loading}
-                    onClick={() => {
-                      if (fileData?.mimeType.startsWith("audio/")) {
-                        console.log("entrou");
-                        handleSendFile();
-                      } else if (isRecording) {
-                        console.log("entrou2");
-                        stopRecording();
-                      } else {
-                        console.log("entrou3");
-                        startRecording();
-                      }
-                    }}
-                  >
-                    {isRecording && elapsedTime}
-                    {fileData?.mimeType.startsWith("audio/") ? (
-                      <Send className="text-zinc-500" />
-                    ) : isRecording ? (
-                      <X className="text-zinc-500" />
-                    ) : (
-                      <Mic className="text-zinc-500" />
-                    )}
-                  </button>
-                </div>
-              </label>
-            </div>
-          </div>
-        </div>
-      </div> */}
-    </>
+    </div>
   );
 }

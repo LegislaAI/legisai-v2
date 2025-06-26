@@ -1,3 +1,4 @@
+import { FunctionCall } from "@google/genai";
 import { Dispatch, RefObject, SetStateAction } from "react";
 
 export interface FileData {
@@ -7,7 +8,7 @@ export interface FileData {
 }
 
 export interface Message {
-  role: "user" | "assistant";
+  role: "user" | "ai";
   content: string;
   type?: string;
   file?: File | null | string;
@@ -94,3 +95,31 @@ export interface ImagePart {
     data: string;
   };
 }
+
+export interface MessagesFromBackend {
+  id: string;
+  text: string;
+  chatId: string;
+  messageType: "text" | "file";
+  entity: "user" | "ai";
+  fileUrl?: string;
+  mimeType?: string;
+  createdAt: string;
+}
+
+export type Prompt = {
+  id: string;
+  name: string;
+  prompt: string;
+  description: string;
+};
+
+export type ChatItem = {
+  id: string;
+  name: string;
+  promptId: string;
+};
+export type FunctionCallWithId = FunctionCall & {
+  id?: string; // versões mais novas do SDK
+  toolCallId?: string; // versões mais antigas
+};

@@ -37,7 +37,8 @@
     "swiper": "^11.2.6",
     "tailwind-merge": "^3.0.2",
     "tailwindcss-animate": "^1.0.7",
-    "uuid": "^11.1.0"
+    "uuid": "^11.1.0",
+    "webm-duration-fix": "^1.0.4"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.0",
