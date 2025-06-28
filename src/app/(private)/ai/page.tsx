@@ -3,7 +3,7 @@ import { aiHistory } from "@/@staticData/ai";
 import { Input } from "@/components/ui/Input";
 import { ChevronDown, Search } from "lucide-react";
 import { useState } from "react";
-import { Section } from "./components/chat/SectionGemini";
+import { Section } from "./components/Chat/SectionGemini";
 
 export default function BranchesList() {
   const [loadNewChat, setLoadNewChat] = useState(false);
@@ -18,13 +18,8 @@ export default function BranchesList() {
             Mudar IA <ChevronDown />
           </button>
         </div>
-        <div className="flex w-full flex-1 flex-col">
-          <div className="mt-16 flex flex-1 flex-col">
-            <Section
-              loadNewChat={loadNewChat}
-              setLoadNewChat={setLoadNewChat}
-            />
-          </div>
+        <div className="mt-4 flex h-[calc(100vh-300px)] flex-1 flex-col">
+          <Section loadNewChat={loadNewChat} setLoadNewChat={setLoadNewChat} />
         </div>
       </div>
       <div className="flex h-[calc(100vh-150px)] w-3/12 flex-col justify-between rounded-2xl bg-white">

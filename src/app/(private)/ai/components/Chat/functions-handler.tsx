@@ -17,6 +17,7 @@
  *  Depois registre quantas funções quiser — tudo em um único local.
  * ------------------------------------------------------------------*/
 
+import { getAPI } from "@/lib/axios";
 import {
   Chat,
   Part,
@@ -105,18 +106,53 @@ export async function handleFunctionCalls(
  * 3. EXAMPLE TOOL: echoName
  * ----------------------------------------------------------------*/
 registerTool({
-  name: "echoName",
-  description: "Print the provided name to the console.",
+  name: "vectorSearch",
+  description: "search laws in vector database",
   parameters: {
     type: Type.OBJECT,
     properties: {
-      name: { type: Type.STRING, description: "Person full name" },
+      searchParam: {
+        type: Type.STRING,
+        description:
+          "keywords based on the user request to maximize the search results",
+      },
     },
-    required: ["name"],
+    required: ["searchParam"],
   } as Schema,
-  implementation: async ({ name }) => {
-    console.log(`Name: ${name}`);
-    return { echoed: true };
+  implementation: async ({ searchParam }) => {
+    console.log(searchParam);
+
+    const result = await getAPI(
+      `/proposition/vetorial?searchParams=${searchParam}`,
+    );
+
+    console.log(result.body);
+
+    return result.body;
+  },
+});
+
+registerTool({
+  name: "propositionDetails",
+  description: "search proposition details",
+  parameters: {
+    type: Type.OBJECT,
+    properties: {
+      propositionId: {
+        type: Type.STRING,
+        description: "id of the proposition to be searched",
+      },
+    },
+    required: ["propositionId"],
+  } as Schema,
+  implementation: async ({ propositionId }) => {
+    console.log(propositionId);
+
+    const result = await getAPI(`/proposition-process/${propositionId}`);
+
+    console.log(result.body);
+
+    return result.body;
   },
 });
 
@@ -156,21 +192,6 @@ registerTool({
 //     throw new Error(`API error (${resp.status})`);
 //   },
 // });
-registerTool({
-  name: "echoName",
-  description: "Print the name provided by the user to the console",
-  parameters: {
-    type: Type.OBJECT,
-    properties: {
-      name: { type: Type.STRING, description: "Client full name" },
-    },
-    required: ["name"],
-  } as Schema,
-  implementation: async ({ name }) => {
-    console.log(`Name: ${name}`);
-  },
-});
-
 /* ------------------------------------------------------------------
  * HOW TO ADD NEW TOOLS
  * ------------------------------------------------------------------

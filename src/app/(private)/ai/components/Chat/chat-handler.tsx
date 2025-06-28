@@ -22,7 +22,7 @@ import {
   useState,
 } from "react";
 import fixWebmDuration from "webm-duration-fix";
-import { PromptChatContext } from "./prompts";
+import { PromptFunctionTest } from "./prompts";
 import {
   ChatHistoryItem,
   FunctionCallWithId,
@@ -102,12 +102,12 @@ export function useSectionChat({
 
     if (aiInstanceRef.current) {
       chatSessionRef.current = aiInstanceRef.current.chats.create({
-        model: "gemini-1.5-flash",
+        model: "gemini-2.5-flash",
         history: initialHistory,
         config: {
           systemInstruction: selectedPrompt?.prompt
             ? selectedPrompt.prompt
-            : PromptChatContext,
+            : PromptFunctionTest,
           ...(shouldUseFunctions && {
             tools: [{ functionDeclarations: getFunctionDeclarations() }],
           }),

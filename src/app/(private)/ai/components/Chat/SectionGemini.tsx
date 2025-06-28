@@ -25,6 +25,7 @@ import {
   TooltipTrigger,
 } from "./tooltip";
 import { Prompt } from "./types";
+
 interface props {
   setLoadHistory?: React.Dispatch<React.SetStateAction<boolean>>;
   loadNewChat?: boolean;
@@ -73,7 +74,7 @@ export function Section({
           {/* ÁREA DE EXIBIÇÃO DAS MENSAGENS (Nenhuma alteração necessária aqui) */}
           <ScrollArea
             viewportRef={scrollAreaViewportRef}
-            className="flex h-[calc(100%-80px)] max-h-[calc(100%-80px)] w-full overflow-y-auto p-2 xl:p-8"
+            className="flex h-[calc(100%-80px)] max-h-[calc(100%-80px)] w-full overflow-y-auto p-2 xl:p-2"
           >
             {messages.map((message, index) => (
               <div
