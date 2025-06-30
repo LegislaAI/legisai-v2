@@ -22,6 +22,10 @@ import {
   useState,
 } from "react";
 import fixWebmDuration from "webm-duration-fix";
+import {
+  getFunctionDeclarations,
+  handleFunctionCalls,
+} from "./functions-handler";
 import { PromptFunctionTest } from "./prompts";
 import {
   ChatHistoryItem,
@@ -32,10 +36,6 @@ import {
 } from "./types";
 
 /*  🔧  hub de function calling */
-import {
-  getFunctionDeclarations,
-  handleFunctionCalls,
-} from "./functions-handler";
 
 export interface UseSectionChatParams {
   /* controles de UI/histórico */

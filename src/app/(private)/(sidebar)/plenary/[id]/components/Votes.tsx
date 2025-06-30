@@ -581,7 +581,7 @@ export function Votes() {
 
           <div className="flex w-full flex-col justify-between gap-4 md:flex-row md:gap-0">
             <div className="flex w-full flex-col gap-4 p-2 md:w-[48%]">
-              <div className="flex h-8 w-full flex-row self-center rounded-md border border-[#475569]">
+              <div className="flex h-8 w-full flex-row self-center rounded-md border border-[#749C5B]">
                 <input
                   className="flex-1 bg-transparent px-2 text-[#749C5B] placeholder:text-[#749C5B] placeholder:opacity-40 focus:outline-none"
                   placeholder="Buscar aqui por nome de Político ou Partido Político..."
@@ -638,7 +638,7 @@ export function Votes() {
             </div>
             <div className="bg-secondary h-0.5 w-[80%] self-center md:block md:h-full md:w-0.5"></div>
             <div className="flex w-full flex-col gap-4 p-2 md:w-[48%]">
-              <div className="flex h-8 w-full flex-row self-center rounded-md border">
+              <div className="flex h-8 w-full flex-row self-center rounded-md border border-rose-500">
                 <input
                   className="flex-1 bg-transparent px-2 text-rose-500 placeholder:text-rose-500 placeholder:opacity-40 focus:outline-none"
                   placeholder="Buscar aqui por nome de Político ou Partido Político..."

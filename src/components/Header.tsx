@@ -24,12 +24,12 @@ export function Header() {
         <span className="font-semibold">Home</span>
       </div>
       <div className="ml-auto flex items-center gap-4">
-        <button className="h-8 rounded-full bg-[#0C68E9] px-4 text-white">
+        <button className="h-8 rounded-full bg-[#749C5B] px-4 text-white">
           xxxxx
         </button>
         <Search />
         <BellDot />
-        <div className="h-8 w-8 rounded-full bg-[#0C68E9]"></div>
+        <div className="h-8 w-8 rounded-full bg-[#749C5B]"></div>
         <Menu className="lg:hidden" onClick={() => setIsSidebarOpen(true)} />
       </div>
     </div>

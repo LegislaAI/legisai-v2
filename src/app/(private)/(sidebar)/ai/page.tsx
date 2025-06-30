@@ -4,7 +4,7 @@ import { Input } from "@/components/ui/Input";
 import { cn } from "@/lib/utils";
 import { ChevronDown, Minus, Plus, Search } from "lucide-react";
 import { useState } from "react";
-import { Section } from "./components/Chat/SectionGemini";
+import { Section } from "./components/chat/SectionGemini";
 
 export default function BranchesList() {
   const [loadNewChat, setLoadNewChat] = useState(false);

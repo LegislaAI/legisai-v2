@@ -16,14 +16,14 @@ export function Procedures() {
         </div>
       </div>
       <div className="flex flex-col items-center">
-        <div className="text-light-dark border-light-dark flex w-1/2 items-center justify-center gap-2 rounded-t-lg border border-b-0 p-2">
+        <div className="text-light-dark border-light-dark flex w-2/3 items-center justify-center gap-1 rounded-t-lg border border-b-0 p-1 text-sm lg:w-1/2 lg:gap-2 lg:p-2">
           <span>Selecionar Tipo de Documentos</span>
           <ChevronDown />
         </div>
-        <div className="border-light-dark flex h-12 w-4/5 items-center overflow-hidden rounded-lg border">
+        <div className="border-light-dark flex h-12 w-full items-center overflow-hidden rounded-lg border lg:w-4/5">
           <input
-            className="h-full w-full px-4 focus:outline-none"
-            placeholder="Buscar aqui sobre as Tramitações de preposições."
+            className="h-full w-full px-2 focus:outline-none lg:px-4"
+            placeholder="Procure Tramitações de preposições."
           />
           <div className="bg-primary flex h-12 w-12 items-center justify-center rounded-r-lg text-white">
             <Search />
