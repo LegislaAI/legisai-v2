@@ -456,7 +456,7 @@ export function Votes() {
                 height={500}
                 className="absolute top-0 left-0 h-full w-full object-cover"
               />
-              <div className="from-primary/20 to-primary/80 absolute top-0 left-0 z-10 flex h-full w-full flex-col justify-end gap-2 bg-gradient-to-b p-2 text-white xl:p-4">
+              <div className="from-primary/20 to-primary/80 absolute top-0 left-0 z-10 flex h-full w-full flex-col justify-end gap-2 bg-gradient-to-b p-2 text-white">
                 <span className="w-max rounded-sm bg-[#27AE60] px-2 py-1 text-xs">
                   sessão deliberativa
                 </span>
@@ -473,7 +473,7 @@ export function Votes() {
                 height={500}
                 className="absolute top-0 left-0 h-full w-full object-cover"
               />
-              <div className="from-primary/20 to-primary/80 absolute top-0 left-0 z-10 flex h-full w-full flex-col justify-end gap-2 bg-gradient-to-b p-2 text-white xl:p-4">
+              <div className="from-primary/20 to-primary/80 absolute top-0 left-0 z-10 flex h-full w-full flex-col justify-end gap-2 bg-gradient-to-b p-2 text-white">
                 <span className="w-max rounded-sm bg-[#27AE60] px-2 py-1 text-xs">
                   sessão deliberativa
                 </span>
@@ -490,7 +490,7 @@ export function Votes() {
                 height={500}
                 className="absolute top-0 left-0 h-full w-full object-cover"
               />
-              <div className="from-primary/20 to-primary/80 absolute top-0 left-0 z-10 flex h-full w-full flex-col justify-end gap-2 bg-gradient-to-b p-2 text-white xl:p-4">
+              <div className="from-primary/20 to-primary/80 absolute top-0 left-0 z-10 flex h-full w-full flex-col justify-end gap-2 bg-gradient-to-b p-2 text-white">
                 <span className="w-max rounded-sm bg-[#27AE60] px-2 py-1 text-xs">
                   sessão deliberativa
                 </span>

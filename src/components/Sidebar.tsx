@@ -53,7 +53,8 @@ export function Sidebar() {
             onClick={() => router.push("/plenary")}
             className={cn(
               "group flex w-full cursor-pointer items-center justify-between",
-              pathname === "/plenary" && "text-secondary font-semibold",
+              (pathname === "/plenary" || pathname.includes("plenary")) &&
+                "text-secondary font-semibold",
             )}
           >
             <div className="flex items-center gap-2">
@@ -63,7 +64,8 @@ export function Sidebar() {
             <ChevronRight
               className={cn(
                 "text-secondary opacity-0 transition duration-200 group-hover:opacity-100",
-                pathname === "/plenary" && "opacity-100",
+                (pathname === "/plenary" || pathname.includes("plenary")) &&
+                  "opacity-100",
               )}
             />
           </div>
