@@ -58,7 +58,10 @@ export default function BranchesList() {
             </div>
             <div className="flex flex-col gap-4 p-4">
               {aiHistory.map((historic, index) => (
-                <div key={index}>
+                <div
+                  key={index}
+                  className="rounded-lg transition-all duration-300 hover:scale-[1.02] hover:bg-gray-100"
+                >
                   <h4 className="text-xl font-semibold">{historic.title}</h4>
                   <p className="text-sm text-gray-600">
                     {historic.description}

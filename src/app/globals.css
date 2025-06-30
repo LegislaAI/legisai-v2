@@ -30,7 +30,16 @@
     }
   } */;
 }
-
+@layer base {
+  button:not(:disabled),
+  [role="button"]:not(:disabled) {
+    cursor: pointer;
+    transition: all 300ms;
+    &:hover {
+      transform: scale(1.02);
+    }
+  }
+}
 .swiper-slide {
   max-width: fit-content;
 }

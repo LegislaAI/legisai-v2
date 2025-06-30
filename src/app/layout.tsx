@@ -1,5 +1,6 @@
 import { ContextProviders } from "@/context/ContextProviders";
 import type { Metadata } from "next";
+import { Toaster } from "react-hot-toast";
 import "./globals.css";
 
 export const metadata: Metadata = {
@@ -17,6 +18,7 @@ export default function RootLayout({
   return (
     <html lang="pt-BR">
       <body className={"bg-surface"}>
+        <Toaster position="top-center" />
         <ContextProviders>{children}</ContextProviders>
       </body>
     </html>

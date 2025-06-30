@@ -6,20 +6,27 @@ interface SignatureCardProps {
   price: number;
   description: string;
   isActive: boolean;
+  onClick?: () => void;
+  setIsActive?: () => void;
   benefits: string[];
+  upgrade?: boolean;
+  buttonText?: string;
 }
 
 export function SignatureCard({
   name,
   price,
+  onClick,
   description,
   isActive,
   benefits,
+  buttonText,
+  upgrade = false,
 }: SignatureCardProps) {
   return (
     <div
       className={cn(
-        "flex h-full w-full flex-col justify-between gap-6 rounded-2xl bg-[#FCFCFC] px-1 pt-1 pb-6 shadow-xl md:w-2/3 lg:max-w-96",
+        "flex h-full w-full flex-col justify-between gap-6 rounded-2xl bg-[#FCFCFC] px-1 pt-1 pb-6 shadow-xl transition-all duration-300 hover:scale-[1.05] md:w-2/3 lg:max-w-96",
       )}
     >
       <div
@@ -59,12 +66,18 @@ export function SignatureCard({
         <p className="text-justify text-sm text-gray-600">{description}</p>
 
         {isActive ? (
-          <button className="bg-primary mt-4 flex h-12 w-5/6 items-center justify-between self-center rounded-2xl px-4 text-base font-bold text-white">
-            Ativo <Check className="text-white" />
+          <button
+            onClick={onClick}
+            className="bg-primary mt-4 flex h-12 w-5/6 items-center justify-between self-center rounded-2xl px-4 text-base font-bold text-white"
+          >
+            {buttonText || "Ativo"} <Check className="text-white" />
           </button>
         ) : (
-          <button className="bg-dark mt-4 flex h-12 w-5/6 items-center justify-center self-center rounded-2xl px-4 text-base font-bold text-white">
-            Upgrade de Plano
+          <button
+            onClick={onClick}
+            className="bg-dark hover:bg-primary mt-4 flex h-12 w-5/6 items-center justify-center self-center rounded-2xl px-4 text-base font-bold text-white transition-all duration-300"
+          >
+            {upgrade ? "Upgrade de Plano" : "Escolher Plano"}
           </button>
         )}
       </div>

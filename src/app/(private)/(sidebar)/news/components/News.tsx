@@ -12,7 +12,7 @@ export function NewsCard({ title, summary }: NewsCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <div className="relative flex w-full flex-col items-center justify-between pb-2 lg:flex-row">
+    <div className="relative flex w-full flex-col items-center justify-between rounded-lg p-1 pb-2 transition-all duration-300 hover:shadow-lg lg:flex-row">
       <div className="absolute bottom-0 left-1/2 h-px w-full -translate-x-1/2 bg-zinc-200 md:w-2/3 xl:w-3/4" />
       <div className="flex items-center gap-2">
         <div className="bg-primary/10 border-primary h-max w-max rounded-full border-2 px-3 py-3">
@@ -38,7 +38,7 @@ export function NewsCard({ title, summary }: NewsCardProps) {
         <span className="text-xs text-gray-600">2m atrás</span>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="bg-primary rounded-xl px-4 py-1 font-bold text-white"
+          className="bg-primary rounded-xl px-4 py-1 font-bold text-white duration-700 hover:scale-[1.05]"
         >
           Resumo
         </button>

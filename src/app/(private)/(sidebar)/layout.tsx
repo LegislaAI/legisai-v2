@@ -1,6 +1,6 @@
 import { Header } from "@/components/Header";
 import { MobileSidebar } from "@/components/MobileSidebar";
-import { Sidebar } from "../../components/Sidebar";
+import { Sidebar } from "../../../components/Sidebar";
 
 export default function RootLayout({
   children,

@@ -1,8 +1,8 @@
 import axios from "axios";
 
-export const ApiUrl = "https://inspire.apiexecutivos.shop";
-export const token = "inspireToken";
-export const refreshToken = "inspireRefreshToken";
+export const ApiUrl = "https://api.legisai.com.br/";
+export const token = "legisToken";
+export const refreshToken = "legisRefreshToken";
 export const localHost = "http://10.0.0.143:3333";
 export let ngrok =
   "https://3dff-2804-f08-930-1900-7dbc-105b-af13-9c43.ngrok-free.app/";
