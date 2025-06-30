@@ -1,34 +1,58 @@
 "use client";
 import { aiHistory } from "@/@staticData/ai";
 import { Input } from "@/components/ui/Input";
-import { ChevronDown, Search } from "lucide-react";
+import { cn } from "@/lib/utils";
+import { ChevronDown, Minus, Plus, Search } from "lucide-react";
 import { useState } from "react";
 import { Section } from "./components/Chat/SectionGemini";
 
 export default function BranchesList() {
   const [loadNewChat, setLoadNewChat] = useState(false);
+  const [openInfo, setOpenInfo] = useState(false);
+
   return (
     <div className="flex w-full items-center justify-center gap-2">
-      <div className="flex h-[calc(100vh-150px)] w-9/12 flex-col justify-between rounded-2xl bg-white p-4">
+      <div className="flex h-[calc(100vh-150px)] w-full flex-col justify-between rounded-2xl bg-white p-2 xl:w-9/12 xl:p-4">
         <div className="relative">
-          <h1 className="text-4xl font-bold">Olá Leonardo</h1>
+          <h1 className="text-2xl font-bold xl:text-4xl">Olá Leonardo</h1>
           <br />
-          <h2 className="text-2xl font-medium">Como podemos te ajudar hoje?</h2>
-          <button className="bg-primary absolute top-4 right-4 flex items-center gap-2 rounded-full px-4 py-2 text-xl font-medium text-white">
-            Mudar IA <ChevronDown />
-          </button>
+          <h2 className="text-lg font-medium xl:text-2xl">
+            Como podemos te ajudar hoje?
+          </h2>
+          <div className="absolute top-2 right-2 flex items-center gap-2">
+            <button className="bg-primary flex items-center gap-2 rounded-full px-2 py-1 text-base font-medium text-white xl:top-4 xl:right-4 xl:px-4 xl:py-2 xl:text-xl">
+              Mudar IA <ChevronDown />
+            </button>
+            <button
+              onClick={() => setOpenInfo(true)}
+              className="bg-primary flex items-center justify-center rounded-full p-1 text-white xl:hidden"
+            >
+              <Plus />
+            </button>
+          </div>
         </div>
         <div className="mt-4 flex h-[calc(100vh-300px)] flex-1 flex-col">
           <Section loadNewChat={loadNewChat} setLoadNewChat={setLoadNewChat} />
         </div>
       </div>
-      <div className="flex h-[calc(100vh-150px)] w-3/12 flex-col justify-between rounded-2xl bg-white">
+      <div
+        className={cn(
+          "relative h-[calc(100vh-150px)] w-3/4 flex-col justify-between rounded-2xl border border-zinc-200 bg-white shadow-sm lg:w-1/2 xl:flex xl:w-3/12",
+          openInfo ? "absolute right-0 flex" : "hidden",
+        )}
+      >
+        <button
+          onClick={() => setOpenInfo(false)}
+          className="bg-primary absolute top-4 right-[22px] z-10 flex items-center justify-center rounded-full p-1 text-white xl:hidden"
+        >
+          <Minus />
+        </button>
         <div className="flex h-full flex-col justify-between gap-4 pb-8">
           <div>
             <div className="relative w-full border-b border-gray-400 p-2">
               <Search className="text-dark absolute top-1/2 left-6 h-5 w-5 -translate-y-1/2" />
               <Input
-                className="w-full border-none bg-transparent pl-10"
+                className="w-full border-none bg-transparent pl-10 focus:outline-none"
                 placeholder="Pesquisar"
               />
             </div>

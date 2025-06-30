@@ -4,13 +4,13 @@ import Image from "next/image";
 
 export default function Login() {
   return (
-    <div className="flex h-full w-full flex-col-reverse items-center gap-4 bg-white p-4 lg:h-screen lg:flex-row lg:gap-0">
+    <div className="flex h-full w-full flex-col-reverse items-center gap-4 bg-white p-4 lg:h-screen lg:flex-row">
       <Image
         src="/static/login.png"
         alt=""
         width={500}
         height={500}
-        className="h-full w-auto rounded-2xl object-cover"
+        className="h-full w-auto max-w-1/3 rounded-2xl object-cover"
       />
       <div className="relative flex h-full w-full items-center justify-center">
         <div className="absolute top-4 right-4 hidden lg:block">

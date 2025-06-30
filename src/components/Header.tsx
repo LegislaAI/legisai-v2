@@ -1,11 +1,13 @@
 "use client";
+import { useSidebarContext } from "@/context/SidebarContext";
 import { cn } from "@/lib/utils";
-import { ArrowLeft, BellDot, Search } from "lucide-react";
+import { ArrowLeft, BellDot, Menu, Search } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 
 export function Header() {
   const pathname = usePathname();
   const router = useRouter();
+  const { setIsSidebarOpen } = useSidebarContext();
 
   return (
     <div className="flex h-14 w-full items-center justify-between lg:h-20">
@@ -28,6 +30,7 @@ export function Header() {
         <Search />
         <BellDot />
         <div className="h-8 w-8 rounded-full bg-[#0C68E9]"></div>
+        <Menu className="lg:hidden" onClick={() => setIsSidebarOpen(true)} />
       </div>
     </div>
   );

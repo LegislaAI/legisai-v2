@@ -16,7 +16,7 @@ export default function News() {
         <button
           onClick={() => setSelected("all")}
           className={cn(
-            "text-sm font-medium text-gray-600 focus:outline-none lg:text-base",
+            "cursor-pointer text-sm font-medium text-gray-600 focus:outline-none lg:text-base",
             selected === "all" &&
               "border-primary text-primary rounded-4xl border-2 px-2 py-1 font-bold",
           )}
@@ -26,7 +26,7 @@ export default function News() {
         <button
           onClick={() => setSelected("websites")}
           className={cn(
-            "text-sm font-medium text-gray-600 focus:outline-none lg:text-base",
+            "cursor-pointer text-sm font-medium text-gray-600 focus:outline-none lg:text-base",
             selected === "websites" &&
               "border-primary text-primary rounded-4xl border-2 px-2 py-1 font-bold",
           )}
@@ -36,7 +36,7 @@ export default function News() {
         <button
           onClick={() => setSelected("legis")}
           className={cn(
-            "text-sm font-medium text-gray-600 focus:outline-none lg:text-base",
+            "cursor-pointer text-sm font-medium text-gray-600 focus:outline-none lg:text-base",
             selected === "legis" &&
               "border-primary text-primary rounded-4xl border-2 px-2 py-1 font-bold",
           )}
@@ -46,7 +46,7 @@ export default function News() {
         <button
           onClick={() => setSelected("others")}
           className={cn(
-            "text-sm font-medium text-gray-600 focus:outline-none lg:text-base",
+            "cursor-pointer text-sm font-medium text-gray-600 focus:outline-none lg:text-base",
             selected === "others" &&
               "border-primary text-primary rounded-4xl border-2 px-2 py-1 font-bold",
           )}

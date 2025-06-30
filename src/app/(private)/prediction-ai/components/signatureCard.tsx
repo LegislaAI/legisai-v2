@@ -19,7 +19,7 @@ export function SignatureCard({
   return (
     <div
       className={cn(
-        "flex h-full max-w-max flex-col justify-between gap-6 rounded-2xl bg-[#FCFCFC] px-1 pt-1 pb-6 shadow-xl lg:max-w-[20%]",
+        "flex h-full w-full flex-col justify-between gap-6 rounded-2xl bg-[#FCFCFC] px-1 pt-1 pb-6 shadow-xl md:w-2/3 lg:max-w-96",
       )}
     >
       <div
