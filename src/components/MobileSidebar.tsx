@@ -94,7 +94,7 @@ export function MobileSidebar() {
               >
                 <div className="flex items-center gap-2">
                   <BellDot />
-                  <span>Novidades e Mídias</span>
+                  <span>Novidades e Notícias</span>
                 </div>
                 <ChevronRight
                   className={cn(
@@ -104,9 +104,10 @@ export function MobileSidebar() {
                 />
               </div>
               <div
+                onClick={() => router.push("/procedures")}
                 className={cn(
                   "group flex w-full cursor-pointer items-center justify-between",
-                  // pathname === "/" && "text-secondary font-semibold",
+                  pathname === "/procedures" && "text-secondary font-semibold",
                 )}
               >
                 <div className="flex items-center gap-2">

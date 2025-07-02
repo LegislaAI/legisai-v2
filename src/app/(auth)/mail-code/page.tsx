@@ -1,16 +1,18 @@
 "use client";
+
+import { AuthHeader } from "@/components/ui/AuthHeader";
+import { ChevronLeft } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useRef, useState } from "react";
 import toast from "react-hot-toast";
 
-export default function VerifyCode() {
+export default function Login() {
   const router = useRouter();
   const length = 6;
   const [code, setCode] = useState<string[]>(Array(length).fill(""));
   const inputsRef = useRef<HTMLInputElement[]>([]);
 
-  // Quando mudar um dígito, foca o próximo
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     idx: number,
@@ -57,10 +59,10 @@ export default function VerifyCode() {
   };
 
   // Quando clicar em "Entrar agora"
-  const handleSubmit = () => {
-    toast.success(`Estamos quase la, agora escolha seu plano!`);
-    router.push("/register/chose-plan");
-  };
+  // const handleSubmit = () => {
+  //   toast.success(`Estamos quase la, agora escolha seu plano!`);
+  //   router.push("/register/chose-plan");
+  // };
   const [timer, setTimer] = useState(10);
   useEffect(() => {
     if (timer > 0) {
@@ -69,39 +71,31 @@ export default function VerifyCode() {
     }
   }, [timer]);
   return (
-    <div className="flex h-full min-h-screen w-full flex-col-reverse items-center justify-center gap-20 bg-white p-4 md:gap-4 lg:h-screen lg:flex-row">
+    <main className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-white">
       <Image
-        src="/static/login.png"
+        src={"/static/login.png"}
+        className="absolute right-0 z-10 hidden h-[95%] w-[40%] rounded-tl-lg rounded-bl-lg object-cover md:block"
         alt=""
-        width={500}
-        height={500}
-        className="h-full w-full rounded-2xl object-cover md:w-auto md:max-w-1/3"
+        width={1000}
+        height={2500}
       />
-      <div className="relative flex h-full w-full items-center justify-center">
+      <div className="relative z-10 flex h-[100vh] w-full flex-col overflow-hidden px-8 xl:px-20">
+        <AuthHeader />
         <button
-          onClick={() => router.push("/login")}
-          className="absolute top-4 right-4 hidden cursor-pointer lg:block"
+          onClick={() => router.back()}
+          className="text-primary static top-4 left-4 flex flex-row items-center justify-center gap-2 self-start text-xs underline md:absolute md:text-base"
         >
-          <span> Já possui conta?</span>
-          <span className="text-primary ml-2 font-bold underline">Entrar</span>
+          <ChevronLeft size={16} /> Voltar
         </button>
-
-        <div className="flex flex-col gap-4">
-          <Image
-            src="/logos/logo.png"
-            alt=""
-            width={500}
-            height={500}
-            className=""
-          />
-          <h1 className="text-4xl font-semibold">
+        <div className="z-20 mt-32 flex w-full flex-col gap-2 md:mt-40 md:w-[45%] xl:ml-[10%] xl:w-[40%] xl:gap-4">
+          <h1 className="text-xl font-bold md:text-3xl">
             Enviamos um Código no seu WhatsApp
           </h1>
-          <h4 className="text-base font-medium">
-            Verifique a mensagem em seu WhatsApp para confirmar seu cadastro
-          </h4>
+          <h2 className="text-lg text-[#8392AB]">
+            Verifique a mensagem em seu WhatsApp
+            <br /> para confirmar seu cadastro
+          </h2>
 
-          {/* Container dos 6 inputs */}
           <div
             className={`flex w-full flex-row items-center justify-center gap-4 rounded-lg border ${code.length === 6 ? "border-primary" : "border-black"} p-2`}
           >
@@ -143,21 +137,24 @@ export default function VerifyCode() {
             )}
           </div>
           <button
-            disabled={code.some((d) => d === "")}
-            onClick={handleSubmit}
-            className="bg-primary h-12 rounded-3xl text-2xl font-semibold text-white disabled:opacity-60"
+            // type="submit"
+            type="button"
+            onClick={() => router.push("/chose-plan")}
+            className="bg-primary rounded-md border p-2 font-bold text-white"
           >
-            Entrar agora
+            Confirmar código
           </button>
-          <span className="text-center md:hidden">Ja possui conta?</span>
-          <button
-            onClick={() => router.push("/login")}
-            className="bg-primary h-8 w-[80%] self-center rounded-3xl text-lg font-semibold text-white md:hidden"
-          >
-            Entrar
-          </button>
+          <span className="text-md mt-4 text-[#8392AB]">
+            Ja tem conta ainda?
+            <button
+              onClick={() => router.push("/login")}
+              className="bg-primary ml-1 cursor-pointer bg-clip-text font-bold text-transparent"
+            >
+              Entrar agora
+            </button>
+          </span>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

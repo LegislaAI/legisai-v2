@@ -25,6 +25,7 @@ interface ApiContextProps {
     url: string,
     auth: boolean,
   ) => Promise<{ status: number; body: any }>;
+  token: string;
 }
 
 const ApiContext = createContext<ApiContextProps | undefined>(undefined);
@@ -146,6 +147,7 @@ export const ApiContextProvider = ({ children }: ProviderProps) => {
   return (
     <ApiContext.Provider
       value={{
+        token: token ? token : "",
         PostAPI,
         GetAPI,
         PutAPI,

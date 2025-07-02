@@ -3,32 +3,74 @@
 @theme {
   /* Changing the default fontFamily to Poppins */
   /* --font-sans: "Poppins", sans-serif; */
+  --animate-in: fade-in 300ms ease-out both;
+  --animate-out: fade-out 300ms ease-in both;
+  --animate-fade-in: var(--animate-in); /* alias */
+  --animate-fade-out: var(--animate-out); /* alias */
+
+  /* ---------------------- Keyframes ---------------------------- */
+  @keyframes fade-in {
+    from {
+      opacity: 0;
+    }
+    to {
+      opacity: 1;
+    }
+  }
+
+  @keyframes fade-out {
+    from {
+      opacity: 1;
+    }
+    to {
+      opacity: 0;
+    }
+  }
+  --animate-slide-in: slide-in 300ms ease-out both;
+  --animate-slide-out: slide-out 300ms ease-in both;
+
+  /* Keyframes */
+  @keyframes slide-in {
+    from {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+    to {
+      transform: translateX(0);
+      opacity: 1;
+    }
+  }
+
+  @keyframes slide-out {
+    from {
+      transform: translateX(0);
+      opacity: 1;
+    }
+    to {
+      transform: translateX(100%);
+      opacity: 0;
+    }
+  }
 
   --color-primary: #32ae60;
   --color-secondary: #6baa3f;
   --color-dark: #1a1d1f;
   --color-light-dark: #6f767e;
-  --color-surface: #f4f4f4
-    /* --animate-accordion-up: accordion-up 0.2s ease-out;
-  --animate-accordion-down: accordion-down 0.2s ease-out;
-
-  @keyframes accordion-up {
-    from {
-      height: var(--radix-accordion-content-height);
-    }
-    to {
-      height: 0;
-    }
+  --color-surface: #f4f4f4;
+}
+@layer utilities {
+  .fade-in {
+    animation: var(--animate-in);
   }
-
-  @keyframes accordion-down {
-    from {
-      height: 0;
-    }
-    to {
-      height: var(--radix-accordion-content-height);
-    }
-  } */;
+  .fade-out {
+    animation: var(--animate-out);
+  }
+  .slide-in {
+    animation: var(--animate-slide-in);
+  }
+  .slide-out {
+    animation: var(--animate-slide-out);
+  }
 }
 @layer base {
   button:not(:disabled),

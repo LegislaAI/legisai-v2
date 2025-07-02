@@ -1,3 +1,4 @@
+// next.config.ts
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
@@ -10,6 +11,24 @@ const nextConfig: NextConfig = {
         pathname: "**",
       },
     ],
+  },
+
+  // Aqui você adiciona a configuração do SVGR
+  webpack(config) {
+    config.module.rules.push({
+      test: /\.svg$/i,
+      issuer: /\.[jt]sx?$/,
+      use: [
+        {
+          loader: "@svgr/webpack",
+          options: {
+            // opcional: se quiser prefixar o componente com `Icon`, por exemplo
+            // icon: true
+          },
+        },
+      ],
+    });
+    return config;
   },
 };
 

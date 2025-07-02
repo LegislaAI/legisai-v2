@@ -1,108 +1,180 @@
 "use client";
-import { Input } from "@/components/ui/Input";
-import { Lock, Mail } from "lucide-react";
+import { AuthHeader } from "@/components/ui/AuthHeader";
+import { useApiContext } from "@/context/ApiContext";
+import { zodResolver } from "@hookform/resolvers/zod";
+
+import { Eye, EyeOff } from "lucide-react";
+import { useCookies } from "next-client-cookies";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
+import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { z } from "zod";
+interface LoginDataProps {
+  email: string;
+  password: string;
+}
 
-const loginSchema = z.object({
-  email: z.string().email("Por favor, insira um email válido"),
-  password: z.string().min(6, "A senha deve ter pelo menos 6 dígitos"),
+const schema = z.object({
+  email: z.string().email({ message: "Email Inválido" }),
+  password: z.string().min(6, "Senha inválida"),
 });
 
 export default function Login() {
+  const [continueConnected, setContinueConnected] = useState(true);
+  const [isShowingPassword, setIsShowingPassword] = useState(false);
+  const cookies = useCookies();
+  const { PostAPI } = useApiContext();
+  const [loginError, setLoginError] = useState("");
   const router = useRouter();
-  const [formData, setFormData] = useState({ email: "", password: "" });
+  const [isLogging, setIsLogging] = useState(false);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = e.target;
-    setFormData({ ...formData, [name]: value });
-  };
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+  } = useForm<LoginDataProps>({
+    resolver: zodResolver(schema),
+    mode: "all",
+  });
 
-  const handleSubmit = () => {
-    const validationResult = loginSchema.safeParse(formData);
-    if (!validationResult.success) {
-      validationResult.error.errors.forEach((error) =>
-        toast.error(error.message),
+  async function HandleLogin(data: LoginDataProps) {
+    setIsLogging(true);
+    const login = await PostAPI(
+      "/user/signin",
+      {
+        email: data.email,
+        password: data.password,
+      },
+      false,
+    );
+    console.log("login", login);
+    if (login.status === 200) {
+      cookies.set(
+        process.env.NEXT_PUBLIC_USER_TOKEN as string,
+        login.body.accessToken,
       );
-      return;
+      setTimeout(() => {
+        console.log("x");
+        router.push("/");
+      }, 1000);
+    } else {
+      toast.error("Erro ao logar, tente novamente");
+      setIsLogging(false);
+      setLoginError(login.body.message);
     }
-    router.push("/");
-  };
-
+  }
+  // console.log("token", token);
   return (
-    <div className="flex h-full w-full flex-col-reverse items-center gap-4 bg-white p-4 lg:h-screen lg:flex-row">
+    <main className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-white">
       <Image
-        src="/static/login.png"
+        src={"/static/login.png"}
+        className="absolute right-0 z-10 hidden h-[95%] w-[40%] rounded-tl-lg rounded-bl-lg object-cover md:block"
         alt=""
-        width={500}
-        height={500}
-        className="h-full w-auto max-w-1/3 rounded-2xl object-cover"
+        width={1000}
+        height={2500}
       />
-      <div className="relative flex h-full w-full items-center justify-center">
-        <button
-          onClick={() => router.push("/register")}
-          className="absolute top-4 right-4 hidden cursor-pointer lg:block"
-        >
-          <span>Ainda não tem conta?</span>
-          <span className="text-primary ml-2 font-bold underline">
-            Cadastre-se
+      <div className="relative z-10 flex min-h-[100vh] w-full flex-col overflow-hidden px-8 xl:px-20">
+        <AuthHeader />
+        <div className="z-20 mt-32 flex w-full flex-col gap-2 md:mt-40 md:w-[45%] xl:ml-[10%] xl:w-[40%] xl:gap-4">
+          <h1 className="text-xl font-bold md:text-3xl">Acessar Plataforma</h1>
+          <h2 className="text-lg text-[#8392AB]">
+            Digite seu e-mail e senha para <br /> acessar sua conta
+          </h2>
+          <form
+            onSubmit={handleSubmit(HandleLogin)}
+            className="flex flex-col gap-2"
+          >
+            <label className="text-sm font-semibold text-[#252F40]">
+              Email
+            </label>
+
+            <input
+              placeholder="Digite seu email"
+              {...register("email")}
+              className="outline-primary/50 focus:border-primary/50 h-8 rounded-md border border-zinc-400 p-2 text-sm text-black"
+              type="email"
+              disabled={isLogging}
+            />
+            {errors.email && (
+              <span className="text-red-500">{errors.email.message}</span>
+            )}
+
+            <label className="text-sm font-semibold text-[#252F40]">
+              Senha
+            </label>
+            <div className="outline-primary/50 focus:border-primary/50 flex flex-row items-center overflow-hidden rounded-md border border-zinc-400 bg-white">
+              <input
+                {...register("password")}
+                placeholder="Digite sua senha"
+                className="h-8 w-[90%] p-2 text-black outline-none"
+                type={isShowingPassword ? "text" : "password"}
+                disabled={isLogging}
+              />
+              <button
+                type="button"
+                onClick={() => setIsShowingPassword(!isShowingPassword)}
+                className="flex w-[10%] items-center justify-center bg-transparent"
+              >
+                {isShowingPassword ? (
+                  <EyeOff className="h-4 w-4 text-black" />
+                ) : (
+                  <Eye className="h-4 w-4 text-black" />
+                )}
+              </button>
+            </div>
+
+            {errors.password && (
+              <span className="text-red-500">{errors.password.message}</span>
+            )}
+            <button
+              type="button"
+              onClick={() => router.push("recover-password")}
+              className="self-start text-[10px] text-black"
+            >
+              Esqueci minha senha
+            </button>
+            <div className="flex flex-row items-center gap-2">
+              <button
+                type="button"
+                onClick={() => setContinueConnected(!continueConnected)}
+                className={`flex h-4 w-8 ${
+                  continueConnected ? "bg-green-500" : "bg-[#3A416F]"
+                } relative rounded-full p-[1px]`}
+              >
+                <div
+                  className={`absolute top-[1px] h-[90%] w-1/2 rounded-full bg-white transition-transform duration-300 ${
+                    continueConnected ? "translate-x-0" : "translate-x-[90%]"
+                  }`}
+                />
+              </button>
+              <span className="text-sm text-black">Continuar conectado</span>
+            </div>
+
+            <button
+              type="submit"
+              disabled={isLogging}
+              className="bg-primary mt-6 rounded-md border p-2 font-bold text-white"
+            >
+              {isLogging ? "Carregando..." : "Acessar Plataforma"}
+            </button>
+          </form>
+          {loginError && (
+            <span className="mt-2 text-red-500">Senha ou email incorretos</span>
+          )}
+
+          <span className="text-md mt-4 text-[#8392AB]">
+            Não tem conta ainda?
+            <button
+              onClick={() => router.push("/register")}
+              className="bg-primary ml-1 cursor-pointer bg-clip-text font-bold text-transparent"
+            >
+              Se cadastre agora
+            </button>
           </span>
-        </button>
-        <div className="flex flex-col gap-4">
-          <Image
-            src="/logos/logo.png"
-            alt=""
-            width={500}
-            height={500}
-            className=""
-          />
-          <h1 className="text-4xl font-semibold">Entrar Agora</h1>
-          <h4 className="text-base font-medium">
-            Insira os dados abaixo para entrar no LegisDados
-          </h4>
-          <div className="relative w-full">
-            <Mail className="text-dark absolute top-1/2 left-2 h-5 w-5 -translate-y-1/2" />
-            <Input
-              placeholder="Email"
-              name="email"
-              value={formData.email}
-              onChange={handleInputChange}
-              className="pl-8"
-            />
-          </div>
-          <div className="relative w-full">
-            <Lock className="text-dark absolute top-1/2 left-2 h-5 w-5 -translate-y-1/2" />
-            <Input
-              placeholder="Senha"
-              name="password"
-              type="password"
-              value={formData.password}
-              onChange={handleInputChange}
-              className="pl-8"
-            />
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="border-primary h-5 w-5 rounded-full border-2"></div>
-            <span>Lembrar de mim</span>
-          </div>
-          <button
-            onClick={handleSubmit}
-            className="bg-primary h-12 rounded-3xl text-2xl font-semibold text-white"
-          >
-            Entrar
-          </button>
-          <span className="text-center md:hidden">Ainda não tem conta?</span>
-          <button
-            onClick={() => router.push("/register")}
-            className="bg-primary h-8 w-[80%] self-center rounded-3xl text-lg font-semibold text-white md:hidden"
-          >
-            Cadastre se
-          </button>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

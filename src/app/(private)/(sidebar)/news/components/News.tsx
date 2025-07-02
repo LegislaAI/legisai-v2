@@ -54,17 +54,17 @@ export function NewsCard({ title, summary }: NewsCardProps) {
             onClick={() => setIsModalOpen(false)}
             className="text-primary absolute top-2 left-2 flex items-center gap-2 font-bold"
           >
-            <div className="bg-primary rounded-full">
-              <ArrowLeft className="h-6 w-6 text-white" />
+            <div className="rounded-full">
+              <ArrowLeft className="text-primary h-6 w-6" />
             </div>
             Voltar
           </button>
           <Image
             src="/logos/logo.png"
             alt=""
-            width={100}
-            height={100}
-            className="h-auto w-64"
+            width={2000}
+            height={2000}
+            className="h-auto w-40"
           />
           <div className="flex flex-col">
             <h1 className="text-dark self-center text-3xl font-bold">
@@ -75,7 +75,7 @@ export function NewsCard({ title, summary }: NewsCardProps) {
 
           <button
             onClick={() => setIsModalOpen(false)}
-            className="bg-primary bottom-4 rounded-xl px-6 py-4 text-xl font-bold text-white"
+            className="bg-primary bottom-4 rounded-xl px-6 py-4 text-xl text-white"
           >
             Voltar para Legis Dados
           </button>

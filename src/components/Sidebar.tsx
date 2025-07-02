@@ -12,7 +12,7 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-
+import CogIcon from "../../public/icons/cog.svg";
 export function Sidebar() {
   const router = useRouter();
   const pathname = usePathname();
@@ -78,7 +78,7 @@ export function Sidebar() {
           >
             <div className="flex items-center gap-2">
               <BellDot />
-              <span>Novidades e Mídias</span>
+              <span>Novidades e Notícias</span>
             </div>
             <ChevronRight
               className={cn(
@@ -88,26 +88,25 @@ export function Sidebar() {
             />
           </div>
           <div
+            onClick={() => router.push("/procedures")}
             className={cn(
-              "group flex w-full cursor-pointer items-center justify-between",
-              // pathname === "/" && "text-secondary font-semibold",
+              "group flex w-full cursor-pointer items-center justify-between text-black",
+              pathname === "/procedures" && "text-secondary font-semibold",
             )}
           >
             <div className="flex items-center gap-2">
-              <Image
-                // ${pathname === "/" ? "secondary" : ""}
-                src={`/icons/circle-star.png`}
-                alt=""
-                width={250}
-                height={250}
-                className="h-max w-5 object-contain"
+              <CogIcon
+                className={cn(
+                  "h-max w-5 object-contain text-[20px] text-current",
+                  pathname === "/procedures" && "text-secondary",
+                )}
               />
               <span>Tramitação e Informações</span>
             </div>
             <ChevronRight
               className={cn(
                 "text-secondary opacity-0 transition duration-200 group-hover:opacity-100",
-                // pathname === "/" && "opacity-100",
+                pathname === "/procedures" && "opacity-100",
               )}
             />
           </div>
@@ -148,9 +147,10 @@ export function Sidebar() {
           </div>
 
           <div
+            onClick={() => router.push("/profile")}
             className={cn(
               "group flex w-full cursor-pointer items-center justify-between",
-              // pathname === "/" && "text-secondary font-semibold",
+              pathname === "/profile" && "text-secondary font-semibold",
             )}
           >
             <div className="flex items-center gap-2">
@@ -160,7 +160,7 @@ export function Sidebar() {
             <ChevronRight
               className={cn(
                 "text-secondary opacity-0 transition duration-200 group-hover:opacity-100",
-                // pathname === "/" && "opacity-100",
+                pathname === "/" && "opacity-100",
               )}
             />
           </div>
