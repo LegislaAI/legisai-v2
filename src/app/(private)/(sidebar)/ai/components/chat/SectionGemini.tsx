@@ -277,7 +277,7 @@ export function Section({
                       </span>
                     </div>
                     <span className="text-primary hidden font-mono text-sm md:block">
-                      Gravando audio - {elapsedTime}
+                      Gravando áudio - {elapsedTime}
                     </span>
                   </>
                 ) : (
