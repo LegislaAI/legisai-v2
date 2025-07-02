@@ -1,5 +1,6 @@
 "use client";
 import { aiHistory } from "@/@staticData/ai";
+import { Section } from "@/components/chat/SectionGemini";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -11,7 +12,6 @@ import { cn } from "@/lib/utils";
 import { ChevronDown, Minus, Plus, Search } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
-import { Section } from "./components/chat/SectionGemini";
 
 export default function BranchesList() {
   const [loadNewChat, setLoadNewChat] = useState(false);
