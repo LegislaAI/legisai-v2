@@ -28,7 +28,8 @@
   }
   --animate-slide-in: slide-in 300ms ease-out both;
   --animate-slide-out: slide-out 300ms ease-in both;
-
+  --animate-accordion-down: accordion-down 100ms ease-out;
+  --animate-accordion-up: accordion-up 100ms ease-in;
   /* Keyframes */
   @keyframes slide-in {
     from {
@@ -51,7 +52,27 @@
       opacity: 0;
     }
   }
+  @keyframes accordion-down {
+    from {
+      height: 0;
+    }
+    to {
+      height: var(
+        --accordion-content-height,
+      ); /* Pode ser customizado dinamicamente com JS */
+    }
+  }
 
+  @keyframes accordion-up {
+    from {
+      height: var(
+        --accordion-content-height,
+      ); /* Pode ser customizado dinamicamente com JS */
+    }
+    to {
+      height: 0;
+    }
+  }
   --color-primary: #749c5b;
   --color-secondary: #6baa3f;
   --color-dark: #1a1d1f;
@@ -64,6 +85,12 @@
   }
   .fade-out {
     animation: var(--animate-out);
+  }
+  .accordion-down {
+    animation: var(--animate-accordion-down);
+  }
+  .accordion-up {
+    animation: var(--animate-accordion-up);
   }
   .slide-in {
     animation: var(--animate-slide-in);

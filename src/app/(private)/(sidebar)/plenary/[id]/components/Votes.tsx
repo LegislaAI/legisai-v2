@@ -14,12 +14,10 @@ import {
   ChevronLeft,
   ChevronRight,
   Search,
-  Tv,
   User,
   X,
 } from "lucide-react";
 import Image from "next/image";
-import { useEffect, useState } from "react";
 import "swiper/css";
 
 import { Chat } from "./Chat";
@@ -149,174 +147,15 @@ export function Votes() {
     },
   ];
 
-  const formatTime = (time: number): string => {
-    const hours = Math.floor(time / (1000 * 60 * 60));
-    const minutes = Math.floor((time % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((time % (1000 * 60)) / 1000);
-
-    return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
-  };
-
-  const [timeLeft, setTimeLeft] = useState<number>(12 * 60 * 60 * 1000);
-
-  useEffect(() => {
-    const interval = setInterval(() => {
-      setTimeLeft((prevTime) => {
-        if (prevTime <= 1000) {
-          clearInterval(interval); // Limpar o intervalo quando chegar a zero
-          return 0;
-        }
-        return prevTime - 1000; // Subtrair 1 segundo (1000 ms)
-      });
-    }, 1000);
-
-    // Limpeza do intervalo ao desmontar o componente
-    return () => clearInterval(interval);
-  }, []);
-
-  const [selectedStep, setSelectedStep] = useState(0);
-
   return (
     <div className="grid w-full grid-cols-12 gap-8">
-      <div className="col-span-12 flex flex-col rounded-lg bg-white xl:col-span-8">
-        <div className="flex w-full items-center justify-between border-b border-b-zinc-200 p-2">
-          <div className="flex items-center gap-4">
-            <Image
-              src="/static/plenary-logo.png"
-              alt=""
-              width={500}
-              height={500}
-              className="border-primary/40 h-10 w-10 rounded-lg border object-contain lg:h-10 lg:w-10"
-            />
-            <span className="text-primary text-lg font-bold">
-              SESSÃO DELIBERATIVA EXTRAORDINÁRIA (SEMIPRESENCIAL)
-            </span>
-          </div>
-          <div className="text-primary flex items-center gap-2">20/02/2024</div>
-        </div>
-        <div className="text-primary flex flex-1 items-center justify-evenly gap-2 p-2">
-          <div className="border-primary flex flex-col rounded-md border p-2">
-            <span className="text-black">Início:</span>
-            <span className="">
-              {new Date().toLocaleTimeString("pt-BR")} às{" "}
-              {new Date().toLocaleTimeString("pt-BR")}
-            </span>
-          </div>
-          <div className="border-primary flex flex-col rounded-md border p-2">
-            <span className="text-black">Término:</span>
-            <span className="">
-              {new Date().toLocaleTimeString("pt-BR")} às{" "}
-              {new Date().toLocaleTimeString("pt-BR")}
-            </span>
-          </div>
-          <div className="border-primary flex flex-col rounded-md border p-2">
-            <span className="text-black">Situação:</span>
-            <span className="">Encerrado</span>
-          </div>
-        </div>
-        <div className="flex h-12 w-full items-center gap-8 overflow-x-scroll overflow-y-hidden border-t border-t-zinc-200 p-2 lg:overflow-x-auto lg:p-4">
-          <span
-            className={cn(
-              "hover:text-primary cursor-pointer",
-              selectedStep === 0 ? "text-primary font-bold" : "text-zinc-400",
-            )}
-            onClick={() => setSelectedStep(0)}
-          >
-            VISÃO GERAL
-            <div
-              className={cn(
-                "h-px w-full bg-transparent",
-                selectedStep === 0 && "bg-primary",
-              )}
-            />
-          </span>
-          <span
-            className={cn(
-              "hover:text-primary cursor-pointer",
-              selectedStep === 1 ? "text-primary font-bold" : "text-zinc-400",
-            )}
-            onClick={() => setSelectedStep(1)}
-          >
-            VOTAÇÃO
-            <div
-              className={cn(
-                "h-px w-full bg-transparent",
-                selectedStep === 1 && "bg-primary",
-              )}
-            />
-          </span>
-          <span
-            className={cn(
-              "hover:text-primary cursor-pointer",
-              selectedStep === 2 ? "text-primary font-bold" : "text-zinc-400",
-            )}
-            onClick={() => setSelectedStep(2)}
-          >
-            DOCUMENTOS
-            <div
-              className={cn(
-                "h-px w-full bg-transparent",
-                selectedStep === 2 && "bg-primary",
-              )}
-            />
-          </span>
-          <span
-            className={cn(
-              "hover:text-primary cursor-pointer",
-              selectedStep === 3 ? "text-primary font-bold" : "text-zinc-400",
-            )}
-            onClick={() => setSelectedStep(3)}
-          >
-            PRESENÇAS
-            <div
-              className={cn(
-                "h-px w-full bg-transparent",
-                selectedStep === 3 && "bg-primary",
-              )}
-            />
-          </span>
-          <span
-            className={cn(
-              "hover:text-primary cursor-pointer",
-              selectedStep === 4 ? "text-primary font-bold" : "text-zinc-400",
-            )}
-            onClick={() => setSelectedStep(4)}
-          >
-            ORDEM DO DIA
-            <div
-              className={cn(
-                "h-px w-full bg-transparent",
-                selectedStep === 4 && "bg-primary",
-              )}
-            />
-          </span>
-        </div>
-      </div>
-      <div className="relative col-span-12 flex h-full flex-col items-center justify-between overflow-hidden rounded-xl bg-[url('/static/livePlenary2.png')] bg-cover bg-no-repeat xl:col-span-4">
-        <div className="bg-primary flex h-full w-full flex-col items-center justify-between gap-4 p-4">
-          <div className="text-6xl font-bold text-white">
-            {formatTime(timeLeft)}
-          </div>
-          <div className="px-8 text-center text-sm font-bold text-white uppercase">
-            {" "}
-            LOGO VOCÊ ACESSARÁ O LINK PARA acompanhamento{" "}
-            <span className="font-black">ao vivo</span> O PRÓXIMO PLENÁRIO
-          </div>
-          <button className="overflow-hidden rounded-full">
-            <div className="bg-primary flex h-full w-full items-center gap-2 p-2 text-white opacity-40">
-              <Tv />
-              <span>EM BREVE DISPONÍVEL</span>
-            </div>
-          </button>
-        </div>
-      </div>
       <div className="col-span-12 flex flex-col overflow-hidden rounded-lg bg-white xl:col-span-12">
         <div className="flex h-full w-full flex-col">
           <span className="text-primary p-4 text-xl font-bold">
             Propostas a Serem Analisadas
           </span>
-          <div className="flex h-80 w-full flex-row justify-evenly p-4 xl:h-full">
-            <div className="text-primary border-primary flex flex-col gap-8 rounded-lg border p-8">
+          <div className="flex w-full flex-row flex-wrap justify-evenly gap-4 p-4 md:gap-0 lg:h-80 xl:h-full">
+            <div className="text-primary border-primary flex w-full flex-col gap-8 rounded-lg border p-8 md:w-max">
               <div className="flex flex-row items-center gap-2">
                 <User />
                 <span className="text-xl font-bold">Quórum votação</span>
@@ -332,7 +171,7 @@ export function Votes() {
                 <span className="text-4xl font-bold">287</span>
               </div>
             </div>
-            <div className="text-primary border-primary flex flex-col gap-8 rounded-lg border p-8">
+            <div className="text-primary border-primary flex w-full flex-col gap-8 rounded-lg border p-8 md:w-max">
               <div className="flex flex-row items-center gap-2">
                 <User />
                 <span className="text-xl font-bold">Total de Presentes</span>
@@ -344,7 +183,7 @@ export function Votes() {
                 <span className="text-4xl font-bold">320</span>
               </div>
             </div>
-            <div className="text-primary border-primary flex flex-col gap-8 rounded-lg border p-8">
+            <div className="text-primary border-primary flex w-full flex-col gap-8 rounded-lg border p-8 md:w-max">
               <div className="flex flex-row items-center gap-2">
                 <User />
                 <span className="text-xl font-bold">Total de Propostas</span>
@@ -362,7 +201,7 @@ export function Votes() {
           <span className="text-primary text-xl font-bold">
             Propostas a Serem Analisadas e seus Votos
           </span>
-          <div className="px-4">
+          <div className="lg:px-4">
             <div className="border-primary flex w-full flex-col overflow-hidden rounded-lg border bg-white px-4 py-2 md:px-8">
               <div className="flex h-full w-full flex-col justify-between md:flex-row">
                 <div className="flex flex-col justify-between gap-8 md:max-w-[60%]">
@@ -544,82 +383,7 @@ export function Votes() {
           </div>
         </div>
       </div>
-      {/* <div className="col-span-12 flex flex-col justify-between gap-4 rounded-lg bg-white p-4 xl:col-span-4">
-        <div className="flex flex-col gap-4">
-          <span className="text-primary text-xl font-bold">
-            Resumo da Proposta
-          </span>
-          <div className="flex w-full flex-col items-center justify-between gap-4 md:flex-row xl:flex-col 2xl:flex-row">
-            <div className="relative flex h-28 w-full overflow-hidden rounded-xl md:w-1/3 xl:w-full 2xl:w-1/3">
-              <Image
-                src="/static/parallax-card.png"
-                alt=""
-                width={500}
-                height={500}
-                className="absolute top-0 left-0 h-full w-full object-cover"
-              />
-              <div className="from-primary/20 to-primary/80 absolute top-0 left-0 z-10 flex h-full w-full flex-col justify-end gap-2 bg-gradient-to-b p-2 text-white">
-                <span className="w-max rounded-sm bg-[#27AE60] px-2 py-1 text-xs">
-                  sessão deliberativa
-                </span>
-                <span className="w-40 text-xs font-bold">
-                  Pauta da <br /> Sessão plenária
-                </span>
-              </div>
-            </div>
-            <div className="relative flex h-28 w-full overflow-hidden rounded-xl md:w-1/3 xl:w-full 2xl:w-1/3">
-              <Image
-                src="/static/parallax-card.png"
-                alt=""
-                width={500}
-                height={500}
-                className="absolute top-0 left-0 h-full w-full object-cover"
-              />
-              <div className="from-primary/20 to-primary/80 absolute top-0 left-0 z-10 flex h-full w-full flex-col justify-end gap-2 bg-gradient-to-b p-2 text-white">
-                <span className="w-max rounded-sm bg-[#27AE60] px-2 py-1 text-xs">
-                  sessão deliberativa
-                </span>
-                <span className="w-40 text-xs font-bold">
-                  Oradores inscritos <br /> para discursar
-                </span>
-              </div>
-            </div>
-            <div className="relative flex h-28 w-full overflow-hidden rounded-xl md:w-1/3 xl:w-full 2xl:w-1/3">
-              <Image
-                src="/static/parallax-card.png"
-                alt=""
-                width={500}
-                height={500}
-                className="absolute top-0 left-0 h-full w-full object-cover"
-              />
-              <div className="from-primary/20 to-primary/80 absolute top-0 left-0 z-10 flex h-full w-full flex-col justify-end gap-2 bg-gradient-to-b p-2 text-white">
-                <span className="w-max rounded-sm bg-[#27AE60] px-2 py-1 text-xs">
-                  sessão deliberativa
-                </span>
-                <span className="w-40 text-xs font-bold">
-                  Atas da Reunião <br /> Plenária
-                </span>
-              </div>
-            </div>
-          </div>
-          <button className="bg-primary mx-auto w-max rounded-md px-2 py-1 text-white">
-            Clique acima e Acesse
-          </button>
-        </div>
-        <div className="flex flex-col gap-4">
-          <span className="text-primary text-xl font-bold">
-            Sessão em Texto e Vídeo
-          </span>
-          <button className="bg-primary/20 border-primary text-primary w-full rounded-md border p-2 text-xs underline">
-            <span className="font-bold">CLIQUE AQUI</span>
-            <span>PARA VER A SESSÃO PLENÁRIA EM FORMATO DE TEXTO</span>
-          </button>
-          <button className="bg-primary/20 border-primary text-primary w-full rounded-md border p-2 text-xs underline">
-            <span className="font-bold">CLIQUE AQUI</span>
-            <span>PARA VER A SESSÃO PLENÁRIA EM FORMATO DE TEXTO</span>
-          </button>
-        </div>
-      </div> */}
+
       <div className="col-span-12 flex flex-row gap-4 rounded-lg bg-white p-4">
         <div className="mt-4 flex w-full flex-col gap-4">
           <h2 className="text-primary text-lg font-bold uppercase">
@@ -792,7 +556,7 @@ export function Votes() {
           <span className="text-primary p-4 text-xl font-bold">
             Propostas a Serem Analisadas
           </span>
-          <div className="grid w-full grid-cols-5 flex-row justify-evenly gap-8 p-4 xl:h-full">
+          <div className="grid w-full grid-cols-1 flex-row justify-evenly gap-8 p-4 lg:grid-cols-5 xl:h-full">
             <div className="flex flex-col gap-4">
               <div className="text-primary bg-primary/20 border-primary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
                 <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
