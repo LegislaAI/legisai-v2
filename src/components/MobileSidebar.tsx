@@ -31,7 +31,7 @@ export function MobileSidebar() {
         <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
           <SheetContent
             side="left"
-            className="flex h-full flex-col justify-between gap-4"
+            className="flex h-full flex-col justify-between gap-4 bg-white"
           >
             <SheetTitle>
               <div className="flex w-full items-center justify-between">
