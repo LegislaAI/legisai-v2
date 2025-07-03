@@ -110,7 +110,7 @@ export default function Register() {
   return (
     <main className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-white pb-10 md:pb-0">
       <Image
-        src={"/static/login.png"}
+        src={"/static/register2.png"}
         className="absolute right-0 z-10 hidden h-[95%] w-[40%] rounded-tl-lg rounded-bl-lg object-cover md:block"
         alt=""
         width={1000}

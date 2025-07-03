@@ -516,7 +516,7 @@ export function General() {
             <AccordionContent className="flex w-full flex-col p-2 text-black">
               <div className="flex w-full flex-row items-center rounded-md p-2 text-start text-base">
                 <div className="border-primary w-full border-l px-2 text-lg">
-                  xxxxx
+                  03/07/2025
                 </div>
               </div>
             </AccordionContent>

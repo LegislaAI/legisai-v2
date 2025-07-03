@@ -2,6 +2,7 @@
 import { useSidebarContext } from "@/context/SidebarContext";
 import { cn } from "@/lib/utils";
 import { ArrowLeft, BellDot, Menu, Search } from "lucide-react";
+import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 
 export function Header() {
@@ -29,7 +30,15 @@ export function Header() {
         </button>
         <Search />
         <BellDot />
-        <div className="bg-primary h-8 w-8 rounded-full"></div>
+        <div className="bg-primary h-8 w-8 rounded-full">
+          <Image
+            src="/avatar.jpeg"
+            alt="logo"
+            width={500}
+            height={500}
+            className="h-full w-full rounded-full"
+          />
+        </div>
         <Menu className="lg:hidden" onClick={() => setIsSidebarOpen(true)} />
       </div>
     </div>

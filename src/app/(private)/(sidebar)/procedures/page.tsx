@@ -45,7 +45,7 @@ export default function BranchesList() {
           />
           <br />
           <h2 className="text-sm font-medium text-zinc-400 xl:text-base">
-            Inteligencia artificial treinada com dados da Câmara legislativa.
+            Inteligência artificial treinada com dados da Câmara legislativa.
           </h2>
           <h2 className="text-lg font-medium xl:text-2xl">
             Acesse informações diretas da Câmara dos Deputados

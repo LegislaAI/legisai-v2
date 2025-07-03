@@ -72,7 +72,7 @@ export function Presence() {
                 deputados presentes:
               </h2>
               <span className="text-black">
-                Verifique todos aqueles que estavam de faot presente na Sessão
+                Verifique todos aqueles que estavam de fato presente na Sessão
                 Deliberativa
               </span>
             </div>
