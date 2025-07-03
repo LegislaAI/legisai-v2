@@ -11,30 +11,41 @@ import { Input } from "@/components/ui/Input";
 import { cn } from "@/lib/utils";
 import { ChevronDown, Minus, Plus, Search } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function BranchesList() {
   const [loadNewChat, setLoadNewChat] = useState(false);
   const [openInfo, setOpenInfo] = useState(false);
   const items = [
-    { label: "Todos" },
-    { label: "PEC - Proposta de Emenda à Constituição" },
-    { label: "PLP - Projeto de Lei Complementar" },
-    { label: "PL - Projeto de Lei" },
-    { label: "MPV - Medida Provisória" },
-    { label: "PLV - Projeto de Lei de Conversão" },
-    { label: "PDL - Projeto de Decreto Legislativo" },
-    { label: "PRC - Projeto de Resolução" },
-    { label: "REQ - Requerimento" },
-    { label: "RIC - Requerimento de Informação" },
-    { label: "RCP - Requerimento de Inst. de CPI" },
-    { label: "MSC - Mensagem" },
-    { label: "INC - Indicação" },
+    { id: "456123", label: "Todos" },
+    { id: "789456", label: "PEC - Proposta de Emenda à Constituição" },
+    { id: "654321", label: "PLP - Projeto de Lei Complementar" },
+    { id: "963852", label: "PL - Projeto de Lei" },
+    { id: "753159", label: "MPV - Medida Provisória" },
+    { id: "321654", label: "PLV - Projeto de Lei de Conversão" },
+    { id: "985632", label: "PDL - Projeto de Decreto Legislativo" },
+    { id: "159753", label: "PRC - Projeto de Resolução" },
+    { id: "846219", label: "REQ - Requerimento" },
+    { id: "357192", label: "RIC - Requerimento de Informação" },
+    { id: "279036", label: "RCP - Requerimento de Inst. de CPI" },
+    { id: "943817", label: "MSC - Mensagem" },
+    { id: "136598", label: "INC - Indicação" },
   ];
-
+  const [selectedDocument, setSelectedDocument] = useState({
+    id: "",
+    label: "",
+  });
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get("param1");
+    const item = items.find((item) => item.id === id);
+    if (item) {
+      setSelectedDocument(item);
+    }
+  }, []);
   return (
     <div className="flex w-full items-center justify-center gap-2">
-      <div className="flex h-[calc(100vh-150px)] w-full flex-col justify-between rounded-2xl bg-white p-2 xl:w-9/12 xl:p-4">
+      <div className="flex h-[calc(100vh-100px)] w-full flex-col justify-between rounded-2xl bg-white p-2 lg:h-[calc(100vh-150px)] xl:w-9/12 xl:p-4">
         <div className="relative">
           <Image
             src="/logos/camara.png"
@@ -50,11 +61,12 @@ export default function BranchesList() {
           <h2 className="text-lg font-medium xl:text-2xl">
             Acesse informações diretas da Câmara dos Deputados
           </h2>
-          <div className="absolute top-2 right-2 flex items-center gap-2">
+          <div className="top-2 right-2 mt-2 flex items-center gap-2 lg:absolute lg:mt-0">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="bg-primary flex items-center gap-2 rounded-full px-2 py-1 text-base font-medium text-white focus:outline-none xl:top-4 xl:right-4 xl:px-4 xl:py-2 xl:text-xl">
-                  Documentos <ChevronDown />
+                  {selectedDocument.label || "Selecione um documento"}
+                  <ChevronDown />
                 </button>
               </DropdownMenuTrigger>
 
@@ -65,6 +77,7 @@ export default function BranchesList() {
                 {items.map((item, index) => (
                   <DropdownMenuItem
                     key={index}
+                    onClick={() => setSelectedDocument(item)}
                     className="group rounded-none border-b border-b-zinc-400 hover:bg-transparent"
                   >
                     <div className="w-full rounded-md p-2 text-lg group-hover:bg-zinc-400">

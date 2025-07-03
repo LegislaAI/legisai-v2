@@ -294,11 +294,22 @@ export function useSectionChat({
   function getCallId(fc: FunctionCallWithId): string {
     return fc.toolCallId ?? fc.id ?? crypto.randomUUID();
   }
-  async function handleSendMessage() {
-    if (loading || (!inputMessage.trim() && !file)) return;
+  async function handleSendMessage(message?: string) {
+    const inputMessages2 = message ?? inputMessage;
+    console.log(
+      "entro",
+      "inputMessages",
+      inputMessage,
+      "file",
+      file,
+      "carregando",
+      loading,
+    );
+
+    if (loading || (!inputMessages2.trim() && !file)) return;
     cancelStreamRef.current = false;
     setLoading(true);
-
+    console.log("enviando");
     /* push user message + placeholder */
     const outgoing: Message[] = [];
     if (file)
@@ -309,8 +320,8 @@ export function useSectionChat({
         type: file.type,
         name: file.name,
       });
-    if (inputMessage.trim())
-      outgoing.push({ role: "user", content: inputMessage });
+    if (inputMessages2.trim())
+      outgoing.push({ role: "user", content: inputMessages2 });
     const AI_ROLE = "ai";
     setMessages((prev) => {
       const list = [
@@ -334,7 +345,7 @@ export function useSectionChat({
       /* chatId */
       if (!curChatId && shouldCreateChat) {
         const newId = await handleCreateChat(
-          inputMessage || `Chat com arquivo ${file?.name || ""}`,
+          inputMessages2 || `Chat com arquivo ${file?.name || ""}`,
         );
         if (!newId) throw new Error("Falha createChat");
         curChatId = newId;
@@ -351,10 +362,10 @@ export function useSectionChat({
       }
 
       /* TEXT */
-      if (inputMessage.trim()) parts.push({ text: inputMessage });
-      if (inputMessage.trim() && curChatId) {
+      if (inputMessages2.trim()) parts.push({ text: inputMessages2 });
+      if (inputMessages2.trim() && curChatId) {
         await handlePostMessage(curChatId, {
-          text: inputMessage,
+          text: inputMessages2,
           entity: "user",
           mimeType: "text",
         });

@@ -93,6 +93,21 @@ export function Section({
       );
     }
   }, [startMessage, messages]);
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const query = urlParams.get("param2");
+    if (query && !messages.find((m) => m.content === query)) {
+      handleSendMessage(query);
+      urlParams.delete("param2");
+      window.history.replaceState(
+        {},
+        "",
+        `${window.location.pathname}?${urlParams.toString()}`,
+      );
+    }
+  }, [messages]);
+
   return (
     <div className="flex h-full w-full flex-col">
       <div className="flex h-full w-full flex-col items-center justify-between gap-2 rounded-lg xl:flex-row xl:gap-8">

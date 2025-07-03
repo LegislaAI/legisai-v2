@@ -12,20 +12,55 @@ import { Sheet, SheetContent, SheetHeader } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { ChevronDown, Minus, Plus, Search } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function BranchesList() {
   const [loadNewChat, setLoadNewChat] = useState(false);
   const [openInfo, setOpenInfo] = useState(false);
   const [open, setOpen] = useState(false);
   const items = [
-    { icon: "/icons/ai-01.svg", label: "IA JURÍDICA" },
-    { icon: "/icons/ai-02.svg", label: "IA POLÍTICA" },
-    { icon: "/icons/ai-03.svg", label: "IA CONTABILIDADE" },
-    { icon: "/icons/ai-04.svg", label: "IA DOC JURÍDICO" },
-    { icon: "/icons/ai-05.svg", label: "IA GERAL" },
-    { icon: "/icons/ai-06.svg", label: "IA DOC CONTÁBIL" },
-    { icon: "/icons/ai-07.svg", label: "IA DEPUTADO" },
+    {
+      id: "827364",
+      icon: "/icons/ai-01.svg",
+      label: "IA JURÍDICA",
+      description: `IA especializada em análise e suporte político, ideal para entender cenários, dados e estratégias no campo público.`,
+    },
+    {
+      id: "264891",
+      icon: "/icons/ai-02.svg",
+      label: "IA POLÍTICA",
+      description: `Assistente jurídica inteligente, ágil na interpretação de normas, decisões e análises legais com precisão.`,
+    },
+    {
+      id: "945672",
+      icon: "/icons/ai-03.svg",
+      label: "IA CONTABILIDADE",
+      description: `Especialista em contabilidade, organiza e analisa dados contábeis de forma eficiente.`,
+    },
+    {
+      id: "536781",
+      icon: "/icons/ai-04.svg",
+      label: "IA DOC JURÍDICO",
+      description: `Focada na busca e análise rápida de documentos jurídicos com precisão.`,
+    },
+    {
+      id: "183947",
+      icon: "/icons/ai-05.svg",
+      label: "IA GERAL",
+      description: `Ferramenta versátil, útil para encontrar informações e responder perguntas em diversos contextos.`,
+    },
+    {
+      id: "678302",
+      icon: "/icons/ai-06.svg",
+      label: "IA DOC CONTÁBIL",
+      description: `Auxilia na busca e análise ágil de documentos contábeis.`,
+    },
+    {
+      id: "491205",
+      icon: "/icons/ai-07.svg",
+      label: "IA DEPUTADO",
+      description: `Especializada em buscar e analisar informações sobre deputados.`,
+    },
   ];
   const items2 = [
     { label: "Todos" },
@@ -35,6 +70,15 @@ export default function BranchesList() {
     { label: "Loren Ipsum is simply" },
   ];
   const [selectedAi, setSelectedAi] = useState<string>("IA JURÍDICA");
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get("param1");
+    const item = items.find((item) => item.id === id);
+    console.log("item", item);
+    if (item) {
+      setSelectedAi(item.label);
+    }
+  }, []);
   return (
     <>
       <Sheet open={open} onOpenChange={() => setOpen(false)}>

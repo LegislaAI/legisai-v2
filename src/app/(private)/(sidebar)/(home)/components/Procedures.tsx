@@ -19,21 +19,24 @@ import { useState } from "react";
 export function Procedures() {
   const router = useRouter();
   const items = [
-    { label: "Todos" },
-    { label: "PEC - Proposta de Emenda à Constituição" },
-    { label: "PLP - Projeto de Lei Complementar" },
-    { label: "PL - Projeto de Lei" },
-    { label: "MPV - Medida Provisória" },
-    { label: "PLV - Projeto de Lei de Conversão" },
-    { label: "PDL - Projeto de Decreto Legislativo" },
-    { label: "PRC - Projeto de Resolução" },
-    { label: "REQ - Requerimento" },
-    { label: "RIC - Requerimento de Informação" },
-    { label: "RCP - Requerimento de Inst. de CPI" },
-    { label: "MSC - Mensagem" },
-    { label: "INC - Indicação" },
+    { id: "456123", label: "Todos" },
+    { id: "789456", label: "PEC - Proposta de Emenda à Constituição" },
+    { id: "654321", label: "PLP - Projeto de Lei Complementar" },
+    { id: "963852", label: "PL - Projeto de Lei" },
+    { id: "753159", label: "MPV - Medida Provisória" },
+    { id: "321654", label: "PLV - Projeto de Lei de Conversão" },
+    { id: "985632", label: "PDL - Projeto de Decreto Legislativo" },
+    { id: "159753", label: "PRC - Projeto de Resolução" },
+    { id: "846219", label: "REQ - Requerimento" },
+    { id: "357192", label: "RIC - Requerimento de Informação" },
+    { id: "279036", label: "RCP - Requerimento de Inst. de CPI" },
+    { id: "943817", label: "MSC - Mensagem" },
+    { id: "136598", label: "INC - Indicação" },
   ];
-  const [selectedDocument, setSelectedDocument] = useState("");
+  const [selectedDocument, setSelectedDocument] = useState({
+    id: "",
+    label: "",
+  });
   const [value, setValue] = useState("");
   return (
     <div className="flex h-96 w-full flex-col justify-between rounded-lg bg-white p-2 lg:w-1/2 lg:p-4">
@@ -70,7 +73,11 @@ export function Procedures() {
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <div className="text-light-dark border-light-dark flex w-2/3 cursor-pointer items-center justify-center gap-1 rounded-t-lg border border-b-0 p-1 text-sm lg:w-1/2 lg:gap-2 lg:p-2">
-              <span>Selecionar Tipo de Documentos</span>
+              <span>
+                {selectedDocument.label
+                  ? selectedDocument.label
+                  : "Selecionar Tipo de Documentos"}
+              </span>
               <ChevronDown />
             </div>
           </DropdownMenuTrigger>
@@ -86,7 +93,7 @@ export function Procedures() {
                 className="group rounded-none border-b border-b-zinc-400 hover:bg-transparent"
               >
                 <div
-                  onClick={() => setSelectedDocument(item.label)}
+                  onClick={() => setSelectedDocument(item)}
                   className="w-full cursor-pointer rounded-md p-2 text-lg group-hover:bg-zinc-400"
                 >
                   {item.label}
@@ -106,7 +113,7 @@ export function Procedures() {
           <button
             onClick={() =>
               router.push(
-                `/ai?param1=${encodeURIComponent(selectedDocument)}&param2=${encodeURIComponent(
+                `/procedures?param1=${encodeURIComponent(selectedDocument.id)}&param2=${encodeURIComponent(
                   value,
                 )}`,
               )
