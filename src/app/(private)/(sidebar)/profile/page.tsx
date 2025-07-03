@@ -1,13 +1,14 @@
 "use client";
 import { ProfileProps } from "@/@types/user";
 
-import { useApiContext } from "@/context/ApiContext";
+// import { useApiContext } from "@/context/ApiContext";
 
 // import { useUserContext } from "@/context/userContext";
 import { cn } from "@/lib/utils";
 import { Dock, Lock, Mail, Menu, Phone, User } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+// import toast from "react-hot-toast";
 export interface PlanProps {
   id: string;
   name: string;
@@ -25,8 +26,7 @@ export interface PlanProps {
 export default function Profile() {
   // const { profile, setProfile, creditCard } = useUserContext();
   const [visibleSections, setVisibleSections] = useState<number[]>([]);
-
-  const [, setPlans] = useState<PlanProps[]>([]);
+  //  const {PutAPI} = useApiContext();
 
   const [isEditing] = useState(false);
   const [localProfile, setLocalProfile] = useState<ProfileProps | null>({
@@ -56,15 +56,6 @@ export default function Profile() {
     };
   }, []);
 
-  const { GetAPI } = useApiContext();
-  async function HandleGetPlans() {
-    const response = await GetAPI(`signature/plans`, false);
-    if (response.status === 200) {
-      setPlans(response.body.plans);
-    } else {
-    }
-  }
-
   // async function HandleEditProfile() {
 
   //   const editProfile = await PutAPI(
@@ -79,10 +70,6 @@ export default function Profile() {
   //   }
   //   return toast.error("Erro ao editar perfil");
   // }
-
-  useEffect(() => {
-    HandleGetPlans();
-  }, []);
 
   // useEffect(() => {
   //   if (profile) {
@@ -147,7 +134,7 @@ export default function Profile() {
             } flex flex-col gap-4 rounded-lg bg-white p-2 px-4 pb-8 shadow-lg transition-all duration-300 md:col-span-6 lg:col-span-4 lg:row-span-8`}
           >
             <div className="flex w-full flex-row items-center justify-between">
-              <span className="text-default-900 text-lg font-black text-[#4C785D]">
+              <span className="text-default-900 text-primary text-lg font-black">
                 Seus Dados
               </span>
               <div className="flex flex-row items-center gap-2">

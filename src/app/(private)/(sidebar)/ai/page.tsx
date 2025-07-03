@@ -34,7 +34,7 @@ export default function BranchesList() {
     { label: "Loren Ipsum is simply" },
     { label: "Loren Ipsum is simply" },
   ];
-
+  const [selectedAi, setSelectedAi] = useState<string>("IA JURÍDICA");
   return (
     <>
       <Sheet open={open} onOpenChange={() => setOpen(false)}>
@@ -78,6 +78,10 @@ export default function BranchesList() {
                       {/* Se “item” tiver sub-itens: */}
                       {items2.map((sub, subIndex) => (
                         <button
+                          onClick={() => {
+                            setSelectedAi(item.label);
+                            setOpen(false);
+                          }}
                           key={subIndex}
                           className="flex w-full flex-row items-center rounded-md p-2 text-start text-base hover:bg-[#4C785D] hover:text-white"
                         >
@@ -118,7 +122,7 @@ export default function BranchesList() {
                 onClick={() => setOpen(true)}
                 className="bg-primary flex items-center gap-2 rounded-full px-2 py-1 text-base text-white xl:top-4 xl:right-4 xl:px-4 xl:py-2 xl:text-lg"
               >
-                IA JURÍDICA <ChevronDown />
+                {selectedAi} <ChevronDown />
               </button>
               <button
                 onClick={() => setOpenInfo(true)}

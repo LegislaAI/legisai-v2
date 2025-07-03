@@ -1,7 +1,16 @@
 "use client";
 import { useSidebarContext } from "@/context/SidebarContext";
 import { cn } from "@/lib/utils";
-import { ChevronRight, Menu } from "lucide-react";
+import {
+  BellDot,
+  ChevronRight,
+  Home,
+  Menu,
+  Settings2Icon,
+  Sparkle,
+  Sparkles,
+  Wallet,
+} from "lucide-react";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -38,7 +47,7 @@ export function MobileSidebar() {
             </SheetTitle>
 
             <div className="flex flex-col gap-4">
-              {/* <div
+              <div
                 onClick={() => router.push("/")}
                 className={cn(
                   "group flex w-full cursor-pointer items-center justify-between",
@@ -93,7 +102,7 @@ export function MobileSidebar() {
                     pathname === "/news" && "opacity-100",
                   )}
                 />
-              </div> */}
+              </div>
               <div
                 onClick={() => router.push("/procedures")}
                 className={cn(
@@ -119,7 +128,7 @@ export function MobileSidebar() {
                   )}
                 />
               </div>
-              {/* <div
+              <div
                 onClick={() => router.push("/ai")}
                 className={cn(
                   "group flex w-full cursor-pointer items-center justify-between",
@@ -172,7 +181,7 @@ export function MobileSidebar() {
                     // pathname === "/" && "opacity-100",
                   )}
                 />
-              </div> */}
+              </div>
             </div>
             <div className="bg-surface flex h-60 w-60 flex-col overflow-hidden rounded-xl">
               <Image

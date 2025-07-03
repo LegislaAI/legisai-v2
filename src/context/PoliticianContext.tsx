@@ -20,6 +20,8 @@ interface PoliticianContextProps {
   selectedPoliticianId: string;
   setSelectedPoliticianId: React.Dispatch<React.SetStateAction<string>>;
   selectedYear: string;
+  loading: boolean;
+  setLoading?: React.Dispatch<React.SetStateAction<boolean>>;
   setSelectedYear: React.Dispatch<React.SetStateAction<string>>;
   GetPoliticians: ({ page, query }: GetPoliticiansProps) => Promise<void>;
   GetSelectedPoliticianDetails: () => Promise<void>;
@@ -35,6 +37,7 @@ interface ProviderProps {
 
 export const PoliticianContextProvider = ({ children }: ProviderProps) => {
   const cookies = useCookies();
+  const [loading, setLoading] = useState<boolean>(false);
   const [politicians, setPoliticians] = useState<PoliticianProps[]>([]);
   const [selectedPoliticianId, setSelectedPoliticianId] = useState<string>("");
   const [selectedPolitician, setSelectedPolitician] =
@@ -62,6 +65,7 @@ export const PoliticianContextProvider = ({ children }: ProviderProps) => {
   }
 
   async function GetSelectedPoliticianDetails() {
+    setLoading(true);
     let id = "";
     if (cookies.get("selectedPoliticianId")) {
       id = cookies.get("selectedPoliticianId") as string;
@@ -75,8 +79,10 @@ export const PoliticianContextProvider = ({ children }: ProviderProps) => {
     params += `?year=${selectedYear}`;
     const details = await GetAPI(`/politician/details/${params}`, true);
     if (details.status === 200) {
+      setLoading(false);
       return setSelectedPolitician(details.body.politician);
     } else {
+      setLoading(false);
       return setSelectedPolitician(null);
     }
   }
@@ -100,6 +106,7 @@ export const PoliticianContextProvider = ({ children }: ProviderProps) => {
   return (
     <PoliticianContext.Provider
       value={{
+        loading,
         politicians,
         politicianPages,
         selectedPolitician,

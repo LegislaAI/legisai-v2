@@ -1,3 +1,4 @@
+import moment from "moment";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
@@ -5,9 +6,10 @@ interface PlenaryCardProps {
   id: string;
   title: string;
   summary: string;
+  date?: string;
 }
 
-export function PlenaryCard({ title, summary, id }: PlenaryCardProps) {
+export function PlenaryCard({ title, summary, id, date }: PlenaryCardProps) {
   const router = useRouter();
 
   return (
@@ -24,7 +26,9 @@ export function PlenaryCard({ title, summary, id }: PlenaryCardProps) {
           />
         </div>
         <div>
-          <h2 className="text-dark text-lg font-medium">{title}</h2>
+          <h2 className="text-dark text-lg font-medium">
+            {title} - {moment(date).format("DD/MM/YY")}
+          </h2>
           <p className="w-full text-gray-600 lg:hidden lg:w-[650px] lg:truncate">
             {summary.length > 100 ? summary.slice(0, 100) + "..." : summary}
           </p>

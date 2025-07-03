@@ -450,6 +450,7 @@ export function useSectionChat({
   /* ─────────────────────────────── EXPORT ─────────────────────────────── */
   return {
     messages,
+    setMessages,
     loading,
     chatId,
     inputMessage,

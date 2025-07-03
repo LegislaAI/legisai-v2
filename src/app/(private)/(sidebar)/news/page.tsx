@@ -49,9 +49,7 @@ export default function News() {
       <div className="flex w-full gap-6 p-2 lg:px-8 lg:pt-10">
         {[
           { key: "all", label: "Todos" },
-          { key: "websites", label: "Websites" },
           { key: "legis", label: "Câmara Legislativa" },
-          { key: "others", label: "Outros" },
         ].map((tab) => (
           <button
             key={tab.key}

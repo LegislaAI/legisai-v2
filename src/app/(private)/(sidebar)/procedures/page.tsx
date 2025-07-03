@@ -124,7 +124,7 @@ export default function BranchesList() {
               onClick={() => {
                 setLoadNewChat(true);
               }}
-              className="bg-primary mt-4 h-12 w-2/3 cursor-pointer self-center rounded-3xl text-2xl font-semibold text-white"
+              className="bg-primary mt-4 h-12 w-2/3 cursor-pointer self-center rounded-3xl text-lg font-semibold text-white"
             >
               Novo Chat
             </button>

@@ -4,6 +4,13 @@ import { ChevronRight, Info } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
+import {
+  Tooltip,
+  TooltipArrow,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 export function Plenaries() {
   const router = useRouter();
 
@@ -12,12 +19,29 @@ export function Plenaries() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-dark font-semibold">Últimos Plenários</span>
-          <Info className="text-light-dark" />
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <Info className="text-light-dark" />
+              </TooltipTrigger>
+              <TooltipContent
+                side="top"
+                align="start"
+                className="border-primary bg-primary border"
+              >
+                <p className="text-white">Loren Ipsum</p>
+                <TooltipArrow className="fill-primary" />
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
-        <div className="flex items-center gap-2">
+        <button
+          onClick={() => router.push("/plenary")}
+          className="flex items-center gap-2"
+        >
           <span className="text-secondary font-semibold">Ver todos</span>
           <ChevronRight className="text-secondary" />
-        </div>
+        </button>
       </div>
       <ScrollArea>
         {Array.from({ length: 5 }).map((_, index) => (

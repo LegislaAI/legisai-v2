@@ -13,8 +13,9 @@ import { useChatPage } from "../../../../../../components/chat/chat-history-hand
 
 interface ChatProps {
   title: string;
+  initialMessage?: string;
 }
-export function Chat({ title }: ChatProps) {
+export function Chat({ title, initialMessage }: ChatProps) {
   const [showMenu, setShowMenu] = useState(false);
   const {
     prompts,
@@ -191,6 +192,7 @@ export function Chat({ title }: ChatProps) {
                   loadOldChat={loadChat}
                   setLoadOldChat={setLoadChat}
                   prompts={prompts}
+                  startMessage={initialMessage}
                 />
               </div>
             </div>

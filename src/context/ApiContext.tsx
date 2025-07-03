@@ -26,6 +26,7 @@ export interface ApiContextProps {
     auth: boolean,
   ) => Promise<{ status: number; body: any }>;
   token: string;
+  clearToken: () => void;
 }
 
 const ApiContext = createContext<ApiContextProps | undefined>(undefined);
@@ -38,7 +39,9 @@ export const ApiContextProvider = ({ children }: ProviderProps) => {
   const cookies = useCookies();
 
   const token = cookies.get(process.env.NEXT_PUBLIC_USER_TOKEN as string);
-
+  function clearToken() {
+    cookies.remove(process.env.NEXT_PUBLIC_USER_TOKEN as string);
+  }
   const api = axios.create({
     baseURL,
   });
@@ -150,6 +153,7 @@ export const ApiContextProvider = ({ children }: ProviderProps) => {
         token: token ? token : "",
         PostAPI,
         GetAPI,
+        clearToken,
         PutAPI,
         DeleteAPI,
       }}

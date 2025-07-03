@@ -24,7 +24,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./tooltip";
-import { Prompt } from "./types";
+import { Message, Prompt } from "./types";
 
 interface props {
   setLoadHistory?: React.Dispatch<React.SetStateAction<boolean>>;
@@ -35,6 +35,7 @@ interface props {
   selectedPrompt?: Prompt;
   setSelectedPrompt?: React.Dispatch<React.SetStateAction<Prompt>>;
   prompts?: Prompt[];
+  startMessage?: string;
 }
 
 export function Section({
@@ -43,6 +44,7 @@ export function Section({
   setLoadOldChat,
   loadNewChat,
   setLoadNewChat,
+  startMessage,
   // selectedPrompt,
 }: props) {
   const {
@@ -57,6 +59,7 @@ export function Section({
     handleFileUpload,
     startRecording,
     stopRecording,
+    setMessages,
     handleSendMessage,
   } = useSectionChat({
     loadNewChat,
@@ -74,6 +77,22 @@ export function Section({
         scrollAreaViewportRef.current.scrollHeight;
     }
   }, [messages]);
+  useEffect(() => {
+    if (
+      startMessage &&
+      (!messages.length || messages[0]?.content !== startMessage)
+    ) {
+      const newMessage: Message = {
+        content: startMessage,
+        role: "ai",
+      };
+      setMessages((prevMessages) =>
+        prevMessages.find((m) => m.content === startMessage)
+          ? prevMessages
+          : [newMessage, ...prevMessages],
+      );
+    }
+  }, [startMessage, messages]);
   return (
     <div className="flex h-full w-full flex-col">
       <div className="flex h-full w-full flex-col items-center justify-between gap-2 rounded-lg xl:flex-row xl:gap-8">

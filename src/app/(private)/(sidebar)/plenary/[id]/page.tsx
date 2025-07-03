@@ -62,31 +62,80 @@ export default function PlenaryDetails() {
           </div>
           <div className="text-primary flex items-center gap-2">20/02/2024</div>
         </div>
-        <div className="text-primary flex flex-1 items-center justify-evenly gap-2 p-2">
-          <div className="border-primary flex h-full flex-col rounded-md border p-2">
-            <span className="text-black">Início:</span>
-            <div className="flex flex-1 items-center">
-              <span className="">
-                {new Date().toLocaleTimeString("pt-BR")} às{" "}
+        <div className="text-primary grid flex-1 grid-cols-2 items-center gap-2 p-2 md:flex">
+          <div className="text-primary border-primary flex w-full flex-col gap-2 rounded-lg border p-2 md:w-max">
+            <div className="flex flex-row items-center gap-2">
+              <span className="text-black">Início:</span>
+            </div>
+            <div className="flex flex-row gap-4">
+              <span className="text-primary text-start">
+                {new Date().toLocaleTimeString("pt-BR")} ás{" "}
                 {new Date().toLocaleTimeString("pt-BR")}
               </span>
             </div>
           </div>
-          <div className="border-primary flex h-full flex-col rounded-md border p-2">
+          <div className="text-primary border-primary flex w-full flex-col gap-2 rounded-lg border p-2 md:w-max">
+            <div className="flex flex-row items-center gap-2">
+              <span className="text-black">Quórum votação</span>
+            </div>
+            <div className="flex flex-row gap-4">
+              <span className="text-primary text-start">287</span>
+            </div>
+          </div>
+          <div className="text-primary border-primary flex w-full flex-col gap-2 rounded-lg border p-2 md:w-max">
+            <div className="flex flex-row items-center gap-2">
+              <span className="text-black">Total de Presentes</span>
+            </div>
+            <div className="flex flex-row gap-4">
+              <span className="text-primary text-start">320</span>
+            </div>
+          </div>
+          <div className="text-primary border-primary flex w-full flex-col gap-2 rounded-lg border p-2 md:w-max">
+            <div className="flex flex-row items-center gap-2">
+              <span className="text-black">Total de Propostas</span>
+            </div>
+            <div className="flex flex-row gap-4">
+              <span className="text-primary text-start">3</span>
+            </div>
+          </div>
+          {/* <div className="text-primary border-primary flex w-full flex-col gap-8 rounded-lg border p-8 md:w-max">
+            <div className="flex flex-row items-center gap-2">
+              <div className="bg-primary flex h-6 w-6 items-center justify-center rounded-full p-0.5 text-white">
+                <Check />
+              </div>
+              <span className="text-xl font-bold">Total de Presentes</span>
+            </div>
+            <div className="flex flex-row items-center justify-evenly gap-4">
+              <div className="flex h-16 max-h-16 items-center justify-center">
+                <SingleDonutChart total={340} current={320} height={120} />
+              </div>
+              <span className="text-4xl font-bold">320</span>
+            </div>
+          </div> */}
+          {/* <div className="text-primary border-primary flex w-full flex-col gap-8 rounded-lg border p-8 md:w-max">
+            <div className="flex flex-row items-center gap-2">
+              <Copy className="h-6 w-6" />
+              <span className="text-xl font-bold">Total de Propostas</span>
+            </div>
+            <div className="flex flex-row items-center justify-evenly gap-4">
+              <div className="flex h-16 max-h-16 items-center justify-center">
+                <SingleDonutChart total={3} current={3} height={120} />
+              </div>
+              <span className="text-4xl font-bold">3</span>
+            </div>
+          </div> */}
+          {/* <div className="border-primary flex h-full w-40 flex-col rounded-md border p-2">
             <span className="text-black">Término:</span>
             <div className="flex flex-1 items-center">
-              <span className="">
-                {new Date().toLocaleTimeString("pt-BR")} às{" "}
-                {new Date().toLocaleTimeString("pt-BR")}
-              </span>
+              <span className="">{new Date().toLocaleTimeString("pt-BR")}</span>
             </div>
-          </div>
-          <div className="border-primary flex h-full flex-col rounded-md border p-2">
+          </div> */}
+          {/* <div className="border-primary flex h-full w-40 flex-col rounded-md border p-2">
             <span className="text-black">Situação:</span>
             <div className="flex flex-1 items-center">
               <span className="">Encerrado</span>
             </div>
-          </div>
+          </div> */}
         </div>
         <div className="flex w-full items-center gap-8 overflow-x-scroll overflow-y-hidden border-t border-t-zinc-200 p-4 lg:h-12 lg:overflow-x-auto lg:p-4">
           <div

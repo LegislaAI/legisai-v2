@@ -1,5 +1,12 @@
 "use client";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import {
+  Tooltip,
+  TooltipArrow,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { ArrowUpRight, ChevronRight, Info } from "lucide-react";
 import { useRouter } from "next/navigation";
 
@@ -11,12 +18,29 @@ export function News() {
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-dark font-semibold">Notícias de Políticos</span>
-          <Info className="text-light-dark" />
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <Info className="text-light-dark" />
+              </TooltipTrigger>
+              <TooltipContent
+                side="top"
+                align="start"
+                className="border-primary bg-primary border"
+              >
+                <p className="text-white">Loren Ipsum</p>
+                <TooltipArrow className="fill-primary" />
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-secondary font-semibold">Ver últimos</span>
+        <button
+          onClick={() => router.push("/news")}
+          className="flex items-center gap-2"
+        >
+          <span className="text-secondary font-semibold">Ver Últimos</span>
           <ChevronRight className="text-secondary" />
-        </div>
+        </button>
       </div>
       <ScrollArea>
         {Array.from({ length: 5 }).map((_, index) => (

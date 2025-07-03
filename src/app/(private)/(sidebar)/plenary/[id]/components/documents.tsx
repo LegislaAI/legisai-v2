@@ -86,7 +86,10 @@ export function Documents() {
             Propostas a Serem Analisadas
           </span>
           <div className="grid w-full grid-cols-1 flex-row justify-evenly gap-8 p-4 lg:grid-cols-5 xl:h-full">
-            <div className="flex flex-col gap-4">
+            <button
+              className="flex flex-col gap-4"
+              onClick={() => window.open("https://www.google.com/", "_blank")}
+            >
               <div className="text-primary bg-primary/20 border-primary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
                 <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
                   <div className="flex w-full flex-1 items-center justify-center">
@@ -108,8 +111,11 @@ export function Documents() {
               <div className="border-primary text-primary bg-primary/20 flex w-full items-center justify-center rounded-lg border p-1 font-bold underline">
                 Clique aqui para Acessar
               </div>
-            </div>
-            <div className="flex flex-col gap-4">
+            </button>
+            <button
+              onClick={() => window.open("https://www.google.com/", "_blank")}
+              className="flex flex-col gap-4"
+            >
               <div className="text-primary bg-primary/20 border-primary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
                 <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
                   <div className="flex w-full flex-1 items-center justify-center">
@@ -124,8 +130,11 @@ export function Documents() {
               <div className="border-primary text-primary bg-primary/20 flex w-full items-center justify-center rounded-lg border p-1 font-bold underline">
                 Clique aqui para Acessar
               </div>
-            </div>
-            <div className="flex flex-col gap-4">
+            </button>
+            <button
+              onClick={() => window.open("https://www.google.com/", "_blank")}
+              className="flex flex-col gap-4"
+            >
               <div className="text-primary bg-primary/20 border-primary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
                 <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
                   <div className="flex w-full flex-1 items-center justify-center">
@@ -145,8 +154,11 @@ export function Documents() {
               <div className="border-primary text-primary bg-primary/20 flex w-full items-center justify-center rounded-lg border p-1 font-bold underline">
                 Clique aqui para Acessar
               </div>
-            </div>
-            <div className="flex flex-col gap-4">
+            </button>
+            <button
+              onClick={() => window.open("https://www.google.com/", "_blank")}
+              className="flex flex-col gap-4"
+            >
               <div className="text-primary bg-primary/20 border-primary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
                 <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
                   <div className="flex w-full flex-1 items-center justify-center">
@@ -161,8 +173,11 @@ export function Documents() {
               <div className="border-primary text-primary bg-primary/20 flex w-full items-center justify-center rounded-lg border p-1 font-bold underline">
                 Clique aqui para Acessar
               </div>
-            </div>
-            <div className="flex flex-col gap-4">
+            </button>
+            <button
+              onClick={() => window.open("https://www.google.com/", "_blank")}
+              className="flex flex-col gap-4"
+            >
               <div className="text-primary bg-primary/20 border-primary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
                 <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
                   <div className="flex w-full flex-1 items-center justify-center">
@@ -177,7 +192,7 @@ export function Documents() {
               <div className="border-primary text-primary bg-primary/20 flex w-full items-center justify-center rounded-lg border p-1 font-bold underline">
                 Clique aqui para Acessar
               </div>
-            </div>
+            </button>
           </div>
         </div>
       </div>

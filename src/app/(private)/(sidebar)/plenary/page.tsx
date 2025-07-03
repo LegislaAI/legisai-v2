@@ -22,6 +22,7 @@ export default function Plenary() {
               id={plenary.id}
               summary={plenary.summary}
               title={plenary.title}
+              date={plenary.date}
             />
           ))}
         </div>
@@ -36,6 +37,7 @@ export default function Plenary() {
               id={plenary.id}
               summary={plenary.summary}
               title={plenary.title}
+              date={plenary.date}
             />
           ))}
         </div>

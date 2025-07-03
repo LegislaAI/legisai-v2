@@ -35,6 +35,7 @@ export function Section1() {
     setSelectedYear,
     selectedPoliticianId,
     setSelectedPoliticianId,
+    loading,
   } = usePoliticianContext();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [isMobileDropdownOpen, setIsMobileDropdownOpen] = useState(false);
@@ -332,7 +333,11 @@ export function Section1() {
           </DropdownMenu>
         </div>
         <div className="flex h-full w-full flex-row gap-8 lg:col-span-2">
-          {selectedPoliticianId && selectedPolitician?.imageUrl ? (
+          {loading ? (
+            <div className="flex w-1/2 animate-pulse items-center justify-center rounded-xl bg-zinc-200 lg:h-full lg:w-full">
+              <Loader2 className="m-auto animate-spin" />
+            </div>
+          ) : selectedPoliticianId && selectedPolitician?.imageUrl ? (
             <Image
               src={selectedPolitician?.imageUrl}
               alt=""
@@ -342,7 +347,13 @@ export function Section1() {
             />
           ) : (
             <div className="flex w-1/2 animate-pulse items-center justify-center rounded-xl bg-zinc-200 lg:h-full lg:w-full">
-              <Loader2 className="m-auto animate-spin" />
+              <Image
+                src={"/static/default-user.png"}
+                alt={""}
+                width={500}
+                height={1000}
+                className={"h-auto w-[80%]"}
+              />
             </div>
           )}
           <div className="MOBILE flex h-full flex-1 flex-col items-center justify-center rounded-lg md:hidden">
