@@ -114,7 +114,6 @@ export function useSectionChat({
     }
   }, [initialHistory, selectedPrompt, shouldUseFunctions]);
 
-  /* ─────────────────────────────── BACKEND HELPERS ─────────────────────────────── */
   async function handleCreateChat(first: string): Promise<string | null> {
     if (!shouldCreateChat || !selectedPrompt) return null;
     try {
@@ -411,6 +410,7 @@ export function useSectionChat({
         streamBufRef.current = await handleFunctionCalls(
           collectedCalls,
           chatSessionRef.current!,
+          { GetAPI, PostAPI },
         );
         flushUI(); // exibe a resposta final
       }

@@ -6,7 +6,7 @@ import { createContext, useContext } from "react";
 
 const baseURL = process.env.NEXT_PUBLIC_API_URL;
 
-interface ApiContextProps {
+export interface ApiContextProps {
   PostAPI: (
     url: string,
     data: unknown,

@@ -17,7 +17,8 @@
  *  Depois registre quantas funções quiser — tudo em um único local.
  * ------------------------------------------------------------------*/
 
-import { useApiContext } from "@/context/ApiContext";
+import type { ApiContextProps } from "@/context/ApiContext";
+
 import {
   Chat,
   Part,
@@ -26,13 +27,18 @@ import {
   type Schema,
 } from "@google/genai";
 
+type ApiMethods = Pick<ApiContextProps, "GetAPI" | "PostAPI">;
+
 /* ------------------------------------------------------------------
  * 1. REGISTRY
  * ----------------------------------------------------------------*/
 export interface ToolDefinition
   extends Omit<FunctionDeclaration, "parameters"> {
   parameters: Schema;
-  implementation: (args: Record<string, unknown>) => Promise<unknown> | unknown;
+  implementation: (
+    args: Record<string, unknown>,
+    api: ApiMethods,
+  ) => Promise<unknown> | unknown;
 }
 
 const toolRegistry: Record<string, ToolDefinition> = {};
@@ -65,6 +71,7 @@ export interface ToolCall {
 export async function handleFunctionCalls(
   functionCalls: ToolCall[],
   chatSession: Chat,
+  api: ApiMethods,
 ): Promise<string> {
   const toolResponses: Part[] = [];
 
@@ -73,7 +80,7 @@ export async function handleFunctionCalls(
     try {
       if (!def) throw new Error(`Unknown function: ${name}`);
 
-      const output = await def.implementation(args);
+      const output = await def.implementation(args, api);
 
       toolResponses.push({
         functionResponse: {
@@ -120,19 +127,21 @@ registerTool({
     },
     required: ["searchParam"],
   } as Schema,
-  implementation: async ({ searchParam }) => {
-    console.log(searchParam);
-
+  implementation: async ({ searchParam }, { GetAPI }) => {
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    const { GetAPI } = useApiContext();
-    const result = await GetAPI(
-      `/proposition/vetorial?searchParams=${searchParam}`,
-      false,
-    );
 
-    console.log(result.body);
+    try {
+      const result = await GetAPI(
+        `/proposition/vetorial?searchParams=${searchParam}`,
+        false,
+      );
 
-    return result.body;
+      console.log(result.body);
+
+      return result.body;
+    } catch (error) {
+      console.log(error);
+    }
   },
 });
 
@@ -149,10 +158,11 @@ registerTool({
     },
     required: ["propositionId"],
   } as Schema,
-  implementation: async ({ propositionId }) => {
+  implementation: async ({ propositionId }, { GetAPI }) => {
     console.log(propositionId);
+
     // eslint-disable-next-line react-hooks/rules-of-hooks
-    const { GetAPI } = useApiContext();
+
     const result = await GetAPI(`/proposition-process/${propositionId}`, false);
 
     console.log(result.body);
