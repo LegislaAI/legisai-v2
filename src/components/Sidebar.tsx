@@ -1,15 +1,6 @@
 "use client";
 import { cn } from "@/lib/utils";
-import {
-  BellDot,
-  ChevronRight,
-  Home,
-  Menu,
-  Settings2Icon,
-  Sparkle,
-  Sparkles,
-  Wallet,
-} from "lucide-react";
+import { ChevronRight, Menu } from "lucide-react";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 
@@ -32,7 +23,7 @@ export function Sidebar() {
           <Menu />
         </div>
         <div className="flex flex-col gap-4">
-          <div
+          {/* <div
             onClick={() => router.push("/")}
             className={cn(
               "group flex w-full cursor-pointer items-center justify-between",
@@ -87,7 +78,7 @@ export function Sidebar() {
                 pathname === "/news" && "opacity-100",
               )}
             />
-          </div>
+          </div> */}
           <div
             onClick={() => router.push("/procedures")}
             className={cn(
@@ -111,7 +102,7 @@ export function Sidebar() {
               )}
             />
           </div>
-          <div
+          {/* <div
             onClick={() => router.push("/ai")}
             className={cn(
               "group flex w-full cursor-pointer items-center justify-between",
@@ -165,7 +156,7 @@ export function Sidebar() {
                 pathname === "/" && "opacity-100",
               )}
             />
-          </div>
+          </div> */}
         </div>
       </div>
       <div className="bg-surface fixed bottom-4 left-4 flex h-80 w-72 flex-col overflow-hidden rounded-xl">
