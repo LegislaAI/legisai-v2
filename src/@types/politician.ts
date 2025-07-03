@@ -66,3 +66,13 @@ export interface PoliticianDetailsProps extends PoliticianProps {
   };
   positions: unknown;
 }
+
+export interface PoliticianNewsProps {
+  createdAt: string;
+  id: string;
+  politicians: PoliticianProps[];
+  summary: string;
+  title: string;
+  type: string;
+  url: string;
+}

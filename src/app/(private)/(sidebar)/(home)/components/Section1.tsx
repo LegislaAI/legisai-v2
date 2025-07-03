@@ -207,7 +207,9 @@ export function Section1() {
               <div className="text-secondary border-secondary flex cursor-pointer items-center justify-between rounded-xl border-2 px-2 py-1 font-semibold">
                 <span>
                   {selectedPolitician
-                    ? selectedPolitician.name
+                    ? selectedPolitician.name +
+                      " - " +
+                      selectedPolitician.politicalPartyAcronym
                     : "Selecione um político"}
                 </span>
                 <ChevronDown />

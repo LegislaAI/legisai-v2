@@ -52,7 +52,6 @@ export default function Login() {
     if (e.key === "Enter" && idx === length - 1) {
       const finalCode = code.join("");
       if (finalCode.length === length) {
-        console.log("Código completo:", finalCode);
         // aqui você pode chamar sua API ou fazer router.push
       }
     }

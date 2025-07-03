@@ -1,6 +1,10 @@
 "use client";
 
-import { PoliticianDetailsProps, PoliticianProps } from "@/@types/politician";
+import {
+  PoliticianDetailsProps,
+  PoliticianNewsProps,
+  PoliticianProps,
+} from "@/@types/politician";
 import { useCookies } from "next-client-cookies";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useApiContext } from "./ApiContext";
@@ -23,6 +27,15 @@ interface PoliticianContextProps {
   loading: boolean;
   setLoading?: React.Dispatch<React.SetStateAction<boolean>>;
   setSelectedYear: React.Dispatch<React.SetStateAction<string>>;
+  politicianNews: PoliticianNewsProps[];
+  setPoliticianNews: React.Dispatch<
+    React.SetStateAction<PoliticianNewsProps[]>
+  >;
+  politicianNewsPages: number;
+  setPoliticianNewsPages: React.Dispatch<React.SetStateAction<number>>;
+  isLoadingPoliticianNews: boolean;
+  setIsLoadingPoliticianNews: React.Dispatch<React.SetStateAction<boolean>>;
+  GetPoliticianNews: () => Promise<void>;
   GetPoliticians: ({ page, query }: GetPoliticiansProps) => Promise<void>;
   GetSelectedPoliticianDetails: () => Promise<void>;
 }
@@ -37,6 +50,7 @@ interface ProviderProps {
 
 export const PoliticianContextProvider = ({ children }: ProviderProps) => {
   const cookies = useCookies();
+  const { GetAPI } = useApiContext();
   const [loading, setLoading] = useState<boolean>(false);
   const [politicians, setPoliticians] = useState<PoliticianProps[]>([]);
   const [selectedPoliticianId, setSelectedPoliticianId] = useState<string>("");
@@ -46,7 +60,12 @@ export const PoliticianContextProvider = ({ children }: ProviderProps) => {
     new Date().getFullYear().toString(),
   );
   const [politicianPages, setPoliticianPages] = useState<number>(0);
-  const { GetAPI } = useApiContext();
+  const [politicianNews, setPoliticianNews] = useState<PoliticianNewsProps[]>(
+    [],
+  );
+  const [politicianNewsPages, setPoliticianNewsPages] = useState<number>(0);
+  const [isLoadingPoliticianNews, setIsLoadingPoliticianNews] =
+    useState<boolean>(false);
 
   async function GetPoliticians({ page, query }: GetPoliticiansProps) {
     let params = "";
@@ -87,6 +106,16 @@ export const PoliticianContextProvider = ({ children }: ProviderProps) => {
     }
   }
 
+  async function GetPoliticianNews() {
+    setIsLoadingPoliticianNews(true);
+    const news = await GetAPI(`/news/${selectedPoliticianId}?page=1`, true);
+    if (news.status === 200) {
+      setPoliticianNewsPages(news.body.pages);
+      setPoliticianNews(news.body.news);
+      return setIsLoadingPoliticianNews(false);
+    }
+  }
+
   useEffect(() => {
     GetPoliticians({ page: "1" });
   }, []);
@@ -94,6 +123,7 @@ export const PoliticianContextProvider = ({ children }: ProviderProps) => {
   useEffect(() => {
     if (selectedPoliticianId || cookies.get("selectedPoliticianId")) {
       GetSelectedPoliticianDetails();
+      GetPoliticianNews();
     }
   }, [
     selectedYear,
@@ -115,6 +145,13 @@ export const PoliticianContextProvider = ({ children }: ProviderProps) => {
         setSelectedPoliticianId,
         selectedYear,
         setSelectedYear,
+        politicianNews,
+        setPoliticianNews,
+        politicianNewsPages,
+        setPoliticianNewsPages,
+        isLoadingPoliticianNews,
+        setIsLoadingPoliticianNews,
+        GetPoliticianNews,
         GetPoliticians,
         GetSelectedPoliticianDetails,
       }}

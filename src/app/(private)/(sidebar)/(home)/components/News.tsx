@@ -7,10 +7,13 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { ArrowUpRight, ChevronRight, Info } from "lucide-react";
+import { usePoliticianContext } from "@/context/PoliticianContext";
+import { ChevronRight, Info } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { NewsCard } from "./NewsCard";
 
 export function News() {
+  const { politicianNews, isLoadingPoliticianNews } = usePoliticianContext();
   const router = useRouter();
 
   return (
@@ -43,7 +46,24 @@ export function News() {
         </button>
       </div>
       <ScrollArea>
-        {Array.from({ length: 5 }).map((_, index) => (
+        {politicianNews.length === 0 && isLoadingPoliticianNews && (
+          <p>Carregando...</p>
+        )}
+        {!isLoadingPoliticianNews &&
+          (politicianNews.length > 0 ? (
+            politicianNews.map((news) => (
+              <NewsCard
+                key={news.id}
+                title={news.title}
+                summary={news.summary}
+              />
+            ))
+          ) : (
+            <p className="absolute top-1/2 left-1/2 flex h-full w-full -translate-x-1/2 -translate-y-1/2 items-center justify-center text-center text-gray-500">
+              Nenhuma notícia desse(a) político(a) encontrada.
+            </p>
+          ))}
+        {/* {Array.from({ length: 5 }).map((_, index) => (
           <div
             key={index}
             onClick={() => router.push("/news")}
@@ -60,7 +80,7 @@ export function News() {
             </div>
             <ChevronRight className="fill-secondary text-secondary" />
           </div>
-        ))}
+        ))} */}
       </ScrollArea>
     </div>
   );
