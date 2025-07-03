@@ -47,7 +47,7 @@ export function NewsCard({ title, summary }: NewsCardProps) {
       <Modal
         isOpen={isModalOpen}
         close={() => setIsModalOpen(false)}
-        className="h-max lg:h-max lg:w-max"
+        className="h-max lg:h-max lg:w-[700px]"
       >
         <div className="relative flex h-full w-full flex-col items-center justify-center gap-4 py-2 pb-8">
           <button
@@ -66,7 +66,7 @@ export function NewsCard({ title, summary }: NewsCardProps) {
             height={2000}
             className="h-auto w-40"
           />
-          <div className="flex flex-col">
+          <div className="flex flex-col p-2 text-center">
             <h1 className="text-dark self-center text-3xl font-bold">
               {title}
             </h1>

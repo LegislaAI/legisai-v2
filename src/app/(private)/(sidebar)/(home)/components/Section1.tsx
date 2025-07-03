@@ -37,6 +37,7 @@ export function Section1() {
     setSelectedPoliticianId,
   } = usePoliticianContext();
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [isMobileDropdownOpen, setIsMobileDropdownOpen] = useState(false);
   const [graphOptions, setGraphOptions] = useState({
     series: [
       {
@@ -264,6 +265,72 @@ export function Section1() {
         </div>
       </div>
       <div className="grid w-full grid-cols-1 items-center gap-4 px-2 md:grid-cols-11 md:px-0 xl:gap-4">
+        <div className="md:hidden">
+          <DropdownMenu
+            open={isMobileDropdownOpen}
+            onOpenChange={setIsMobileDropdownOpen}
+          >
+            <DropdownMenuTrigger asChild>
+              <div className="text-secondary border-secondary flex cursor-pointer items-center justify-between rounded-xl border-2 px-2 py-1 font-semibold">
+                <span>
+                  {selectedPolitician
+                    ? selectedPolitician.name
+                    : "Selecione um político"}
+                </span>
+                <ChevronDown />
+              </div>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end" className="z-[9999]">
+              <Command
+                className="z-[99999]"
+                filter={(value, search) => {
+                  if (
+                    value
+                      .toLowerCase()
+                      .normalize("NFD")
+                      .replace(/[\u0300-\u036f]/g, "")
+                      .includes(search.toLowerCase())
+                  )
+                    return 1;
+                  return 0;
+                }}
+              >
+                <CommandInput
+                  onValueChange={(e) => {
+                    debouncedHandleStopTyping(e);
+                  }}
+                  placeholder="Pesquisar..."
+                />
+                <CommandEmpty>Não encontrado.</CommandEmpty>
+                {politicians
+                  .sort((a, b) => a.name.localeCompare(b.name))
+                  .map((user, index) => (
+                    <CommandItem
+                      key={`politician-${index}`}
+                      value={user.name}
+                      onSelect={() => {
+                        setSelectedPoliticianId(user.id);
+                        setIsMobileDropdownOpen(false);
+                        cookies.set("selectedPoliticianId", user.id);
+                      }}
+                      className={cn(
+                        "hover:bg-secondary/20 pointer-events-auto flex w-full cursor-pointer items-center justify-between transition duration-200",
+                        user.id === selectedPolitician?.id && "bg-secondary/20",
+                      )}
+                    >
+                      {user.name}
+                      <Check
+                        className={cn(
+                          "mr-2 h-4 w-4",
+                          user.id !== selectedPolitician?.id && "hidden",
+                        )}
+                      />
+                    </CommandItem>
+                  ))}
+              </Command>
+            </DropdownMenuContent>
+          </DropdownMenu>
+        </div>
         <div className="flex h-full w-full flex-row gap-8 lg:col-span-2">
           {selectedPoliticianId && selectedPolitician?.imageUrl ? (
             <Image
@@ -278,139 +345,21 @@ export function Section1() {
               <Loader2 className="m-auto animate-spin" />
             </div>
           )}
-          <div className="MOBILE flex h-full flex-1 flex-col justify-between rounded-lg md:hidden">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <div className="text-secondary border-secondary flex cursor-pointer items-center justify-between rounded-xl border-2 px-2 py-1 font-semibold">
-                  <span>
-                    {selectedPolitician
-                      ? selectedPolitician.name
-                      : "Selecione um político"}
-                  </span>
-                  <ChevronDown />
-                </div>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="z-[9999]">
-                <Command
-                  className="z-[99999]"
-                  filter={(value, search) => {
-                    if (
-                      value
-                        .toLowerCase()
-                        .normalize("NFD")
-                        .replace(/[\u0300-\u036f]/g, "")
-                        .includes(search.toLowerCase())
-                    )
-                      return 1;
-                    return 0;
-                  }}
-                >
-                  <CommandInput
-                    onValueChange={(e) => {
-                      debouncedHandleStopTyping(e);
-                    }}
-                    placeholder="Pesquisar..."
-                  />
-                  <CommandEmpty>Não encontrado.</CommandEmpty>
-                  {politicians
-                    .sort((a, b) => a.name.localeCompare(b.name))
-                    .map((user, index) => (
-                      <CommandItem
-                        key={`politician-${index}`}
-                        value={user.name}
-                        onSelect={() => {
-                          setSelectedPoliticianId(user.id);
-                        }}
-                        className={cn(
-                          "hover:bg-secondary/20 pointer-events-auto flex w-full cursor-pointer items-center justify-between transition duration-200",
-                          user.id === selectedPolitician?.id &&
-                            "bg-secondary/20",
-                        )}
-                      >
-                        {user.name}
-                        <Check
-                          className={cn(
-                            "mr-2 h-4 w-4",
-                            user.id !== selectedPolitician?.id && "hidden",
-                          )}
-                        />
-                      </CommandItem>
-                    ))}
-                </Command>
-              </DropdownMenuContent>
-            </DropdownMenu>
+          <div className="MOBILE flex h-full flex-1 flex-col items-center justify-center rounded-lg md:hidden">
             <div className="bg-primary/20 flex w-full flex-row items-center justify-center gap-2 rounded-lg p-2">
               <span className="text-primary text-lg">Partido:</span>
               <span className="text-primary text-lg">
                 {selectedPolitician?.politicalPartyAcronym}
               </span>
             </div>
-            <div className="bg-primary/20 flex w-full flex-col items-center justify-center gap-2 rounded-lg p-2">
-              <span className="text-primary text-lg">
-                {selectedPolitician?.name}
-              </span>
-            </div>
           </div>
         </div>
         <div className="border-secondary flex h-full w-full flex-col rounded-xl border-2 p-1 lg:col-span-5">
           <div className="flex w-full justify-between">
-            <div className="flex flex-col">
+            <div className="flex w-full flex-col">
               <span className="text-secondary font-bold">
                 GASTOS E RECURSOS
               </span>
-              <div
-                className={cn(
-                  "flex items-center gap-2",
-                  !selectedPolitician && "hidden",
-                )}
-              >
-                <div className="flex gap-1">
-                  <span className="text-sm">Cota Parlamentar:</span>
-                  <div className="flex flex-col text-xs">
-                    <span className="font-semibold text-red-500">
-                      Gasto:{" "}
-                      {selectedPolitician?.finance.usedParliamentaryQuota
-                        ? selectedPolitician?.finance.usedParliamentaryQuota.toLocaleString(
-                            "pt-BR",
-                            { style: "currency", currency: "BRL" },
-                          )
-                        : "N/A"}
-                    </span>
-                    <span className="font-semibold text-green-500">
-                      Não utilizado:{" "}
-                      {selectedPolitician?.finance.unusedParliamentaryQuota
-                        ? selectedPolitician?.finance.unusedParliamentaryQuota.toLocaleString(
-                            "pt-BR",
-                            { style: "currency", currency: "BRL" },
-                          )
-                        : "N/A"}
-                    </span>
-                  </div>
-                </div>
-                <div className="flex gap-1">
-                  <span className="text-sm">Verba de Gabinete:</span>
-                  <div className="flex flex-col text-xs">
-                    <span className="font-semibold text-red-500">
-                      Gasto:{" "}
-                      {selectedPolitician?.finance.usedCabinetQuota
-                        ? selectedPolitician?.finance.usedCabinetQuota.toLocaleString(
-                            "pt-BR",
-                            { style: "currency", currency: "BRL" },
-                          )
-                        : "N/A"}
-                    </span>
-                    <span className="font-semibold text-green-500">
-                      Não utilizado:{" "}
-                      {selectedPolitician?.finance.unusedCabinetQuota
-                        ? selectedPolitician?.finance.unusedCabinetQuota.toLocaleString(
-                            "pt-BR",
-                            { style: "currency", currency: "BRL" },
-                          )
-                        : "N/A"}
-                    </span>
-                  </div>
-                </div>
-              </div>
             </div>
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
@@ -420,7 +369,7 @@ export function Section1() {
                   </span>
                 </div>
               </DropdownMenuTrigger>
-              <DropdownMenuContent>
+              <DropdownMenuContent align="end">
                 <DropdownMenuItem
                   onClick={() => setSelectedYear("2025")}
                   className={cn(
@@ -459,6 +408,59 @@ export function Section1() {
                 </DropdownMenuItem>
               </DropdownMenuContent>
             </DropdownMenu>
+          </div>
+          <div
+            className={cn(
+              "flex w-full items-center justify-between gap-2",
+              !selectedPolitician && "hidden",
+            )}
+          >
+            <div className="flex flex-col gap-1 lg:flex-row">
+              <span className="text-sm">Cota Parlamentar:</span>
+              <div className="flex flex-col text-xs">
+                <span className="font-semibold text-red-500">
+                  Gasto:{" "}
+                  {selectedPolitician?.finance.usedParliamentaryQuota
+                    ? selectedPolitician?.finance.usedParliamentaryQuota.toLocaleString(
+                        "pt-BR",
+                        { style: "currency", currency: "BRL" },
+                      )
+                    : "N/A"}
+                </span>
+                <span className="font-semibold text-green-500">
+                  Não utilizado:{" "}
+                  {selectedPolitician?.finance.unusedParliamentaryQuota
+                    ? selectedPolitician?.finance.unusedParliamentaryQuota.toLocaleString(
+                        "pt-BR",
+                        { style: "currency", currency: "BRL" },
+                      )
+                    : "N/A"}
+                </span>
+              </div>
+            </div>
+            <div className="flex flex-col gap-1 lg:flex-row">
+              <span className="text-sm">Verba de Gabinete:</span>
+              <div className="flex flex-col text-xs">
+                <span className="font-semibold text-red-500">
+                  Gasto:{" "}
+                  {selectedPolitician?.finance.usedCabinetQuota
+                    ? selectedPolitician?.finance.usedCabinetQuota.toLocaleString(
+                        "pt-BR",
+                        { style: "currency", currency: "BRL" },
+                      )
+                    : "N/A"}
+                </span>
+                <span className="font-semibold text-green-500">
+                  Não utilizado:{" "}
+                  {selectedPolitician?.finance.unusedCabinetQuota
+                    ? selectedPolitician?.finance.unusedCabinetQuota.toLocaleString(
+                        "pt-BR",
+                        { style: "currency", currency: "BRL" },
+                      )
+                    : "N/A"}
+                </span>
+              </div>
+            </div>
           </div>
           <ReactApexChart
             options={graphOptions.options as ApexOptions}
