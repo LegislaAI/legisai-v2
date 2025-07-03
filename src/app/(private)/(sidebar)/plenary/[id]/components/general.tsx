@@ -14,13 +14,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import {
-  BookMarked,
-  CalendarDays,
-  FileStack,
-  FileText,
-  Settings2,
-} from "lucide-react";
+import { Check, FileText, X } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import "swiper/css";
@@ -204,7 +198,6 @@ export function General() {
   const billMeta = selected ? selected.billMeta : defaultBillMeta;
   const statusBoxes = selected ? selected.statusBoxes : defaultStatusBoxes;
   const tramitation = selected ? selected.tramitation : [];
-
   return (
     <div className="grid w-full grid-cols-12 gap-8">
       {/* ────────────────────────────── TABLE */}
@@ -219,13 +212,39 @@ export function General() {
               <TableHeader className="bg-primary">
                 <TableRow>
                   {[
-                    { key: "authors", label: "Autores" },
-                    { key: "proposal", label: "Proposta" },
-                    { key: "subject", label: "Assunto" },
-                    { key: "yes", label: "Sim" },
-                    { key: "no", label: "Não" },
-                    { key: "votes", label: "Votos" },
-                    { key: "result", label: "Resultado" },
+                    {
+                      key: "authors",
+                      label: "Autores",
+                      image: "/icons/plenary/user.svg",
+                    },
+                    {
+                      key: "proposal",
+                      label: "Proposta",
+                      image: "/icons/plenary/folder.svg",
+                    },
+                    {
+                      key: "subject",
+                      label: "Assunto",
+                      image: "/icons/plenary/clipboard.svg",
+                    },
+                    {
+                      key: "yes",
+                      label: "Sim",
+                    },
+                    {
+                      key: "no",
+                      label: "Não",
+                    },
+                    {
+                      key: "votes",
+                      label: "Votos",
+                      image: "/icons/plenary/circles.png",
+                    },
+                    {
+                      key: "result",
+                      label: "Resultado",
+                      image: "/icons/plenary/circles.png",
+                    },
                   ].map((column) => (
                     <TableHead
                       key={column.key}
@@ -238,13 +257,22 @@ export function General() {
                           column.key !== "authors" && "w-full justify-center",
                         )}
                       >
-                        <Image
-                          src="/icons/circles.png"
-                          alt=""
-                          width={250}
-                          height={250}
-                          className="h-4 w-4 object-contain"
-                        />
+                        {column.image ? (
+                          <Image
+                            src={column.image}
+                            alt=""
+                            width={250}
+                            height={250}
+                            className="h-4 w-4 object-contain"
+                          />
+                        ) : (
+                          <div
+                            className={`flex h-4 w-4 items-center justify-center rounded-full ${column.key === "yes" ? "text-primary bg-white" : "bg-[#DC2626]"}`}
+                          >
+                            {column.key === "yes" ? <Check /> : <X />}
+                          </div>
+                        )}
+
                         {column.label}
                       </div>
                     </TableHead>
@@ -333,7 +361,13 @@ export function General() {
             {/* author chip */}
             <div className="flex items-center gap-3 rounded-sm px-3 py-1.5">
               <div className="rounded-lg bg-gray-100 p-2">
-                <BookMarked size={18} className="text-primary" />
+                <Image
+                  src={"/icons/plenary/user-green.svg"}
+                  alt=""
+                  width={250}
+                  height={250}
+                  className="h-6 w-6 object-contain"
+                />
               </div>
               <div className="leading-tight">
                 <p className="text-[13px] font-semibold text-gray-900">
@@ -355,11 +389,13 @@ export function General() {
               disabled={!selected}
               className="bg-primary flex flex-col items-center rounded-md px-4 py-2 text-xs font-semibold text-white uppercase shadow hover:opacity-90 disabled:opacity-50"
             >
-              <div className="flex flex-row items-center gap-1">
-                <FileText size={16} className="text-white" />
-                Clique Aqui Para:
+              <div className="flex flex-row items-center justify-center gap-1">
+                <FileText size={24} className="text-white" />
+                <div className="flex flex-col items-center text-center">
+                  <span>Clique Aqui Para:</span>
+                  <span className="ml-1">Inteiro Teor</span>
+                </div>
               </div>
-              <span className="ml-1">Inteiro Teor</span>
             </button>
           </div>
 
@@ -388,9 +424,22 @@ export function General() {
         <div className="col-span-12 flex flex-col rounded-lg bg-white shadow-sm ring-1 ring-gray-200 lg:col-span-4 xl:col-span-3">
           <div className="flex items-start justify-between px-6 pt-5">
             <h2 className="text-primary flex items-center gap-2 text-lg font-semibold">
-              <FileStack size={18} className="text-primary" /> Documentos
+              <Image
+                src={"/icons/plenary/documents.svg"}
+                alt=""
+                width={250}
+                height={250}
+                className="h-6 w-6 object-contain"
+              />{" "}
+              Documentos
             </h2>
-            <Settings2 size={18} className="text-primary/70" />
+            <Image
+              src={"/icons/plenary/settings.svg"}
+              alt=""
+              width={250}
+              height={250}
+              className="h-6 w-6 object-contain"
+            />
           </div>
 
           <div className="flex flex-1 items-center justify-center px-6 py-8">
@@ -398,7 +447,7 @@ export function General() {
               disabled={!selected}
               className="bg-primary/80 flex items-center gap-2 rounded-md px-5 py-2 text-sm font-semibold text-white shadow hover:opacity-90 disabled:opacity-50"
             >
-              <FileText size={16} className="text-white" /> Acessar Todos
+              <FileText size={24} className="text-white" /> Acessar Todos
             </button>
           </div>
         </div>
@@ -417,9 +466,15 @@ export function General() {
           <AccordionTrigger className="w-full text-start text-lg outline-none focus:border-0 focus:outline-none">
             <div className="flex items-center justify-between px-6 py-4 hover:scale-[1.00]">
               <h3 className="text-primary flex items-center gap-2 text-xl font-semibold">
-                <BookMarked size={20} /> Resumo Geral
+                <Image
+                  src={"/icons/plenary/documents.svg"}
+                  alt=""
+                  width={250}
+                  height={250}
+                  className="h-6 w-6 object-contain"
+                />{" "}
+                Resumo Geral
               </h3>
-              <Settings2 size={18} className="text-primary/70" />
             </div>
           </AccordionTrigger>
 
@@ -447,15 +502,21 @@ export function General() {
             <AccordionTrigger className="w-full text-start text-lg outline-none focus:border-0 focus:outline-none">
               <div className="flex items-center justify-between px-6 py-4">
                 <h3 className="text-primary flex items-center gap-2 text-xl font-semibold">
-                  <CalendarDays size={20} /> Filtro por Data das Tramitações:
+                  <Image
+                    src={"/icons/plenary/calendar.svg"}
+                    alt=""
+                    width={250}
+                    height={250}
+                    className="h-6 w-6 object-contain"
+                  />{" "}
+                  Filtro por Data das Tramitações:
                 </h3>
-                <Settings2 size={18} className="text-primary/70" />
               </div>
             </AccordionTrigger>
             <AccordionContent className="flex w-full flex-col p-2 text-black">
               <div className="flex w-full flex-row items-center rounded-md p-2 text-start text-base">
                 <div className="border-primary w-full border-l px-2 text-lg">
-                  xxxxx
+                  03/07/2025
                 </div>
               </div>
             </AccordionContent>
@@ -468,7 +529,14 @@ export function General() {
         {/* Title */}
         <div className="flex items-center justify-between px-6 py-4">
           <h3 className="text-primary flex items-center gap-2 text-xl font-semibold">
-            <BookMarked size={20} /> Tramitação
+            <Image
+              src={"/icons/plenary/documents.svg"}
+              alt=""
+              width={250}
+              height={250}
+              className="h-6 w-6 object-contain"
+            />{" "}
+            Tramitação
           </h3>
         </div>
 

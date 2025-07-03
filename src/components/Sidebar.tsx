@@ -1,17 +1,9 @@
 "use client";
 import { cn } from "@/lib/utils";
-import {
-  BellDot,
-  ChevronRight,
-  Home,
-  Menu,
-  Settings2Icon,
-  Sparkle,
-  Sparkles,
-  Wallet,
-} from "lucide-react";
+import { ChevronRight, Menu } from "lucide-react";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
+
 import CogIcon from "../../public/icons/cog.svg";
 export function Sidebar() {
   const router = useRouter();
@@ -31,7 +23,7 @@ export function Sidebar() {
           <Menu />
         </div>
         <div className="flex flex-col gap-4">
-          <div
+          {/* <div
             onClick={() => router.push("/")}
             className={cn(
               "group flex w-full cursor-pointer items-center justify-between",
@@ -86,7 +78,7 @@ export function Sidebar() {
                 pathname === "/news" && "opacity-100",
               )}
             />
-          </div>
+          </div> */}
           <div
             onClick={() => router.push("/procedures")}
             className={cn(
@@ -110,7 +102,7 @@ export function Sidebar() {
               )}
             />
           </div>
-          <div
+          {/* <div
             onClick={() => router.push("/ai")}
             className={cn(
               "group flex w-full cursor-pointer items-center justify-between",
@@ -129,6 +121,7 @@ export function Sidebar() {
             />
           </div>
           <div
+            onClick={() => router.push("/prediction-ai")}
             className={cn(
               "group flex w-full cursor-pointer items-center justify-between",
               pathname === "/prediction-ai" && "text-secondary font-semibold",
@@ -163,10 +156,10 @@ export function Sidebar() {
                 pathname === "/" && "opacity-100",
               )}
             />
-          </div>
+          </div> */}
         </div>
       </div>
-      <div className="bg-surface fixed bottom-4 left-4 flex h-72 w-72 flex-col overflow-hidden rounded-xl">
+      <div className="bg-surface fixed bottom-4 left-4 flex h-80 w-72 flex-col overflow-hidden rounded-xl">
         <Image
           src="/static/ad1.png"
           alt=""
@@ -175,8 +168,12 @@ export function Sidebar() {
           className="h-1/2 w-full object-cover"
         />
         <div className="flex h-1/2 flex-col justify-between p-4">
-          <span className="text-lg font-semibold">Propaganda XYZ</span>
-          <span>Texto da Propaganda XYZ</span>
+          <span className="text-lg font-semibold">
+            Comissão debate crise no financiamento estudantil
+          </span>
+
+          <span className="relative">Nesta quinta-feira (3/7) ...</span>
+
           <button className="bg-dark cursor-pointer rounded-full p-2 text-white">
             Clique aqui e veja a Propaganda
           </button>

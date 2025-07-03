@@ -8,41 +8,11 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
+import { Check, X } from "lucide-react";
 import Image from "next/image";
 import "swiper/css";
 
 export function DayOrder() {
-  const columns = [
-    {
-      key: "authors",
-      label: "Autores",
-    },
-    {
-      key: "proposal",
-      label: "Proposta",
-    },
-    {
-      key: "subject",
-      label: "Assunto",
-    },
-    {
-      key: "yes",
-      label: "Sim",
-    },
-    {
-      key: "no",
-      label: "Não",
-    },
-    {
-      key: "votes",
-      label: "Votos",
-    },
-    {
-      key: "result",
-      label: "Resultado",
-    },
-  ];
-
   const tableData = [
     {
       author: "Felipe Carreras (PSB-PE)",
@@ -117,7 +87,41 @@ export function DayOrder() {
             <Table>
               <TableHeader className="bg-primary">
                 <TableRow>
-                  {columns.map((column) => (
+                  {[
+                    {
+                      key: "authors",
+                      label: "Autores",
+                      image: "/icons/plenary/user.svg",
+                    },
+                    {
+                      key: "proposal",
+                      label: "Proposta",
+                      image: "/icons/plenary/folder.svg",
+                    },
+                    {
+                      key: "subject",
+                      label: "Assunto",
+                      image: "/icons/plenary/clipboard.svg",
+                    },
+                    {
+                      key: "yes",
+                      label: "Sim",
+                    },
+                    {
+                      key: "no",
+                      label: "Não",
+                    },
+                    {
+                      key: "votes",
+                      label: "Votos",
+                      image: "/icons/plenary/circles.png",
+                    },
+                    {
+                      key: "result",
+                      label: "Resultado",
+                      image: "/icons/plenary/circles.png",
+                    },
+                  ].map((column) => (
                     <TableHead
                       key={column.key}
                       className="h-12 justify-end text-center text-sm font-semibold text-white"
@@ -129,22 +133,36 @@ export function DayOrder() {
                           column.key !== "authors" && "w-full justify-center",
                         )}
                       >
-                        <Image
-                          src="/icons/circles.png"
-                          alt=""
-                          width={250}
-                          height={250}
-                          className="h-4 w-4 object-contain"
-                        />
+                        {column.image ? (
+                          <Image
+                            src={column.image}
+                            alt=""
+                            width={250}
+                            height={250}
+                            className="h-6 w-6 object-contain"
+                          />
+                        ) : (
+                          <div
+                            className={`flex h-5 w-5 items-center justify-center rounded-full ${column.key === "yes" ? "text-primary bg-white" : "bg-[#DC2626]"}`}
+                          >
+                            {column.key === "yes" ? <Check /> : <X />}
+                          </div>
+                        )}
+
                         {column.label}
                       </div>
                     </TableHead>
                   ))}
                 </TableRow>
               </TableHeader>
+
               {tableData.map((row) => (
                 <TableBody key={row.id}>
-                  <TableRow className="hover:bg-primary/20 h-12 transition-all duration-300">
+                  <TableRow
+                    className={cn(
+                      "hover:bg-primary/20 h-12 cursor-pointer transition-all duration-300",
+                    )}
+                  >
                     <TableCell className="h-4 py-1 text-sm font-medium whitespace-nowrap">
                       {row.author}{" "}
                       <span className="text-primary font-semibold italic">

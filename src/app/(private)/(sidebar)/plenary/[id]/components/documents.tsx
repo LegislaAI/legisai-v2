@@ -8,44 +8,13 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { User } from "lucide-react";
 import Image from "next/image";
 import "swiper/css";
 
+import { Check, Type, User2, Video, X } from "lucide-react";
 import { Chat } from "./Chat";
 import { Tutorials } from "./Tutorials";
 export function Documents() {
-  const columns = [
-    {
-      key: "authors",
-      label: "Autores",
-    },
-    {
-      key: "proposal",
-      label: "Proposta",
-    },
-    {
-      key: "subject",
-      label: "Assunto",
-    },
-    {
-      key: "yes",
-      label: "Sim",
-    },
-    {
-      key: "no",
-      label: "Não",
-    },
-    {
-      key: "votes",
-      label: "Votos",
-    },
-    {
-      key: "result",
-      label: "Resultado",
-    },
-  ];
-
   const tableData = [
     {
       author: "Felipe Carreras (PSB-PE)",
@@ -121,7 +90,12 @@ export function Documents() {
               <div className="text-primary bg-primary/20 border-primary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
                 <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
                   <div className="flex w-full flex-1 items-center justify-center">
-                    <User size={40} />
+                    <Image
+                      src="/icons/plenary/paper.svg"
+                      alt=""
+                      width={40}
+                      height={40}
+                    />
                   </div>
                   <div className="flex items-center justify-center">
                     <span className="h-12 text-center text-lg font-bold uppercase">
@@ -139,7 +113,7 @@ export function Documents() {
               <div className="text-primary bg-primary/20 border-primary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
                 <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
                   <div className="flex w-full flex-1 items-center justify-center">
-                    <User size={40} />
+                    <User2 size={40} />
                   </div>
                   <span className="h-12 text-center text-lg font-bold uppercase">
                     Oradores inscritos <br />
@@ -155,7 +129,12 @@ export function Documents() {
               <div className="text-primary bg-primary/20 border-primary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
                 <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
                   <div className="flex w-full flex-1 items-center justify-center">
-                    <User size={40} />
+                    <Image
+                      src="/icons/plenary/folder-green.svg"
+                      alt=""
+                      width={40}
+                      height={40}
+                    />
                   </div>
                   <span className="h-12 text-center text-lg font-bold uppercase">
                     Atas da <br />
@@ -171,7 +150,7 @@ export function Documents() {
               <div className="text-primary bg-primary/20 border-primary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
                 <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
                   <div className="flex w-full flex-1 items-center justify-center">
-                    <User size={40} />
+                    <Type size={40} />
                   </div>
                   <span className="h-12 text-center text-lg font-bold uppercase">
                     SESSÃO PLENÁRIA <br />
@@ -187,7 +166,7 @@ export function Documents() {
               <div className="text-primary bg-primary/20 border-primary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
                 <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
                   <div className="flex w-full flex-1 items-center justify-center">
-                    <User size={40} />
+                    <Video size={40} />
                   </div>
                   <span className="h-12 text-center text-lg font-bold uppercase">
                     SESSÃO PLENÁRIA <br />
@@ -211,7 +190,41 @@ export function Documents() {
             <Table>
               <TableHeader className="bg-primary">
                 <TableRow>
-                  {columns.map((column) => (
+                  {[
+                    {
+                      key: "authors",
+                      label: "Autores",
+                      image: "/icons/plenary/user.svg",
+                    },
+                    {
+                      key: "proposal",
+                      label: "Proposta",
+                      image: "/icons/plenary/folder.svg",
+                    },
+                    {
+                      key: "subject",
+                      label: "Assunto",
+                      image: "/icons/plenary/clipboard.svg",
+                    },
+                    {
+                      key: "yes",
+                      label: "Sim",
+                    },
+                    {
+                      key: "no",
+                      label: "Não",
+                    },
+                    {
+                      key: "votes",
+                      label: "Votos",
+                      image: "/icons/plenary/circles.png",
+                    },
+                    {
+                      key: "result",
+                      label: "Resultado",
+                      image: "/icons/plenary/circles.png",
+                    },
+                  ].map((column) => (
                     <TableHead
                       key={column.key}
                       className="h-12 justify-end text-center text-sm font-semibold text-white"
@@ -223,22 +236,36 @@ export function Documents() {
                           column.key !== "authors" && "w-full justify-center",
                         )}
                       >
-                        <Image
-                          src="/icons/circles.png"
-                          alt=""
-                          width={250}
-                          height={250}
-                          className="h-4 w-4 object-contain"
-                        />
+                        {column.image ? (
+                          <Image
+                            src={column.image}
+                            alt=""
+                            width={250}
+                            height={250}
+                            className="h-6 w-6 object-contain"
+                          />
+                        ) : (
+                          <div
+                            className={`flex h-5 w-5 items-center justify-center rounded-full ${column.key === "yes" ? "text-primary bg-white" : "bg-[#DC2626]"}`}
+                          >
+                            {column.key === "yes" ? <Check /> : <X />}
+                          </div>
+                        )}
+
                         {column.label}
                       </div>
                     </TableHead>
                   ))}
                 </TableRow>
               </TableHeader>
+
               {tableData.map((row) => (
                 <TableBody key={row.id}>
-                  <TableRow className="hover:bg-primary/20 h-12 transition-all duration-300">
+                  <TableRow
+                    className={cn(
+                      "hover:bg-primary/20 h-12 cursor-pointer transition-all duration-300",
+                    )}
+                  >
                     <TableCell className="h-4 py-1 text-sm font-medium whitespace-nowrap">
                       {row.author}{" "}
                       <span className="text-primary font-semibold italic">

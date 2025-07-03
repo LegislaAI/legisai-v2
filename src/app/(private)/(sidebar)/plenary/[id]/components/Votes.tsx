@@ -13,8 +13,11 @@ import {
   Check,
   ChevronLeft,
   ChevronRight,
+  Copy,
   Search,
-  User,
+  Type,
+  User2,
+  Video,
   X,
 } from "lucide-react";
 import Image from "next/image";
@@ -51,37 +54,6 @@ export function Votes() {
     { name: "Patrícia Gomes", party: "DEM", state: "BA" },
     { name: "Roberto Nunes", party: "PSOL", state: "RS" },
     { name: "Gabriela Martins", party: "Novo", state: "PR" },
-  ];
-
-  const columns = [
-    {
-      key: "authors",
-      label: "Autores",
-    },
-    {
-      key: "proposal",
-      label: "Proposta",
-    },
-    {
-      key: "subject",
-      label: "Assunto",
-    },
-    {
-      key: "yes",
-      label: "Sim",
-    },
-    {
-      key: "no",
-      label: "Não",
-    },
-    {
-      key: "votes",
-      label: "Votos",
-    },
-    {
-      key: "result",
-      label: "Resultado",
-    },
   ];
 
   const tableData = [
@@ -157,7 +129,16 @@ export function Votes() {
           <div className="flex w-full flex-row flex-wrap justify-evenly gap-4 p-4 md:gap-0 lg:h-80 xl:h-full">
             <div className="text-primary border-primary flex w-full flex-col gap-8 rounded-lg border p-8 md:w-max">
               <div className="flex flex-row items-center gap-2">
-                <User />
+                <Image
+                  src={"/icons/plenary/user-green.svg"}
+                  alt=""
+                  width={250}
+                  height={250}
+                  className="h-6 w-6 object-contain"
+                />
+                <div className="bg-primary flex h-6 w-6 items-center justify-center rounded-full object-contain text-white">
+                  <Check />
+                </div>
                 <span className="text-xl font-bold">Quórum votação</span>
               </div>
               <div className="flex flex-row items-center justify-evenly gap-4">
@@ -173,7 +154,9 @@ export function Votes() {
             </div>
             <div className="text-primary border-primary flex w-full flex-col gap-8 rounded-lg border p-8 md:w-max">
               <div className="flex flex-row items-center gap-2">
-                <User />
+                <div className="bg-primary flex h-6 w-6 items-center justify-center rounded-full p-0.5 text-white">
+                  <Check />
+                </div>
                 <span className="text-xl font-bold">Total de Presentes</span>
               </div>
               <div className="flex flex-row items-center justify-evenly gap-4">
@@ -185,7 +168,7 @@ export function Votes() {
             </div>
             <div className="text-primary border-primary flex w-full flex-col gap-8 rounded-lg border p-8 md:w-max">
               <div className="flex flex-row items-center gap-2">
-                <User />
+                <Copy className="h-6 w-6" />
                 <span className="text-xl font-bold">Total de Propostas</span>
               </div>
               <div className="flex flex-row items-center justify-evenly gap-4">
@@ -303,7 +286,41 @@ export function Votes() {
             <Table>
               <TableHeader className="bg-primary">
                 <TableRow>
-                  {columns.map((column) => (
+                  {[
+                    {
+                      key: "authors",
+                      label: "Autores",
+                      image: "/icons/plenary/user.svg",
+                    },
+                    {
+                      key: "proposal",
+                      label: "Proposta",
+                      image: "/icons/plenary/folder.svg",
+                    },
+                    {
+                      key: "subject",
+                      label: "Assunto",
+                      image: "/icons/plenary/clipboard.svg",
+                    },
+                    {
+                      key: "yes",
+                      label: "Sim",
+                    },
+                    {
+                      key: "no",
+                      label: "Não",
+                    },
+                    {
+                      key: "votes",
+                      label: "Votos",
+                      image: "/icons/plenary/circles.png",
+                    },
+                    {
+                      key: "result",
+                      label: "Resultado",
+                      image: "/icons/plenary/circles.png",
+                    },
+                  ].map((column) => (
                     <TableHead
                       key={column.key}
                       className="h-12 justify-end text-center text-sm font-semibold text-white"
@@ -315,22 +332,36 @@ export function Votes() {
                           column.key !== "authors" && "w-full justify-center",
                         )}
                       >
-                        <Image
-                          src="/icons/circles.png"
-                          alt=""
-                          width={250}
-                          height={250}
-                          className="h-4 w-4 object-contain"
-                        />
+                        {column.image ? (
+                          <Image
+                            src={column.image}
+                            alt=""
+                            width={250}
+                            height={250}
+                            className="h-6 w-6 object-contain"
+                          />
+                        ) : (
+                          <div
+                            className={`flex h-5 w-5 items-center justify-center rounded-full ${column.key === "yes" ? "text-primary bg-white" : "bg-[#DC2626]"}`}
+                          >
+                            {column.key === "yes" ? <Check /> : <X />}
+                          </div>
+                        )}
+
                         {column.label}
                       </div>
                     </TableHead>
                   ))}
                 </TableRow>
               </TableHeader>
+
               {tableData.map((row) => (
                 <TableBody key={row.id}>
-                  <TableRow className="hover:bg-primary/20 h-12 transition-all duration-300">
+                  <TableRow
+                    className={cn(
+                      "hover:bg-primary/20 h-12 cursor-pointer transition-all duration-300",
+                    )}
+                  >
                     <TableCell className="h-4 py-1 text-sm font-medium whitespace-nowrap">
                       {row.author}{" "}
                       <span className="text-primary font-semibold italic">
@@ -561,7 +592,12 @@ export function Votes() {
               <div className="text-primary bg-primary/20 border-primary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
                 <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
                   <div className="flex w-full flex-1 items-center justify-center">
-                    <User size={40} />
+                    <Image
+                      src="/icons/plenary/paper.svg"
+                      alt=""
+                      width={40}
+                      height={40}
+                    />
                   </div>
                   <div className="flex items-center justify-center">
                     <span className="h-12 text-center text-lg font-bold uppercase">
@@ -579,7 +615,7 @@ export function Votes() {
               <div className="text-primary bg-primary/20 border-primary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
                 <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
                   <div className="flex w-full flex-1 items-center justify-center">
-                    <User size={40} />
+                    <User2 size={40} />
                   </div>
                   <span className="h-12 text-center text-lg font-bold uppercase">
                     Oradores inscritos <br />
@@ -595,7 +631,12 @@ export function Votes() {
               <div className="text-primary bg-primary/20 border-primary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
                 <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
                   <div className="flex w-full flex-1 items-center justify-center">
-                    <User size={40} />
+                    <Image
+                      src="/icons/plenary/folder-green.svg"
+                      alt=""
+                      width={40}
+                      height={40}
+                    />
                   </div>
                   <span className="h-12 text-center text-lg font-bold uppercase">
                     Atas da <br />
@@ -611,7 +652,7 @@ export function Votes() {
               <div className="text-primary bg-primary/20 border-primary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
                 <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
                   <div className="flex w-full flex-1 items-center justify-center">
-                    <User size={40} />
+                    <Type size={40} />
                   </div>
                   <span className="h-12 text-center text-lg font-bold uppercase">
                     SESSÃO PLENÁRIA <br />
@@ -627,7 +668,7 @@ export function Votes() {
               <div className="text-primary bg-primary/20 border-primary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
                 <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
                   <div className="flex w-full flex-1 items-center justify-center">
-                    <User size={40} />
+                    <Video size={40} />
                   </div>
                   <span className="h-12 text-center text-lg font-bold uppercase">
                     SESSÃO PLENÁRIA <br />

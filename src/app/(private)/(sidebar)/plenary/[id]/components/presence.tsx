@@ -8,103 +8,54 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { ChevronLeft, ChevronRight, Search } from "lucide-react";
+import { Check, ChevronLeft, ChevronRight, Search, X } from "lucide-react";
 import Image from "next/image";
 import { useState } from "react";
 import "swiper/css";
 
 export function Presence() {
-  const columns = [
-    {
-      key: "authors",
-      label: "Autores",
-    },
-    {
-      key: "proposal",
-      label: "Proposta",
-    },
-    {
-      key: "subject",
-      label: "Assunto",
-    },
-    {
-      key: "yes",
-      label: "Sim",
-    },
-    {
-      key: "no",
-      label: "Não",
-    },
-    {
-      key: "votes",
-      label: "Votos",
-    },
-    {
-      key: "result",
-      label: "Resultado",
-    },
-  ];
-
   const tableData = [
     {
-      author: "Felipe Carreras (PSB-PE)",
-      proposal: "REQ 1884/2023",
-      subject: "Outro Dado",
-      yes: 43,
-      no: 3,
-      votes: 48,
-      result: "aprovado",
       id: 1,
+      name: "João da Silva",
+      party: "PT",
+      state: "SP",
+      presence: "Sim",
     },
     {
-      author: "Felipe Carreras (PSB-PE)",
-      proposal: "PL 8035/2014",
-      subject: "Outro Dado",
-      yes: 43,
-      no: 3,
-      votes: 48,
-      result: "aprovada com alterações",
       id: 2,
+      name: "Maria Rodrigues",
+      party: "PSDB",
+      state: "RJ",
+      presence: "Sim",
     },
     {
-      author: "Felipe Carreras (PSB-PE)",
-      proposal: "PL 8035/2014",
-      subject: "Outro Dado",
-      yes: 43,
-      no: 3,
-      votes: 48,
-      result: "não analisada",
       id: 3,
+      name: "Pedro Souza",
+      party: "MDB",
+      state: "MG",
+      presence: "Não",
     },
     {
-      author: "Felipe Carreras (PSB-PE)",
-      proposal: "PL 8035/2014",
-      subject: "Outro Dado",
-      yes: 43,
-      no: 3,
-      votes: 48,
-      result: "não analisada",
       id: 4,
+      name: "Ana Paula",
+      party: "DEM",
+      state: "BA",
+      presence: "Sim",
     },
     {
-      author: "Felipe Carreras (PSB-PE)",
-      proposal: "PL 8035/2014",
-      subject: "Outro Dado",
-      yes: 43,
-      no: 3,
-      votes: 48,
-      result: "não analisada",
       id: 5,
+      name: "Roberto Carlos",
+      party: "PSOL",
+      state: "RS",
+      presence: "Não",
     },
     {
-      author: "Felipe Carreras (PSB-PE)",
-      proposal: "PL 8035/2014",
-      subject: "Outro Dado",
-      yes: 43,
-      no: 3,
-      votes: 48,
-      result: "não analisada",
       id: 6,
+      name: "Gabriela Martins",
+      party: "Novo",
+      state: "PR",
+      presence: "Sim",
     },
   ];
   const [search, setSearch] = useState("");
@@ -121,7 +72,7 @@ export function Presence() {
                 deputados presentes:
               </h2>
               <span className="text-black">
-                Verifique todos aqueles que estavam de faot presente na Sessão
+                Verifique todos aqueles que estavam de fato presente na Sessão
                 Deliberativa
               </span>
             </div>
@@ -144,7 +95,29 @@ export function Presence() {
             <Table>
               <TableHeader className="bg-primary">
                 <TableRow>
-                  {columns.map((column) => (
+                  {[
+                    {
+                      key: "author",
+                      label: "Deputados",
+                      image: "/icons/plenary/user.svg",
+                    },
+                    {
+                      key: "proposal",
+                      label: "Partido",
+                      image: "/icons/plenary/shield.svg",
+                    },
+                    {
+                      key: "state",
+                      label: "Estado",
+                      image: "/icons/plenary/flag.svg",
+                    },
+
+                    {
+                      key: "presence",
+                      label: "Presença",
+                      image: "/icons/plenary/chair.svg",
+                    },
+                  ].map((column) => (
                     <TableHead
                       key={column.key}
                       className="h-12 justify-end text-center text-sm font-semibold text-white"
@@ -152,67 +125,65 @@ export function Presence() {
                       <div
                         className={cn(
                           "flex items-center gap-2",
-                          column.key === "authors" && "items-start",
-                          column.key !== "authors" && "w-full justify-center",
+                          column.key === "author" && "items-start",
+                          column.key !== "author" && "w-full justify-center",
                         )}
                       >
-                        <Image
-                          src="/icons/circles.png"
-                          alt=""
-                          width={250}
-                          height={250}
-                          className="h-4 w-4 object-contain"
-                        />
+                        {column.image ? (
+                          <Image
+                            src={column.image}
+                            alt=""
+                            width={250}
+                            height={250}
+                            className="h-6 w-6 object-contain"
+                          />
+                        ) : (
+                          <div
+                            className={`flex h-5 w-5 items-center justify-center rounded-full ${column.key === "yes" ? "text-primary bg-white" : "bg-[#DC2626]"}`}
+                          >
+                            {column.key === "yes" ? <Check /> : <X />}
+                          </div>
+                        )}
+
                         {column.label}
                       </div>
                     </TableHead>
                   ))}
                 </TableRow>
               </TableHeader>
+
               {tableData.map((row) => (
                 <TableBody key={row.id}>
-                  <TableRow className="hover:bg-primary/20 h-12 transition-all duration-300">
+                  <TableRow
+                    className={cn(
+                      "hover:bg-primary/20 h-12 cursor-pointer transition-all duration-300",
+                    )}
+                  >
                     <TableCell className="h-4 py-1 text-sm font-medium whitespace-nowrap">
-                      {row.author}{" "}
+                      {row.name}{" "}
                       <span className="text-primary font-semibold italic">
                         Ver Todos *
                       </span>
                     </TableCell>
                     <TableCell className="h-4 py-1 text-center text-sm font-semibold whitespace-nowrap">
-                      {row.proposal}
+                      {row.party}
                     </TableCell>
                     <TableCell className="h-4 py-1 text-center text-sm">
-                      {row.subject}
+                      {row.state}
                     </TableCell>
-                    <TableCell className="h-4 py-1 text-center text-sm">
-                      {row.yes}
-                    </TableCell>
-                    <TableCell className="h-4 py-1 text-center text-sm">
-                      {row.no}
-                    </TableCell>
-                    <TableCell className="h-4 py-1 text-center text-sm">
-                      {row.votes}
-                    </TableCell>
+
                     <TableCell className="h-4 w-10 py-1 text-sm font-medium">
                       <div className="flex items-end justify-end">
                         <div className="flex h-full w-40 max-w-40 min-w-40 items-center justify-center text-center">
                           <span
                             className={cn(
-                              "w-full rounded-lg px-2 py-1",
-                              row.result.toLowerCase() === "aprovado"
+                              "w-full rounded-lg px-2 py-1 uppercase",
+                              row.presence
                                 ? "bg-primary/20 text-primary"
-                                : row.result.toLowerCase() ===
-                                    "aprovada com alterações"
-                                  ? "bg-sky-500/20 text-sky-500"
-                                  : "bg-rose-500/20 text-rose-500",
+                                : "bg-[#EF4444]/20 text-[#EF4444]",
                             )}
                           >
-                            {row.result.toLowerCase() === "aprovado"
-                              ? "Aprovado"
-                              : row.result.toLowerCase() ===
-                                  "aprovada com alterações"
-                                ? "Aprovado com alterações"
-                                : "Não Analisada"}
+                            {row.presence ? "Presente" : "Não Presente"}
                           </span>
                         </div>
                       </div>
