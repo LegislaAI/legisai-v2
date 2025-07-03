@@ -96,7 +96,6 @@ export default function RecoverPassword() {
       false,
     );
     setIsLogging(false);
-    console.log("resposta", response);
     if (response.status === 200) {
       setEmail(data.email); // Salva o email para o reenvio do código
       setCurrentStep(2);
@@ -110,7 +109,6 @@ export default function RecoverPassword() {
   async function HandleValidateCode(data: ValidateCodeFormData) {
     setIsLogging(true);
     const response = await GetAPI(`/password-code/${data.code}`, false);
-    console.log("resposta", response);
     setIsLogging(false);
     if (response.status === 200) {
       setCurrentStep(3);

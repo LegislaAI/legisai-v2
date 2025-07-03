@@ -8,8 +8,6 @@ export async function POST(request: NextRequest) {
     assistantId: string;
   } = await request.json();
 
-  console.log("message", data.message);
-
   const stream = new ReadableStream({
     start(controller) {
       createRunStream({

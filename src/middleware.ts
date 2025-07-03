@@ -22,7 +22,6 @@ export async function middleware(req: NextRequest) {
         "ngrok-skip-browser-warning": "any",
       },
     };
-    console.log("baseURL", baseURL);
     const connect = await fetch(`${baseURL}/user/token`, {
       method: "PATCH",
       headers: config.headers,
@@ -44,14 +43,11 @@ export async function middleware(req: NextRequest) {
 
   const cookieStore = await cookies();
   const Token = process.env.NEXT_PUBLIC_USER_TOKEN;
-  console.log("Token", Token);
   if (!Token) return NextResponse.redirect(new URL("/login", req.url));
   const token = cookieStore.get(Token);
-  console.log("token", token);
   if (!token) return NextResponse.redirect(new URL("/login", req.url));
 
   const connect = await loginVerifyAPI(token.value);
-  console.log("connect", connect);
   if (connect.status !== 200) {
     return NextResponse.redirect(new URL("/login", req.url));
   }
