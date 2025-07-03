@@ -75,7 +75,6 @@ export const handleSendStreamMessage = async ({
             chunk.replace("[EXTRA_DATA]:", "").trim(),
           ).response;
         } else {
-          console.log("chunk: ", chunk);
           setIsMessageLoading(true);
           finalMessage += chunk;
           if (isStream) {

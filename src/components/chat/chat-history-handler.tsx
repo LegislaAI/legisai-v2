@@ -37,7 +37,6 @@ export function useChatPage() {
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt>(
     DefaultPrompts[0],
   );
-  console.log("selectedPrompt", selectedPrompt);
   const [isChatHistoryOpen, setIsChatHistoryOpen] = useState(false);
 
   const [chats, setChats] = useState<ChatItem[]>([]);

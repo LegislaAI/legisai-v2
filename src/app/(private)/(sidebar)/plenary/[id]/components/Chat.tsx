@@ -173,7 +173,7 @@ export function Chat({ title }: ChatProps) {
                 <h1 className="self-center text-center text-3xl md:text-5xl">
                   Você está em {""}
                   <br className="md:hidden" />
-                  <span className="bg-gradient-to-r from-[#097F4D] to-[#097F4D]/0">
+                  <span className="from-secondary to-secondary/0 bg-gradient-to-r">
                     {title}
                   </span>
                 </h1>

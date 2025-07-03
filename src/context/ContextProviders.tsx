@@ -1,5 +1,6 @@
 import { CookiesProvider } from "next-client-cookies/server";
 import { ApiContextProvider } from "./ApiContext";
+import { PoliticianContextProvider } from "./PoliticianContext";
 import { SampleContextProvider } from "./SampleContext";
 import { SidebarContextProvider } from "./SidebarContext";
 
@@ -9,11 +10,13 @@ export function ContextProviders({ children }: { children: React.ReactNode }) {
       <CookiesProvider>
         <ApiContextProvider>
           <SidebarContextProvider>
-            <SampleContextProvider>
-              {/* Any other Context Providers */}
-              {children}
-              {/* Any other Context Providers */}
-            </SampleContextProvider>
+            <PoliticianContextProvider>
+              <SampleContextProvider>
+                {/* Any other Context Providers */}
+                {children}
+                {/* Any other Context Providers */}
+              </SampleContextProvider>
+            </PoliticianContextProvider>
           </SidebarContextProvider>
         </ApiContextProvider>
       </CookiesProvider>

@@ -119,7 +119,7 @@ export default function Profile() {
                 width={2000}
                 height={2000}
                 alt=""
-                src={"/static/plenary-details.png"}
+                src={"/static/plenary.png"}
                 className="absolute h-full w-full object-cover"
               />
               <div className="bg-primary/80 hover:bg-primary z-[1] flex h-32 w-40 flex-col items-center justify-center gap-2 rounded-lg p-2 transition-all duration-300">

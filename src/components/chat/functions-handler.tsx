@@ -165,8 +165,6 @@ registerTool({
 
     const result = await GetAPI(`/proposition-process/${propositionId}`, false);
 
-    console.log(result.body);
-
     return result.body;
   },
 });

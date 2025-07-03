@@ -62,7 +62,6 @@ export default function Register() {
   });
 
   async function handleRegister(data: RegisterFormData) {
-    console.log("data", data);
     setIsRegistering(true);
     const response = await PostAPI(
       "/user/signup",
@@ -75,7 +74,6 @@ export default function Register() {
       },
       false,
     );
-    console.log("response", response);
     if (response.status === 200) {
       cookies.set(token, response.body.accessToken);
       router.push("/mail-code");
@@ -90,7 +88,7 @@ export default function Register() {
       setIsRegistering(false);
     }
   }
-  console.log("isRegistering", isRegistering);
+
   interface PhoneChangeEvent {
     target: {
       value: string;
@@ -110,7 +108,7 @@ export default function Register() {
   return (
     <main className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-white pb-10 md:pb-0">
       <Image
-        src={"/static/login.png"}
+        src={"/static/register2.png"}
         className="absolute right-0 z-10 hidden h-[95%] w-[40%] rounded-tl-lg rounded-bl-lg object-cover md:block"
         alt=""
         width={1000}
@@ -127,7 +125,7 @@ export default function Register() {
           </h2>
           <form
             onSubmit={handleSubmit(handleRegister, (errors) =>
-              console.log("Erros de validação:", errors),
+              console.error("Erros de validação:", errors),
             )}
             className="flex flex-col gap-2"
           >

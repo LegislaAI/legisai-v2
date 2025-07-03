@@ -18,8 +18,6 @@ export const SampleContextProvider = ({ children }: ProviderProps) => {
 
   const token = cookies.get("token");
 
-  console.log("cookies: ", cookies);
-
   return (
     <SampleContext.Provider
       value={{

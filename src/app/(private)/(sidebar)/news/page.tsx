@@ -35,7 +35,6 @@ export default function News() {
       setErrorToday("");
       try {
         const res = await GetAPI("/news/today", true);
-        console.log(res);
         if (res.status === 200 && Array.isArray(res.body)) {
           setNewsToday(res.body as NewsType[]);
         } else if (res.status === 200 && Array.isArray(res.body.news)) {
@@ -63,7 +62,6 @@ export default function News() {
       setErrorAll("");
       try {
         const res = await GetAPI(`/news?page=${p}`, true);
-        console.log("res1", res);
         let items: NewsType[] = [];
         if (res.status === 200 && Array.isArray(res.body)) {
           items = res.body;

@@ -49,14 +49,12 @@ export default function Login() {
       },
       false,
     );
-    console.log("login", login);
     if (login.status === 200) {
       cookies.set(
         process.env.NEXT_PUBLIC_USER_TOKEN as string,
         login.body.accessToken,
       );
       setTimeout(() => {
-        console.log("x");
         router.push("/");
       }, 1000);
     } else {
@@ -65,11 +63,11 @@ export default function Login() {
       setLoginError(login.body.message);
     }
   }
-  // console.log("token", token);
+
   return (
     <main className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-white">
       <Image
-        src={"/static/login.png"}
+        src={"/static/register.png"}
         className="absolute right-0 z-10 hidden h-[95%] w-[40%] rounded-tl-lg rounded-bl-lg object-cover md:block"
         alt=""
         width={1000}
