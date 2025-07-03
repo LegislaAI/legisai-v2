@@ -55,7 +55,7 @@ export default function Login() {
         login.body.accessToken,
       );
       setTimeout(() => {
-        router.push("/");
+        router.push("/procedures");
       }, 1000);
     } else {
       toast.error("Erro ao logar, tente novamente");
