@@ -12,7 +12,7 @@ export const inputVariants = cva(
         default:
           "border-default-300 text-default-900 focus:outline-none focus:border-default-900 disabled:bg-default-200  placeholder:text-accent-foreground/50",
         primary:
-          "border-primary text-primary focus:outline-none focus:border-primary-700 disabled:bg-primary/30 disabled:placeholder:text-primary  placeholder:text-primary/70",
+          "border-secondary text-secondary focus:outline-none focus:border-secondary-700 disabled:bg-secondary/30 disabled:placeholder:text-secondary  placeholder:text-secondary/70",
         info: "border-info/50 text-info focus:outline-none focus:border-info-700 disabled:bg-info/30 disabled:placeholder:text-info  placeholder:text-info/70",
         warning:
           "border-warning/50 text-warning focus:outline-none focus:border-warning-700 disabled:bg-warning/30 disabled:placeholder:text-info  placeholder:text-warning/70",
@@ -25,7 +25,7 @@ export const inputVariants = cva(
         flat: "bg-default-100 read-only:bg-default-100",
         underline: "border-b",
         bordered: "border  ",
-        borderedPrimary: "border border-primary shadow-sm",
+        borderedPrimary: "border border-secondary shadow-sm",
         faded: "border border-default-300 bg-default-100",
         ghost: "border-0 focus:border",
         "flat-underline": "bg-default-100 border-b",
@@ -56,7 +56,7 @@ export const inputVariants = cva(
       {
         variant: "flat",
         color: "primary",
-        className: "bg-primary/10 read-only:bg-primary/10",
+        className: "bg-secondary/10 read-only:bg-secondary/10",
       },
       {
         variant: "flat",
@@ -82,7 +82,7 @@ export const inputVariants = cva(
         variant: "faded",
         color: "primary",
         className:
-          "bg-primary/10 border-primary/30 read-only:bg-primary/10 border-primary/30",
+          "bg-secondary/10 border-secondary/30 read-only:bg-secondary/10 border-secondary/30",
       },
       {
         variant: "faded",

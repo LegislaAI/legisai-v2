@@ -236,7 +236,7 @@ export default function Checkout() {
         <div className="z-20 mt-32 flex w-full flex-col gap-2 md:w-[45%] xl:mt-40 xl:ml-[10%] xl:w-[60%] xl:gap-4">
           <button
             onClick={() => router.back()}
-            className="text-primary static top-4 left-4 flex flex-row items-center justify-center gap-2 self-start text-xs underline md:absolute md:text-base"
+            className="text-secondary static top-4 left-4 flex flex-row items-center justify-center gap-2 self-start text-xs underline md:absolute md:text-base"
           >
             <ChevronLeft size={16} /> Voltar
           </button>
@@ -247,7 +247,7 @@ export default function Checkout() {
                 className={cn(
                   "relative flex w-full flex-col rounded-md border bg-white p-2 opacity-60 shadow-sm transition-all duration-300",
                   selectedPayment === "card" &&
-                    "border-primary bg-zinc-50 opacity-100",
+                    "border-secondary bg-zinc-50 opacity-100",
                 )}
                 htmlFor="card"
               >
@@ -263,7 +263,8 @@ export default function Checkout() {
                   <Check
                     className={cn(
                       "opacity-0 transition duration-200",
-                      selectedPayment === "card" && "text-primary opacity-100",
+                      selectedPayment === "card" &&
+                        "text-secondary opacity-100",
                     )}
                   />
                   <div className="flex flex-col text-black">
@@ -278,7 +279,7 @@ export default function Checkout() {
                 className={cn(
                   "relative flex w-full flex-col rounded-md border bg-white p-2 opacity-60 shadow-sm transition-all duration-300",
                   selectedPayment === "pix" &&
-                    "border-primary bg-zinc-50 opacity-100",
+                    "border-secondary bg-zinc-50 opacity-100",
                 )}
                 htmlFor="pix"
               >
@@ -294,7 +295,7 @@ export default function Checkout() {
                   <Check
                     className={cn(
                       "opacity-0 transition duration-200",
-                      selectedPayment === "pix" && "text-primary opacity-100",
+                      selectedPayment === "pix" && "text-secondary opacity-100",
                     )}
                   />
                   <div className="flex flex-col text-black">
@@ -361,7 +362,7 @@ export default function Checkout() {
                                       autoComplete="off"
                                     />
                                   </FormControl>
-                                  <FormMessage className="font-base bg-destructive/90 text-primary-foreground inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-[10px]" />
+                                  <FormMessage className="font-base bg-destructive/90 text-secondary-foreground inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-[10px]" />
                                 </FormItem>
                               )}
                             />
@@ -391,7 +392,7 @@ export default function Checkout() {
                                       autoComplete="off"
                                     />
                                   </FormControl>
-                                  <FormMessage className="font-base bg-destructive/90 text-primary-foreground inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-[10px]" />
+                                  <FormMessage className="font-base bg-destructive/90 text-secondary-foreground inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-[10px]" />
                                 </FormItem>
                               )}
                             />
@@ -421,7 +422,7 @@ export default function Checkout() {
                                       autoComplete="off"
                                     />
                                   </FormControl>
-                                  <FormMessage className="font-base bg-destructive/90 text-primary-foreground inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-[10px]" />
+                                  <FormMessage className="font-base bg-destructive/90 text-secondary-foreground inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-[10px]" />
                                 </FormItem>
                               )}
                             />
@@ -448,7 +449,7 @@ export default function Checkout() {
                                       autoComplete="off"
                                     />
                                   </FormControl>
-                                  <FormMessage className="font-base bg-destructive/90 text-primary-foreground inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-[10px]" />
+                                  <FormMessage className="font-base bg-destructive/90 text-secondary-foreground inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-[10px]" />
                                 </FormItem>
                               )}
                             />
@@ -494,7 +495,7 @@ export default function Checkout() {
                                       autoComplete="off"
                                     />
                                   </FormControl>
-                                  <FormMessage className="font-base bg-destructive/90 text-primary-foreground inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-[10px]" />
+                                  <FormMessage className="font-base bg-destructive/90 text-secondary-foreground inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-[10px]" />
                                 </FormItem>
                               )}
                             />
@@ -521,7 +522,7 @@ export default function Checkout() {
                                       autoComplete="off"
                                     />
                                   </FormControl>
-                                  <FormMessage className="font-base bg-destructive/90 text-primary-foreground inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-[10px]" />
+                                  <FormMessage className="font-base bg-destructive/90 text-secondary-foreground inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-[10px]" />
                                 </FormItem>
                               )}
                             />
@@ -551,7 +552,7 @@ export default function Checkout() {
                                       autoComplete="off"
                                     />
                                   </FormControl>
-                                  <FormMessage className="font-base bg-destructive/90 text-primary-foreground inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-[10px]" />
+                                  <FormMessage className="font-base bg-destructive/90 text-secondary-foreground inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-[10px]" />
                                 </FormItem>
                               )}
                             />
@@ -581,7 +582,7 @@ export default function Checkout() {
                                       autoComplete="off"
                                     />
                                   </FormControl>
-                                  <FormMessage className="font-base bg-destructive/90 text-primary-foreground inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-[10px]" />
+                                  <FormMessage className="font-base bg-destructive/90 text-secondary-foreground inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-[10px]" />
                                 </FormItem>
                               )}
                             />
@@ -611,7 +612,7 @@ export default function Checkout() {
                                       autoComplete="off"
                                     />
                                   </FormControl>
-                                  <FormMessage className="font-base bg-destructive/90 text-primary-foreground inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-[10px]" />
+                                  <FormMessage className="font-base bg-destructive/90 text-secondary-foreground inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-[10px]" />
                                 </FormItem>
                               )}
                             />
@@ -637,7 +638,7 @@ export default function Checkout() {
                                       autoComplete="off"
                                     />
                                   </FormControl>
-                                  <FormMessage className="font-base bg-destructive/90 text-primary-foreground inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-[10px]" />
+                                  <FormMessage className="font-base bg-destructive/90 text-secondary-foreground inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-[10px]" />
                                 </FormItem>
                               )}
                             />
@@ -647,12 +648,12 @@ export default function Checkout() {
                         <>
                           {selectedPlan && (
                             <>
-                              <h1 className="text-primary text-sm font-bold md:text-base">
+                              <h1 className="text-secondary text-sm font-bold md:text-base">
                                 Parcelamento
                               </h1>
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <button className="bg-primaryp-2 relative col-span-12 w-full rounded-lg text-white">
+                                  <button className="bg-secondaryp-2 relative col-span-12 w-full rounded-lg text-white">
                                     <span className="font-semibold">
                                       {selectedInstallment +
                                         " x " +
@@ -672,9 +673,9 @@ export default function Checkout() {
                                     (item) => (
                                       <DropdownMenuItem
                                         className={cn(
-                                          "hover:bg-primary text-black hover:text-white",
+                                          "hover:bg-secondary text-black hover:text-white",
                                           selectedInstallment === item &&
-                                            "bg-primary text-white",
+                                            "bg-secondary text-white",
                                         )}
                                         onSelect={() =>
                                           setSelectedInstallment(item)
@@ -707,7 +708,7 @@ export default function Checkout() {
                       <>
                         <button
                           onClick={HandleQrCode}
-                          className="bg-primary mx-auto flex h-12 w-full items-center gap-2 rounded-lg p-2 py-4 font-semibold text-white transition-all duration-300 hover:scale-[1.05]"
+                          className="bg-secondary mx-auto flex h-12 w-full items-center gap-2 rounded-lg p-2 py-4 font-semibold text-white transition-all duration-300 hover:scale-[1.05]"
                         >
                           {isPixBeingGenerated ? (
                             <Loader2 className="mx-auto h-5 w-5 animate-spin" />
@@ -736,10 +737,10 @@ export default function Checkout() {
                                 width={300}
                                 height={300}
                                 alt=""
-                                className="bg-primary h-max w-1/3 self-center rounded-2xl object-contain p-2"
+                                className="bg-secondary h-max w-1/3 self-center rounded-2xl object-contain p-2"
                               />
                               <button
-                                className="bg-pix bg-primary m-auto flex w-max items-center gap-2 rounded-lg p-1 text-sm text-white transition-all duration-300 hover:scale-[1.05]"
+                                className="bg-pix bg-secondary m-auto flex w-max items-center gap-2 rounded-lg p-1 text-sm text-white transition-all duration-300 hover:scale-[1.05]"
                                 onClick={() => {
                                   copyToClipboard(qrCode.payload);
                                   setCopiedQrCode(true);
@@ -758,7 +759,7 @@ export default function Checkout() {
                         <button
                           onClick={() => router.push("/")}
                           className={cn(
-                            "bg-primary mx-auto flex h-12 w-60 items-center justify-center gap-2 rounded-lg p-2 font-semibold text-white transition-all duration-300 hover:scale-[1.05]",
+                            "bg-secondary mx-auto flex h-12 w-60 items-center justify-center gap-2 rounded-lg p-2 font-semibold text-white transition-all duration-300 hover:scale-[1.05]",
                             !isPixGenerated && "hidden",
                           )}
                         >
@@ -799,7 +800,7 @@ export default function Checkout() {
                   type="button"
                   disabled={isPaying}
                   onClick={() => handleNext(form)}
-                  className="bg-primary w-full rounded-md border p-2 font-bold text-white"
+                  className="bg-secondary w-full rounded-md border p-2 font-bold text-white"
                 >
                   {activeStep === 2
                     ? "Finalizar"

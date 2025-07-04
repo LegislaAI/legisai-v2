@@ -29,13 +29,13 @@ export function News() {
               <TooltipContent
                 side="top"
                 align="start"
-                className="border-primary bg-primary w-60 border"
+                className="border-secondary bg-secondary w-60 border"
               >
                 <p className="text-white">
                   Acompanhe notícias recentes relacionadas ao político
                   selecionado ou acesse a lista completa.
                 </p>
-                <TooltipArrow className="fill-primary" />
+                <TooltipArrow className="fill-secondary" />
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>

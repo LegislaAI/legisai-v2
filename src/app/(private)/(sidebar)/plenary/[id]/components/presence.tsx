@@ -143,12 +143,12 @@ export function Presence() {
     <div className="grid w-full grid-cols-12 gap-8">
       <div className="col-span-12 flex flex-col overflow-hidden rounded-lg bg-white p-4 xl:col-span-12">
         <div className="flex h-full w-full flex-col gap-4">
-          <span className="text-primary text-xl font-bold">
+          <span className="text-secondary text-xl font-bold">
             Presença de Parlamentares na Sessão Deliberativa
           </span>
 
           {/* Filtros */}
-          <div className="border-primary flex w-full flex-col items-center justify-between gap-4 rounded-lg border p-4 lg:flex-row lg:gap-0">
+          <div className="border-secondary flex w-full flex-col items-center justify-between gap-4 rounded-lg border p-4 lg:flex-row lg:gap-0">
             <div className="flex flex-1 flex-col gap-2">
               <h2 className="text-lg font-bold text-black uppercase">
                 deputados presentes:
@@ -158,10 +158,10 @@ export function Presence() {
                 Deliberativa
               </span>
             </div>
-            <div className="group flex h-8 w-full flex-row rounded-md border border-[#475569] md:w-1/3">
+            <div className="group flex h-8 w-full flex-row overflow-hidden rounded-md border border-zinc-400 md:w-1/3">
               <button
                 onClick={triggerSearch}
-                className="flex h-full items-center justify-center rounded-l-md bg-[#749C5B] px-2 text-[#222222] transition-opacity duration-300"
+                className="flex h-full items-center justify-center bg-[#749c5b] px-2 text-white transition-opacity duration-300"
               >
                 Buscar
               </button>
@@ -169,14 +169,14 @@ export function Presence() {
                 value={input}
                 onChange={handleChange}
                 onKeyDown={handleEnter}
-                className="flex-1 bg-transparent px-2 text-[#749C5B] transition-opacity duration-300 outline-none placeholder:text-[#749C5B] placeholder:opacity-40"
+                className="flex-1 bg-transparent px-2 text-[#749c5b] transition-opacity duration-300 outline-none placeholder:text-[#749c5b] placeholder:opacity-40"
                 placeholder="Buscar aqui por nome ou partido..."
               />
               <button
                 onClick={triggerSearch}
-                className="flex h-full items-center justify-center rounded-r-md bg-[#749C5B] px-2 text-white transition-opacity duration-300"
+                className="flex h-full items-center justify-center bg-[#749c5b] px-2 text-white transition-opacity duration-300"
               >
-                <Search color="#222222" size={14} />
+                <Search color="#fff" size={14} />
               </button>
             </div>
           </div>
@@ -185,7 +185,7 @@ export function Presence() {
           <div className="relative min-h-32">
             {loading && (
               <div className="absolute inset-0 z-10 flex items-center justify-center bg-white/60 backdrop-blur-sm">
-                <span className="text-primary animate-pulse text-lg font-semibold">
+                <span className="text-secondary animate-pulse text-lg font-semibold">
                   Carregando...
                 </span>
               </div>
@@ -193,7 +193,7 @@ export function Presence() {
 
             <div className="overflow-auto xl:h-full">
               <Table>
-                <TableHeader className="bg-primary">
+                <TableHeader className="bg-secondary">
                   <TableRow>
                     {[
                       {
@@ -255,7 +255,7 @@ export function Presence() {
                     const isPresent = true;
                     return (
                       <TableBody key={wrapper.id}>
-                        <TableRow className="hover:bg-primary/20 h-12 cursor-pointer transition-all duration-300">
+                        <TableRow className="hover:bg-secondary/20 h-12 cursor-pointer transition-all duration-300">
                           <TableCell className="h-4 py-1 text-sm font-medium whitespace-nowrap">
                             {p.name}
                           </TableCell>
@@ -272,7 +272,7 @@ export function Presence() {
                                   className={cn(
                                     "w-full rounded-lg px-2 py-1 uppercase",
                                     isPresent
-                                      ? "bg-primary/20 text-primary"
+                                      ? "bg-secondary/20 text-secondary"
                                       : "bg-[#EF4444]/20 text-[#EF4444]",
                                   )}
                                 >
@@ -301,10 +301,10 @@ export function Presence() {
                 onClick={prev}
                 disabled={page === 1 || loading}
                 className={cn(
-                  "text-primary mx-1 flex h-8 w-8 items-center justify-center rounded-md border",
+                  "text-secondary mx-1 flex h-8 w-8 items-center justify-center rounded-md border",
                   page === 1 || loading
                     ? "cursor-not-allowed border opacity-50"
-                    : "border-primary",
+                    : "border-secondary",
                 )}
               >
                 <ChevronLeft />
@@ -320,8 +320,8 @@ export function Presence() {
                     className={cn(
                       "mx-1 h-8 w-8 rounded-md border px-2 py-1 text-sm font-medium",
                       pIdx === page
-                        ? "bg-primary border-white text-[#222222]"
-                        : "border-primary text-primary",
+                        ? "bg-secondary border-white text-[#222222]"
+                        : "border-secondary text-secondary",
                       loading && "cursor-not-allowed opacity-50",
                     )}
                   >
@@ -334,10 +334,10 @@ export function Presence() {
                 onClick={next}
                 disabled={page === totalPages || loading}
                 className={cn(
-                  "text-primary mx-1 flex h-8 w-8 items-center justify-center rounded-md border",
+                  "text-secondary mx-1 flex h-8 w-8 items-center justify-center rounded-md border",
                   page === totalPages || loading
                     ? "cursor-not-allowed border opacity-50"
-                    : "border-primary",
+                    : "border-secondary",
                 )}
               >
                 <ChevronRight />

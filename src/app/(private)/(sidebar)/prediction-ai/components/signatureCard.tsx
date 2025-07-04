@@ -41,20 +41,20 @@ export function SignatureCard({
             {price === 0 ? (
               <Hexagon className="text-dark" />
             ) : (
-              <Star className="text-primary" />
+              <Star className="text-secondary" />
             )}
             <span className="font-bold">{name}</span>
           </div>
           <div className="py-4">
             {price === 0 ? (
-              <span className="text-primary text-xl font-semibold">
+              <span className="text-secondary text-xl font-semibold">
                 Gratuito
               </span>
             ) : (
               <div className="flex items-center justify-center">
                 <span className="text-dark text-2xl font-medium">
                   R${" "}
-                  <span className="text-primary text-4xl font-bold">
+                  <span className="text-secondary text-4xl font-bold">
                     {price},00
                   </span>
                   /mês
@@ -68,14 +68,14 @@ export function SignatureCard({
         {isActive ? (
           <button
             onClick={onClick}
-            className="bg-primary mt-4 flex h-12 w-5/6 items-center justify-between self-center rounded-2xl px-4 text-base font-bold text-white"
+            className="bg-secondary mt-4 flex h-12 w-5/6 items-center justify-between self-center rounded-2xl px-4 text-base font-bold text-white"
           >
             {buttonText || "Ativo"} <Check className="text-white" />
           </button>
         ) : (
           <button
             onClick={onClick}
-            className="bg-dark hover:bg-primary mt-4 flex h-12 w-5/6 items-center justify-center self-center rounded-2xl px-4 text-base font-bold text-white transition-all duration-300"
+            className="bg-dark hover:bg-secondary mt-4 flex h-12 w-5/6 items-center justify-center self-center rounded-2xl px-4 text-base font-bold text-white transition-all duration-300"
           >
             {upgrade ? "Upgrade de Plano" : "Escolher Plano"}
           </button>
@@ -85,7 +85,7 @@ export function SignatureCard({
       <div className="flex flex-col gap-4 px-4">
         {benefits.map((benefit) => (
           <div key={benefit} className="flex items-center gap-2">
-            <div className="bg-primary rounded-full p-[0.1rem]">
+            <div className="bg-secondary rounded-full p-[0.1rem]">
               <Check className="h-4 w-4 text-white" />
             </div>
             <span className="text-sm font-medium">{benefit}</span>

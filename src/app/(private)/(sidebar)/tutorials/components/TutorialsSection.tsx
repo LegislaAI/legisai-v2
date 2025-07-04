@@ -1,12 +1,6 @@
 "use client";
 import { CustomPagination } from "@/components/CustomPagination";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { ChevronDown, Search } from "lucide-react";
+import { Search } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 import { TutorialsVideos, VideoProps } from "../video";
@@ -28,18 +22,7 @@ export function TutorialsSection({
 
   const [pages, setPages] = useState(0);
 
-  const activities = [
-    { id: 0, name: "Todos" },
-    { id: 1, name: "Video" },
-    { id: 2, name: "Instagram" },
-    { id: 3, name: "Facebook" },
-    { id: 4, name: "Roteiro" },
-    { id: 5, name: "Grava o" },
-    { id: 6, name: "Edi o" },
-    { id: 7, name: "Postagem" },
-    ,
-  ];
-  const [selectedTutorial, setSelectedTutorial] = useState("Todos");
+  const [selectedTutorial] = useState("Todos");
 
   const filteredTutorials =
     selectedTutorial === "Todos"
@@ -67,7 +50,7 @@ export function TutorialsSection({
             Loren ipsum dolor sit amet, consectetur adipiscing elit
           </span>
           <div className="flex w-full flex-col items-center justify-between gap-4 md:flex-row">
-            <div className="flex">
+            {/* <div className="flex">
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
                   <div className="text-light-dark flex items-center gap-2 rounded-lg border px-2 py-1 lg:px-4 lg:py-2">
@@ -95,12 +78,12 @@ export function TutorialsSection({
                   ))}
                 </DropdownMenuContent>
               </DropdownMenu>
-            </div>
-            <div className="xs:w-[300px] border-primary text-primary flex w-full flex-row justify-between gap-1 rounded-md border p-1 text-black md:w-[300px]">
+            </div> */}
+            <div className="xs:w-[300px] border-secondary text-secondary ml-auto flex w-full flex-row justify-between gap-1 rounded-md border p-1 md:w-[300px]">
               <input
                 value={inputText}
                 onChange={(e) => setInputText(e.target.value)}
-                className="text-primary placeholder:text-primary/50 w-[90%] font-semibold focus:outline-none"
+                className="text-secondary placeholder:text-secondary/50 w-[90%] font-semibold focus:outline-none"
                 placeholder="Como podemos te ajudar ?"
               />
               <Search />
@@ -124,29 +107,19 @@ export function TutorialsSection({
                 className="h-auto w-full rounded-md object-cover"
               />
               <div className="flex flex-col">
-                <h2 className="text-sm font-semibold text-[#252F40]">
+                <h2 className="text-sm font-semibold text-[#252F40] lg:text-base xl:text-lg">
                   {tutorial.title}
                 </h2>
-                <span className="text-[10px] text-[#8C8C8C]">
+                <span className="text-[10px] text-[#8C8C8C] lg:text-sm xl:text-base">
                   {tutorial.subtitle}
                 </span>
-                <div className="mt-2 flex w-full flex-row flex-wrap gap-1">
-                  {tutorial.tags.map((tag, index) => (
-                    <span
-                      key={index}
-                      className="xxs:text-sm bg-primary rounded-lg p-1 text-[12px] text-[#fff]"
-                    >
-                      {tag}
-                    </span>
-                  ))}
-                </div>
               </div>
               <button
                 onClick={() => {
                   setSelectedVideo(tutorial);
                   setIsOpenVideoModal(true);
                 }}
-                className="border-primary text-primary mt-auto mb-2 rounded-md border font-bold transition-all duration-300 hover:scale-[1.02]"
+                className="border-secondary text-secondary mt-auto mb-2 rounded-md border font-bold transition-all duration-300 hover:scale-[1.02]"
               >
                 Assistir Agora
               </button>

@@ -35,7 +35,7 @@ export function Header() {
       <div className="ml-auto flex items-center gap-4">
         <button
           onClick={() => router.push("/prediction-ai")}
-          className="bg-primary h-8 rounded-full px-4 text-white"
+          className="bg-secondary h-8 rounded-full px-4 text-white"
         >
           Upgrade
         </button>
@@ -43,7 +43,7 @@ export function Header() {
         <BellDot /> */}
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="bg-primary flex h-8 w-8 items-center justify-center rounded-full text-white">
+            <button className="bg-secondary flex h-8 w-8 items-center justify-center rounded-full text-white">
               <User2 />
             </button>
           </DropdownMenuTrigger>
@@ -56,7 +56,7 @@ export function Header() {
             <DropdownMenuItem className="group rounded-none border-b border-b-zinc-400 p-0 hover:bg-transparent">
               <button
                 onClick={() => router.push("/profile")}
-                className="group-hover:bg-primary text-primary flex w-full cursor-pointer flex-row items-center gap-2 p-2 text-lg transition-all duration-300 group-hover:text-white"
+                className="group-hover:bg-secondary text-secondary flex w-full cursor-pointer flex-row items-center gap-2 p-2 text-lg transition-all duration-300 group-hover:text-white"
               >
                 <CogIcon
                   className={cn(
@@ -73,7 +73,7 @@ export function Header() {
                     clearToken();
                   }
                 }}
-                className="group-hover:bg-primary text-primary flex w-full cursor-pointer flex-row items-center gap-2 p-2 text-lg transition-all duration-300 group-hover:text-white"
+                className="group-hover:bg-secondary text-secondary flex w-full cursor-pointer flex-row items-center gap-2 p-2 text-lg transition-all duration-300 group-hover:text-white"
               >
                 <LogOut
                   className={cn(

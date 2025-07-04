@@ -82,7 +82,7 @@ export function Documents() {
     <div className="grid w-full grid-cols-12 gap-8">
       <div className="col-span-12 flex flex-col overflow-hidden rounded-lg bg-white xl:col-span-12">
         <div className="flex h-full w-full flex-col">
-          <span className="text-primary p-4 text-xl font-bold">
+          <span className="text-secondary p-4 text-xl font-bold">
             Propostas a Serem Analisadas
           </span>
           <div className="grid w-full grid-cols-1 flex-row justify-evenly gap-8 p-4 lg:grid-cols-5 xl:h-full">
@@ -90,7 +90,7 @@ export function Documents() {
               className="flex flex-col gap-4"
               onClick={() => window.open("https://www.google.com/", "_blank")}
             >
-              <div className="text-primary bg-primary/20 border-primary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
+              <div className="text-secondary bg-secondary/20 border-secondary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
                 <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
                   <div className="flex w-full flex-1 items-center justify-center">
                     <Image
@@ -108,7 +108,7 @@ export function Documents() {
                   </div>
                 </div>
               </div>
-              <div className="border-primary text-primary bg-primary/20 flex w-full items-center justify-center rounded-lg border p-1 font-bold underline">
+              <div className="border-secondary text-secondary bg-secondary/20 flex w-full items-center justify-center rounded-lg border p-1 font-bold underline">
                 Clique aqui para Acessar
               </div>
             </button>
@@ -116,7 +116,7 @@ export function Documents() {
               onClick={() => window.open("https://www.google.com/", "_blank")}
               className="flex flex-col gap-4"
             >
-              <div className="text-primary bg-primary/20 border-primary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
+              <div className="text-secondary bg-secondary/20 border-secondary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
                 <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
                   <div className="flex w-full flex-1 items-center justify-center">
                     <User2 size={40} />
@@ -127,7 +127,7 @@ export function Documents() {
                   </span>
                 </div>
               </div>
-              <div className="border-primary text-primary bg-primary/20 flex w-full items-center justify-center rounded-lg border p-1 font-bold underline">
+              <div className="border-secondary text-secondary bg-secondary/20 flex w-full items-center justify-center rounded-lg border p-1 font-bold underline">
                 Clique aqui para Acessar
               </div>
             </button>
@@ -135,7 +135,7 @@ export function Documents() {
               onClick={() => window.open("https://www.google.com/", "_blank")}
               className="flex flex-col gap-4"
             >
-              <div className="text-primary bg-primary/20 border-primary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
+              <div className="text-secondary bg-secondary/20 border-secondary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
                 <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
                   <div className="flex w-full flex-1 items-center justify-center">
                     <Image
@@ -151,7 +151,7 @@ export function Documents() {
                   </span>
                 </div>
               </div>
-              <div className="border-primary text-primary bg-primary/20 flex w-full items-center justify-center rounded-lg border p-1 font-bold underline">
+              <div className="border-secondary text-secondary bg-secondary/20 flex w-full items-center justify-center rounded-lg border p-1 font-bold underline">
                 Clique aqui para Acessar
               </div>
             </button>
@@ -159,7 +159,7 @@ export function Documents() {
               onClick={() => window.open("https://www.google.com/", "_blank")}
               className="flex flex-col gap-4"
             >
-              <div className="text-primary bg-primary/20 border-primary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
+              <div className="text-secondary bg-secondary/20 border-secondary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
                 <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
                   <div className="flex w-full flex-1 items-center justify-center">
                     <Type size={40} />
@@ -170,7 +170,7 @@ export function Documents() {
                   </span>
                 </div>
               </div>
-              <div className="border-primary text-primary bg-primary/20 flex w-full items-center justify-center rounded-lg border p-1 font-bold underline">
+              <div className="border-secondary text-secondary bg-secondary/20 flex w-full items-center justify-center rounded-lg border p-1 font-bold underline">
                 Clique aqui para Acessar
               </div>
             </button>
@@ -178,7 +178,7 @@ export function Documents() {
               onClick={() => window.open("https://www.google.com/", "_blank")}
               className="flex flex-col gap-4"
             >
-              <div className="text-primary bg-primary/20 border-primary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
+              <div className="text-secondary bg-secondary/20 border-secondary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
                 <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
                   <div className="flex w-full flex-1 items-center justify-center">
                     <Video size={40} />
@@ -189,7 +189,7 @@ export function Documents() {
                   </span>
                 </div>
               </div>
-              <div className="border-primary text-primary bg-primary/20 flex w-full items-center justify-center rounded-lg border p-1 font-bold underline">
+              <div className="border-secondary text-secondary bg-secondary/20 flex w-full items-center justify-center rounded-lg border p-1 font-bold underline">
                 Clique aqui para Acessar
               </div>
             </button>
@@ -198,12 +198,12 @@ export function Documents() {
       </div>
       <div className="col-span-12 flex flex-col overflow-hidden rounded-lg bg-white xl:col-span-12">
         <div className="flex h-full w-full flex-col">
-          <span className="text-primary p-4 text-xl font-bold">
+          <span className="text-secondary p-4 text-xl font-bold">
             Propostas a Serem Analisadas
           </span>
           <div className="h-80 overflow-auto xl:h-full">
             <Table>
-              <TableHeader className="bg-primary">
+              <TableHeader className="bg-secondary">
                 <TableRow>
                   {[
                     {
@@ -261,7 +261,7 @@ export function Documents() {
                           />
                         ) : (
                           <div
-                            className={`flex h-5 w-5 items-center justify-center rounded-full ${column.key === "yes" ? "text-primary bg-white" : "bg-[#DC2626]"}`}
+                            className={`flex h-5 w-5 items-center justify-center rounded-full ${column.key === "yes" ? "text-secondary bg-white" : "bg-[#DC2626]"}`}
                           >
                             {column.key === "yes" ? <Check /> : <X />}
                           </div>
@@ -278,12 +278,12 @@ export function Documents() {
                 <TableBody key={row.id}>
                   <TableRow
                     className={cn(
-                      "hover:bg-primary/20 h-12 cursor-pointer transition-all duration-300",
+                      "hover:bg-secondary/20 h-12 cursor-pointer transition-all duration-300",
                     )}
                   >
                     <TableCell className="h-4 py-1 text-sm font-medium whitespace-nowrap">
                       {row.author}{" "}
-                      <span className="text-primary font-semibold italic">
+                      <span className="text-secondary font-semibold italic">
                         Ver Todos *
                       </span>
                     </TableCell>
@@ -309,7 +309,7 @@ export function Documents() {
                             className={cn(
                               "w-full rounded-lg px-2 py-1",
                               row.result.toLowerCase() === "aprovado"
-                                ? "bg-primary/20 text-primary"
+                                ? "bg-secondary/20 text-secondary"
                                 : row.result.toLowerCase() ===
                                     "aprovada com alterações"
                                   ? "bg-sky-500/20 text-sky-500"

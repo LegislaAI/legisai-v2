@@ -82,7 +82,7 @@ export default function Login() {
         <AuthHeader />
         <button
           onClick={() => router.back()}
-          className="text-primary static top-4 left-4 flex flex-row items-center justify-center gap-2 self-start text-xs underline md:absolute md:text-base"
+          className="text-secondary static top-4 left-4 flex flex-row items-center justify-center gap-2 self-start text-xs underline md:absolute md:text-base"
         >
           <ChevronLeft size={16} /> Voltar
         </button>
@@ -96,7 +96,7 @@ export default function Login() {
           </h2>
 
           <div
-            className={`flex w-full flex-row items-center justify-center gap-4 rounded-lg border ${code.length === 6 ? "border-primary" : "border-black"} p-2`}
+            className={`flex w-full flex-row items-center justify-center gap-4 rounded-lg border ${code.length === 6 ? "border-secondary" : "border-black"} p-2`}
           >
             {Array.from({ length }).map((_, idx) => (
               <input
@@ -129,7 +129,7 @@ export default function Login() {
                   toast.success("Um novo código foi enviado");
                   setTimer(120);
                 }}
-                className="text-primary text-sm hover:underline"
+                className="text-secondary text-sm hover:underline"
               >
                 Reenviar código
               </button>
@@ -139,7 +139,7 @@ export default function Login() {
             // type="submit"
             type="button"
             onClick={() => router.push("/chose-plan")}
-            className="bg-primary rounded-md border p-2 font-bold text-white"
+            className="bg-secondary rounded-md border p-2 font-bold text-white"
           >
             Confirmar código
           </button>
@@ -147,7 +147,7 @@ export default function Login() {
             Ja tem conta ainda?
             <button
               onClick={() => router.push("/login")}
-              className="bg-primary ml-1 cursor-pointer bg-clip-text font-bold text-transparent"
+              className="bg-secondary ml-1 cursor-pointer bg-clip-text font-bold text-transparent"
             >
               Entrar agora
             </button>

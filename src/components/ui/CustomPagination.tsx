@@ -58,18 +58,18 @@ export const CustomPagination = ({
       <PaginationContent className="flex gap-4">
         <PaginationPrevious
           onClick={handleFirst}
-          className="hover:bg-primary/40 cursor-pointer hover:text-white"
+          className="hover:bg-secondary/40 cursor-pointer hover:text-white"
         />
         {getPageNumbers().map((page, index) => (
           <PaginationItem key={index}>
             {page === 0 ? (
-              <span className="text-primary px-2">...</span>
+              <span className="text-secondary px-2">...</span>
             ) : (
               <PaginationLink
                 className={cn(
-                  "hover:bg-primary/40 cursor-pointer text-[10px] hover:text-white xl:text-sm",
+                  "hover:bg-secondary/40 cursor-pointer text-[10px] hover:text-white xl:text-sm",
                   page === currentPage &&
-                    "bg-primary hover:bg-primary text-white hover:text-white",
+                    "bg-secondary hover:bg-secondary text-white hover:text-white",
                 )}
                 onClick={() => setCurrentPage(page)}
               >
@@ -80,7 +80,7 @@ export const CustomPagination = ({
         ))}
         <PaginationNext
           onClick={handleLast}
-          className="hover:bg-primary/40 cursor-pointer hover:text-white"
+          className="hover:bg-secondary/40 cursor-pointer hover:text-white"
         />
       </PaginationContent>
     </Pagination>

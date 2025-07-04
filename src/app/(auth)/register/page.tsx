@@ -136,7 +136,7 @@ export default function Register() {
               <input
                 {...register("name")}
                 placeholder="Digite seu nome"
-                className="outline-primary/50 focus:border-primary/50 h-8 rounded-md border border-zinc-400 p-2 text-xs text-black 2xl:h-8 2xl:text-sm"
+                className="outline-secondary/50 focus:border-secondary/50 h-8 rounded-md border border-zinc-400 p-2 text-xs text-black 2xl:h-8 2xl:text-sm"
                 type="text"
               />
               {errors.name && (
@@ -152,7 +152,7 @@ export default function Register() {
                 {...register("cpfCnpj")}
                 onChange={handleCpfCnpjChange}
                 placeholder="Digite seu CPF ou CNPJ"
-                className="outline-primary/50 focus:border-primary/50 h-8 rounded-md border border-zinc-400 p-2 text-xs text-black 2xl:h-8 2xl:text-sm"
+                className="outline-secondary/50 focus:border-secondary/50 h-8 rounded-md border border-zinc-400 p-2 text-xs text-black 2xl:h-8 2xl:text-sm"
                 type="text"
               />
               {errors.cpfCnpj && (
@@ -167,7 +167,7 @@ export default function Register() {
                 {...register("phone")}
                 onChange={handlePhoneChange}
                 placeholder="Digite seu telefone"
-                className="outline-primary/50 focus:border-primary/50 h-8 rounded-md border border-zinc-400 p-2 text-xs text-black 2xl:h-8 2xl:text-sm"
+                className="outline-secondary/50 focus:border-secondary/50 h-8 rounded-md border border-zinc-400 p-2 text-xs text-black 2xl:h-8 2xl:text-sm"
                 type="text"
               />
               {errors.phone && (
@@ -181,7 +181,7 @@ export default function Register() {
               <input
                 {...register("email")}
                 placeholder="Digite seu melhor email"
-                className="outline-primary/50 focus:border-primary/50 h-8 rounded-md border border-zinc-400 p-2 text-xs text-black 2xl:h-8 2xl:text-sm"
+                className="outline-secondary/50 focus:border-secondary/50 h-8 rounded-md border border-zinc-400 p-2 text-xs text-black 2xl:h-8 2xl:text-sm"
                 type="email"
               />
               {errors.email && (
@@ -193,7 +193,7 @@ export default function Register() {
               <label className="text-xs font-semibold text-[#252F40] 2xl:text-sm">
                 Senha
               </label>
-              <div className="outline-primary/50 focus:border-primary/50 flex flex-row items-center overflow-hidden rounded-md border border-zinc-400 bg-white">
+              <div className="outline-secondary/50 focus:border-secondary/50 flex flex-row items-center overflow-hidden rounded-md border border-zinc-400 bg-white">
                 <input
                   {...register("password")}
                   placeholder="Digite sua senha"
@@ -220,7 +220,7 @@ export default function Register() {
               <label className="text-xs font-semibold text-[#252F40] 2xl:text-sm">
                 Confirmar Senha
               </label>
-              <div className="outline-primary/50 focus:border-primary/50 flex flex-row items-center overflow-hidden rounded-md border border-zinc-400 bg-white">
+              <div className="outline-secondary/50 focus:border-secondary/50 flex flex-row items-center overflow-hidden rounded-md border border-zinc-400 bg-white">
                 <input
                   {...register("confirmPassword")}
                   placeholder="Confirme sua senha"
@@ -253,7 +253,7 @@ export default function Register() {
                   onClick={() => setCheckedTerms(!checkedTerms)}
                   className={cn(
                     "flex h-4 w-4 items-center justify-center rounded border p-1",
-                    checkedTerms && "bg-primary",
+                    checkedTerms && "bg-secondary",
                   )}
                 >
                   {checkedTerms && <Check className="h-4 w-4 text-white" />}
@@ -276,7 +276,7 @@ export default function Register() {
                   onClick={() => setCheckedPrivacy(!checkedPrivacy)}
                   className={cn(
                     "flex h-4 w-4 items-center justify-center rounded border p-1",
-                    checkedPrivacy && "bg-primary",
+                    checkedPrivacy && "bg-secondary",
                   )}
                 >
                   {checkedPrivacy && <Check className="h-4 w-4 text-white" />}
@@ -298,7 +298,7 @@ export default function Register() {
 
             <button
               type="submit"
-              className="bg-primary rounded-md border p-2 font-bold text-white"
+              className="bg-secondary rounded-md border p-2 font-bold text-white"
               disabled={isRegistering}
             >
               {isRegistering ? "Carregando..." : "Cadastrar"}
@@ -311,7 +311,7 @@ export default function Register() {
             Já possui uma conta?
             <button
               onClick={() => router.push("/login")}
-              className="bg-primary ml-1 cursor-pointer bg-clip-text font-bold text-transparent"
+              className="bg-secondary ml-1 cursor-pointer bg-clip-text font-bold text-transparent"
             >
               Entrar Agora
             </button>

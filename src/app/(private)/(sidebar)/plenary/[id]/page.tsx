@@ -54,94 +54,58 @@ export default function PlenaryDetails() {
               alt=""
               width={500}
               height={500}
-              className="border-primary/40 h-10 w-10 rounded-lg border object-contain lg:h-10 lg:w-10"
+              className="border-secondary/40 h-10 w-10 rounded-lg border object-cover lg:h-10 lg:w-10"
             />
-            <span className="text-primary text-lg font-bold">
+            <span className="text-secondary text-lg font-bold">
               SESSÃO DELIBERATIVA EXTRAORDINÁRIA (SEMIPRESENCIAL)
             </span>
           </div>
-          <div className="text-primary flex items-center gap-2">20/02/2024</div>
+          <div className="text-secondary flex items-center gap-2">
+            20/02/2024
+          </div>
         </div>
-        <div className="text-primary grid flex-1 grid-cols-2 items-center gap-2 p-2 md:flex">
-          <div className="text-primary border-primary flex w-full flex-col gap-2 rounded-lg border p-2 md:w-max">
+        <div className="text-secondary grid flex-1 grid-cols-2 items-center gap-2 p-2 md:flex">
+          <div className="text-secondary border-secondary flex w-full flex-col gap-2 rounded-lg border p-2 md:w-max">
             <div className="flex flex-row items-center gap-2">
               <span className="text-black">Início:</span>
             </div>
             <div className="flex flex-row gap-4">
-              <span className="text-primary text-start">
+              <span className="text-secondary text-start">
                 {new Date().toLocaleTimeString("pt-BR")} ás{" "}
                 {new Date().toLocaleTimeString("pt-BR")}
               </span>
             </div>
           </div>
-          <div className="text-primary border-primary flex w-full flex-col gap-2 rounded-lg border p-2 md:w-max">
+          <div className="text-secondary border-secondary flex w-full flex-col gap-2 rounded-lg border p-2 md:w-max">
             <div className="flex flex-row items-center gap-2">
               <span className="text-black">Quórum votação</span>
             </div>
             <div className="flex flex-row gap-4">
-              <span className="text-primary text-start">287</span>
+              <span className="text-secondary text-start">287</span>
             </div>
           </div>
-          <div className="text-primary border-primary flex w-full flex-col gap-2 rounded-lg border p-2 md:w-max">
+          <div className="text-secondary border-secondary flex w-full flex-col gap-2 rounded-lg border p-2 md:w-max">
             <div className="flex flex-row items-center gap-2">
               <span className="text-black">Total de Presentes</span>
             </div>
             <div className="flex flex-row gap-4">
-              <span className="text-primary text-start">320</span>
+              <span className="text-secondary text-start">320</span>
             </div>
           </div>
-          <div className="text-primary border-primary flex w-full flex-col gap-2 rounded-lg border p-2 md:w-max">
+          <div className="text-secondary border-secondary flex w-full flex-col gap-2 rounded-lg border p-2 md:w-max">
             <div className="flex flex-row items-center gap-2">
               <span className="text-black">Total de Propostas</span>
             </div>
             <div className="flex flex-row gap-4">
-              <span className="text-primary text-start">3</span>
+              <span className="text-secondary text-start">3</span>
             </div>
           </div>
-          {/* <div className="text-primary border-primary flex w-full flex-col gap-8 rounded-lg border p-8 md:w-max">
-            <div className="flex flex-row items-center gap-2">
-              <div className="bg-primary flex h-6 w-6 items-center justify-center rounded-full p-0.5 text-white">
-                <Check />
-              </div>
-              <span className="text-xl font-bold">Total de Presentes</span>
-            </div>
-            <div className="flex flex-row items-center justify-evenly gap-4">
-              <div className="flex h-16 max-h-16 items-center justify-center">
-                <SingleDonutChart total={340} current={320} height={120} />
-              </div>
-              <span className="text-4xl font-bold">320</span>
-            </div>
-          </div> */}
-          {/* <div className="text-primary border-primary flex w-full flex-col gap-8 rounded-lg border p-8 md:w-max">
-            <div className="flex flex-row items-center gap-2">
-              <Copy className="h-6 w-6" />
-              <span className="text-xl font-bold">Total de Propostas</span>
-            </div>
-            <div className="flex flex-row items-center justify-evenly gap-4">
-              <div className="flex h-16 max-h-16 items-center justify-center">
-                <SingleDonutChart total={3} current={3} height={120} />
-              </div>
-              <span className="text-4xl font-bold">3</span>
-            </div>
-          </div> */}
-          {/* <div className="border-primary flex h-full w-40 flex-col rounded-md border p-2">
-            <span className="text-black">Término:</span>
-            <div className="flex flex-1 items-center">
-              <span className="">{new Date().toLocaleTimeString("pt-BR")}</span>
-            </div>
-          </div> */}
-          {/* <div className="border-primary flex h-full w-40 flex-col rounded-md border p-2">
-            <span className="text-black">Situação:</span>
-            <div className="flex flex-1 items-center">
-              <span className="">Encerrado</span>
-            </div>
-          </div> */}
         </div>
         <div className="flex w-full items-center gap-8 overflow-x-scroll overflow-y-hidden border-t border-t-zinc-200 p-4 lg:h-12 lg:overflow-x-auto lg:p-4">
           <div
             className={cn(
-              "hover:text-primary flex cursor-pointer flex-col items-center whitespace-nowrap",
-              selectedStep === 0 ? "text-primary font-bold" : "text-zinc-400",
+              "hover:text-secondary flex cursor-pointer flex-col items-center whitespace-nowrap",
+              selectedStep === 0 ? "text-secondary font-bold" : "text-zinc-400",
             )}
             onClick={() => setSelectedStep(0)}
           >
@@ -149,14 +113,14 @@ export default function PlenaryDetails() {
             <div
               className={cn(
                 "h-px w-full bg-transparent",
-                selectedStep === 0 && "bg-primary",
+                selectedStep === 0 && "bg-secondary",
               )}
             />
           </div>
           <span
             className={cn(
-              "hover:text-primary cursor-pointer",
-              selectedStep === 1 ? "text-primary font-bold" : "text-zinc-400",
+              "hover:text-secondary cursor-pointer",
+              selectedStep === 1 ? "text-secondary font-bold" : "text-zinc-400",
             )}
             onClick={() => setSelectedStep(1)}
           >
@@ -164,14 +128,14 @@ export default function PlenaryDetails() {
             <div
               className={cn(
                 "h-px w-full bg-transparent",
-                selectedStep === 1 && "bg-primary",
+                selectedStep === 1 && "bg-secondary",
               )}
             />
           </span>
           <span
             className={cn(
-              "hover:text-primary cursor-pointer",
-              selectedStep === 2 ? "text-primary font-bold" : "text-zinc-400",
+              "hover:text-secondary cursor-pointer",
+              selectedStep === 2 ? "text-secondary font-bold" : "text-zinc-400",
             )}
             onClick={() => setSelectedStep(2)}
           >
@@ -179,14 +143,14 @@ export default function PlenaryDetails() {
             <div
               className={cn(
                 "h-px w-full bg-transparent",
-                selectedStep === 2 && "bg-primary",
+                selectedStep === 2 && "bg-secondary",
               )}
             />
           </span>
           <span
             className={cn(
-              "hover:text-primary cursor-pointer",
-              selectedStep === 3 ? "text-primary font-bold" : "text-zinc-400",
+              "hover:text-secondary cursor-pointer",
+              selectedStep === 3 ? "text-secondary font-bold" : "text-zinc-400",
             )}
             onClick={() => setSelectedStep(3)}
           >
@@ -194,14 +158,14 @@ export default function PlenaryDetails() {
             <div
               className={cn(
                 "h-px w-full bg-transparent",
-                selectedStep === 3 && "bg-primary",
+                selectedStep === 3 && "bg-secondary",
               )}
             />
           </span>
           <div
             className={cn(
-              "hover:text-primary flex cursor-pointer flex-col items-center whitespace-nowrap",
-              selectedStep === 4 ? "text-primary font-bold" : "text-zinc-400",
+              "hover:text-secondary flex cursor-pointer flex-col items-center whitespace-nowrap",
+              selectedStep === 4 ? "text-secondary font-bold" : "text-zinc-400",
             )}
             onClick={() => setSelectedStep(4)}
           >
@@ -209,14 +173,14 @@ export default function PlenaryDetails() {
             <div
               className={cn(
                 "h-px w-full bg-transparent",
-                selectedStep === 4 && "bg-primary",
+                selectedStep === 4 && "bg-secondary",
               )}
             />
           </div>
         </div>
       </div>
       <div className="relative col-span-12 flex h-full flex-col items-center justify-between overflow-hidden rounded-xl bg-[url('/static/livePlenary2.png')] bg-cover bg-no-repeat lg:col-span-4">
-        <div className="bg-primary/60 flex h-full w-full flex-col items-center justify-between gap-4 p-4">
+        <div className="bg-secondary/60 flex h-full w-full flex-col items-center justify-between gap-4 p-4">
           <div className="text-6xl font-bold text-white">
             {formatTime(timeLeft)}
           </div>
@@ -226,7 +190,7 @@ export default function PlenaryDetails() {
             <span className="font-black">ao vivo</span> O PRÓXIMO PLENÁRIO
           </div>
           <button className="overflow-hidden rounded-full">
-            <div className="bg-primary flex h-full w-full items-center gap-2 p-2 text-white">
+            <div className="bg-secondary flex h-full w-full items-center gap-2 p-2 text-white">
               <Tv />
               <span>EM BREVE DISPONÍVEL</span>
             </div>
@@ -236,7 +200,7 @@ export default function PlenaryDetails() {
       <div
         className={`col-span-12 ${animateSection ? "opacity-0" : "opacity-100 transition-all duration-700"} `}
       >
-        {selectedStep === 0 && <General />}
+        {selectedStep === 0 && <General setSelectedStep={setSelectedStep} />}
         {selectedStep === 1 && <Votes />}
         {selectedStep === 2 && <Documents />}
         {selectedStep === 3 && <Presence />}

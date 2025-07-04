@@ -58,7 +58,7 @@ export const CustomPagination = ({
       <PaginationContent>
         <PaginationPrevious
           onClick={handleFirst}
-          className="hover:bg-primary/40 cursor-pointer hover:text-white"
+          className="hover:bg-secondary/40 cursor-pointer hover:text-white"
         />
         {getPageNumbers().map((page, index) => (
           <PaginationItem key={index}>
@@ -67,9 +67,9 @@ export const CustomPagination = ({
             ) : (
               <PaginationLink
                 className={cn(
-                  "hover:bg-primary/40 cursor-pointer text-[10px] hover:text-white xl:text-sm",
+                  "hover:bg-secondary/40 cursor-pointer text-[10px] hover:text-white xl:text-sm",
                   page === currentPage &&
-                    "bg-primary hover:bg-primary text-white hover:text-white",
+                    "bg-secondary hover:bg-secondary text-white hover:text-white",
                 )}
                 onClick={() => setCurrentPage(page)}
               >
@@ -80,7 +80,7 @@ export const CustomPagination = ({
         ))}
         <PaginationNext
           onClick={handleLast}
-          className="hover:bg-primary/40 cursor-pointer hover:text-white"
+          className="hover:bg-secondary/40 cursor-pointer hover:text-white"
         />
       </PaginationContent>
     </Pagination>

@@ -91,7 +91,7 @@ export default function Login() {
             <input
               placeholder="Digite seu email"
               {...register("email")}
-              className="outline-primary/50 focus:border-primary/50 h-8 rounded-md border border-zinc-400 p-2 text-sm text-black"
+              className="outline-secondary/50 focus:border-secondary/50 h-8 rounded-md border border-zinc-400 p-2 text-sm text-black"
               type="email"
               disabled={isLogging}
             />
@@ -102,7 +102,7 @@ export default function Login() {
             <label className="text-sm font-semibold text-[#252F40]">
               Senha
             </label>
-            <div className="outline-primary/50 focus:border-primary/50 flex flex-row items-center overflow-hidden rounded-md border border-zinc-400 bg-white">
+            <div className="outline-secondary/50 focus:border-secondary/50 flex flex-row items-center overflow-hidden rounded-md border border-zinc-400 bg-white">
               <input
                 {...register("password")}
                 placeholder="Digite sua senha"
@@ -153,7 +153,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={isLogging}
-              className="bg-primary mt-6 rounded-md border p-2 font-bold text-white"
+              className="bg-secondary mt-6 rounded-md border p-2 font-bold text-white"
             >
               {isLogging ? "Carregando..." : "Acessar Plataforma"}
             </button>
@@ -166,7 +166,7 @@ export default function Login() {
             Não tem conta ainda?
             <button
               onClick={() => router.push("/register")}
-              className="bg-primary ml-1 cursor-pointer bg-clip-text font-bold text-transparent"
+              className="bg-secondary ml-1 cursor-pointer bg-clip-text font-bold text-transparent"
             >
               Se cadastre agora
             </button>

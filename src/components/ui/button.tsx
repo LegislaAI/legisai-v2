@@ -9,8 +9,8 @@ const buttonVariants = cva(
   {
     variants: {
       color: {
-        default: "bg-primary text-text-100 hover:bg-primary/80",
-        primary: "bg-primary text-text-100 hover:bg-primary/80",
+        default: "bg-secondary text-text-100 hover:bg-secondary/80",
+        primary: "bg-secondary text-text-100 hover:bg-secondary/80",
         destructive: "bg-destructive text-text-50 hover:bg-destructive/80",
         success: "bg-success text-success-foreground hover:bg-success/80",
         info: "bg-info text-info-foreground hover:bg-info/80",
@@ -20,9 +20,9 @@ const buttonVariants = cva(
       },
       variant: {
         outline:
-          "border border-current  bg-transparent hover:text-primary-foreground",
-        soft: " bg-opacity-10  hover:text-primary-foreground",
-        ghost: "bg-transparent text-current hover:text-primary-foreground",
+          "border border-current  bg-transparent hover:text-secondary-foreground",
+        soft: " bg-opacity-10  hover:text-secondary-foreground",
+        ghost: "bg-transparent text-current hover:text-secondary-foreground",
       },
       size: {
         default: "h-10 px-4 py-[10px]",
@@ -74,12 +74,12 @@ const buttonVariants = cva(
         variant: "outline",
         color: "default",
         className:
-          "text-primary  hover:text-primary-foreground hover:border-primary hover:bg-primary",
+          "text-secondary  hover:text-secondary-foreground hover:border-secondary hover:bg-secondary",
       },
       {
         variant: "outline",
         color: "primary",
-        className: "text-primary  hover:text-primary-foreground",
+        className: "text-secondary  hover:text-secondary-foreground",
       },
       {
         variant: "soft",
@@ -110,12 +110,12 @@ const buttonVariants = cva(
       {
         variant: "soft",
         color: "default",
-        className: "text-primary",
+        className: "text-secondary",
       },
       {
         variant: "ghost",
         color: "default",
-        className: " text-primary  ",
+        className: " text-secondary  ",
       },
       {
         variant: "ghost",

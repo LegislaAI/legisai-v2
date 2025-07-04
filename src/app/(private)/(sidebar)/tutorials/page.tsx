@@ -47,22 +47,13 @@ export default function Tutorials() {
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share"
               className="aspect-video w-full rounded-md"
             ></iframe>
-            <div className="flex flex-row flex-wrap items-center justify-center gap-2">
-              {selectedVideo.tags.map((tag, index) => (
-                <span
-                  key={index}
-                  className="bg-primary xxs:text-sm rounded-lg p-1 text-[12px] text-[#fff]"
-                >
-                  {tag}
-                </span>
-              ))}
-            </div>
+
             <button
               onClick={() => {
                 setSelectedVideo(null);
                 setIsOpenVideoModal(false);
               }}
-              className="border-primary bg-primary rounded-md border p-2 px-8 text-white transition-all duration-300 hover:scale-[1.05]"
+              className="border-secondary bg-secondary rounded-md border p-2 px-8 text-white transition-all duration-300 hover:scale-[1.05]"
             >
               Fechar
             </button>

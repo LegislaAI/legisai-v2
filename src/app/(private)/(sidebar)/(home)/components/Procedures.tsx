@@ -55,13 +55,13 @@ export function Procedures() {
               <TooltipContent
                 side="top"
                 align="start"
-                className="border-primary bg-primary w-60 border"
+                className="border-secondary bg-secondary w-60 border"
               >
                 <p className="text-white">
                   Consulte uma IA especializada para obter dados precisos sobre
                   tramitações legislativas específicas.
                 </p>
-                <TooltipArrow className="fill-primary" />
+                <TooltipArrow className="fill-secondary" />
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -101,8 +101,8 @@ export function Procedures() {
                   <div
                     onClick={() => setSelectedDocument(item)}
                     className={cn(
-                      "group-hover:bg-primary/20 w-full cursor-pointer p-2 text-base transition duration-200 lg:text-lg",
-                      selectedDocument.id === item.id && "bg-primary/20",
+                      "group-hover:bg-secondary/20 w-full cursor-pointer p-2 text-base transition duration-200 lg:text-lg",
+                      selectedDocument.id === item.id && "bg-secondary/20",
                     )}
                   >
                     {item.label}
@@ -128,7 +128,7 @@ export function Procedures() {
                 )}`,
               )
             }
-            className="bg-primary flex h-12 w-12 items-center justify-center rounded-r-lg text-white"
+            className="bg-secondary flex h-12 w-12 items-center justify-center rounded-r-lg text-white"
           >
             <Search />
           </button>

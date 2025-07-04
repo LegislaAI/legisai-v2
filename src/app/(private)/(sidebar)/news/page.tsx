@@ -55,9 +55,9 @@ export default function News() {
             key={tab.key}
             onClick={() => setSelected(tab.key as typeof selected)}
             className={cn(
-              "hover:border-primary/80 cursor-pointer rounded-4xl border-2 border-transparent text-sm font-medium text-gray-600 hover:px-2 focus:outline-none lg:text-base",
+              "hover:border-secondary/80 cursor-pointer rounded-4xl border-2 border-transparent text-sm font-medium text-gray-600 hover:px-2 focus:outline-none lg:text-base",
               selected === tab.key &&
-                "border-primary text-primary px-2 py-1 font-bold",
+                "border-secondary text-secondary px-2 py-1 font-bold",
             )}
           >
             {tab.label}
@@ -75,6 +75,7 @@ export default function News() {
                   key={news.id}
                   title={news.title}
                   summary={news.summary}
+                  createdAt={news.createdAt}
                 />
               ))
             ) : (

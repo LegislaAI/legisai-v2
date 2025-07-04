@@ -191,7 +191,7 @@ export default function RecoverPassword() {
               <input
                 placeholder="Digite seu email"
                 {...registerRecover("email")}
-                className="outline-primary/50 focus:border-primary/50 h-8 rounded-md border border-zinc-400 p-2 text-sm text-black"
+                className="outline-secondary/50 focus:border-secondary/50 h-8 rounded-md border border-zinc-400 p-2 text-sm text-black"
                 type="email"
                 disabled={isLogging}
               />
@@ -210,7 +210,7 @@ export default function RecoverPassword() {
               <button
                 type="submit"
                 disabled={isLogging}
-                className="bg-primary mt-6 rounded-md border p-2 font-bold text-white"
+                className="bg-secondary mt-6 rounded-md border p-2 font-bold text-white"
               >
                 {isLogging ? "Carregando..." : "Enviar Código"}
               </button>
@@ -229,7 +229,7 @@ export default function RecoverPassword() {
               <input
                 placeholder="Digite o código enviado para seu email"
                 {...registerCode("code")}
-                className="outline-primary/50 focus:border-primary/50 h-8 rounded-md border border-zinc-400 p-2 text-sm text-black"
+                className="outline-secondary/50 focus:border-secondary/50 h-8 rounded-md border border-zinc-400 p-2 text-sm text-black"
                 type="text"
                 disabled={isLogging}
               />
@@ -262,7 +262,7 @@ export default function RecoverPassword() {
               <button
                 type="submit"
                 disabled={isLogging}
-                className="bg-primary mt-6 rounded-md border p-2 font-bold text-white"
+                className="bg-secondary mt-6 rounded-md border p-2 font-bold text-white"
               >
                 {isLogging ? "Carregando..." : "Validar Código"}
               </button>
@@ -278,7 +278,7 @@ export default function RecoverPassword() {
               <label className="text-md font-semibold text-[#252F40]">
                 Nova Senha
               </label>
-              <div className="outline-primary/50 focus:border-primary/50 flex flex-row items-center overflow-hidden rounded-md border border-zinc-400">
+              <div className="outline-secondary/50 focus:border-secondary/50 flex flex-row items-center overflow-hidden rounded-md border border-zinc-400">
                 <input
                   {...registerEdit("password")}
                   placeholder="Digite sua nova senha"
@@ -306,7 +306,7 @@ export default function RecoverPassword() {
               <label className="text-md font-semibold text-[#252F40]">
                 Confirmar Nova Senha
               </label>
-              <div className="outline-primary/50 focus:border-primary/50 flex flex-row items-center overflow-hidden rounded-md border border-zinc-400">
+              <div className="outline-secondary/50 focus:border-secondary/50 flex flex-row items-center overflow-hidden rounded-md border border-zinc-400">
                 <input
                   {...registerEdit("confirmPassword")}
                   placeholder="Confirme sua nova senha"
@@ -338,7 +338,7 @@ export default function RecoverPassword() {
               <button
                 type="submit"
                 disabled={isLogging}
-                className="bg-primary mt-6 rounded-md border p-2 font-bold text-white"
+                className="bg-secondary mt-6 rounded-md border p-2 font-bold text-white"
               >
                 {isLogging ? "Carregando..." : "Redefinir Senha"}
               </button>
@@ -346,7 +346,7 @@ export default function RecoverPassword() {
           )}
           <button
             onClick={() => router.push("/login")}
-            className="bg-primary ml-1 cursor-pointer bg-clip-text text-sm font-bold text-transparent"
+            className="bg-secondary ml-1 cursor-pointer bg-clip-text text-sm font-bold text-transparent"
           >
             Voltar ao Login
           </button>

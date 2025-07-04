@@ -71,7 +71,7 @@ export function Tutorials() {
                       {tutorial.tags.map((tag, index) => (
                         <span
                           key={index}
-                          className="xxs:text-xs bg-primary rounded-lg p-1 text-[12px] text-[#fff]"
+                          className="xxs:text-xs bg-secondary rounded-lg p-1 text-[12px] text-[#fff]"
                         >
                           {tag}
                         </span>
@@ -83,7 +83,7 @@ export function Tutorials() {
                       // setSelectedVideo(tutorial);
                       // setIsOpenVideoModal(true);
                     }}
-                    className="border-primary text-primary mt-auto mb-2 rounded-md border font-bold transition-all duration-300 hover:scale-[1.02]"
+                    className="border-secondary text-secondary mt-auto mb-2 rounded-md border font-bold transition-all duration-300 hover:scale-[1.02]"
                   >
                     Assistir Agora
                   </button>

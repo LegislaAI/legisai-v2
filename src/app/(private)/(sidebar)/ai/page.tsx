@@ -129,7 +129,7 @@ export default function BranchesList() {
                           key={subIndex}
                           className="flex w-full flex-row items-center rounded-md p-2 text-start text-base hover:bg-[#4C785D] hover:text-white"
                         >
-                          <div className="border-primary w-full border-l px-2 text-lg">
+                          <div className="border-secondary w-full border-l px-2 text-lg">
                             {sub.label}
                           </div>
                         </button>
@@ -164,13 +164,13 @@ export default function BranchesList() {
             <div className="absolute top-2 right-2 flex items-center gap-2">
               <button
                 onClick={() => setOpen(true)}
-                className="bg-primary flex items-center gap-2 rounded-full px-2 py-1 text-base text-white xl:top-4 xl:right-4 xl:px-4 xl:py-2 xl:text-lg"
+                className="bg-secondary flex items-center gap-2 rounded-full px-2 py-1 text-base text-white xl:top-4 xl:right-4 xl:px-4 xl:py-2 xl:text-lg"
               >
                 {selectedAi} <ChevronDown />
               </button>
               <button
                 onClick={() => setOpenInfo(true)}
-                className="bg-primary flex items-center justify-center rounded-full p-1 text-white xl:hidden"
+                className="bg-secondary flex items-center justify-center rounded-full p-1 text-white xl:hidden"
               >
                 <Plus />
               </button>
@@ -191,7 +191,7 @@ export default function BranchesList() {
         >
           <button
             onClick={() => setOpenInfo(false)}
-            className="bg-primary absolute top-4 right-[22px] z-10 flex items-center justify-center rounded-full p-1 text-white xl:hidden"
+            className="bg-secondary absolute top-4 right-[22px] z-10 flex items-center justify-center rounded-full p-1 text-white xl:hidden"
           >
             <Minus />
           </button>
@@ -221,7 +221,7 @@ export default function BranchesList() {
                 onClick={() => {
                   setLoadNewChat(true);
                 }}
-                className="bg-primary mt-4 h-12 w-2/3 cursor-pointer self-center rounded-3xl text-lg font-semibold text-white"
+                className="bg-secondary mt-4 h-12 w-2/3 cursor-pointer self-center rounded-3xl text-lg font-semibold text-white"
               >
                 Novo Chat
               </button>

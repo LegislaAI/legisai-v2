@@ -79,13 +79,13 @@ export function DayOrder() {
     <div className="grid w-full grid-cols-12 gap-8">
       <div className="col-span-12 flex flex-col overflow-hidden rounded-lg bg-white p-4 xl:col-span-12">
         <div className="flex h-full w-full flex-col gap-4">
-          <span className="text-primary text-xl font-bold">
+          <span className="text-secondary text-xl font-bold">
             Presença de Parlamentares na Sessão Deliberativa
           </span>
 
           <div className="overflow-auto xl:h-full">
             <Table>
-              <TableHeader className="bg-primary">
+              <TableHeader className="bg-secondary">
                 <TableRow>
                   {[
                     {
@@ -143,7 +143,7 @@ export function DayOrder() {
                           />
                         ) : (
                           <div
-                            className={`flex h-5 w-5 items-center justify-center rounded-full ${column.key === "yes" ? "text-primary bg-white" : "bg-[#DC2626]"}`}
+                            className={`flex h-5 w-5 items-center justify-center rounded-full ${column.key === "yes" ? "text-secondary bg-white" : "bg-[#DC2626]"}`}
                           >
                             {column.key === "yes" ? <Check /> : <X />}
                           </div>
@@ -160,12 +160,12 @@ export function DayOrder() {
                 <TableBody key={row.id}>
                   <TableRow
                     className={cn(
-                      "hover:bg-primary/20 h-12 cursor-pointer transition-all duration-300",
+                      "hover:bg-secondary/20 h-12 cursor-pointer transition-all duration-300",
                     )}
                   >
                     <TableCell className="h-4 py-1 text-sm font-medium whitespace-nowrap">
                       {row.author}{" "}
-                      <span className="text-primary font-semibold italic">
+                      <span className="text-secondary font-semibold italic">
                         Ver Todos *
                       </span>
                     </TableCell>
@@ -191,7 +191,7 @@ export function DayOrder() {
                             className={cn(
                               "w-full rounded-lg px-2 py-1",
                               row.result.toLowerCase() === "aprovado"
-                                ? "bg-primary/20 text-primary"
+                                ? "bg-secondary/20 text-secondary"
                                 : row.result.toLowerCase() ===
                                     "aprovada com alterações"
                                   ? "bg-sky-500/20 text-sky-500"

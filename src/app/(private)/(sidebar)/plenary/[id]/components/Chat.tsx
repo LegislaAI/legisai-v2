@@ -30,7 +30,7 @@ export function Chat({ title, initialMessage }: ChatProps) {
   return (
     <div className={`-10 flex w-full flex-col gap-8 self-center`}>
       <div
-        className={`shadow-primary relative flex w-full flex-col items-center justify-center gap-4 rounded-xl bg-white p-2 shadow-sm transition-opacity duration-300 md:p-4`}
+        className={`shadow-secondary relative flex w-full flex-col items-center justify-center gap-4 rounded-xl bg-white p-2 shadow-sm transition-opacity duration-300 md:p-4`}
       >
         <Image
           src="/logos/half-logo.png"
@@ -43,7 +43,7 @@ export function Chat({ title, initialMessage }: ChatProps) {
           className={`relative flex h-[90vh] w-full flex-row overflow-hidden rounded-lg transition-opacity duration-300`}
         >
           <div className="hidden rounded-r-lg bg-black/20 pr-2 md:block">
-            <div className="bg-primary flex h-full w-60 flex-col justify-between rounded-r-lg border-r border-r-[#E5E5E5]/5 p-4 text-white">
+            <div className="bg-secondary flex h-full w-60 flex-col justify-between rounded-r-lg border-r border-r-[#E5E5E5]/5 p-4 text-white">
               <div className="flex flex-1 flex-col gap-4 border-b border-b-[#E5E5E5]/5">
                 <button className="flx-row flex w-full gap-2 rounded-md bg-[#E5E5E5]/5 p-4">
                   <div className="flex h-10 min-h-10 w-10 min-w-10 items-center justify-center rounded-full bg-[#019A5A]">
@@ -103,7 +103,7 @@ export function Chat({ title, initialMessage }: ChatProps) {
             <div className="relative flex h-full w-full flex-col items-center justify-evenly">
               <button
                 onClick={() => setShowMenu(true)}
-                className="bg-primary flex h-10 w-10 items-center justify-center self-start rounded-md text-white md:hidden"
+                className="bg-secondary flex h-10 w-10 items-center justify-center self-start rounded-md text-white md:hidden"
               >
                 <Menu />
               </button>
@@ -184,7 +184,7 @@ export function Chat({ title, initialMessage }: ChatProps) {
                 </h2>
               </div>
 
-              <div className="border-t-primary mt-1 flex h-full w-full flex-col items-center justify-between gap-1 overflow-y-auto border-t md:mt-0 md:border-t-0">
+              <div className="border-t-secondary mt-1 flex h-full w-full flex-col items-center justify-between gap-1 overflow-y-auto border-t md:mt-0 md:border-t-0">
                 <Section
                   loadNewChat={newChat}
                   setLoadNewChat={setNewChat}

@@ -55,7 +55,7 @@ export default function BranchesList() {
     }
   }, []);
   return (
-    <div className="flex w-full items-center justify-center gap-2">
+    <div className="flex w-full items-center justify-center gap-2 overflow-x-hidden">
       <div className="flex h-[calc(100vh-100px)] w-full flex-col justify-between rounded-2xl bg-white p-2 lg:h-[calc(100vh-150px)] xl:w-9/12 xl:p-4">
         <div className="relative">
           <Image
@@ -75,7 +75,7 @@ export default function BranchesList() {
           <div className="top-2 right-2 mt-2 flex items-center gap-2 lg:absolute lg:mt-0">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
-                <button className="bg-primary flex items-center gap-2 rounded-full px-2 py-1 text-base font-medium text-white focus:outline-none xl:top-4 xl:right-4 xl:px-4 xl:py-2 xl:text-xl">
+                <button className="bg-secondary flex items-center gap-2 rounded-full px-2 py-1 text-base font-medium text-white focus:outline-none xl:top-4 xl:right-4 xl:px-4 xl:py-2 xl:text-xl">
                   {selectedDocument.label || "Selecione um documento"}
                   <ChevronDown />
                 </button>
@@ -100,7 +100,7 @@ export default function BranchesList() {
             </DropdownMenu>
             <button
               onClick={() => handleOpen()}
-              className="bg-primary flex items-center justify-center rounded-full p-1 text-white xl:hidden"
+              className="bg-secondary flex items-center justify-center rounded-full p-1 text-white"
             >
               <Plus />
             </button>
@@ -119,7 +119,7 @@ export default function BranchesList() {
         >
           <button
             onClick={handleClose}
-            className="bg-primary absolute top-4 right-[22px] z-10 flex items-center justify-center rounded-full p-1 text-white xl:hidden"
+            className="bg-secondary absolute top-4 right-[22px] z-10 flex items-center justify-center rounded-full p-1 text-white"
           >
             <Minus />
           </button>
@@ -149,7 +149,7 @@ export default function BranchesList() {
                 onClick={() => {
                   setLoadNewChat(true);
                 }}
-                className="bg-primary mt-4 h-12 w-2/3 cursor-pointer self-center rounded-3xl text-lg font-semibold text-white"
+                className="bg-secondary mt-4 h-12 w-2/3 cursor-pointer self-center rounded-3xl text-lg font-semibold text-white"
               >
                 Novo Chat
               </button>

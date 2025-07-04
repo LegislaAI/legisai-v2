@@ -92,13 +92,13 @@ export function Ai() {
               <TooltipContent
                 side="top"
                 align="start"
-                className="border-primary bg-primary w-60 border"
+                className="border-secondary bg-secondary w-60 border"
               >
                 <p className="text-white">
                   Utilize inteligências artificiais temáticas para análise
                   jurídica ou compreensão político-legislativa.
                 </p>
-                <TooltipArrow className="fill-primary" />
+                <TooltipArrow className="fill-secondary" />
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -156,7 +156,7 @@ export function Ai() {
             <SwiperSlide key={index}>
               <div
                 onClick={() => setSelectedAi(item)}
-                className="bg-primary/20 flex h-56 flex-col justify-between rounded-lg p-4"
+                className="bg-secondary/20 flex h-56 flex-col justify-between rounded-lg p-4"
               >
                 <div className="flex items-center gap-2">
                   <Image
@@ -169,11 +169,11 @@ export function Ai() {
                 </div>
                 <span>{item.description}</span>
                 {selectedAi.label === item.label ? (
-                  <button className="bg-primary flex h-10 items-center justify-center gap-2 self-start rounded-lg px-4 text-white">
+                  <button className="bg-secondary flex h-10 items-center justify-center gap-2 self-start rounded-lg px-4 text-white">
                     Em uso <Check />
                   </button>
                 ) : (
-                  <button className="text-primary flex h-10 items-center justify-center gap-2 self-start rounded-lg border px-4">
+                  <button className="text-secondary flex h-10 items-center justify-center gap-2 self-start rounded-lg border px-4">
                     Usar essa AI
                   </button>
                 )}
@@ -197,7 +197,7 @@ export function Ai() {
               )}`,
             )
           }
-          className="bg-primary mr-1 flex h-11 w-11 items-center justify-center rounded-full text-white"
+          className="bg-secondary mr-1 flex h-11 w-11 items-center justify-center rounded-full text-white"
         >
           <ArrowRight />
         </button>

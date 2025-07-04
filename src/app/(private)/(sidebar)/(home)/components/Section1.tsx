@@ -74,7 +74,7 @@ export function Section1() {
       stroke: {
         curve: "smooth",
       },
-      colors: ["#6baa3f", "#FF5E4B"],
+      colors: ["#749c5b", "#FF5E4B"],
       title: {
         show: false,
       },
@@ -216,12 +216,12 @@ export function Section1() {
               <TooltipContent
                 side="top"
                 align="start"
-                className="border-primary bg-primary w-60 border"
+                className="border-secondary bg-secondary w-60 border"
               >
                 <p className="text-white">
                   Acesse o perfil do Político na Câmara dos Deputados.
                 </p>
-                <TooltipArrow className="fill-primary" />
+                <TooltipArrow className="fill-secondary" />
               </TooltipContent>
             </Tooltip>
           </TooltipProvider>
@@ -384,9 +384,9 @@ export function Section1() {
             </div>
           )}
           <div className="MOBILE flex h-full flex-1 flex-col items-center justify-center rounded-lg md:hidden">
-            <div className="bg-primary/20 flex w-full flex-row items-center justify-center gap-2 rounded-lg p-2">
-              <span className="text-primary text-lg">Partido:</span>
-              <span className="text-primary text-lg">
+            <div className="bg-secondary/20 flex w-full flex-row items-center justify-center gap-2 rounded-lg p-2">
+              <span className="text-secondary text-lg">Partido:</span>
+              <span className="text-secondary text-lg">
                 {selectedPolitician?.politicalPartyAcronym}
               </span>
             </div>
@@ -507,7 +507,7 @@ export function Section1() {
             width="100%"
           />
         </div>
-        <div className="border-secondary text-primary flex h-full w-full flex-col rounded-xl border-2 p-2 lg:col-span-4">
+        <div className="border-secondary text-secondary flex h-full w-full flex-col rounded-xl border-2 p-2 lg:col-span-4">
           <div className="flex w-full flex-row items-center justify-between">
             <span className="text-lg font-bold">CUSTOS DETALHADOS</span>
             <div
@@ -518,13 +518,13 @@ export function Section1() {
                   "_blank",
                 );
               }}
-              className="bg-primary flex items-center justify-center rounded-lg p-1 text-sm text-white"
+              className="bg-secondary flex items-center justify-center rounded-lg p-1 text-sm text-white"
             >
               Detalhes <ChevronRight />
             </div>
           </div>
           <div className="flex w-full flex-1 flex-col justify-between gap-2">
-            <div className="border-b-primary flex w-full flex-row items-center justify-between border-b p-2">
+            <div className="border-b-secondary flex w-full flex-row items-center justify-between border-b p-2">
               <div className="flex items-center border-r border-b border-r-white border-b-white px-1 font-semibold">
                 Pessoal do Gabinete
               </div>
@@ -536,7 +536,7 @@ export function Section1() {
                   : "N/A"}
               </span>
             </div>
-            <div className="border-b-primary flex w-full flex-row items-center justify-between border-b p-2">
+            <div className="border-b-secondary flex w-full flex-row items-center justify-between border-b p-2">
               <div className="flex items-center border-r border-b border-r-white border-b-white px-1 font-semibold">
                 Salário mensal bruto
               </div>
@@ -548,7 +548,7 @@ export function Section1() {
                   : "N/A"}
               </span>
             </div>
-            <div className="border-b-primary flex w-full flex-row items-center justify-between border-b p-2">
+            <div className="border-b-secondary flex w-full flex-row items-center justify-between border-b p-2">
               <div className="flex items-center border-r border-b border-r-white border-b-white px-1 font-semibold">
                 Imóvel funcional
               </div>
@@ -560,7 +560,7 @@ export function Section1() {
                   : "N/A"}
               </span>
             </div>
-            <div className="border-b-primary flex w-full flex-row items-center justify-between border-b p-2">
+            <div className="border-b-secondary flex w-full flex-row items-center justify-between border-b p-2">
               <div className="flex items-center border-r border-b border-r-white border-b-white px-1 font-semibold">
                 Auxílio-moradia
               </div>
@@ -572,7 +572,7 @@ export function Section1() {
                   : "N/A"}
               </span>
             </div>
-            <div className="border-b-primary flex w-full flex-row items-center justify-between border-b p-2">
+            <div className="border-b-secondary flex w-full flex-row items-center justify-between border-b p-2">
               <div className="flex items-center border-r border-b border-r-white border-b-white px-1 font-semibold">
                 Viagens em missão oficial
               </div>
@@ -584,7 +584,7 @@ export function Section1() {
                   : "N/A"}
               </span>
             </div>
-            <div className="border-b-primary flex w-full flex-row items-center justify-between border-b p-2">
+            <div className="border-b-secondary flex w-full flex-row items-center justify-between border-b p-2">
               <div className="flex items-center border-r border-b border-r-white border-b-white px-1 font-semibold">
                 Passaporte diplomático
               </div>
