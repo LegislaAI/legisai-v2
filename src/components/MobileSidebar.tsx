@@ -113,7 +113,11 @@ export function MobileSidebar() {
                 <div className="flex items-center gap-2">
                   <Image
                     // ${pathname === "/" ? "secondary" : ""}
-                    src={`/icons/circle-star.png`}
+                    src={
+                      pathname === "/procedures"
+                        ? "/icons/circle-start-secondary.png"
+                        : `/icons/circle-star.png`
+                    }
                     alt=""
                     width={250}
                     height={250}
@@ -124,7 +128,7 @@ export function MobileSidebar() {
                 <ChevronRight
                   className={cn(
                     "text-secondary opacity-0 transition duration-200 group-hover:opacity-100",
-                    // pathname === "/" && "opacity-100",
+                    pathname === "/" && "opacity-100",
                   )}
                 />
               </div>
@@ -147,6 +151,7 @@ export function MobileSidebar() {
                 />
               </div>
               <div
+                onClick={() => router.push("/prediction-ai")}
                 className={cn(
                   "group flex w-full cursor-pointer items-center justify-between",
                   pathname === "/prediction-ai" &&
@@ -164,7 +169,24 @@ export function MobileSidebar() {
                   )}
                 />
               </div>
-
+              <div
+                onClick={() => router.push("/tutorials")}
+                className={cn(
+                  "group flex w-full cursor-pointer items-center justify-between",
+                  pathname === "/tutorials" && "text-secondary font-semibold",
+                )}
+              >
+                <div className="flex items-center gap-2">
+                  <Settings2Icon />
+                  <span>Tutoriais</span>
+                </div>
+                <ChevronRight
+                  className={cn(
+                    "text-secondary opacity-0 transition duration-200 group-hover:opacity-100",
+                    pathname === "/tutorials" && "opacity-100",
+                  )}
+                />
+              </div>
               <div
                 className={cn(
                   "group flex w-full cursor-pointer items-center justify-between",

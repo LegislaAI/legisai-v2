@@ -13,10 +13,11 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useApiContext } from "@/context/ApiContext";
 import { cn } from "@/lib/utils";
 import { Check, FileText, X } from "lucide-react";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import "swiper/css";
 
 /**
@@ -198,6 +199,24 @@ export function General() {
   const billMeta = selected ? selected.billMeta : defaultBillMeta;
   const statusBoxes = selected ? selected.statusBoxes : defaultStatusBoxes;
   const tramitation = selected ? selected.tramitation : [];
+
+  const { GetAPI } = useApiContext();
+  const [, setPolitician] = useState();
+  async function handleGetPlenary() {
+    const response = await GetAPI(`/event-proposition/event/{eventId}`, true);
+    console.log("response", response);
+    try {
+      if (response.status === 200) {
+        setPolitician(response.body.politician);
+        // return response.body.politician;
+      }
+    } catch (error) {
+      console.error("Error carregando politician:", error);
+    }
+  }
+  useEffect(() => {
+    handleGetPlenary();
+  }, []);
   return (
     <div className="grid w-full grid-cols-12 gap-8">
       {/* ────────────────────────────── TABLE */}

@@ -343,8 +343,8 @@ export function Section1() {
             <Image
               src={selectedPolitician?.imageUrl}
               alt=""
-              width={500}
-              height={1000}
+              width={1000}
+              height={2000}
               className="border-secondary w-1/2 rounded-xl border-2 object-contain lg:h-[22rem] lg:w-full xl:object-cover"
             />
           ) : (

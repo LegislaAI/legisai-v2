@@ -5,7 +5,7 @@ import { ProfileProps } from "@/@types/user";
 
 // import { useUserContext } from "@/context/userContext";
 import { cn } from "@/lib/utils";
-import { Dock, Lock, Mail, Menu, Phone, User } from "lucide-react";
+import { Dock, Lock, Mail, Phone, User } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 // import toast from "react-hot-toast";
@@ -80,19 +80,6 @@ export default function Profile() {
   return (
     <>
       <div className="relative flex h-full w-full flex-col overflow-hidden p-4 pb-24">
-        <header className="fixed top-4 z-[1000] flex h-16 w-[90%] flex-row items-center justify-between gap-4 self-center rounded-full border-zinc-200 bg-white p-4 shadow-lg lg:hidden lg:gap-16">
-          <Image
-            className="h-8 w-32"
-            alt=" "
-            width={200}
-            height={200}
-            src={"/logos/logo.png"}
-          />
-          <div className="hidden flex-row gap-16 lg:flex"></div>
-          <button className="bg-primary flex h-8 items-center justify-center rounded-md p-2 font-bold">
-            <Menu />
-          </button>
-        </header>
         <section className="z-20 mt-6 grid w-full flex-grow grid-cols-12 gap-2 px-1 lg:grid-rows-12">
           <div
             className={`col-span-12 md:col-span-6 ${
@@ -121,7 +108,7 @@ export default function Profile() {
                   Plano Preditivo
                 </span>
               </div>
-              <div className="bg-primary/80 hover:bg-primary absolute bottom-4 z-[1] rounded-full p-2 px-10 py-1 font-bold text-white transition-all duration-300 hover:scale-[1.1]">
+              <div className="bg-primary/80 hover:bg-primary bottom-4 z-[1] rounded-full p-2 px-10 py-1 font-bold text-white transition-all duration-300 hover:scale-[1.1] lg:absolute">
                 Em breve mais planos
               </div>
             </div>

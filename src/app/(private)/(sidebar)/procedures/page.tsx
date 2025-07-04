@@ -16,6 +16,17 @@ import { useEffect, useState } from "react";
 export default function BranchesList() {
   const [loadNewChat, setLoadNewChat] = useState(false);
   const [openInfo, setOpenInfo] = useState(false);
+  const [visible, setVisible] = useState(false);
+
+  const handleOpen = () => {
+    setVisible(true);
+    setOpenInfo(true);
+  };
+
+  const handleClose = () => {
+    setOpenInfo(false);
+    setTimeout(() => setVisible(false), 300); // Tempo da animação
+  };
   const items = [
     { id: "456123", label: "Todos" },
     { id: "789456", label: "PEC - Proposta de Emenda à Constituição" },
@@ -88,7 +99,7 @@ export default function BranchesList() {
               </DropdownMenuContent>
             </DropdownMenu>
             <button
-              onClick={() => setOpenInfo(true)}
+              onClick={() => handleOpen()}
               className="bg-primary flex items-center justify-center rounded-full p-1 text-white xl:hidden"
             >
               <Plus />
@@ -99,51 +110,53 @@ export default function BranchesList() {
           <Section loadNewChat={loadNewChat} setLoadNewChat={setLoadNewChat} />
         </div>
       </div>
-      <div
-        className={cn(
-          "relative h-[calc(100vh-150px)] w-3/4 flex-col justify-between rounded-2xl border border-zinc-200 bg-white shadow-sm lg:w-1/2 xl:flex xl:w-3/12",
-          openInfo ? "absolute right-0 flex" : "hidden",
-        )}
-      >
-        <button
-          onClick={() => setOpenInfo(false)}
-          className="bg-primary absolute top-4 right-[22px] z-10 flex items-center justify-center rounded-full p-1 text-white xl:hidden"
+      {visible && (
+        <div
+          className={cn(
+            "absolute right-0 h-[calc(100vh-150px)] w-3/4 flex-col justify-between rounded-2xl border border-zinc-200 bg-white shadow-sm transition-all duration-300 lg:w-1/2 xl:flex xl:w-3/12",
+            openInfo ? "animate-slide-in flex" : "animate-slide-out flex",
+          )}
         >
-          <Minus />
-        </button>
-        <div className="flex h-full flex-col justify-between gap-4 pb-8">
-          <div className="flex h-full flex-col">
-            <div className="relative w-full border-b border-gray-400 p-2">
-              <Search className="text-dark absolute top-1/2 left-6 h-5 w-5 -translate-y-1/2" />
-              <Input
-                className="w-full border-none bg-transparent pl-10 focus:outline-none"
-                placeholder="Pesquisar"
-              />
+          <button
+            onClick={handleClose}
+            className="bg-primary absolute top-4 right-[22px] z-10 flex items-center justify-center rounded-full p-1 text-white xl:hidden"
+          >
+            <Minus />
+          </button>
+          <div className="flex h-full flex-col justify-between gap-4 pb-8">
+            <div className="flex h-full flex-col">
+              <div className="relative w-full border-b border-gray-400 p-2">
+                <Search className="text-dark absolute top-1/2 left-6 h-5 w-5 -translate-y-1/2" />
+                <Input
+                  className="w-full border-none bg-transparent pl-10 focus:outline-none"
+                  placeholder="Pesquisar"
+                />
+              </div>
+              <div className="data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right flex flex-1 flex-col gap-4 overflow-y-auto p-4">
+                {aiHistory.map((historic, index) => (
+                  <div
+                    key={index}
+                    className="rounded-lg transition-all duration-300 hover:scale-[1.02] hover:bg-gray-100"
+                  >
+                    <h4 className="text-lg font-semibold">{historic.title}</h4>
+                    <p className="text-sm text-gray-600">
+                      {historic.description}
+                    </p>
+                  </div>
+                ))}
+              </div>
+              <button
+                onClick={() => {
+                  setLoadNewChat(true);
+                }}
+                className="bg-primary mt-4 h-12 w-2/3 cursor-pointer self-center rounded-3xl text-lg font-semibold text-white"
+              >
+                Novo Chat
+              </button>
             </div>
-            <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">
-              {aiHistory.map((historic, index) => (
-                <div
-                  key={index}
-                  className="rounded-lg transition-all duration-300 hover:scale-[1.02] hover:bg-gray-100"
-                >
-                  <h4 className="text-lg font-semibold">{historic.title}</h4>
-                  <p className="text-sm text-gray-600">
-                    {historic.description}
-                  </p>
-                </div>
-              ))}
-            </div>
-            <button
-              onClick={() => {
-                setLoadNewChat(true);
-              }}
-              className="bg-primary mt-4 h-12 w-2/3 cursor-pointer self-center rounded-3xl text-lg font-semibold text-white"
-            >
-              Novo Chat
-            </button>
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }
