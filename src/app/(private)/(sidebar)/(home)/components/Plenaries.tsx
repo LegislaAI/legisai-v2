@@ -27,9 +27,12 @@ export function Plenaries() {
               <TooltipContent
                 side="top"
                 align="start"
-                className="border-primary bg-primary border"
+                className="border-primary bg-primary w-60 border"
               >
-                <p className="text-white">Loren Ipsum</p>
+                <p className="text-white">
+                  Acesse rapidamente as últimas sessões plenárias ou visualize
+                  detalhes de uma específica.
+                </p>
                 <TooltipArrow className="fill-primary" />
               </TooltipContent>
             </Tooltip>

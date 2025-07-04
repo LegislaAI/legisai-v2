@@ -5,6 +5,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Tooltip,
   TooltipArrow,
@@ -12,6 +13,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
 import { ChevronDown, ChevronRight, Info, Search } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -53,9 +55,12 @@ export function Procedures() {
               <TooltipContent
                 side="top"
                 align="start"
-                className="border-primary bg-primary border"
+                className="border-primary bg-primary w-60 border"
               >
-                <p className="text-white">Loren Ipsum</p>
+                <p className="text-white">
+                  Consulte uma IA especializada para obter dados precisos sobre
+                  tramitações legislativas específicas.
+                </p>
                 <TooltipArrow className="fill-primary" />
               </TooltipContent>
             </Tooltip>
@@ -85,21 +90,26 @@ export function Procedures() {
           <DropdownMenuContent
             side="top"
             align="center"
-            className="max-h-[40vh] w-full gap-2 overflow-auto p-2"
+            className="h-[40vh] w-full gap-2 overflow-auto p-0"
           >
-            {items.map((item, index) => (
-              <DropdownMenuItem
-                key={index}
-                className="group rounded-none border-b border-b-zinc-400 hover:bg-transparent"
-              >
-                <div
-                  onClick={() => setSelectedDocument(item)}
-                  className="w-full cursor-pointer rounded-md p-2 text-lg group-hover:bg-zinc-400"
+            <ScrollArea className="h-full w-full">
+              {items.map((item, index) => (
+                <DropdownMenuItem
+                  key={index}
+                  className="group rounded-none border-b border-b-zinc-400 p-0 hover:bg-transparent"
                 >
-                  {item.label}
-                </div>
-              </DropdownMenuItem>
-            ))}
+                  <div
+                    onClick={() => setSelectedDocument(item)}
+                    className={cn(
+                      "group-hover:bg-primary/20 w-full cursor-pointer p-2 text-base transition duration-200 lg:text-lg",
+                      selectedDocument.id === item.id && "bg-primary/20",
+                    )}
+                  >
+                    {item.label}
+                  </div>
+                </DropdownMenuItem>
+              ))}
+            </ScrollArea>
           </DropdownMenuContent>
         </DropdownMenu>
 

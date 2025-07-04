@@ -29,9 +29,12 @@ export function News() {
               <TooltipContent
                 side="top"
                 align="start"
-                className="border-primary bg-primary border"
+                className="border-primary bg-primary w-60 border"
               >
-                <p className="text-white">Loren Ipsum</p>
+                <p className="text-white">
+                  Acompanhe notícias recentes relacionadas ao político
+                  selecionado ou acesse a lista completa.
+                </p>
                 <TooltipArrow className="fill-primary" />
               </TooltipContent>
             </Tooltip>

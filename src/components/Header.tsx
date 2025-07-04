@@ -2,6 +2,7 @@
 import { useApiContext } from "@/context/ApiContext";
 import { useSidebarContext } from "@/context/SidebarContext";
 import { cn } from "@/lib/utils";
+import { DropdownMenuArrow } from "@radix-ui/react-dropdown-menu";
 import { ArrowLeft, CogIcon, LogOut, Menu, User2 } from "lucide-react";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -49,12 +50,13 @@ export function Header() {
 
           <DropdownMenuContent
             align="end"
-            className="max-h-[20vh] w-full gap-2 overflow-auto p-1"
+            className="max-h-[20vh] w-full gap-2 overflow-hidden p-0"
           >
-            <DropdownMenuItem className="group rounded-none border-b border-b-zinc-400 hover:bg-transparent">
+            <DropdownMenuArrow className="fill-zinc-400" />
+            <DropdownMenuItem className="group rounded-none border-b border-b-zinc-400 p-0 hover:bg-transparent">
               <button
                 onClick={() => router.push("/profile")}
-                className="group-hover:bg-primary text-primary flex w-full cursor-pointer flex-row items-center gap-2 rounded-md p-2 text-lg transition-all duration-300 group-hover:text-white"
+                className="group-hover:bg-primary text-primary flex w-full cursor-pointer flex-row items-center gap-2 p-2 text-lg transition-all duration-300 group-hover:text-white"
               >
                 <CogIcon
                   className={cn(
@@ -64,14 +66,14 @@ export function Header() {
                 Meus dados
               </button>
             </DropdownMenuItem>
-            <DropdownMenuItem className="group rounded-none border-b border-b-zinc-400 hover:bg-transparent">
+            <DropdownMenuItem className="group rounded-none border-b border-b-zinc-400 p-0 hover:bg-transparent">
               <button
                 onClick={() => {
                   if (window.confirm("Tem certeza que deseja sair?")) {
                     clearToken();
                   }
                 }}
-                className="group-hover:bg-primary text-primary flex w-full cursor-pointer flex-row items-center gap-2 rounded-md p-2 text-lg transition-all duration-300 group-hover:text-white"
+                className="group-hover:bg-primary text-primary flex w-full cursor-pointer flex-row items-center gap-2 p-2 text-lg transition-all duration-300 group-hover:text-white"
               >
                 <LogOut
                   className={cn(

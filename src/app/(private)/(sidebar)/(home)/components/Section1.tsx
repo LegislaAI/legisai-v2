@@ -12,6 +12,13 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import {
+  Tooltip,
+  TooltipArrow,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
 import { usePoliticianContext } from "@/context/PoliticianContext";
 import { cn } from "@/lib/utils";
 import { ApexOptions } from "apexcharts";
@@ -67,7 +74,7 @@ export function Section1() {
       stroke: {
         curve: "smooth",
       },
-      colors: ["#00A15D", "#FF5E4B"],
+      colors: ["#6baa3f", "#FF5E4B"],
       title: {
         show: false,
       },
@@ -190,16 +197,34 @@ export function Section1() {
       <div className="flex w-full items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-dark font-semibold">Dados de Políticos</span>
-          <Info
-            onClick={() => {
-              if (!selectedPoliticianId) return;
-              window.open(
-                `https://www.camara.leg.br/deputados/${selectedPoliticianId}`,
-                "_blank",
-              );
-            }}
-            className="text-light-dark cursor-pointer"
-          />
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <Info
+                  onClick={() => {
+                    if (!selectedPolitician) return;
+                    if (confirm("Tem certeza que deseja excluir o Politico?")) {
+                      window.open(
+                        `https://www.camara.leg.br/deputados/${selectedPoliticianId}`,
+                        "_blank",
+                      );
+                    }
+                  }}
+                  className="text-light-dark cursor-pointer"
+                />
+              </TooltipTrigger>
+              <TooltipContent
+                side="top"
+                align="start"
+                className="border-primary bg-primary w-60 border"
+              >
+                <p className="text-white">
+                  Acesse o perfil do Político na Câmara dos Deputados.
+                </p>
+                <TooltipArrow className="fill-primary" />
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
         <div className="hidden md:block">
           <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
@@ -440,7 +465,7 @@ export function Section1() {
                       )
                     : "N/A"}
                 </span>
-                <span className="font-semibold text-green-500">
+                <span className="text-secondary font-semibold">
                   Não utilizado:{" "}
                   {selectedPolitician?.finance.unusedParliamentaryQuota
                     ? selectedPolitician?.finance.unusedParliamentaryQuota.toLocaleString(
@@ -463,7 +488,7 @@ export function Section1() {
                       )
                     : "N/A"}
                 </span>
-                <span className="font-semibold text-green-500">
+                <span className="text-secondary font-semibold">
                   Não utilizado:{" "}
                   {selectedPolitician?.finance.unusedCabinetQuota
                     ? selectedPolitician?.finance.unusedCabinetQuota.toLocaleString(

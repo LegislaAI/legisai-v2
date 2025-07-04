@@ -5,6 +5,7 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
+import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Tooltip,
   TooltipArrow,
@@ -12,65 +13,72 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+import { DropdownMenuArrow } from "@radix-ui/react-dropdown-menu";
 import { ArrowRight, Check, ChevronDown, Info } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import "swiper/css";
 import { Swiper, SwiperSlide } from "swiper/react";
+
+interface IaProps {
+  id: string;
+  icon: string;
+  label: string;
+  description: string;
+}
+
+const items: IaProps[] = [
+  {
+    id: "827364",
+    icon: "/icons/ai-01.svg",
+    label: "IA JURÍDICA",
+    description: `IA especializada em análise e suporte político, ideal para entender cenários, dados e estratégias no campo público.`,
+  },
+  {
+    id: "264891",
+    icon: "/icons/ai-02.svg",
+    label: "IA POLÍTICA",
+    description: `Assistente jurídica inteligente, ágil na interpretação de normas, decisões e análises legais com precisão.`,
+  },
+  {
+    id: "945672",
+    icon: "/icons/ai-03.svg",
+    label: "IA CONTABILIDADE",
+    description: `Especialista em contabilidade, organiza e analisa dados contábeis de forma eficiente.`,
+  },
+  {
+    id: "536781",
+    icon: "/icons/ai-04.svg",
+    label: "IA DOC JURÍDICO",
+    description: `Focada na busca e análise rápida de documentos jurídicos com precisão.`,
+  },
+  {
+    id: "183947",
+    icon: "/icons/ai-05.svg",
+    label: "IA GERAL",
+    description: `Ferramenta versátil, útil para encontrar informações e responder perguntas em diversos contextos.`,
+  },
+  {
+    id: "678302",
+    icon: "/icons/ai-06.svg",
+    label: "IA DOC CONTÁBIL",
+    description: `Auxilia na busca e análise ágil de documentos contábeis.`,
+  },
+  {
+    id: "491205",
+    icon: "/icons/ai-07.svg",
+    label: "IA DEPUTADO",
+    description: `Especializada em buscar e analisar informações sobre deputados.`,
+  },
+];
+
 export function Ai() {
   const router = useRouter();
-  const items = [
-    {
-      id: "827364",
-      icon: "/icons/ai-01.svg",
-      label: "IA JURÍDICA",
-      description: `IA especializada em análise e suporte político, ideal para entender cenários, dados e estratégias no campo público.`,
-    },
-    {
-      id: "264891",
-      icon: "/icons/ai-02.svg",
-      label: "IA POLÍTICA",
-      description: `Assistente jurídica inteligente, ágil na interpretação de normas, decisões e análises legais com precisão.`,
-    },
-    {
-      id: "945672",
-      icon: "/icons/ai-03.svg",
-      label: "IA CONTABILIDADE",
-      description: `Especialista em contabilidade, organiza e analisa dados contábeis de forma eficiente.`,
-    },
-    {
-      id: "536781",
-      icon: "/icons/ai-04.svg",
-      label: "IA DOC JURÍDICO",
-      description: `Focada na busca e análise rápida de documentos jurídicos com precisão.`,
-    },
-    {
-      id: "183947",
-      icon: "/icons/ai-05.svg",
-      label: "IA GERAL",
-      description: `Ferramenta versátil, útil para encontrar informações e responder perguntas em diversos contextos.`,
-    },
-    {
-      id: "678302",
-      icon: "/icons/ai-06.svg",
-      label: "IA DOC CONTÁBIL",
-      description: `Auxilia na busca e análise ágil de documentos contábeis.`,
-    },
-    {
-      id: "491205",
-      icon: "/icons/ai-07.svg",
-      label: "IA DEPUTADO",
-      description: `Especializada em buscar e analisar informações sobre deputados.`,
-    },
-  ];
   const [value, setValue] = useState("");
-  const [selectedAi, setSelectedAi] = useState({
-    id: "",
-    label: "",
-    icon: "",
-    description: "",
-  });
+  const [selectedAi, setSelectedAi] = useState<IaProps>(items[0]);
+
   return (
     <div className="relative flex h-96 w-full flex-col justify-between rounded-lg bg-white p-4 lg:w-1/2">
       <div className="flex flex-col items-center justify-between lg:flex-row">
@@ -84,9 +92,12 @@ export function Ai() {
               <TooltipContent
                 side="top"
                 align="start"
-                className="border-primary bg-primary border"
+                className="border-primary bg-primary w-60 border"
               >
-                <p className="text-white">Loren Ipsum</p>
+                <p className="text-white">
+                  Utilize inteligências artificiais temáticas para análise
+                  jurídica ou compreensão político-legislativa.
+                </p>
                 <TooltipArrow className="fill-primary" />
               </TooltipContent>
             </Tooltip>
@@ -101,22 +112,29 @@ export function Ai() {
           </DropdownMenuTrigger>
 
           <DropdownMenuContent
-            align="center"
-            className="max-h-[20vh] w-full gap-2 overflow-auto p-2"
+            align="end"
+            side="left"
+            className="h-[20vh] w-full border-zinc-400 p-0"
           >
-            {items.map((item, index) => (
-              <DropdownMenuItem
-                key={index}
-                className="group rounded-none border-b border-b-zinc-400 hover:bg-transparent"
-              >
-                <div
-                  onClick={() => setSelectedAi(item)}
-                  className="w-full cursor-pointer rounded-md p-2 text-lg group-hover:bg-zinc-400"
+            <DropdownMenuArrow />
+            <ScrollArea className="h-full w-full">
+              {items.map((item, index) => (
+                <DropdownMenuItem
+                  key={index}
+                  className="group rounded-none border-b border-b-zinc-400 p-0 hover:bg-transparent"
                 >
-                  {item.label}
-                </div>
-              </DropdownMenuItem>
-            ))}
+                  <div
+                    onClick={() => setSelectedAi(item)}
+                    className={cn(
+                      "group-hover:bg-secondary/20 w-full cursor-pointer px-2 py-1 text-base transition duration-200 lg:text-lg",
+                      item.label === selectedAi.label && "bg-secondary/20",
+                    )}
+                  >
+                    {item.label}
+                  </div>
+                </DropdownMenuItem>
+              ))}
+            </ScrollArea>
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
