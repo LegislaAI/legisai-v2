@@ -110,7 +110,7 @@ export function TutorialsSection({
                 <h2 className="text-sm font-semibold text-[#252F40] lg:text-base xl:text-lg">
                   {tutorial.title}
                 </h2>
-                <span className="text-[10px] text-[#8C8C8C] lg:text-sm xl:text-base">
+                <span className="text-xs text-[#8C8C8C] lg:text-sm xl:text-base">
                   {tutorial.subtitle}
                 </span>
               </div>
@@ -119,7 +119,7 @@ export function TutorialsSection({
                   setSelectedVideo(tutorial);
                   setIsOpenVideoModal(true);
                 }}
-                className="border-secondary text-secondary mt-auto mb-2 rounded-md border font-bold transition-all duration-300 hover:scale-[1.02]"
+                className="border-secondary text-secondary mt-auto mb-2 rounded-md border font-bold transition-all duration-300 hover:scale-[1.005]"
               >
                 Assistir Agora
               </button>

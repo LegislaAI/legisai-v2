@@ -53,7 +53,7 @@ export default function Tutorials() {
                 setSelectedVideo(null);
                 setIsOpenVideoModal(false);
               }}
-              className="border-secondary bg-secondary rounded-md border p-2 px-8 text-white transition-all duration-300 hover:scale-[1.05]"
+              className="border-secondary bg-secondary rounded-md border p-2 px-8 text-white transition-all duration-300 hover:scale-[1.005]"
             >
               Fechar
             </button>

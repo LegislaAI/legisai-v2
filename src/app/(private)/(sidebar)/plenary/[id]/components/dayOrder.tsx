@@ -131,6 +131,7 @@ export function DayOrder() {
                           "flex items-center gap-2",
                           column.key === "authors" && "items-start",
                           column.key !== "authors" && "w-full justify-center",
+                          column.key === "subject" && "w-80",
                         )}
                       >
                         {column.image ? (
@@ -172,7 +173,7 @@ export function DayOrder() {
                     <TableCell className="h-4 py-1 text-center text-sm font-semibold whitespace-nowrap">
                       {row.proposal}
                     </TableCell>
-                    <TableCell className="h-4 py-1 text-center text-sm">
+                    <TableCell className="h-4 w-80 py-1 text-center text-sm">
                       {row.subject}
                     </TableCell>
                     <TableCell className="h-4 py-1 text-center text-sm">

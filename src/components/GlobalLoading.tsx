@@ -11,7 +11,7 @@ export function NavigationProgress() {
   useEffect(() => {
     // Configure NProgress
     NProgress.configure({
-      showSpinner: true, // Hide the spinner
+      showSpinner: false, // Hide the spinner
       speed: 500, // Animation speed
       minimum: 0.3, // Minimum percentage
     });

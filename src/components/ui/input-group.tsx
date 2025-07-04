@@ -44,7 +44,7 @@ const InputGroupText = React.forwardRef<
   <div
     ref={ref}
     className={cn(
-      "border-default-300 text-default-500 bg-background group-focus-within:border-secondary ring-secondary flex items-center justify-center border px-3 text-sm font-normal transition duration-300 first:rounded-l-md first:border-r-0 last:rounded-r-md last:border-l-0",
+      "border-default-300 text-default-500 bg-background group-focus-within:border-secondary ring-secondary flex items-center justify-center border px-3 font-normal transition duration-300 first:rounded-l-md first:border-r-0 last:rounded-r-md last:border-l-0",
       className,
       {
         "border-info/50 group-focus-within:border-info-700 ring-info-700":

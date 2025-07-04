@@ -208,7 +208,7 @@ export default function BranchesList() {
                 {aiHistory.map((historic, index) => (
                   <div
                     key={index}
-                    className="rounded-lg transition-all duration-300 hover:scale-[1.02] hover:bg-gray-100"
+                    className="rounded-lg transition-all duration-300 hover:scale-[1.005] hover:bg-gray-100"
                   >
                     <h4 className="font-semibold">{historic.title}</h4>
                     <p className="text-sm text-gray-600">

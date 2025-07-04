@@ -40,10 +40,12 @@ export function PlenaryCard({ title, summary, id, date }: PlenaryCardProps) {
         </div>
       </div>
       <div className="flex flex-col items-center gap-2">
-        <span className="text-xs text-gray-600">2m atrás</span>
+        <span className="text-xs text-gray-600">
+          {moment(date).format("DD/MM/YY")}
+        </span>
         <button
           onClick={() => router.push(`/plenary/${id}`)}
-          className="rounded-xl border border-blue-700 bg-blue-700/10 px-4 py-1 font-bold text-blue-700 hover:scale-[1.05]"
+          className="rounded-xl border border-blue-700 bg-blue-700/10 px-4 py-1 font-bold text-blue-700 hover:scale-[1.005]"
         >
           Acessar
         </button>

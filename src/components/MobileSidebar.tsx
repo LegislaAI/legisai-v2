@@ -112,7 +112,6 @@ export function MobileSidebar() {
               >
                 <div className="flex items-center gap-2">
                   <Image
-                    // ${pathname === "/" ? "secondary" : ""}
                     src={
                       pathname === "/procedures"
                         ? "/icons/circle-start-secondary.png"
@@ -128,7 +127,7 @@ export function MobileSidebar() {
                 <ChevronRight
                   className={cn(
                     "text-secondary opacity-0 transition duration-200 group-hover:opacity-100",
-                    pathname === "/" && "opacity-100",
+                    pathname === "/procedures" && "opacity-100",
                   )}
                 />
               </div>
@@ -188,9 +187,10 @@ export function MobileSidebar() {
                 />
               </div>
               <div
+                onClick={() => router.push("/profile")}
                 className={cn(
                   "group flex w-full cursor-pointer items-center justify-between",
-                  // pathname === "/" && "text-secondary font-semibold",
+                  pathname === "/profile" && "text-secondary font-semibold",
                 )}
               >
                 <div className="flex items-center gap-2">
@@ -200,7 +200,7 @@ export function MobileSidebar() {
                 <ChevronRight
                   className={cn(
                     "text-secondary opacity-0 transition duration-200 group-hover:opacity-100",
-                    // pathname === "/" && "opacity-100",
+                    pathname === "/profile" && "opacity-100",
                   )}
                 />
               </div>

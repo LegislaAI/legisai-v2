@@ -38,7 +38,7 @@ export function NewsCard({ title, summary }: NewsCardProps) {
         <span className="text-xs text-gray-600">2m atrás</span>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="bg-secondary rounded-xl px-4 py-1 font-bold text-white duration-700 hover:scale-[1.05]"
+          className="bg-secondary rounded-xl px-4 py-1 font-bold text-white duration-700 hover:scale-[1.005]"
         >
           Resumo
         </button>

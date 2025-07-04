@@ -12,6 +12,8 @@ import { Presence } from "./components/presence";
 
 export default function PlenaryDetails() {
   const [selectedStep, setSelectedStep] = useState(0);
+  const [animateSection, setAnimateSection] = useState(false);
+  const [timeLeft, setTimeLeft] = useState<number>(12 * 60 * 60 * 1000);
 
   const formatTime = (time: number): string => {
     const hours = Math.floor(time / (1000 * 60 * 60));
@@ -20,8 +22,6 @@ export default function PlenaryDetails() {
 
     return `${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}:${String(seconds).padStart(2, "0")}`;
   };
-
-  const [timeLeft, setTimeLeft] = useState<number>(12 * 60 * 60 * 1000);
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -37,13 +37,14 @@ export default function PlenaryDetails() {
     // Limpeza do intervalo ao desmontar o componente
     return () => clearInterval(interval);
   }, []);
-  const [animateSection, setAnimateSection] = useState(false);
+
   useEffect(() => {
     setAnimateSection(true);
     setTimeout(() => {
       setAnimateSection(false);
     }, 300);
   }, [selectedStep]);
+
   return (
     <div className="grid grid-cols-12 gap-4">
       <div className="col-span-12 flex flex-col rounded-lg bg-white lg:col-span-8">

@@ -278,6 +278,7 @@ export function General({ setSelectedStep }: GeneralProps) {
                           "flex items-center gap-2",
                           column.key === "authors" && "items-start",
                           column.key !== "authors" && "w-full justify-center",
+                          column.key === "subject" && "w-80",
                         )}
                       >
                         {column.image ? (
@@ -321,7 +322,7 @@ export function General({ setSelectedStep }: GeneralProps) {
                     <TableCell className="h-4 py-1 text-center text-sm font-semibold whitespace-nowrap">
                       {row.proposal}
                     </TableCell>
-                    <TableCell className="h-4 py-1 text-center text-sm">
+                    <TableCell className="h-4 w-80 py-1 text-center text-sm">
                       {row.subject}
                     </TableCell>
                     <TableCell className="h-4 py-1 text-center text-sm">
@@ -495,7 +496,7 @@ export function General({ setSelectedStep }: GeneralProps) {
               className="group group peer w-full rounded-lg px-4 transition-colors duration-300"
             >
               <AccordionTrigger className="w-full text-start text-lg outline-none focus:border-0 focus:outline-none">
-                <div className="flex items-center justify-between px-6 py-4 hover:scale-[1.00]">
+                <div className="flex items-center justify-between px-6 py-4 hover:scale-[1.005]">
                   <h3 className="text-secondary flex items-center gap-2 text-xl font-semibold">
                     <Image
                       src={"/icons/plenary/documents.svg"}

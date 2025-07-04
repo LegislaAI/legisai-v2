@@ -247,6 +247,7 @@ export function Votes() {
                           "flex items-center gap-2",
                           column.key === "authors" && "items-start",
                           column.key !== "authors" && "w-full justify-center",
+                          column.key === "subject" && "w-80",
                         )}
                       >
                         {column.image ? (
@@ -290,7 +291,7 @@ export function Votes() {
                     <TableCell className="h-4 py-1 text-center text-sm font-semibold whitespace-nowrap">
                       {row.proposal}
                     </TableCell>
-                    <TableCell className="h-4 py-1 text-center text-sm">
+                    <TableCell className="h-4 w-80 py-1 text-center text-sm">
                       {row.subject}
                     </TableCell>
                     <TableCell className="h-4 py-1 text-center text-sm">
@@ -526,7 +527,6 @@ export function Votes() {
                     ))}
                   </div>
                   <div className="mt-4 flex flex-row items-center justify-between">
-                    <span>0 de 10 linhas (s) selecionadas.</span>
                     <div className="mt-2 flex justify-end">
                       <button className="text-secondary border-secondary mx-1 flex h-8 w-8 items-center justify-center rounded-md border">
                         <ChevronLeft />
@@ -583,7 +583,6 @@ export function Votes() {
                     ))}
                   </div>
                   <div className="mt-4 flex flex-row items-center justify-between">
-                    <span>0 de 10 linhas (s) selecionadas.</span>
                     <div className="mt-2 flex justify-end">
                       <button className="text-secondary border-secondary mx-1 flex h-8 w-8 items-center justify-center rounded-md border">
                         <ChevronLeft />

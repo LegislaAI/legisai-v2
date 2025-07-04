@@ -1,6 +1,5 @@
 "use client";
 import { AuthHeader } from "@/components/ui/AuthHeader";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -152,6 +151,8 @@ export default function Checkout() {
           return setActiveStep((prevActiveStep) => prevActiveStep + 1);
         }
       } else if (activeStep === 2) {
+        router.push("/");
+      } else if (activeStep === 3) {
         HandleCard();
       }
     }
@@ -202,6 +203,7 @@ export default function Checkout() {
   }
 
   async function HandleQrCode() {
+    return router.push("/");
     setIsPixBeingGenerated(true);
     const qrCode = await PostAPI(
       `/signature/pix/${selectedPlan?.id}`,
@@ -225,8 +227,8 @@ export default function Checkout() {
   return (
     <main className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-white pb-10 md:pb-0">
       <Image
-        src={"/static/login.png"}
-        className="absolute right-0 z-10 hidden h-[95%] w-[40%] rounded-tl-lg rounded-bl-lg object-cover md:block"
+        src={"/static/register2.png"}
+        className="absolute top-0 right-0 z-10 hidden h-[95%] w-[40%] rounded-bl-lg object-cover md:block"
         alt=""
         width={1000}
         height={2500}
@@ -330,7 +332,7 @@ export default function Checkout() {
                                 alt=""
                                 width={100}
                                 height={100}
-                                src={"/card.svg"}
+                                src={"/icons/card.svg"}
                                 className="h-[22px] w-4"
                               />
                               <h4 className="text-sm font-semibold text-black uppercase">
@@ -653,7 +655,7 @@ export default function Checkout() {
                               </h1>
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <button className="bg-secondaryp-2 relative col-span-12 w-full rounded-lg text-white">
+                                  <button className="bg-secondary relative col-span-12 w-full rounded-lg p-2 text-white">
                                     <span className="font-semibold">
                                       {selectedInstallment +
                                         " x " +
@@ -708,7 +710,7 @@ export default function Checkout() {
                       <>
                         <button
                           onClick={HandleQrCode}
-                          className="bg-secondary mx-auto flex h-12 w-full items-center gap-2 rounded-lg p-2 py-4 font-semibold text-white transition-all duration-300 hover:scale-[1.05]"
+                          className="bg-secondary mx-auto flex h-12 w-full items-center gap-2 rounded-lg p-2 py-4 font-semibold text-white transition-all duration-300 hover:scale-[1.005]"
                         >
                           {isPixBeingGenerated ? (
                             <Loader2 className="mx-auto h-5 w-5 animate-spin" />
@@ -740,7 +742,7 @@ export default function Checkout() {
                                 className="bg-secondary h-max w-1/3 self-center rounded-2xl object-contain p-2"
                               />
                               <button
-                                className="bg-pix bg-secondary m-auto flex w-max items-center gap-2 rounded-lg p-1 text-sm text-white transition-all duration-300 hover:scale-[1.05]"
+                                className="bg-pix bg-secondary m-auto flex w-max items-center gap-2 rounded-lg p-1 text-sm text-white transition-all duration-300 hover:scale-[1.005]"
                                 onClick={() => {
                                   copyToClipboard(qrCode.payload);
                                   setCopiedQrCode(true);
@@ -759,7 +761,7 @@ export default function Checkout() {
                         <button
                           onClick={() => router.push("/")}
                           className={cn(
-                            "bg-secondary mx-auto flex h-12 w-60 items-center justify-center gap-2 rounded-lg p-2 font-semibold text-white transition-all duration-300 hover:scale-[1.05]",
+                            "bg-secondary mx-auto flex h-12 w-60 items-center justify-center gap-2 rounded-lg p-2 font-semibold text-white transition-all duration-300 hover:scale-[1.005]",
                             !isPixGenerated && "hidden",
                           )}
                         >
@@ -775,16 +777,13 @@ export default function Checkout() {
 
               <div
                 className={cn(
-                  "flex pt-2",
+                  "flex gap-4 pt-2",
                   selectedPayment === "pix" && "hidden",
                 )}
               >
-                <Button
-                  size="xs"
-                  variant="outline"
-                  color="secondary"
+                <button
                   className={cn(
-                    "text-text-100 cursor-pointer transition-all duration-300 hover:scale-[1.05]",
+                    "border-secondary text-secondary w-full rounded-md border bg-white p-2 font-bold",
                     {
                       hidden: activeStep === 0,
                     },
@@ -792,9 +791,7 @@ export default function Checkout() {
                   onClick={handleBack}
                 >
                   Voltar
-                </Button>
-                <div className="flex-1 gap-4" />
-                <div className="flex gap-2"></div>
+                </button>
                 <button
                   // type="submit"
                   type="button"

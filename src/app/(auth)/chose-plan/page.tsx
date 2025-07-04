@@ -21,8 +21,8 @@ export default function Login() {
   return (
     <main className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-white">
       <Image
-        src={"/static/login.png"}
-        className="absolute right-0 z-10 hidden h-[95%] w-[40%] rounded-tl-lg rounded-bl-lg object-cover md:block"
+        src={"/static/register2.png"}
+        className="absolute top-0 right-0 z-10 hidden h-[95%] w-[40%] rounded-bl-lg object-cover md:block"
         alt=""
         width={1000}
         height={2500}

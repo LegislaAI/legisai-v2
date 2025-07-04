@@ -55,7 +55,7 @@ export default function Login() {
         login.body.accessToken,
       );
       setTimeout(() => {
-        router.push("/procedures");
+        router.push("/");
       }, 1000);
     } else {
       toast.error("Erro ao logar, tente novamente");
@@ -67,8 +67,8 @@ export default function Login() {
   return (
     <main className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-white">
       <Image
-        src={"/static/register.png"}
-        className="absolute right-0 z-10 hidden h-[95%] w-[40%] rounded-tl-lg rounded-bl-lg object-cover md:block"
+        src={"/static/register2.png"}
+        className="absolute top-0 right-0 z-10 hidden h-[95%] w-[40%] rounded-bl-lg object-cover md:block"
         alt=""
         width={1000}
         height={2500}
@@ -91,7 +91,7 @@ export default function Login() {
             <input
               placeholder="Digite seu email"
               {...register("email")}
-              className="outline-secondary/50 focus:border-secondary/50 h-8 rounded-md border border-zinc-400 p-2 text-sm text-black"
+              className="outline-secondary/50 focus:border-secondary/50 h-8 rounded-md border border-zinc-400 p-2 text-black"
               type="email"
               disabled={isLogging}
             />
@@ -129,7 +129,7 @@ export default function Login() {
             <button
               type="button"
               onClick={() => router.push("recover-password")}
-              className="self-start text-[10px] text-black"
+              className="self-start text-xs text-black"
             >
               Esqueci minha senha
             </button>
@@ -138,7 +138,7 @@ export default function Login() {
                 type="button"
                 onClick={() => setContinueConnected(!continueConnected)}
                 className={`flex h-4 w-8 ${
-                  continueConnected ? "bg-green-500" : "bg-[#3A416F]"
+                  continueConnected ? "bg-secondary" : "bg-zinc-400"
                 } relative rounded-full p-[1px]`}
               >
                 <div

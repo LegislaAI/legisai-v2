@@ -81,7 +81,7 @@ export function Ai() {
 
   return (
     <div className="relative flex h-96 w-full flex-col justify-between rounded-lg bg-white p-4 lg:w-1/2">
-      <div className="flex flex-col items-center justify-between lg:flex-row">
+      <div className="flex flex-row items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-dark font-semibold">Legis AI</span>
           <TooltipProvider>
@@ -156,7 +156,10 @@ export function Ai() {
             <SwiperSlide key={index}>
               <div
                 onClick={() => setSelectedAi(item)}
-                className="bg-secondary/20 flex h-56 flex-col justify-between rounded-lg p-4"
+                className={cn(
+                  "bg-secondary/20 flex h-56 flex-col justify-between rounded-lg border border-transparent p-4",
+                  item.label === selectedAi.label && "border-secondary",
+                )}
               >
                 <div className="flex items-center gap-2">
                   <Image
@@ -169,7 +172,7 @@ export function Ai() {
                 </div>
                 <span>{item.description}</span>
                 {selectedAi.label === item.label ? (
-                  <button className="bg-secondary flex h-10 items-center justify-center gap-2 self-start rounded-lg px-4 text-white">
+                  <button className="bg-secondary flex h-10 items-center justify-center gap-2 self-start rounded-lg px-4 font-semibold text-white">
                     Em uso <Check />
                   </button>
                 ) : (

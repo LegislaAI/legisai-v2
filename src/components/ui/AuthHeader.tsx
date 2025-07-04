@@ -28,7 +28,7 @@ export function AuthHeader() {
           <span>Planos</span>
         </a>
       </div>
-      <button className="bg-secondary flex h-9 scale-90 items-center justify-center rounded-full p-4 font-bold text-white transition-all duration-300 hover:scale-[1.05] md:scale-100">
+      <button className="bg-secondary flex h-9 scale-90 items-center justify-center rounded-full p-4 font-bold text-white transition-all duration-300 hover:scale-[1.005] md:scale-100">
         <span className="text-sm">NEWSLETTER</span>
       </button>
     </header>

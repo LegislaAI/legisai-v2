@@ -4,6 +4,7 @@ import { useSidebarContext } from "@/context/SidebarContext";
 import { cn } from "@/lib/utils";
 import { DropdownMenuArrow } from "@radix-ui/react-dropdown-menu";
 import { ArrowLeft, CogIcon, LogOut, Menu, User2 } from "lucide-react";
+import { useCookies } from "next-client-cookies";
 import { usePathname, useRouter } from "next/navigation";
 import {
   DropdownMenu,
@@ -15,6 +16,7 @@ import {
 export function Header() {
   const pathname = usePathname();
   const router = useRouter();
+  const cookies = useCookies();
   const { setIsSidebarOpen } = useSidebarContext();
   const { clearToken } = useApiContext();
 
@@ -71,6 +73,9 @@ export function Header() {
                 onClick={() => {
                   if (window.confirm("Tem certeza que deseja sair?")) {
                     clearToken();
+                    cookies.remove(
+                      process.env.NEXT_PUBLIC_USER_TOKEN as string,
+                    );
                   }
                 }}
                 className="group-hover:bg-secondary text-secondary flex w-full cursor-pointer flex-row items-center gap-2 p-2 text-lg transition-all duration-300 group-hover:text-white"

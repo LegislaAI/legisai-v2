@@ -158,7 +158,7 @@ export function Presence() {
                 Deliberativa
               </span>
             </div>
-            <div className="group flex h-8 w-full flex-row overflow-hidden rounded-md border border-zinc-400 md:w-1/3">
+            <div className="group border-secondary flex h-8 w-full flex-row overflow-hidden rounded-md border md:w-1/3">
               <button
                 onClick={triggerSearch}
                 className="flex h-full items-center justify-center bg-[#749c5b] px-2 text-white transition-opacity duration-300"

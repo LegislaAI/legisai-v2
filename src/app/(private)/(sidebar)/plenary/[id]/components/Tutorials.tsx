@@ -64,26 +64,16 @@ export function Tutorials() {
                     <h2 className="text-sm font-semibold text-[#252F40]">
                       {tutorial.title}
                     </h2>
-                    <span className="text-[10px] text-[#8C8C8C]">
+                    <span className="text-xs text-[#8C8C8C]">
                       {tutorial.subtitle}
                     </span>
-                    <div className="mt-2 flex w-full flex-row flex-wrap gap-1">
-                      {tutorial.tags.map((tag, index) => (
-                        <span
-                          key={index}
-                          className="xxs:text-xs bg-secondary rounded-lg p-1 text-[12px] text-[#fff]"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
                   </div>
                   <button
                     onClick={() => {
                       // setSelectedVideo(tutorial);
                       // setIsOpenVideoModal(true);
                     }}
-                    className="border-secondary text-secondary mt-auto mb-2 rounded-md border font-bold transition-all duration-300 hover:scale-[1.02]"
+                    className="border-secondary text-secondary mt-auto mb-2 rounded-md border font-bold transition-all duration-300 hover:scale-[1.005]"
                   >
                     Assistir Agora
                   </button>

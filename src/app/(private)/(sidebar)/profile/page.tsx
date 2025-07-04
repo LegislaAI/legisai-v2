@@ -108,7 +108,7 @@ export default function Profile() {
                   Plano Preditivo
                 </span>
               </div>
-              <div className="bg-secondary/80 hover:bg-secondary bottom-4 z-[1] rounded-full p-2 px-10 py-1 font-bold text-white transition-all duration-300 hover:scale-[1.1] lg:absolute">
+              <div className="bg-secondary/80 hover:bg-secondary bottom-4 z-[1] rounded-full p-2 px-10 py-1 font-bold text-white transition-all duration-300 hover:scale-[1.005] lg:absolute">
                 Em breve mais planos
               </div>
             </div>
@@ -271,7 +271,7 @@ export default function Profile() {
                 onClick={() =>
                   window.open("https://api.whatsapp.com", "_blank")
                 }
-                className="bg-secondary self-center rounded-md border border-white p-2 text-white transition-all duration-300 hover:scale-[1.05]"
+                className="bg-secondary self-center rounded-md border border-white p-2 text-white transition-all duration-300 hover:scale-[1.005]"
               >
                 Solicitar suporte
               </button>
@@ -310,7 +310,7 @@ export default function Profile() {
                 //     "_blank",
                 //   )
                 // }
-                className="bg-secondary self-center rounded-md border border-white p-2 text-white transition-all duration-300 hover:scale-[1.05]"
+                className="bg-secondary self-center rounded-md border border-white p-2 text-white transition-all duration-300 hover:scale-[1.005]"
               >
                 Notas fiscais
               </button>

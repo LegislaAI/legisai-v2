@@ -203,23 +203,22 @@ export function Section1() {
                 <Info
                   onClick={() => {
                     if (!selectedPolitician) return;
-                    if (confirm("Tem certeza que deseja excluir o Politico?")) {
-                      window.open(
-                        `https://www.camara.leg.br/deputados/${selectedPoliticianId}`,
-                        "_blank",
-                      );
-                    }
+                    window.open(
+                      `https://www.camara.leg.br/deputados/${selectedPoliticianId}`,
+                      "_blank",
+                    );
                   }}
                   className="text-light-dark cursor-pointer"
                 />
               </TooltipTrigger>
               <TooltipContent
-                side="top"
+                side="bottom"
                 align="start"
                 className="border-secondary bg-secondary w-60 border"
               >
                 <p className="text-white">
-                  Acesse o perfil do Político na Câmara dos Deputados.
+                  Clique para acessar o perfil do Político na Câmara dos
+                  Deputados.
                 </p>
                 <TooltipArrow className="fill-secondary" />
               </TooltipContent>
@@ -359,7 +358,7 @@ export function Section1() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <div className="flex h-full w-full flex-row gap-8 lg:col-span-2">
+        <div className="flex h-60 w-full flex-row gap-2 lg:col-span-2 lg:h-[22rem] lg:gap-8">
           {loading ? (
             <div className="flex w-1/2 animate-pulse items-center justify-center rounded-xl bg-zinc-200 lg:h-full lg:w-full">
               <Loader2 className="m-auto animate-spin" />
@@ -370,10 +369,10 @@ export function Section1() {
               alt=""
               width={1000}
               height={2000}
-              className="border-secondary w-1/2 rounded-xl border-2 object-contain lg:h-[22rem] lg:w-full xl:object-cover"
+              className="border-secondary h-full w-1/2 rounded-xl border-2 object-cover lg:w-full xl:object-cover"
             />
           ) : (
-            <div className="flex w-1/2 animate-pulse items-center justify-center rounded-xl bg-zinc-200 lg:h-full lg:w-full">
+            <div className="flex h-60 w-1/2 animate-pulse items-center justify-center rounded-xl bg-zinc-200 lg:h-full lg:w-full">
               <Image
                 src={"/static/default-user.png"}
                 alt={""}
@@ -384,9 +383,9 @@ export function Section1() {
             </div>
           )}
           <div className="MOBILE flex h-full flex-1 flex-col items-center justify-center rounded-lg md:hidden">
-            <div className="bg-secondary/20 flex w-full flex-row items-center justify-center gap-2 rounded-lg p-2">
+            <div className="bg-secondary/20 flex w-full flex-col items-center justify-center gap-2 rounded-lg p-2 lg:flex-row">
               <span className="text-secondary text-lg">Partido:</span>
-              <span className="text-secondary text-lg">
+              <span className="text-secondary text-lg font-semibold">
                 {selectedPolitician?.politicalPartyAcronym}
               </span>
             </div>

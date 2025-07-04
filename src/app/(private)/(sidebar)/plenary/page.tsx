@@ -1,14 +1,28 @@
 "use client";
 
-import { staticPlenary } from "@/@staticData/plenary";
 import { useApiContext } from "@/context/ApiContext";
 import { ChevronDown } from "lucide-react";
 import { useEffect, useState } from "react";
 import { PlenaryCard } from "./components/Plenary";
 
+interface PlenaryProps {
+  createdAt: string;
+  departmentId: string;
+  description: string;
+  endDate: string | null;
+  eventTypeId: string;
+  id: string;
+  local: string;
+  situation: string;
+  startDate: string;
+  updatedAt: string;
+  uri: string;
+  videoUrl: string | null;
+}
+
 export default function Plenary() {
   const { GetAPI } = useApiContext();
-  const [plenaries, setPlenaries] = useState(staticPlenary);
+  const [plenaries, setPlenaries] = useState<PlenaryProps[]>([]);
   async function handleGetPlenary() {
     const response = await GetAPI(`/event?page=1`, true);
     console.log("response", response);
@@ -21,9 +35,13 @@ export default function Plenary() {
       console.error("Error carregando plenaries:", error);
     }
   }
+
   useEffect(() => {
     handleGetPlenary();
   }, []);
+
+  console.log("plenaries: ", plenaries);
+
   return (
     <div className="flex h-full w-full flex-col items-center gap-4 rounded-xl bg-white lg:gap-12">
       <div className="flex w-full gap-6 p-2 lg:px-8 lg:pt-10">
@@ -41,7 +59,7 @@ export default function Plenary() {
               id={plenary.id}
               summary={plenary.description}
               title={"Plenário"}
-              date={plenary.startDate}
+              date={plenary.updatedAt}
             />
           ))}
         </div>
@@ -56,7 +74,7 @@ export default function Plenary() {
               id={plenary.id}
               summary={plenary.description}
               title={"Plenário"}
-              date={plenary.date}
+              date={plenary.updatedAt}
             />
           ))}
         </div>

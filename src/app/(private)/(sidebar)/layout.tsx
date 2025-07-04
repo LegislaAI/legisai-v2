@@ -15,7 +15,6 @@ export default function RootLayout({
       <div className="flex w-full flex-col p-2 pt-0 lg:p-8">
         <Header />
         <NavigationProgress />
-
         {children}
       </div>
     </div>
