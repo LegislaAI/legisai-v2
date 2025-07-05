@@ -1,5 +1,5 @@
 "use client";
-import { aiHistory } from "@/@staticData/ai";
+import { useChatPage } from "@/components/chat/chat-history-handler";
 import { Section } from "@/components/chat/SectionGemini";
 import {
   Accordion,
@@ -16,6 +16,17 @@ import { useEffect, useState } from "react";
 
 export default function BranchesList() {
   const [loadNewChat, setLoadNewChat] = useState(false);
+  const {
+    chats,
+    setLoadHistory,
+    loadChat,
+    setLoadChat,
+    handleChangeChat,
+    setTypes,
+    prompts,
+    selectedPrompt,
+    setSelectedPrompt,
+  } = useChatPage();
   const [openInfo, setOpenInfo] = useState(false);
   const [open, setOpen] = useState(false);
   const items = [
@@ -23,17 +34,20 @@ export default function BranchesList() {
       id: "827364",
       icon: "/icons/ai-01.svg",
       label: "IA JURÍDICA",
+      types: ["juridic"],
       description: `IA especializada em análise e suporte político, ideal para entender cenários, dados e estratégias no campo público.`,
     },
     {
       id: "264891",
       icon: "/icons/ai-02.svg",
       label: "IA POLÍTICA",
+      types: ["politic", "politician"],
       description: `Assistente jurídica inteligente, ágil na interpretação de normas, decisões e análises legais com precisão.`,
     },
     {
       id: "945672",
       icon: "/icons/ai-03.svg",
+      types: ["accounting"],
       label: "IA CONTABILIDADE",
       description: `Especialista em contabilidade, organiza e analisa dados contábeis de forma eficiente.`,
     },
@@ -41,35 +55,34 @@ export default function BranchesList() {
       id: "536781",
       icon: "/icons/ai-04.svg",
       label: "IA DOC JURÍDICO",
+      types: ["doc"],
       description: `Focada na busca e análise rápida de documentos jurídicos com precisão.`,
     },
     {
       id: "183947",
       icon: "/icons/ai-05.svg",
       label: "IA GERAL",
+      types: ["general"],
       description: `Ferramenta versátil, útil para encontrar informações e responder perguntas em diversos contextos.`,
     },
     {
       id: "678302",
       icon: "/icons/ai-06.svg",
       label: "IA DOC CONTÁBIL",
+      types: ["doc"],
       description: `Auxilia na busca e análise ágil de documentos contábeis.`,
     },
     {
       id: "491205",
       icon: "/icons/ai-07.svg",
       label: "IA DEPUTADO",
+      types: ["politician"],
       description: `Especializada em buscar e analisar informações sobre deputados.`,
     },
   ];
-  const items2 = [
-    { label: "Todos" },
-    { label: "Loren Ipsum is simply" },
-    { label: "Loren Ipsum is simply" },
-    { label: "Loren Ipsum is simply" },
-    { label: "Loren Ipsum is simply" },
-  ];
+
   const [selectedAi, setSelectedAi] = useState<string>("IA JURÍDICA");
+
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get("param1");
@@ -79,6 +92,10 @@ export default function BranchesList() {
       setSelectedAi(item.label);
     }
   }, []);
+  useEffect(() => {
+    setTypes("juridic, politic, accounting, doc, general, doc, politician");
+  }, []);
+
   return (
     <>
       <Sheet open={open} onOpenChange={() => setOpen(false)}>
@@ -120,20 +137,24 @@ export default function BranchesList() {
 
                     <AccordionContent className="flex w-full flex-col p-2 text-black">
                       {/* Se “item” tiver sub-itens: */}
-                      {items2.map((sub, subIndex) => (
-                        <button
-                          onClick={() => {
-                            setSelectedAi(item.label);
-                            setOpen(false);
-                          }}
-                          key={subIndex}
-                          className="flex w-full flex-row items-center rounded-md p-2 text-start text-base hover:bg-[#4C785D] hover:text-white"
-                        >
-                          <div className="border-secondary w-full border-l px-2 text-lg">
-                            {sub.label}
-                          </div>
-                        </button>
-                      ))}
+                      {prompts
+                        .filter((sub) => item.types.includes(sub.type ?? ""))
+                        .map((sub, subIndex) => (
+                          <button
+                            onClick={() => {
+                              setSelectedAi(item.label);
+                              console.log("sub", sub.prompt);
+                              setSelectedPrompt(sub);
+                              setOpen(false);
+                            }}
+                            key={subIndex}
+                            className="flex w-full flex-row items-center rounded-md p-2 text-start text-base hover:bg-[#4C785D] hover:text-white"
+                          >
+                            <div className="border-secondary w-full border-l px-2 text-lg">
+                              {sub.name}
+                            </div>
+                          </button>
+                        ))}
 
                       {/* Ou qualquer outro conteúdo */}
                     </AccordionContent>
@@ -176,12 +197,30 @@ export default function BranchesList() {
               </button>
             </div>
           </div>
-          <div className="mt-4 flex h-[calc(100vh-300px)] flex-1 flex-col">
-            <Section
-              loadNewChat={loadNewChat}
-              setLoadNewChat={setLoadNewChat}
-            />
-          </div>
+          {!selectedPrompt ? (
+            <div className="flex flex-1 flex-col items-center justify-center gap-4 font-semibold">
+              <h3>Escolha uma categoria para iniciar</h3>
+              <button
+                onClick={() => setOpen(true)}
+                className="bg-secondary rounded-full p-2 px-8 text-lg text-white"
+              >
+                Escolher categoria
+              </button>
+            </div>
+          ) : (
+            <div className="mt-4 flex h-[calc(100vh-300px)] flex-1 flex-col">
+              <Section
+                loadNewChat={loadNewChat}
+                setLoadNewChat={setLoadNewChat}
+                setLoadHistory={setLoadHistory}
+                loadOldChat={loadChat}
+                setLoadOldChat={setLoadChat}
+                selectedPrompt={selectedPrompt}
+                setSelectedPrompt={setSelectedPrompt}
+                actualScreenType="ai"
+              />
+            </div>
+          )}
         </div>
         <div
           className={cn(
@@ -205,17 +244,28 @@ export default function BranchesList() {
                 />
               </div>
               <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">
-                {aiHistory.map((historic, index) => (
-                  <div
-                    key={index}
-                    className="rounded-lg transition-all duration-300 hover:scale-[1.005] hover:bg-gray-100"
-                  >
-                    <h4 className="font-semibold">{historic.title}</h4>
-                    <p className="text-sm text-gray-600">
+                {chats.length === 0 ? (
+                  <label className="mt-10 text-center text-lg font-bold text-black">
+                    Sem histórico
+                  </label>
+                ) : (
+                  <>
+                    {chats.map((ai, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          handleChangeChat(ai);
+                        }}
+                        className="rounded-lg transition-all duration-300 hover:scale-[1.005] hover:bg-gray-100"
+                      >
+                        <h4 className="font-semibold">{ai.name}</h4>
+                        {/* <p className="text-sm text-gray-600">
                       {historic.description}
-                    </p>
-                  </div>
-                ))}
+                    </p> */}
+                      </button>
+                    ))}
+                  </>
+                )}
               </div>
               <button
                 onClick={() => {

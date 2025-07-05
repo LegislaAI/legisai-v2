@@ -34,11 +34,9 @@ export function useChatPage() {
    * ESTADOS PRINCIPAIS (mesmos do componente)
    * =================================================================*/
   const [prompts, setPrompts] = useState<Prompt[]>(DefaultPrompts);
-  const [selectedPrompt, setSelectedPrompt] = useState<Prompt>(
-    DefaultPrompts[0],
-  );
+  const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
   const [isChatHistoryOpen, setIsChatHistoryOpen] = useState(false);
-
+  const [types, setTypes] = useState<string>("");
   const [chats, setChats] = useState<ChatItem[]>([]);
   const [loadHistory, setLoadHistory] = useState(true);
   const [loadChat, setLoadChat] = useState<string | null>(null);
@@ -51,7 +49,8 @@ export function useChatPage() {
    * =================================================================*/
   async function handleGetChat() {
     try {
-      const response = await GetAPI("/chat?page=1", true);
+      const response = await GetAPI(`/chat?page=1&type=${types}`, true);
+      console.log("response", response);
       if (response.status === 200) {
         setChats(response.body.chats);
         setLoadHistory(false);
@@ -62,11 +61,12 @@ export function useChatPage() {
   }
 
   async function handleGetPrompt() {
+    console.log("types", types);
     try {
-      const response = await GetAPI("/prompt", true);
+      const response = await GetAPI(`/prompt?&types=${types}`, true);
+      console.log("response", response);
       if (response.status === 200) {
         setPrompts(response.body.prompts);
-        setSelectedPrompt(response.body.prompts[0]);
       }
     } catch (error) {
       console.error("Error carregando prompts:", error);
@@ -85,11 +85,11 @@ export function useChatPage() {
 
   useEffect(() => {
     handleGetPrompt();
-  }, []);
+  }, [types]);
 
   useEffect(() => {
     handleGetChat();
-  }, [loadHistory]);
+  }, [loadHistory, types]);
 
   /* ------------------------------------------------------------------
    * EXPORTA
@@ -102,7 +102,8 @@ export function useChatPage() {
 
     isChatHistoryOpen,
     setIsChatHistoryOpen,
-
+    types,
+    setTypes,
     /* chats */
     chats,
     loadHistory,

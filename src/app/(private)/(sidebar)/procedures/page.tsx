@@ -1,20 +1,25 @@
 "use client";
-import { aiHistory } from "@/@staticData/ai";
+import { useChatPage } from "@/components/chat/chat-history-handler";
 import { Section } from "@/components/chat/SectionGemini";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/Input";
 import { cn } from "@/lib/utils";
-import { ChevronDown, Minus, Plus, Search } from "lucide-react";
+import { Minus, Search } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
 export default function BranchesList() {
   const [loadNewChat, setLoadNewChat] = useState(false);
+  const {
+    chats,
+    setLoadHistory,
+    loadChat,
+    setLoadChat,
+    handleChangeChat,
+    setTypes,
+    prompts,
+
+    setSelectedPrompt,
+  } = useChatPage();
   const [openInfo, setOpenInfo] = useState(false);
   const [visible, setVisible] = useState(false);
 
@@ -27,36 +32,17 @@ export default function BranchesList() {
     setOpenInfo(false);
     setTimeout(() => setVisible(false), 300); // Tempo da animação
   };
-  const items = [
-    { id: "456123", label: "Todos" },
-    { id: "789456", label: "PEC - Proposta de Emenda à Constituição" },
-    { id: "654321", label: "PLP - Projeto de Lei Complementar" },
-    { id: "963852", label: "PL - Projeto de Lei" },
-    { id: "753159", label: "MPV - Medida Provisória" },
-    { id: "321654", label: "PLV - Projeto de Lei de Conversão" },
-    { id: "985632", label: "PDL - Projeto de Decreto Legislativo" },
-    { id: "159753", label: "PRC - Projeto de Resolução" },
-    { id: "846219", label: "REQ - Requerimento" },
-    { id: "357192", label: "RIC - Requerimento de Informação" },
-    { id: "279036", label: "RCP - Requerimento de Inst. de CPI" },
-    { id: "943817", label: "MSC - Mensagem" },
-    { id: "136598", label: "INC - Indicação" },
-  ];
-  const [selectedDocument, setSelectedDocument] = useState({
-    id: "",
-    label: "",
-  });
+
   useEffect(() => {
-    const urlParams = new URLSearchParams(window.location.search);
-    const id = urlParams.get("param1");
-    const item = items.find((item) => item.id === id);
-    if (item) {
-      setSelectedDocument(item);
+    if (window.innerWidth > 768) {
+      handleOpen();
     }
+    setTypes("proposition");
   }, []);
+  console.log("pormpts", prompts);
   return (
     <div className="flex w-full items-center justify-center gap-2 overflow-x-hidden">
-      <div className="flex h-[calc(100vh-100px)] w-full flex-col justify-between rounded-2xl bg-white p-2 lg:h-[calc(100vh-150px)] xl:w-9/12 xl:p-4">
+      <div className="flex h-[calc(100vh-100px)] w-full flex-1 flex-col justify-between rounded-2xl bg-white p-2 transition-all duration-300 lg:h-[calc(100vh-150px)] xl:p-4">
         <div className="relative">
           <Image
             src="/logos/camara.png"
@@ -72,7 +58,7 @@ export default function BranchesList() {
           <h2 className="text-lg font-medium xl:text-2xl">
             Acesse informações diretas da Câmara dos Deputados
           </h2>
-          <div className="top-2 right-2 mt-2 flex items-center gap-2 lg:absolute lg:mt-0">
+          {/* <div className="top-2 right-2 mt-2 flex items-center justify-between gap-2 lg:absolute lg:mt-0">
             <DropdownMenu>
               <DropdownMenuTrigger asChild>
                 <button className="bg-secondary flex items-center gap-2 rounded-full px-2 py-1 text-base font-medium text-white focus:outline-none xl:top-4 xl:right-4 xl:px-4 xl:py-2 xl:text-xl">
@@ -100,21 +86,30 @@ export default function BranchesList() {
             </DropdownMenu>
             <button
               onClick={() => handleOpen()}
-              className="bg-secondary flex items-center justify-center rounded-full p-1 text-white"
+              className={`bg-secondary flex items-center justify-center rounded-full p-1 text-white ${visible ? "invisible" : ""}`}
             >
               <Plus />
             </button>
-          </div>
+          </div> */}
         </div>
         <div className="mt-4 flex h-[calc(100vh-300px)] flex-1 flex-col">
-          <Section loadNewChat={loadNewChat} setLoadNewChat={setLoadNewChat} />
+          <Section
+            loadNewChat={loadNewChat}
+            setLoadHistory={setLoadHistory}
+            loadOldChat={loadChat}
+            setLoadOldChat={setLoadChat}
+            selectedPrompt={prompts[0]}
+            setSelectedPrompt={setSelectedPrompt}
+            actualScreenType="proposition"
+            setLoadNewChat={setLoadNewChat}
+          />
         </div>
       </div>
       {visible && (
         <div
           className={cn(
-            "absolute right-0 h-[calc(100vh-150px)] w-3/4 flex-col justify-between rounded-2xl border border-zinc-200 bg-white shadow-sm transition-all duration-300 lg:w-1/2 xl:flex xl:w-3/12",
-            openInfo ? "animate-slide-in flex" : "animate-slide-out flex",
+            "absolute right-0 flex h-[calc(100vh-150px)] w-3/4 flex-col justify-between rounded-2xl border border-zinc-200 bg-white shadow-sm transition-all duration-300 md:static lg:w-1/2 xl:flex xl:w-3/12",
+            openInfo ? "animate-slide-in" : "animate-slide-out",
           )}
         >
           <button
@@ -132,18 +127,29 @@ export default function BranchesList() {
                   placeholder="Pesquisar"
                 />
               </div>
-              <div className="data-[state=closed]:slide-out-to-right data-[state=open]:slide-in-from-right flex flex-1 flex-col gap-4 overflow-y-auto p-4">
-                {aiHistory.map((historic, index) => (
-                  <div
-                    key={index}
-                    className="rounded-lg transition-all duration-300 hover:scale-[1.005] hover:bg-gray-100"
-                  >
-                    <h4 className="text-lg font-semibold">{historic.title}</h4>
-                    <p className="text-sm text-gray-600">
+              <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">
+                {chats.length === 0 ? (
+                  <label className="mt-10 text-center text-lg font-bold text-black">
+                    Sem histórico
+                  </label>
+                ) : (
+                  <>
+                    {chats.map((ai, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          handleChangeChat(ai);
+                        }}
+                        className="rounded-lg transition-all duration-300 hover:scale-[1.005] hover:bg-gray-100"
+                      >
+                        <h4 className="font-semibold">{ai.name}</h4>
+                        {/* <p className="text-sm text-gray-600">
                       {historic.description}
-                    </p>
-                  </div>
-                ))}
+                    </p> */}
+                      </button>
+                    ))}
+                  </>
+                )}
               </div>
               <button
                 onClick={() => {

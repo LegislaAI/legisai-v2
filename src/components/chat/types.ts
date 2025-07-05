@@ -112,6 +112,7 @@ export type Prompt = {
   name: string;
   prompt: string;
   description: string;
+  type?: string;
 };
 
 export type ChatItem = {

@@ -24,7 +24,6 @@ import {
   getFunctionDeclarations,
   handleFunctionCalls,
 } from "./functions-handler";
-import { PromptFunctionTest } from "./prompts";
 import {
   ChatHistoryItem,
   FunctionCallWithId,
@@ -71,6 +70,7 @@ export function useSectionChat({
   const { PostAPI, GetAPI } = useApiContext();
   const [chatId, setChatId] = useState("");
   const [loading, setLoading] = useState(false);
+  const [screenType, setScreenType] = useState("ai");
   const [initialHistory, setInitialHistory] = useState<ChatHistoryItem[]>([]);
   const [inputMessage, setInputMessage] = useState("");
 
@@ -97,15 +97,16 @@ export function useSectionChat({
   useEffect(() => {
     if (!aiInstanceRef.current)
       aiInstanceRef.current = new GoogleGenAI({ apiKey: API_KEY });
-
+    console.log("sectedPrompt1232321", selectedPrompt);
+    console.log("selectedPromptType", selectedPrompt?.prompt);
+    console.log("initialHistory", initialHistory);
+    chatSessionRef.current = null;
     if (aiInstanceRef.current) {
       chatSessionRef.current = aiInstanceRef.current.chats.create({
         model: "gemini-2.5-flash",
         history: initialHistory,
         config: {
-          systemInstruction: selectedPrompt?.prompt
-            ? selectedPrompt.prompt
-            : PromptFunctionTest,
+          systemInstruction: selectedPrompt?.prompt,
           ...(shouldUseFunctions && {
             tools: [{ functionDeclarations: getFunctionDeclarations() }],
           }),
@@ -115,16 +116,22 @@ export function useSectionChat({
   }, [initialHistory, selectedPrompt, shouldUseFunctions]);
 
   async function handleCreateChat(first: string): Promise<string | null> {
+    console.log("tento");
+    console.log("selectedPrompt.ID", selectedPrompt);
     if (!shouldCreateChat || !selectedPrompt) return null;
     try {
+      console.log("selectedPromptType", selectedPrompt.type);
       const r = await PostAPI(
         "chat",
         {
           name: first.split(" ").slice(0, 5).join(" ") || "Novo Chat",
           promptId: selectedPrompt.id,
+          type: screenType,
+          //  selectedPrompt.type,
         },
         true,
       );
+      console.log(r.body);
       if (r.status === 200) {
         setLoadHistory?.(true);
         const id = r.body.chat.id;
@@ -143,7 +150,10 @@ export function useSectionChat({
   ) {
     if (!shouldSaveMessage) return;
     try {
-      await PostAPI(`/message/${id}`, msg, true);
+      console.log("salvando a mensagem,", msg.text, "da entidade", msg.entity);
+      const response = await PostAPI(`/message/${id}`, msg, true);
+      console.log("message2323", msg.entity);
+      console.log("response2323", response);
     } catch (e) {
       console.error("postMessage:", e);
     }
@@ -180,6 +190,7 @@ export function useSectionChat({
     setInitialHistory([]);
     try {
       const r = await GetAPI(`message/${id}`, true);
+      console.log("mesangens", r.body);
       if (r.status === 200) {
         const histMsgs = r.body.messages.map((m: MessagesFromBackend) => ({
           content: m.text,
@@ -433,7 +444,7 @@ export function useSectionChat({
       if (!cancelStreamRef.current && curChatId) {
         await handlePostMessage(curChatId, {
           text: reply,
-          entity: "ai",
+          entity: "model",
           mimeType: "text",
         });
       }
@@ -470,7 +481,8 @@ export function useSectionChat({
     setFile,
     isRecording,
     elapsedTime,
-
+    screenType,
+    setScreenType,
     handleFileUpload,
     startRecording,
     stopRecording,

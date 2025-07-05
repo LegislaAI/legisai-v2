@@ -33,9 +33,9 @@ interface props {
   loadOldChat?: string | null;
   setLoadOldChat?: React.Dispatch<React.SetStateAction<string | null>>;
   selectedPrompt?: Prompt;
-  setSelectedPrompt?: React.Dispatch<React.SetStateAction<Prompt>>;
-  prompts?: Prompt[];
+  setSelectedPrompt?: React.Dispatch<React.SetStateAction<Prompt | null>>;
   startMessage?: string;
+  actualScreenType: string;
 }
 
 export function Section({
@@ -45,7 +45,8 @@ export function Section({
   loadNewChat,
   setLoadNewChat,
   startMessage,
-  // selectedPrompt,
+  selectedPrompt,
+  actualScreenType,
 }: props) {
   const {
     messages,
@@ -61,13 +62,19 @@ export function Section({
     stopRecording,
     setMessages,
     handleSendMessage,
+    screenType,
+    setScreenType,
   } = useSectionChat({
     loadNewChat,
     setLoadNewChat,
     shouldUseFunctions: true,
+    shouldCreateChat: true,
+    shouldSaveFile: true,
+    shouldSaveMessage: true,
     loadOldChat,
     setLoadOldChat,
     setLoadHistory,
+    selectedPrompt,
   });
 
   const scrollAreaViewportRef = useRef<HTMLDivElement>(null);
@@ -95,6 +102,9 @@ export function Section({
   }, [startMessage, messages]);
 
   useEffect(() => {
+    if (screenType !== actualScreenType) {
+      setScreenType(actualScreenType);
+    }
     const urlParams = new URLSearchParams(window.location.search);
     const query = urlParams.get("param2");
     if (query && !messages.find((m) => m.content === query)) {
