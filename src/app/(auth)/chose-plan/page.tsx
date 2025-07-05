@@ -29,13 +29,13 @@ export default function Login() {
       />
       <div className="relative z-10 flex min-h-[100vh] w-full flex-col overflow-hidden px-8 xl:px-20">
         <AuthHeader />
-        <div className="z-20 mt-32 flex w-full flex-col gap-2 md:mt-40 md:w-[45%] xl:ml-[10%] xl:w-[40%] xl:gap-4">
+        <div className="z-20 mt-32 flex w-full flex-col gap-2 md:mt-40 md:w-[calc(60%-32px)] 2xl:ml-[10%] 2xl:w-[40%] 2xl:gap-4">
           <h1 className="text-xl font-bold md:text-3xl">Escolha seu plano</h1>
           <h2 className="text-lg text-[#8392AB]">
             Selecione o plano que melhor se adequá ao seu perfil
           </h2>
           <div
-            className={`flex w-full flex-col-reverse items-center justify-center gap-4 rounded-lg p-2 md:flex-row`}
+            className={`flex w-full flex-col-reverse items-center justify-center gap-4 rounded-lg p-2 lg:flex-row`}
           >
             <SignatureCard
               benefits={[
