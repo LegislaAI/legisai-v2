@@ -1,13 +1,15 @@
 "use client";
 import { ProfileProps } from "@/@types/user";
+import { useApiContext } from "@/context/ApiContext";
 
 // import { useApiContext } from "@/context/ApiContext";
 
 // import { useUserContext } from "@/context/userContext";
 import { cn } from "@/lib/utils";
-import { Dock, Lock, Mail, Phone, User } from "lucide-react";
+import { Lock, Mail, Phone, User } from "lucide-react";
 import Image from "next/image";
 import { useEffect, useState } from "react";
+import toast from "react-hot-toast";
 // import toast from "react-hot-toast";
 export interface PlanProps {
   id: string;
@@ -26,18 +28,26 @@ export interface PlanProps {
 export default function Profile() {
   // const { profile, setProfile, creditCard } = useUserContext();
   const [visibleSections, setVisibleSections] = useState<number[]>([]);
-  //  const {PutAPI} = useApiContext();
+  const { PutAPI, GetAPI } = useApiContext();
 
-  const [isEditing] = useState(false);
   const [localProfile, setLocalProfile] = useState<ProfileProps | null>({
-    id: "01",
-    name: "Arthur Santos",
-    email: "arthursantos@ig.com.br",
-    mobilePhone: "61999999999",
-    avatar: "",
-    description: "Governador do Estado de Santa Catarina",
+    id: "",
+    name: "",
+    email: "",
+    phone: "",
   });
-
+  async function handleGetProfile() {
+    try {
+      const response = await GetAPI("/user", true);
+      console.log("response", response);
+      setLocalProfile(response.body.user);
+    } catch (error) {
+      console.error("Erro ao buscar perfil:", error);
+    }
+  }
+  useEffect(() => {
+    handleGetProfile();
+  }, []);
   useEffect(() => {
     const timeouts: NodeJS.Timeout[] = [];
 
@@ -55,27 +65,20 @@ export default function Profile() {
       timeouts.forEach((timeout) => clearTimeout(timeout));
     };
   }, []);
+  const [isEditing, setIsEditing] = useState(false);
+  async function HandleEditProfile() {
+    const editProfile = await PutAPI(
+      `/user/profile/${localProfile?.id}`,
+      localProfile,
+      true,
+    );
+    if (editProfile.status === 200) {
+      toast.success("Perfil editado com sucesso");
 
-  // async function HandleEditProfile() {
-
-  //   const editProfile = await PutAPI(
-  //     "/influencer/profile",
-  //     localProfile,
-  //     true,
-  //   );
-  //   if (editProfile.status === 200) {
-  //     toast.success("Perfil editado com sucesso");
-  //     // setProfile(localProfile);
-  //     return setIsEditing(false);
-  //   }
-  //   return toast.error("Erro ao editar perfil");
-  // }
-
-  // useEffect(() => {
-  //   if (profile) {
-  //     setLocalProfile(profile);
-  //   }
-  // }, [profile]);
+      return setIsEditing(false);
+    }
+    return toast.error("Erro ao editar perfil");
+  }
 
   return (
     <>
@@ -125,8 +128,16 @@ export default function Profile() {
                 Seus Dados
               </span>
               <div className="flex flex-row items-center gap-2">
-                <button className="bg-secondary flex h-8 items-center justify-center rounded-md p-2 text-white">
-                  Editar
+                <button
+                  onClick={() => {
+                    if (isEditing) {
+                      HandleEditProfile();
+                    }
+                    setIsEditing(!isEditing);
+                  }}
+                  className="bg-secondary flex h-8 items-center justify-center rounded-md p-2 text-white"
+                >
+                  {isEditing ? "Salvar" : "Editar"}
                 </button>
               </div>
             </div>
@@ -161,12 +172,12 @@ export default function Profile() {
                 <div className="flex w-full flex-col gap-0.5">
                   <span className="text-[#8C8C8C]">Telefone:</span>
                   <input
-                    value={localProfile?.mobilePhone || ""}
+                    value={localProfile?.phone || ""}
                     onChange={(e) => {
                       if (localProfile) {
                         setLocalProfile({
                           ...localProfile,
-                          mobilePhone: e.target.value,
+                          phone: e.target.value,
                         });
                       }
                     }}
@@ -180,7 +191,7 @@ export default function Profile() {
                   />
                 </div>
               </div>
-              <div className="flex w-full flex-row items-center gap-4 px-1">
+              {/* <div className="flex w-full flex-row items-center gap-4 px-1">
                 <Dock className="text-secondary h-6 w-6" />
                 <div className="flex w-full flex-col gap-0.5 transition duration-200">
                   <span className="text-[#8C8C8C]">Descrição:</span>
@@ -203,7 +214,7 @@ export default function Profile() {
                     disabled={!isEditing}
                   />
                 </div>
-              </div>
+              </div> */}
               <div className="flex w-full flex-row items-center gap-4 px-1">
                 <Mail className="text-secondary h-6 w-6" />
                 <div className="flex w-full flex-col gap-0.5">
@@ -221,21 +232,11 @@ export default function Profile() {
                   <span className="text-[#8C8C8C]">Senha:</span>
                   <input
                     value={"*******"}
-                    onChange={(e) => {
-                      if (localProfile) {
-                        setLocalProfile({
-                          ...localProfile,
-                          name: e.target.value,
-                        });
-                      }
-                    }}
+                    disabled
                     className={cn(
                       "border p-1 font-bold transition duration-200 focus:outline-none",
-                      isEditing
-                        ? "border-secondary bg-secondary rounded-md bg-clip-text text-transparent"
-                        : "border-transparent bg-transparent text-black",
+                      "border-transparent bg-transparent text-black",
                     )}
-                    disabled={!isEditing}
                   />
                 </div>
               </div>

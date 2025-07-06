@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/Input";
 import { Sheet, SheetContent, SheetHeader } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { ChevronDown, Minus, Plus, Search } from "lucide-react";
+import moment from "moment";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
@@ -93,9 +94,9 @@ export default function BranchesList() {
     }
   }, []);
   useEffect(() => {
-    setTypes("juridic, politic, accounting, doc, general, doc, politician");
+    setTypes("juridic,politic,accounting,doc,general,doc,politician");
   }, []);
-
+  console.log("prompts,", prompts);
   return (
     <>
       <Sheet open={open} onOpenChange={() => setOpen(false)}>
@@ -256,12 +257,12 @@ export default function BranchesList() {
                         onClick={() => {
                           handleChangeChat(ai);
                         }}
-                        className="rounded-lg transition-all duration-300 hover:scale-[1.005] hover:bg-gray-100"
+                        className="flex flex-col items-start justify-start rounded-lg transition-all duration-300 hover:scale-[1.005] hover:bg-gray-100"
                       >
                         <h4 className="font-semibold">{ai.name}</h4>
-                        {/* <p className="text-sm text-gray-600">
-                      {historic.description}
-                    </p> */}
+                        <h4 className="text-secondary text-sm font-semibold">
+                          {moment(ai.createdAt).format("DD/MM/YY, HH:mm")}
+                        </h4>
                       </button>
                     ))}
                   </>

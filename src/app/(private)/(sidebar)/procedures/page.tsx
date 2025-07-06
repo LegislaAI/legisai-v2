@@ -4,6 +4,7 @@ import { Section } from "@/components/chat/SectionGemini";
 import { Input } from "@/components/ui/Input";
 import { cn } from "@/lib/utils";
 import { Minus, Search } from "lucide-react";
+import moment from "moment";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
@@ -39,7 +40,7 @@ export default function BranchesList() {
     }
     setTypes("proposition");
   }, []);
-  console.log("pormpts", prompts);
+  console.log("chatsss", chats);
   return (
     <div className="flex w-full items-center justify-center gap-2 overflow-x-hidden">
       <div className="flex h-[calc(100vh-100px)] w-full flex-1 flex-col justify-between rounded-2xl bg-white p-2 transition-all duration-300 lg:h-[calc(100vh-150px)] xl:p-4">
@@ -140,9 +141,12 @@ export default function BranchesList() {
                         onClick={() => {
                           handleChangeChat(ai);
                         }}
-                        className="rounded-lg transition-all duration-300 hover:scale-[1.005] hover:bg-gray-100"
+                        className="flex flex-col items-start justify-start rounded-lg transition-all duration-300 hover:scale-[1.005] hover:bg-gray-100"
                       >
                         <h4 className="font-semibold">{ai.name}</h4>
+                        <h4 className="text-secondary text-sm font-semibold">
+                          {moment(ai.createdAt).format("DD/MM/YY, HH:mm")}
+                        </h4>
                         {/* <p className="text-sm text-gray-600">
                       {historic.description}
                     </p> */}
