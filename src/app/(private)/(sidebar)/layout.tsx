@@ -12,7 +12,7 @@ export default function RootLayout({
     <div className="flex">
       <Sidebar />
       <MobileSidebar />
-      <div className="flex w-full flex-col p-2 pt-0 lg:p-8">
+      <div className="flex w-full flex-col p-2 pt-0 xl:p-8">
         <Header />
         <NavigationProgress />
         {children}

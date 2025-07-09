@@ -17,7 +17,7 @@ export function News() {
   const router = useRouter();
 
   return (
-    <div className="flex h-96 w-full flex-col rounded-lg bg-white p-4 lg:w-1/2">
+    <div className="lg:w-col-span-1 flex h-96 w-full flex-col rounded-lg bg-white p-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-dark font-semibold">Notícias de Políticos</span>

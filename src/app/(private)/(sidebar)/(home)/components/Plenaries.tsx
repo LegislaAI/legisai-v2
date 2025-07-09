@@ -54,7 +54,7 @@ export function Plenaries() {
   }, [selectedPoliticianId]);
 
   return (
-    <div className="flex h-96 w-full flex-col rounded-lg bg-white p-4 lg:w-1/2">
+    <div className="lg:w-col-span-1 flex h-96 w-full flex-col rounded-lg bg-white p-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-dark font-semibold">Últimos Plenários</span>
@@ -121,7 +121,7 @@ export function Plenaries() {
       ) : (
         <div className="flex flex-1 items-center justify-center">
           <span className="text-zinc-500">
-            Nenhum plenário encontrado sobre esse político
+            Nenhum plenário encontrado sobre esse(a) político(a)
           </span>
         </div>
       )}

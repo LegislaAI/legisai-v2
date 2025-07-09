@@ -226,7 +226,7 @@ export function Section1() {
             </Tooltip>
           </TooltipProvider>
         </div>
-        <div className="hidden md:block">
+        <div className="hidden xl:block">
           <DropdownMenu open={isDropdownOpen} onOpenChange={setIsDropdownOpen}>
             <DropdownMenuTrigger asChild>
               <div className="text-secondary border-secondary flex cursor-pointer items-center justify-between rounded-xl border-2 px-2 py-1 font-semibold">
@@ -292,8 +292,8 @@ export function Section1() {
           </DropdownMenu>
         </div>
       </div>
-      <div className="grid w-full grid-cols-1 items-center gap-4 px-2 md:grid-cols-11 md:px-0 xl:gap-4">
-        <div className="md:hidden">
+      <div className="grid w-full grid-cols-1 items-center gap-4 px-2 xl:grid-cols-11 xl:gap-4 xl:px-0">
+        <div className="xl:hidden">
           <DropdownMenu
             open={isMobileDropdownOpen}
             onOpenChange={setIsMobileDropdownOpen}
@@ -359,9 +359,9 @@ export function Section1() {
             </DropdownMenuContent>
           </DropdownMenu>
         </div>
-        <div className="flex h-60 w-full flex-row gap-2 lg:col-span-2 lg:h-[22rem] lg:gap-8">
+        <div className="flex h-60 w-full flex-row gap-2 xl:col-span-2 xl:h-[22rem] xl:gap-8">
           {loading ? (
-            <div className="flex w-1/2 animate-pulse items-center justify-center rounded-xl bg-zinc-200 lg:h-full lg:w-full">
+            <div className="flex w-1/2 animate-pulse items-center justify-center rounded-xl bg-zinc-200 xl:h-full xl:w-full">
               <Loader2 className="m-auto animate-spin" />
             </div>
           ) : selectedPoliticianId && selectedPolitician?.imageUrl ? (
@@ -370,10 +370,10 @@ export function Section1() {
               alt=""
               width={1000}
               height={2000}
-              className="border-secondary h-full w-1/2 rounded-xl border-2 object-cover lg:h-[22rem] lg:w-full"
+              className="border-secondary h-full w-1/2 rounded-xl border-2 object-cover xl:h-[22rem] xl:w-full"
             />
           ) : (
-            <div className="flex h-60 w-1/2 items-center justify-center rounded-xl bg-zinc-200 lg:h-full lg:w-full">
+            <div className="flex h-60 w-1/2 items-center justify-center rounded-xl bg-zinc-200 xl:h-full xl:w-full">
               <Image
                 src={"/static/default-user.png"}
                 alt={""}
@@ -383,8 +383,8 @@ export function Section1() {
               />
             </div>
           )}
-          <div className="MOBILE flex h-full flex-1 flex-col items-center justify-center rounded-lg md:hidden">
-            <div className="bg-secondary/20 flex w-full flex-col items-center justify-center gap-2 rounded-lg p-2 lg:flex-row">
+          <div className="MOBILE flex h-full flex-1 flex-col items-center justify-center rounded-lg xl:hidden">
+            <div className="bg-secondary/20 flex w-full flex-col items-center justify-center gap-2 rounded-lg p-2 xl:flex-row">
               <span className="text-secondary text-lg">Partido:</span>
               <span className="text-secondary text-lg font-semibold">
                 {selectedPolitician?.politicalPartyAcronym}
@@ -392,7 +392,7 @@ export function Section1() {
             </div>
           </div>
         </div>
-        <div className="border-secondary flex h-full w-full flex-col rounded-xl border-2 p-1 lg:col-span-5">
+        <div className="border-secondary flex h-full w-full flex-col rounded-xl border-2 p-1 xl:col-span-5">
           <div className="flex w-full justify-between">
             <div className="flex w-full flex-col">
               <span className="text-secondary font-bold">
@@ -453,7 +453,7 @@ export function Section1() {
               !selectedPolitician && "hidden",
             )}
           >
-            <div className="flex flex-col gap-1 lg:flex-row">
+            <div className="flex flex-col gap-1 xl:flex-row">
               <span className="text-sm">Cota Parlamentar:</span>
               <div className="flex flex-col text-xs">
                 <span className="font-semibold text-red-500">
@@ -476,7 +476,7 @@ export function Section1() {
                 </span>
               </div>
             </div>
-            <div className="flex flex-col gap-1 lg:flex-row">
+            <div className="flex flex-col gap-1 xl:flex-row">
               <span className="text-sm">Verba de Gabinete:</span>
               <div className="flex flex-col text-xs">
                 <span className="font-semibold text-red-500">
@@ -507,7 +507,7 @@ export function Section1() {
             width="100%"
           />
         </div>
-        <div className="border-secondary text-secondary flex h-full w-full flex-col rounded-xl border-2 p-2 lg:col-span-4">
+        <div className="border-secondary text-secondary flex h-full w-full flex-col rounded-xl border-2 p-2 xl:col-span-4">
           <div className="flex w-full flex-row items-center justify-between">
             <span className="text-lg font-bold">CUSTOS DETALHADOS</span>
             <TooltipProvider>

@@ -89,7 +89,7 @@ export function Ai() {
   };
 
   return (
-    <div className="relative flex h-96 w-full flex-col justify-between rounded-lg bg-white p-4 lg:w-1/2">
+    <div className="relative flex h-96 w-full flex-col justify-between rounded-lg bg-white p-4 lg:col-span-1">
       <div className="flex flex-row items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-dark font-semibold">Legis AI</span>

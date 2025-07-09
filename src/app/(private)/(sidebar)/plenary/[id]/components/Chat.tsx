@@ -15,10 +15,10 @@ interface ChatProps {
   title: string;
   initialMessage?: string;
 }
+
 export function Chat({ title, initialMessage }: ChatProps) {
   const [showMenu, setShowMenu] = useState(false);
   const {
-    prompts,
     chats,
     setLoadHistory,
     loadChat,
@@ -27,6 +27,7 @@ export function Chat({ title, initialMessage }: ChatProps) {
     setNewChat,
     handleChangeChat,
   } = useChatPage();
+
   return (
     <div className={`-10 flex w-full flex-col gap-8 self-center`}>
       <div
@@ -191,8 +192,8 @@ export function Chat({ title, initialMessage }: ChatProps) {
                   setLoadHistory={setLoadHistory}
                   loadOldChat={loadChat}
                   setLoadOldChat={setLoadChat}
-                  prompts={prompts}
                   startMessage={initialMessage}
+                  actualScreenType="plenary"
                 />
               </div>
             </div>

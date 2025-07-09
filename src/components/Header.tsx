@@ -21,7 +21,7 @@ export function Header() {
   const { clearToken } = useApiContext();
 
   return (
-    <div className="flex h-14 w-full items-center justify-between lg:h-20">
+    <div className="flex h-14 w-full items-center justify-between xl:h-20">
       <div
         onClick={() => {
           if (pathname === "/") {

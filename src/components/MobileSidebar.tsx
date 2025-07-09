@@ -5,7 +5,6 @@ import {
   BellDot,
   ChevronRight,
   Home,
-  Menu,
   Settings2Icon,
   Sparkle,
   Sparkles,
@@ -31,7 +30,7 @@ export function MobileSidebar() {
         <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
           <SheetContent
             side="left"
-            className="flex h-full flex-col justify-between gap-4 bg-white"
+            className="flex h-full flex-col gap-4 bg-white p-2"
           >
             <SheetTitle>
               <div className="flex w-full items-center justify-between">
@@ -40,13 +39,12 @@ export function MobileSidebar() {
                   alt=""
                   width={1000}
                   height={350}
-                  className="h-max w-full object-contain"
+                  className="mx-auto h-max w-2/3 object-contain"
                 />
-                <Menu />
               </div>
             </SheetTitle>
 
-            <div className="flex flex-col gap-4">
+            <div className="flex flex-col gap-2">
               <div
                 onClick={() => router.push("/")}
                 className={cn(
@@ -205,7 +203,7 @@ export function MobileSidebar() {
                 />
               </div>
             </div>
-            <div className="bg-surface flex h-60 w-60 flex-col overflow-hidden rounded-xl">
+            <div className="bg-surface absolute bottom-4 left-1/2 flex h-60 w-11/12 -translate-x-1/2 flex-col overflow-hidden rounded-xl">
               <Image
                 src="/static/ad1.png"
                 alt=""
