@@ -40,7 +40,7 @@ export default function BranchesList() {
     }
     setTypes("proposition");
   }, []);
-  console.log("chatsss", chats);
+
   return (
     <div className="flex w-full items-center justify-center gap-2 overflow-x-hidden">
       <div className="flex h-[calc(100vh-100px)] w-full flex-1 flex-col justify-between rounded-2xl bg-white p-2 transition-all duration-300 lg:h-[calc(100vh-150px)] xl:p-4">

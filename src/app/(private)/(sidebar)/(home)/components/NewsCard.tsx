@@ -12,8 +12,7 @@ export function NewsCard({ title, summary }: NewsCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <div className="relative flex w-full flex-col items-center justify-between rounded-lg p-1 pb-2 transition-all duration-300 hover:shadow-lg lg:flex-row">
-      <div className="absolute bottom-0 left-1/2 h-px w-full -translate-x-1/2 bg-zinc-200 md:w-2/3 xl:w-3/4" />
+    <div className="relative flex w-full cursor-pointer flex-col items-center justify-between rounded-lg border border-transparent p-1 pb-2 transition-all duration-300 hover:border-zinc-200 hover:shadow-sm lg:flex-row">
       <div className="flex items-center gap-2">
         <div className="bg-secondary/10 border-secondary h-max w-max rounded-full border-2 p-2">
           <Image

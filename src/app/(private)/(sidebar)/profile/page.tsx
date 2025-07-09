@@ -39,7 +39,6 @@ export default function Profile() {
   async function handleGetProfile() {
     try {
       const response = await GetAPI("/user", true);
-      console.log("response", response);
       setLocalProfile(response.body.user);
     } catch (error) {
       console.error("Erro ao buscar perfil:", error);

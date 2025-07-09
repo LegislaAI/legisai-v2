@@ -18,7 +18,8 @@ import { DropdownMenuArrow } from "@radix-ui/react-dropdown-menu";
 import { ArrowRight, Check, ChevronDown, Info } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useRef, useState } from "react";
+import { Swiper as SwiperType } from "swiper";
 import "swiper/css";
 import { Swiper, SwiperSlide } from "swiper/react";
 
@@ -78,6 +79,14 @@ export function Ai() {
   const router = useRouter();
   const [value, setValue] = useState("");
   const [selectedAi, setSelectedAi] = useState<IaProps>(items[0]);
+  const swiperRef = useRef<SwiperType | null>(null);
+
+  const handleCardClick = (item: IaProps, index: number) => {
+    setSelectedAi(item);
+    if (swiperRef.current) {
+      swiperRef.current.slideTo(index);
+    }
+  };
 
   return (
     <div className="relative flex h-96 w-full flex-col justify-between rounded-lg bg-white p-4 lg:w-1/2">
@@ -110,7 +119,6 @@ export function Ai() {
               <ChevronDown />
             </div>
           </DropdownMenuTrigger>
-
           <DropdownMenuContent
             align="end"
             side="left"
@@ -124,7 +132,7 @@ export function Ai() {
                   className="group rounded-none border-b border-b-zinc-400 p-0 hover:bg-transparent"
                 >
                   <div
-                    onClick={() => setSelectedAi(item)}
+                    onClick={() => handleCardClick(item, index)}
                     className={cn(
                       "group-hover:bg-secondary/20 w-full cursor-pointer px-2 py-1 text-base transition duration-200 lg:text-lg",
                       item.label === selectedAi.label && "bg-secondary/20",
@@ -140,6 +148,7 @@ export function Ai() {
       </div>
       <div className="w-full 2xl:w-[700px]">
         <Swiper
+          onSwiper={(swiper) => (swiperRef.current = swiper)}
           slidesPerView={1.2}
           spaceBetween={10}
           centeredSlides
@@ -155,9 +164,9 @@ export function Ai() {
           {items.map((item, index) => (
             <SwiperSlide key={index}>
               <div
-                onClick={() => setSelectedAi(item)}
+                onClick={() => handleCardClick(item, index)}
                 className={cn(
-                  "bg-secondary/20 flex h-56 flex-col justify-between rounded-lg border border-transparent p-4",
+                  "bg-secondary/20 flex h-56 cursor-pointer flex-col justify-between rounded-lg border border-transparent p-4",
                   item.label === selectedAi.label && "border-secondary",
                 )}
               >

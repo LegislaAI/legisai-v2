@@ -13,7 +13,10 @@ export function PlenaryCard({ title, summary, id, date }: PlenaryCardProps) {
   const router = useRouter();
 
   return (
-    <div className="relative flex w-full flex-col items-center justify-between rounded-lg p-1 pb-2 transition-all duration-300 hover:scale-[1.005] hover:shadow lg:flex-row">
+    <div
+      onClick={() => router.push(`/plenary/${id}`)}
+      className="relative flex w-full cursor-pointer flex-col items-center justify-between rounded-lg p-1 pb-2 transition-all duration-300 hover:scale-[1.005] hover:shadow lg:flex-row"
+    >
       <div className="absolute bottom-0 left-1/2 h-px w-full -translate-x-1/2 bg-zinc-200 md:w-2/3 xl:w-3/4" />
       <div className="flex items-center gap-2">
         <div className="h-max w-max rounded-full border-2 border-blue-700 bg-blue-700/10 px-3 py-3">

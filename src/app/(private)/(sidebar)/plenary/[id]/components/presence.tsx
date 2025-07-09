@@ -70,19 +70,10 @@ export function Presence() {
       try {
         setLoading(true);
         const q = query ? `&query=${encodeURIComponent(query)}` : "";
-        console.log(
-          "chamando api no evento",
-          eventId,
-          "com a pagina",
-          page,
-          "e o query",
-          query,
-        );
         const res = await GetAPI(
           `/event-politician/${eventId}?page=${page}${q}`,
           true,
         );
-        console.log("res", res);
         if (cancelled || !res || res.status !== 200) return;
 
         // API devolve: { pages: number, politicians: PoliticianApi[] }

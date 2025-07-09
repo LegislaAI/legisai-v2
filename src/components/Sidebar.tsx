@@ -182,7 +182,7 @@ export function Sidebar() {
             <ChevronRight
               className={cn(
                 "text-secondary opacity-0 transition duration-200 group-hover:opacity-100",
-                pathname === "/" && "opacity-100",
+                pathname === "/profile" && "opacity-100",
               )}
             />
           </div>

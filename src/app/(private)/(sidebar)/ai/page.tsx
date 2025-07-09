@@ -88,15 +88,15 @@ export default function BranchesList() {
     const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get("param1");
     const item = items.find((item) => item.id === id);
-    console.log("item", item);
     if (item) {
       setSelectedAi(item.label);
     }
   }, []);
+
   useEffect(() => {
     setTypes("juridic,politic,accounting,doc,general,doc,politician");
   }, []);
-  console.log("prompts,", prompts);
+
   return (
     <>
       <Sheet open={open} onOpenChange={() => setOpen(false)}>
@@ -144,7 +144,6 @@ export default function BranchesList() {
                           <button
                             onClick={() => {
                               setSelectedAi(item.label);
-                              console.log("sub", sub.prompt);
                               setSelectedPrompt(sub);
                               setOpen(false);
                             }}

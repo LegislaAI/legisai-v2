@@ -39,7 +39,6 @@ export function Plenaries() {
       `/event?page=1&politicianId=${selectedPoliticianId}`,
       true,
     );
-    console.log("response", response.body.events);
     try {
       if (response.status === 200) {
         setEvents(response.body.events);
@@ -49,9 +48,11 @@ export function Plenaries() {
       console.error("Error carregando politician:", error);
     }
   }
+
   useEffect(() => {
     handleGetEvent();
   }, [selectedPoliticianId]);
+
   return (
     <div className="flex h-96 w-full flex-col rounded-lg bg-white p-4 lg:w-1/2">
       <div className="flex items-center justify-between">
@@ -88,7 +89,7 @@ export function Plenaries() {
         <ScrollArea>
           {events.map((event, index) => (
             <div
-              onClick={() => router.push("/plenary/1")}
+              onClick={() => router.push(`/plenary/${event.id}`)}
               key={index}
               className="group flex w-full items-center justify-between rounded-lg border border-transparent px-4 py-2 transition duration-200 hover:cursor-pointer hover:border-zinc-200 hover:shadow-sm"
             >
@@ -113,7 +114,7 @@ export function Plenaries() {
                   </span>
                 </div>
               </div>
-              <ChevronRight className="fill-secondary text-secondary" />
+              <ChevronRight className="fill-secondary text-secondary w-6 max-w-6 min-w-6" />
             </div>
           ))}
         </ScrollArea>

@@ -59,6 +59,7 @@ export function Section1() {
     ],
     options: {
       chart: {
+        height: 300,
         type: "line",
         zoom: {
           enabled: false,
@@ -127,7 +128,7 @@ export function Section1() {
       },
       responsive: [
         {
-          breakpoint: 2160,
+          breakpoint: 3480,
           options: {
             chart: {
               height: 250,
@@ -157,11 +158,11 @@ export function Section1() {
         ...graphOptions,
         series: [
           {
-            name: "Verba de Gabinete GastO",
+            name: "Verba de Gabinete Gasto",
             data: cabinetQuotaData,
           },
           {
-            name: "Cota Parlamentar GastO",
+            name: "Cota Parlamentar Gasto",
             data: parliamentaryQuotaData,
           },
         ],
@@ -369,10 +370,10 @@ export function Section1() {
               alt=""
               width={1000}
               height={2000}
-              className="border-secondary h-full w-1/2 rounded-xl border-2 object-cover lg:w-full xl:object-cover"
+              className="border-secondary h-full w-1/2 rounded-xl border-2 object-cover lg:h-[22rem] lg:w-full"
             />
           ) : (
-            <div className="flex h-60 w-1/2 animate-pulse items-center justify-center rounded-xl bg-zinc-200 lg:h-full lg:w-full">
+            <div className="flex h-60 w-1/2 items-center justify-center rounded-xl bg-zinc-200 lg:h-full lg:w-full">
               <Image
                 src={"/static/default-user.png"}
                 alt={""}
@@ -509,18 +510,35 @@ export function Section1() {
         <div className="border-secondary text-secondary flex h-full w-full flex-col rounded-xl border-2 p-2 lg:col-span-4">
           <div className="flex w-full flex-row items-center justify-between">
             <span className="text-lg font-bold">CUSTOS DETALHADOS</span>
-            <div
-              onClick={() => {
-                if (!selectedPoliticianId) return;
-                window.open(
-                  `https://www.camara.leg.br/deputados/${selectedPoliticianId}`,
-                  "_blank",
-                );
-              }}
-              className="bg-secondary flex items-center justify-center rounded-lg p-1 text-sm text-white"
-            >
-              Detalhes <ChevronRight />
-            </div>
+            <TooltipProvider>
+              <Tooltip>
+                <TooltipTrigger>
+                  <div
+                    onClick={() => {
+                      if (!selectedPoliticianId) return;
+                      window.open(
+                        `https://www.camara.leg.br/deputados/${selectedPoliticianId}`,
+                        "_blank",
+                      );
+                    }}
+                    className="bg-secondary flex items-center justify-center rounded-lg p-1 text-sm text-white"
+                  >
+                    Detalhes <ChevronRight />
+                  </div>
+                </TooltipTrigger>
+                <TooltipContent
+                  side="left"
+                  align="start"
+                  className="border-secondary bg-secondary w-60 border"
+                >
+                  <p className="text-white">
+                    Clique para acessar o perfil do Político na Câmara dos
+                    Deputados.
+                  </p>
+                  <TooltipArrow className="fill-secondary" />
+                </TooltipContent>
+              </Tooltip>
+            </TooltipProvider>
           </div>
           <div className="flex w-full flex-1 flex-col justify-between gap-2">
             <div className="border-b-secondary flex w-full flex-row items-center justify-between border-b p-2">

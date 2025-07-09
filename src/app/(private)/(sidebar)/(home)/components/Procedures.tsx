@@ -20,6 +20,11 @@ import { useState } from "react";
 
 export function Procedures() {
   const router = useRouter();
+  const [selectedDocument, setSelectedDocument] = useState({
+    id: "",
+    label: "",
+  });
+  const [value, setValue] = useState("");
   const items = [
     { id: "456123", label: "Todos" },
     { id: "789456", label: "PEC - Proposta de Emenda à Constituição" },
@@ -35,11 +40,7 @@ export function Procedures() {
     { id: "943817", label: "MSC - Mensagem" },
     { id: "136598", label: "INC - Indicação" },
   ];
-  const [selectedDocument, setSelectedDocument] = useState({
-    id: "",
-    label: "",
-  });
-  const [value, setValue] = useState("");
+
   return (
     <div className="flex h-96 w-full flex-col justify-between rounded-lg bg-white p-2 lg:w-1/2 lg:p-4">
       <div className="flex items-center justify-between">
@@ -90,7 +91,7 @@ export function Procedures() {
           <DropdownMenuContent
             side="top"
             align="center"
-            className="h-[40vh] w-full gap-2 overflow-auto p-0"
+            className="h-[30vh] w-full gap-2 overflow-auto p-0"
           >
             <ScrollArea className="h-full w-full">
               {items.map((item, index) => (

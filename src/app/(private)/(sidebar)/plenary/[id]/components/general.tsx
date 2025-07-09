@@ -208,7 +208,6 @@ export function General({ setSelectedStep }: GeneralProps) {
   const [, setPolitician] = useState();
   async function handleGetPlenary() {
     const response = await GetAPI(`/event-proposition/event/{eventId}`, true);
-    console.log("response", response);
     try {
       if (response.status === 200) {
         setPolitician(response.body.politician);
@@ -218,9 +217,11 @@ export function General({ setSelectedStep }: GeneralProps) {
       console.error("Error carregando politician:", error);
     }
   }
+
   useEffect(() => {
     handleGetPlenary();
   }, []);
+
   return (
     <div className="grid w-full grid-cols-12 gap-8">
       {/* ────────────────────────────── TABLE */}

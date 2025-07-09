@@ -40,8 +40,6 @@ export default function Plenary() {
     handleGetPlenary();
   }, []);
 
-  console.log("plenaries: ", plenaries);
-
   return (
     <div className="flex h-full w-full flex-col items-center gap-4 rounded-xl bg-white lg:gap-12">
       <div className="flex w-full gap-6 p-2 lg:px-8 lg:pt-10">
