@@ -5,13 +5,14 @@ import { NextRequest, NextResponse } from "next/server";
 export const config = {
   matcher: [
     "/",
+    "/plenary",
     "/plenary/:path*",
-    "/ai",
     "/news",
-    "/prediction-ai",
     "/procedures",
-    "/profile",
+    "/ai",
+    "/prediction-ai",
     "/tutorials",
+    "/profile",
   ],
 };
 
