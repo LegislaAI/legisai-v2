@@ -169,6 +169,7 @@ export default function Register() {
                 placeholder="Digite seu telefone"
                 className="outline-secondary/50 focus:border-secondary/50 h-8 rounded-md border border-zinc-400 p-2 text-black 2xl:h-8"
                 type="text"
+                maxLength={15}
               />
               {errors.phone && (
                 <span className="text-red-500">{errors.phone.message}</span>

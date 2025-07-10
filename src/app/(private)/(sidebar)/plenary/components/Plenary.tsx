@@ -29,9 +29,7 @@ export function PlenaryCard({ title, summary, id, date }: PlenaryCardProps) {
           />
         </div>
         <div>
-          <h2 className="text-dark text-lg font-medium">
-            {title} - {moment(date).format("DD/MM/YY")}
-          </h2>
+          <h2 className="text-dark text-lg font-medium">{title}</h2>
           <p className="w-full text-gray-600 lg:hidden lg:w-[650px] lg:truncate">
             {summary && summary.length > 100
               ? summary.slice(0, 100) + "..."

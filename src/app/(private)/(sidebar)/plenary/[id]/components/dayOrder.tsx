@@ -1,4 +1,5 @@
 "use client";
+import { EventPropositionProps } from "@/@types/proposition";
 import {
   Table,
   TableBody,
@@ -7,74 +8,60 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
+import { useApiContext } from "@/context/ApiContext";
 import { cn } from "@/lib/utils";
-import { Check, X } from "lucide-react";
+import moment from "moment";
 import Image from "next/image";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 import "swiper/css";
 
 export function DayOrder() {
-  const tableData = [
+  const { GetAPI } = useApiContext();
+  const pathname = usePathname();
+  const [eventPropositions, setEventPropositions] = useState<
+    EventPropositionProps[]
+  >([]);
+
+  const columns = [
     {
-      author: "Felipe Carreras (PSB-PE)",
-      proposal: "REQ 1884/2023",
-      subject: "Outro Dado",
-      yes: 43,
-      no: 3,
-      votes: 48,
-      result: "aprovado",
-      id: 1,
+      key: "title",
+      label: "Proposição",
     },
     {
-      author: "Felipe Carreras (PSB-PE)",
-      proposal: "PL 8035/2014",
-      subject: "Outro Dado",
-      yes: 43,
-      no: 3,
-      votes: 48,
-      result: "aprovada com alterações",
-      id: 2,
+      key: "topic",
+      label: "Tópico",
     },
     {
-      author: "Felipe Carreras (PSB-PE)",
-      proposal: "PL 8035/2014",
-      subject: "Outro Dado",
-      yes: 43,
-      no: 3,
-      votes: 48,
-      result: "não analisada",
-      id: 3,
+      key: "presentation",
+      label: "Data de Apresentação",
     },
     {
-      author: "Felipe Carreras (PSB-PE)",
-      proposal: "PL 8035/2014",
-      subject: "Outro Dado",
-      yes: 43,
-      no: 3,
-      votes: 48,
-      result: "não analisada",
-      id: 4,
+      key: "regime",
+      label: "Regime",
     },
     {
-      author: "Felipe Carreras (PSB-PE)",
-      proposal: "PL 8035/2014",
-      subject: "Outro Dado",
-      yes: 43,
-      no: 3,
-      votes: 48,
-      result: "não analisada",
-      id: 5,
+      key: "reporter",
+      label: "Relator",
     },
     {
-      author: "Felipe Carreras (PSB-PE)",
-      proposal: "PL 8035/2014",
-      subject: "Outro Dado",
-      yes: 43,
-      no: 3,
-      votes: 48,
-      result: "não analisada",
-      id: 6,
+      key: "actions",
+      label: "",
     },
   ];
+
+  async function GetEventDayOrder() {
+    const eventId = pathname.split("/")[2];
+    const dayOrder = await GetAPI(`/event-proposition/${eventId}`, true);
+    if (dayOrder.status === 200) {
+      setEventPropositions(dayOrder.body.propositions);
+    }
+  }
+
+  useEffect(() => {
+    GetEventDayOrder();
+  }, []);
+
   return (
     <div className="grid w-full grid-cols-12 gap-8">
       <div className="col-span-12 flex flex-col overflow-hidden rounded-lg bg-white p-4 xl:col-span-12">
@@ -87,69 +74,22 @@ export function DayOrder() {
             <Table>
               <TableHeader className="bg-secondary">
                 <TableRow>
-                  {[
-                    {
-                      key: "authors",
-                      label: "Autores",
-                      image: "/icons/plenary/user.svg",
-                    },
-                    {
-                      key: "proposal",
-                      label: "Proposta",
-                      image: "/icons/plenary/folder.svg",
-                    },
-                    {
-                      key: "subject",
-                      label: "Assunto",
-                      image: "/icons/plenary/clipboard.svg",
-                    },
-                    {
-                      key: "yes",
-                      label: "Sim",
-                    },
-                    {
-                      key: "no",
-                      label: "Não",
-                    },
-                    {
-                      key: "votes",
-                      label: "Votos",
-                      image: "/icons/plenary/circles.png",
-                    },
-                    {
-                      key: "result",
-                      label: "Resultado",
-                      image: "/icons/plenary/circles.png",
-                    },
-                  ].map((column) => (
+                  {columns.map((column) => (
                     <TableHead
                       key={column.key}
                       className="h-12 justify-end text-center text-sm font-semibold text-white"
                     >
-                      <div
-                        className={cn(
-                          "flex items-center gap-2",
-                          column.key === "authors" && "items-start",
-                          column.key !== "authors" && "w-full justify-center",
-                          column.key === "subject" && "w-80",
-                        )}
-                      >
-                        {column.image ? (
-                          <Image
-                            src={column.image}
-                            alt=""
-                            width={250}
-                            height={250}
-                            className="h-6 w-6 object-contain"
-                          />
-                        ) : (
-                          <div
-                            className={`flex h-5 w-5 items-center justify-center rounded-full ${column.key === "yes" ? "text-secondary bg-white" : "bg-[#DC2626]"}`}
-                          >
-                            {column.key === "yes" ? <Check /> : <X />}
-                          </div>
-                        )}
-
+                      <div className="mx-auto flex w-max items-center gap-2">
+                        <Image
+                          src="/icons/plenary/circles.png"
+                          alt=""
+                          width={50}
+                          height={50}
+                          className={cn(
+                            "h-max w-4 object-contain",
+                            column.key === "actions" && "hidden",
+                          )}
+                        />
                         {column.label}
                       </div>
                     </TableHead>
@@ -157,7 +97,7 @@ export function DayOrder() {
                 </TableRow>
               </TableHeader>
 
-              {tableData.map((row) => (
+              {eventPropositions.map((row) => (
                 <TableBody key={row.id}>
                   <TableRow
                     className={cn(
@@ -165,49 +105,30 @@ export function DayOrder() {
                     )}
                   >
                     <TableCell className="h-4 py-1 text-sm font-medium whitespace-nowrap">
-                      {row.author}{" "}
-                      <span className="text-secondary font-semibold italic">
-                        Ver Todos *
-                      </span>
+                      {row.title}{" "}
                     </TableCell>
                     <TableCell className="h-4 py-1 text-center text-sm font-semibold whitespace-nowrap">
-                      {row.proposal}
+                      {row.topic}
                     </TableCell>
                     <TableCell className="h-4 w-80 py-1 text-center text-sm">
-                      {row.subject}
+                      {moment(row.proposition.presentationDate).format(
+                        "DD/MM/YYYY HH:mm",
+                      )}
                     </TableCell>
                     <TableCell className="h-4 py-1 text-center text-sm">
-                      {row.yes}
+                      {row.regime}
                     </TableCell>
                     <TableCell className="h-4 py-1 text-center text-sm">
-                      {row.no}
+                      {row.reporter ? row.reporter.name : "N/A"}
                     </TableCell>
                     <TableCell className="h-4 py-1 text-center text-sm">
-                      {row.votes}
-                    </TableCell>
-                    <TableCell className="h-4 w-10 py-1 text-sm font-medium">
-                      <div className="flex items-end justify-end">
-                        <div className="flex h-full w-40 max-w-40 min-w-40 items-center justify-center text-center">
-                          <span
-                            className={cn(
-                              "w-full rounded-lg px-2 py-1",
-                              row.result.toLowerCase() === "aprovado"
-                                ? "bg-secondary/20 text-secondary"
-                                : row.result.toLowerCase() ===
-                                    "aprovada com alterações"
-                                  ? "bg-sky-500/20 text-sky-500"
-                                  : "bg-rose-500/20 text-rose-500",
-                            )}
-                          >
-                            {row.result.toLowerCase() === "aprovado"
-                              ? "Aprovado"
-                              : row.result.toLowerCase() ===
-                                  "aprovada com alterações"
-                                ? "Aprovado com alterações"
-                                : "Não Analisada"}
-                          </span>
-                        </div>
-                      </div>
+                      <a
+                        href={row.proposition.url}
+                        target="_blank"
+                        className="bg-secondary/20 text-secondary rounded-lg px-2 py-1 text-sm font-semibold"
+                      >
+                        Acessar
+                      </a>
                     </TableCell>
                   </TableRow>
                 </TableBody>

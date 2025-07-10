@@ -85,7 +85,7 @@ export function Plenaries() {
           <ChevronRight className="text-secondary" />
         </button>
       </div>
-      {events && events.length > 0 ? (
+      {selectedPoliticianId && events && events.length > 0 ? (
         <ScrollArea>
           {events.map((event, index) => (
             <div
@@ -118,11 +118,15 @@ export function Plenaries() {
             </div>
           ))}
         </ScrollArea>
-      ) : (
+      ) : selectedPoliticianId && events && events.length === 0 ? (
         <div className="flex flex-1 items-center justify-center">
           <span className="text-zinc-500">
             Nenhum plenário encontrado sobre esse(a) político(a)
           </span>
+        </div>
+      ) : (
+        <div className="flex flex-1 items-center justify-center">
+          <span className="text-zinc-500">Selecione um Político</span>
         </div>
       )}
     </div>
