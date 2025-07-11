@@ -10,6 +10,7 @@ import {
 } from "@/components/ui/table";
 import { useApiContext } from "@/context/ApiContext";
 import { cn } from "@/lib/utils";
+import { Loader2 } from "lucide-react";
 import moment from "moment";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -22,6 +23,7 @@ export function DayOrder() {
   const [eventPropositions, setEventPropositions] = useState<
     EventPropositionProps[]
   >([]);
+  const [isGettingPropositions, setIsGettingPropositions] = useState(true);
 
   const columns = [
     {
@@ -55,6 +57,7 @@ export function DayOrder() {
     const dayOrder = await GetAPI(`/event-proposition/${eventId}`, true);
     if (dayOrder.status === 200) {
       setEventPropositions(dayOrder.body.propositions);
+      return setIsGettingPropositions(false);
     }
   }
 
@@ -97,42 +100,70 @@ export function DayOrder() {
                 </TableRow>
               </TableHeader>
 
-              {eventPropositions.map((row) => (
-                <TableBody key={row.id}>
-                  <TableRow
-                    className={cn(
-                      "hover:bg-secondary/20 h-12 cursor-pointer transition-all duration-300",
-                    )}
-                  >
-                    <TableCell className="h-4 py-1 text-sm font-medium whitespace-nowrap">
-                      {row.title}{" "}
-                    </TableCell>
-                    <TableCell className="h-4 py-1 text-center text-sm font-semibold whitespace-nowrap">
-                      {row.topic}
-                    </TableCell>
-                    <TableCell className="h-4 w-80 py-1 text-center text-sm">
-                      {moment(row.proposition.presentationDate).format(
-                        "DD/MM/YYYY HH:mm",
-                      )}
-                    </TableCell>
-                    <TableCell className="h-4 py-1 text-center text-sm">
-                      {row.regime}
-                    </TableCell>
-                    <TableCell className="h-4 py-1 text-center text-sm">
-                      {row.reporter ? row.reporter.name : "N/A"}
-                    </TableCell>
-                    <TableCell className="h-4 py-1 text-center text-sm">
-                      <a
-                        href={row.proposition.url}
-                        target="_blank"
-                        className="bg-secondary/20 text-secondary rounded-lg px-2 py-1 text-sm font-semibold"
-                      >
-                        Acessar
-                      </a>
+              {isGettingPropositions ? (
+                <TableBody>
+                  <TableRow>
+                    <TableCell
+                      colSpan={6}
+                      className="relative h-40 items-center text-center text-lg font-bold"
+                    >
+                      <span className="absolute top-1/2 left-1/2 mx-auto w-max -translate-x-1/2 -translate-y-1/2">
+                        <Loader2 className="animate-spin" />
+                      </span>
                     </TableCell>
                   </TableRow>
                 </TableBody>
-              ))}
+              ) : eventPropositions.length > 0 ? (
+                eventPropositions.map((row) => (
+                  <TableBody key={row.id}>
+                    <TableRow
+                      className={cn(
+                        "hover:bg-secondary/20 h-12 cursor-pointer transition-all duration-300",
+                      )}
+                    >
+                      <TableCell className="h-4 py-1 text-sm font-medium whitespace-nowrap">
+                        {row.title}{" "}
+                      </TableCell>
+                      <TableCell className="h-4 py-1 text-center text-sm font-semibold whitespace-nowrap">
+                        {row.topic}
+                      </TableCell>
+                      <TableCell className="h-4 w-80 py-1 text-center text-sm">
+                        {moment(row.proposition.presentationDate).format(
+                          "DD/MM/YYYY HH:mm",
+                        )}
+                      </TableCell>
+                      <TableCell className="h-4 py-1 text-center text-sm">
+                        {row.regime}
+                      </TableCell>
+                      <TableCell className="h-4 py-1 text-center text-sm">
+                        {row.reporter ? row.reporter.name : "N/A"}
+                      </TableCell>
+                      <TableCell className="h-4 py-1 text-center text-sm">
+                        <a
+                          href={row.proposition.url}
+                          target="_blank"
+                          className="bg-secondary/20 text-secondary rounded-lg px-2 py-1 text-sm font-semibold"
+                        >
+                          Acessar
+                        </a>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                ))
+              ) : (
+                <TableBody>
+                  <TableRow>
+                    <TableCell
+                      colSpan={6}
+                      className="relative h-40 items-center text-center text-lg font-bold"
+                    >
+                      <span className="absolute top-1/2 left-1/2 mx-auto w-max -translate-x-1/2 -translate-y-1/2">
+                        Nenhuma proposta encontrada
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              )}
             </Table>
           </div>
         </div>

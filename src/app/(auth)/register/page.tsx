@@ -62,6 +62,10 @@ export default function Register() {
   });
 
   async function handleRegister(data: RegisterFormData) {
+    if (!checkedTerms || !checkedPrivacy) {
+      toast.error("Aceite os termos e a politica de privacidade");
+      return;
+    }
     setIsRegistering(true);
     const response = await PostAPI(
       "/user/signup",

@@ -16,7 +16,6 @@ import moment from "moment";
 import { usePathname } from "next/navigation";
 import { Votes } from "./components/Votes";
 import { DayOrder } from "./components/dayOrder";
-import { Documents } from "./components/documents";
 import { General } from "./components/general";
 import { Presence } from "./components/presence";
 
@@ -42,7 +41,6 @@ export default function PlenaryDetails() {
   async function GetEventDetails() {
     const eventId = pathname.split("/")[2];
     const details = await GetAPI(`/event/details/${eventId}`, true);
-    console.log("details", details);
     if (details.status === 200) {
       setEventDetails(details.body.event);
       const time = moment(details.body.event.startDate).diff(
@@ -215,7 +213,7 @@ export default function PlenaryDetails() {
                 )}
                 onClick={() => setSelectedStep(2)}
               >
-                DOCUMENTOS
+                PRESENÇAS
                 <div
                   className={cn(
                     "h-px w-full bg-transparent",
@@ -223,37 +221,20 @@ export default function PlenaryDetails() {
                   )}
                 />
               </span>
-              <span
+              <div
                 className={cn(
-                  "hover:text-secondary cursor-pointer",
+                  "hover:text-secondary flex cursor-pointer flex-col items-center whitespace-nowrap",
                   selectedStep === 3
                     ? "text-secondary font-bold"
                     : "text-zinc-400",
                 )}
                 onClick={() => setSelectedStep(3)}
               >
-                PRESENÇAS
-                <div
-                  className={cn(
-                    "h-px w-full bg-transparent",
-                    selectedStep === 3 && "bg-secondary",
-                  )}
-                />
-              </span>
-              <div
-                className={cn(
-                  "hover:text-secondary flex cursor-pointer flex-col items-center whitespace-nowrap",
-                  selectedStep === 4
-                    ? "text-secondary font-bold"
-                    : "text-zinc-400",
-                )}
-                onClick={() => setSelectedStep(4)}
-              >
                 ORDEM DO DIA
                 <div
                   className={cn(
                     "h-px w-full bg-transparent",
-                    selectedStep === 4 && "bg-secondary",
+                    selectedStep === 3 && "bg-secondary",
                   )}
                 />
               </div>
@@ -290,13 +271,10 @@ export default function PlenaryDetails() {
           <div
             className={`col-span-12 ${animateSection ? "opacity-0" : "opacity-100 transition-all duration-700"} `}
           >
-            {selectedStep === 0 && (
-              <General setSelectedStep={setSelectedStep} />
-            )}
-            {selectedStep === 1 && <Votes />}
-            {selectedStep === 2 && <Documents />}
-            {selectedStep === 3 && <Presence />}
-            {selectedStep === 4 && <DayOrder />}
+            {selectedStep === 0 && <General />}
+            {selectedStep === 1 && <Votes eventUrl={eventDetails.uri} />}
+            {selectedStep === 2 && <Presence />}
+            {selectedStep === 3 && <DayOrder />}
           </div>
         </div>
       ) : (

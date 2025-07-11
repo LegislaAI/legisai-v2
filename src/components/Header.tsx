@@ -26,13 +26,20 @@ export function Header() {
         onClick={() => {
           if (pathname === "/") {
             return;
+          } else if (pathname.includes("/plenary/")) {
+            return router.push("/plenary");
           }
           router.push("/");
         }}
-        className={cn("flex items-center gap-2", pathname === "/" && "hidden")}
+        className={cn(
+          "hover:text-secondary flex cursor-pointer items-center gap-2 transition duration-300",
+          pathname === "/" && "hidden",
+        )}
       >
         <ArrowLeft />
-        <span className="font-semibold">Home</span>
+        <span className="font-semibold">
+          {pathname.includes("/plenary/") ? "Plenários" : "Home"}
+        </span>
       </div>
       <div className="ml-auto flex items-center gap-4">
         <button
