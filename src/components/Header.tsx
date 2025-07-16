@@ -83,6 +83,7 @@ export function Header() {
                     cookies.remove(
                       process.env.NEXT_PUBLIC_USER_TOKEN as string,
                     );
+                    router.push("/");
                   }
                 }}
                 className="group-hover:bg-secondary text-secondary flex w-full cursor-pointer flex-row items-center gap-2 p-2 text-lg transition-all duration-300 group-hover:text-white"

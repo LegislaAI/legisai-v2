@@ -297,6 +297,7 @@ export function useSectionChat({
   }
   async function handleSendMessage(message?: string) {
     const inputMessages2 = message ?? inputMessage;
+    console.log("inputMessages2", inputMessages2);
 
     if (loading || (!inputMessages2.trim() && !file)) return;
     cancelStreamRef.current = false;

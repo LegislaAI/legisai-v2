@@ -47,7 +47,7 @@ export function TutorialsSection({
         <div className="flex w-full flex-col">
           <h1 className="text-2xl font-bold text-[#252F40]">Tutoriais</h1>
           <span className="text-md text-[#67748E]">
-            Loren ipsum dolor sit amet, consectetur adipiscing elit
+            Confira todos os tutoriais da plataforma LegisAi.
           </span>
           <div className="flex w-full flex-col items-center justify-between gap-4 md:flex-row">
             {/* <div className="flex">

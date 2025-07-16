@@ -198,6 +198,7 @@ export function General() {
                       onClick={() => setSelected(row)}
                       className={cn(
                         "hover:bg-secondary/20 h-12 cursor-pointer transition-all duration-300",
+                        selected?.id === row.id && "bg-secondary/20",
                       )}
                     >
                       <TableCell className="h-4 py-1 text-sm font-medium whitespace-nowrap">

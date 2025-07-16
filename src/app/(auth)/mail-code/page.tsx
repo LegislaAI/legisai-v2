@@ -1,5 +1,4 @@
 "use client";
-
 import { AuthHeader } from "@/components/ui/AuthHeader";
 import { ChevronLeft } from "lucide-react";
 import Image from "next/image";
@@ -11,25 +10,24 @@ export default function Login() {
   const router = useRouter();
   const length = 6;
   const [code, setCode] = useState<string[]>(Array(length).fill(""));
+  const [timer, setTimer] = useState(10);
   const inputsRef = useRef<HTMLInputElement[]>([]);
 
   const handleChange = (
     e: React.ChangeEvent<HTMLInputElement>,
     idx: number,
   ) => {
-    const val = e.target.value.replace(/\D/, ""); // só número
+    const val = e.target.value.replace(/\D/, "");
     if (!val) return;
     const newCode = [...code];
     newCode[idx] = val[0];
     setCode(newCode);
 
-    // focar próximo
     if (idx < length - 1) {
       inputsRef.current[idx + 1]?.focus();
     }
   };
 
-  // Teclas especiais: Backspace e Enter
   const handleKeyDown = (
     e: React.KeyboardEvent<HTMLInputElement>,
     idx: number,
@@ -52,23 +50,17 @@ export default function Login() {
     if (e.key === "Enter" && idx === length - 1) {
       const finalCode = code.join("");
       if (finalCode.length === length) {
-        // aqui você pode chamar sua API ou fazer router.push
       }
     }
   };
 
-  // Quando clicar em "Entrar agora"
-  // const handleSubmit = () => {
-  //   toast.success(`Estamos quase la, agora escolha seu plano!`);
-  //   router.push("/register/chose-plan");
-  // };
-  const [timer, setTimer] = useState(10);
   useEffect(() => {
     if (timer > 0) {
       const countdown = setTimeout(() => setTimer(timer - 1), 1000);
       return () => clearTimeout(countdown);
     }
   }, [timer]);
+
   return (
     <main className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-white">
       <Image
@@ -136,9 +128,8 @@ export default function Login() {
             )}
           </div>
           <button
-            // type="submit"
             type="button"
-            onClick={() => router.push("/chose-plan")}
+            onClick={() => router.push("/plans")}
             className="bg-secondary rounded-md border p-2 font-bold text-white"
           >
             Confirmar código

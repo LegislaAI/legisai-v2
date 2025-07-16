@@ -141,13 +141,11 @@ export function Section1() {
 
   useEffect(() => {
     if (selectedPolitician) {
-      // Create arrays for all 12 months, defaulting to 0
       const cabinetQuotaData = Array(12).fill(0);
       const parliamentaryQuotaData = Array(12).fill(0);
 
-      // Fill in the actual data where available
       selectedPolitician.finance.monthlyCosts.forEach((cost) => {
-        const monthIndex = cost.month - 1; // Convert to 0-based index
+        const monthIndex = cost.month - 1;
         if (monthIndex >= 0 && monthIndex < 12) {
           cabinetQuotaData[monthIndex] = cost.cabinetQuota || 0;
           parliamentaryQuotaData[monthIndex] = cost.parliamentaryQuota || 0;
@@ -218,8 +216,9 @@ export function Section1() {
                 className="border-secondary bg-secondary w-60 border"
               >
                 <p className="text-white">
-                  Clique para acessar o perfil do Político na Câmara dos
-                  Deputados.
+                  {selectedPoliticianId
+                    ? "Clique para acessar o perfil do Político na Câmara dos Deputados."
+                    : "Selecione um Politico"}
                 </p>
                 <TooltipArrow className="fill-secondary" />
               </TooltipContent>
@@ -532,8 +531,9 @@ export function Section1() {
                   className="border-secondary bg-secondary w-60 border"
                 >
                   <p className="text-white">
-                    Clique para acessar o perfil do Político na Câmara dos
-                    Deputados.
+                    {selectedPoliticianId
+                      ? "Clique para acessar o perfil do Político na Câmara dos Deputados."
+                      : "Nenhum político selecionado."}
                   </p>
                   <TooltipArrow className="fill-secondary" />
                 </TooltipContent>

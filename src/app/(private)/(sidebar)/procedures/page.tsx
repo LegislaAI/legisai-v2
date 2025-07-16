@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 
 export default function BranchesList() {
   const [loadNewChat, setLoadNewChat] = useState(false);
+  const [openInfo, setOpenInfo] = useState(false);
   const {
     chats,
     setLoadHistory,
@@ -19,11 +20,12 @@ export default function BranchesList() {
     setTypes,
     prompts,
     setSelectedPrompt,
+    setChatType,
   } = useChatPage();
-  const [openInfo, setOpenInfo] = useState(false);
 
   useEffect(() => {
     setTypes("proposition");
+    setChatType("proposition");
   }, []);
 
   return (

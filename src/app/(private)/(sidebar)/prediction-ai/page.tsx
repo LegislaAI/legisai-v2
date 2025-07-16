@@ -1,6 +1,10 @@
+"use client";
+import { useRouter } from "next/navigation";
 import { SignatureCard } from "./components/signatureCard";
 
 export default function PredictionAi() {
+  const router = useRouter();
+
   return (
     <div className="flex flex-col items-center">
       <h1 className="mb-4 text-3xl font-bold">IA Preditiva</h1>
@@ -26,7 +30,7 @@ export default function PredictionAi() {
         <SignatureCard
           benefits={[
             "Tudo do Plano Gratuito",
-            "Analise Profunda de Politicos",
+            "Análise Profunda de Politicos",
             "Geração de Documentos Avançados",
             "Análise Preditiva de Votações",
           ]}
@@ -34,6 +38,7 @@ export default function PredictionAi() {
           isActive={false}
           name="Preditivo"
           price={997}
+          onClick={() => router.push("/checkout")}
         />
       </div>
     </div>

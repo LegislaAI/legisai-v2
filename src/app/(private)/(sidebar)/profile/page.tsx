@@ -269,7 +269,7 @@ export default function Profile() {
             >
               <button
                 onClick={() =>
-                  window.open("https://api.whatsapp.com", "_blank")
+                  window.open("https://wa.me/556195900545", "_blank")
                 }
                 className="bg-secondary self-center rounded-md border border-white p-2 text-white transition-all duration-300 hover:scale-[1.005]"
               >

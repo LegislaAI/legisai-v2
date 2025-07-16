@@ -1,23 +1,21 @@
 "use client";
-
 import { SignatureCard } from "@/app/(private)/(sidebar)/prediction-ai/components/signatureCard";
 import { AuthHeader } from "@/components/ui/AuthHeader";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 
-export default function Login() {
+export default function Plans() {
   const router = useRouter();
-
-  // Teclas especiais: Backspace e Enter
-
   const [timer, setTimer] = useState(10);
+
   useEffect(() => {
     if (timer > 0) {
       const countdown = setTimeout(() => setTimer(timer - 1), 1000);
       return () => clearTimeout(countdown);
     }
   }, [timer]);
+
   return (
     <main className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-white">
       <Image
@@ -53,7 +51,7 @@ export default function Login() {
             <SignatureCard
               benefits={[
                 "Tudo do Plano Gratuito",
-                "Analise Profunda de Politicos",
+                "Análise Profunda de Politicos",
                 "Geração de Documentos Avançados",
                 "Análise Preditiva de Votações",
               ]}
@@ -66,30 +64,6 @@ export default function Login() {
           </div>
         </div>
       </div>
-      {/* <footer className="mt-auto flex h-24 w-full flex-col-reverse items-center justify-center pb-1 md:flex-col-reverse md:px-20 md:pb-0">
-        <div className="md:text-md -mt-2 flex flex-row items-center gap-2 text-[10px] text-[#8392AB] md:mt-0 md:items-end md:text-sm">
-          <span> Copyright © 2025 Software Criado por</span>
-          <Image
-            className="h-10 w-auto"
-            alt=" "
-            width={200}
-            height={200}
-            src={"/logoEx.png"}
-          />
-        </div>
-        <div className="invisible flex w-full flex-col justify-center gap-2 p-4 text-[12px] text-[#8392AB] md:flex-row md:gap-4 md:px-20 md:text-sm">
-          <div className="flex w-full flex-row justify-between gap-2 text-xs text-[#8392AB] md:w-auto md:gap-4 md:text-sm">
-            <a className="w-1/3 md:w-auto">Empresa</a>
-            <a className="w-1/3 md:w-auto">Sobre nós</a>
-            <a className="w-1/3 md:w-auto">Preços</a>
-          </div>
-          <div className="flex w-full flex-row justify-between gap-2 text-xs text-[#8392AB] md:w-auto md:gap-4 md:text-sm">
-            <a className="w-1/3 md:w-auto">Produtos</a>
-            <a className="w-1/3 md:w-auto">Blog</a>
-            <a className="w-1/3 md:w-auto">Redes Sociais</a>
-          </div>
-        </div>
-      </footer> */}
     </main>
   );
 }

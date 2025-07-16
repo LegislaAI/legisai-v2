@@ -2,7 +2,6 @@
 import { AuthHeader } from "@/components/ui/AuthHeader";
 import { useApiContext } from "@/context/ApiContext";
 import { zodResolver } from "@hookform/resolvers/zod";
-
 import { Eye, EyeOff } from "lucide-react";
 import { useCookies } from "next-client-cookies";
 import Image from "next/image";
@@ -11,6 +10,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { z } from "zod";
+
 interface LoginDataProps {
   email: string;
   password: string;
@@ -25,7 +25,7 @@ export default function Login() {
   const [continueConnected, setContinueConnected] = useState(true);
   const [isShowingPassword, setIsShowingPassword] = useState(false);
   const cookies = useCookies();
-  const { PostAPI } = useApiContext();
+  const { PostAPI, setToken } = useApiContext();
   const [loginError, setLoginError] = useState("");
   const router = useRouter();
   const [isLogging, setIsLogging] = useState(false);
@@ -54,6 +54,7 @@ export default function Login() {
         process.env.NEXT_PUBLIC_USER_TOKEN as string,
         login.body.accessToken,
       );
+      setToken(login.body.accessToken);
       setTimeout(() => {
         router.push("/");
       }, 1000);

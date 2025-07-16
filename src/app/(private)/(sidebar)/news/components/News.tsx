@@ -55,7 +55,7 @@ export function NewsCard({ title, summary, createdAt }: NewsCardProps) {
       <Modal
         isOpen={isModalOpen}
         close={() => setIsModalOpen(false)}
-        className="h-max w-[calc(100%-2rem)] lg:h-max lg:w-[700px]"
+        className="scrollbar-hide h-max w-[calc(100%-2rem)] lg:h-max lg:w-[700px]"
       >
         <div className="relative flex h-full w-full flex-col items-center justify-center gap-4 py-2 pb-8">
           <button
@@ -78,7 +78,7 @@ export function NewsCard({ title, summary, createdAt }: NewsCardProps) {
             <h1 className="text-dark self-center text-3xl font-bold">
               {title}
             </h1>
-            <p className="h-full max-h-[50vh] max-w-[750px] overflow-y-scroll px-4 py-4 text-justify">
+            <p className="scrollbar-hide h-full max-h-[50vh] max-w-[750px] overflow-y-scroll px-4 py-4 text-justify">
               {summary}
             </p>
           </div>

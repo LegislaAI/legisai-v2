@@ -27,9 +27,13 @@ export default function BranchesList() {
     prompts,
     selectedPrompt,
     setSelectedPrompt,
+    setChatType,
   } = useChatPage();
+
   const [openInfo, setOpenInfo] = useState(false);
   const [open, setOpen] = useState(false);
+  const [selectedAi, setSelectedAi] = useState<string>("IA JURÍDICA");
+
   const items = [
     {
       id: "827364",
@@ -82,8 +86,6 @@ export default function BranchesList() {
     },
   ];
 
-  const [selectedAi, setSelectedAi] = useState<string>("IA JURÍDICA");
-
   useEffect(() => {
     const urlParams = new URLSearchParams(window.location.search);
     const id = urlParams.get("param1");
@@ -95,6 +97,7 @@ export default function BranchesList() {
 
   useEffect(() => {
     setTypes("juridic,politic,accounting,doc,general,doc,politician");
+    setChatType("ai");
   }, []);
 
   return (

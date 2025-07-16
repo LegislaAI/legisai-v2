@@ -41,6 +41,7 @@ export function useChatPage() {
   const [loadHistory, setLoadHistory] = useState(true);
   const [loadChat, setLoadChat] = useState<string | null>(null);
   const [newChat, setNewChat] = useState(false);
+  const [chatType, setChatType] = useState<string>("ai");
   const { GetAPI } = useApiContext();
   /* cookies / auth */
 
@@ -49,7 +50,7 @@ export function useChatPage() {
    * =================================================================*/
   async function handleGetChat() {
     try {
-      const response = await GetAPI(`/chat?page=1&type=${types}`, true);
+      const response = await GetAPI(`/chat?page=1&type=${chatType}`, true);
       if (response.status === 200) {
         setChats(response.body.chats);
         setLoadHistory(false);
@@ -61,7 +62,9 @@ export function useChatPage() {
 
   async function handleGetPrompt() {
     try {
+      console.log("types: ", types);
       const response = await GetAPI(`/prompt?&types=${types}`, true);
+      console.log("response", response);
       if (response.status === 200) {
         setPrompts(response.body.prompts);
       }
@@ -81,7 +84,9 @@ export function useChatPage() {
    * =================================================================*/
 
   useEffect(() => {
-    handleGetPrompt();
+    if (types) {
+      handleGetPrompt();
+    }
   }, [types]);
 
   useEffect(() => {
@@ -109,6 +114,7 @@ export function useChatPage() {
     setLoadChat,
     newChat,
     setNewChat,
+    setChatType,
 
     /* funcs */
     handleGetChat,

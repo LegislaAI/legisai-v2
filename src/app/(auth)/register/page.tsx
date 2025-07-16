@@ -47,7 +47,7 @@ export default function Register() {
   const [checkedPrivacy, setCheckedPrivacy] = useState(false);
   const [openTermsModal, setOpenTermsModal] = useState(false);
   const [openPrivacyModal, setOpenPrivacyModal] = useState(false);
-  const { PostAPI, token } = useApiContext();
+  const { PostAPI, token, setToken } = useApiContext();
   const cookies = useCookies();
   const router = useRouter();
 
@@ -80,7 +80,8 @@ export default function Register() {
     );
     if (response.status === 200) {
       cookies.set(token, response.body.accessToken);
-      router.push("/mail-code");
+      setToken(response.body.accessToken);
+      router.push("/plans");
     } else {
       toast.error("Erro ao registrar, tente novamente");
       if (response.body.message === "Resource already exists") {
