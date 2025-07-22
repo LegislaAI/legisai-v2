@@ -1,25 +1,72 @@
 "use client";
 import { ScrollArea } from "@/components/ui/scroll-area";
-import { ArrowUpRight, ChevronRight, Info } from "lucide-react";
+import {
+  Tooltip,
+  TooltipArrow,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import { usePoliticianContext } from "@/context/PoliticianContext";
+import { ChevronRight, Info } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { NewsCard } from "./NewsCard";
 
 export function News() {
+  const { politicianNews, isLoadingPoliticianNews } = usePoliticianContext();
   const router = useRouter();
 
   return (
-    <div className="flex h-96 w-full flex-col rounded-lg bg-white p-4 lg:w-1/2">
+    <div className="lg:w-col-span-1 flex h-96 w-full flex-col rounded-lg bg-white p-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
           <span className="text-dark font-semibold">Notícias de Políticos</span>
-          <Info className="text-light-dark" />
+          <TooltipProvider>
+            <Tooltip>
+              <TooltipTrigger>
+                <Info className="text-light-dark" />
+              </TooltipTrigger>
+              <TooltipContent
+                side="top"
+                align="start"
+                className="border-secondary bg-secondary w-60 border"
+              >
+                <p className="text-white">
+                  Acompanhe notícias recentes relacionadas ao político
+                  selecionado ou acesse a lista completa.
+                </p>
+                <TooltipArrow className="fill-secondary" />
+              </TooltipContent>
+            </Tooltip>
+          </TooltipProvider>
         </div>
-        <div className="flex items-center gap-2">
-          <span className="text-secondary font-semibold">Ver últimos</span>
+        <button
+          onClick={() => router.push("/news")}
+          className="flex items-center gap-2"
+        >
+          <span className="text-secondary font-semibold">Ver Últimos</span>
           <ChevronRight className="text-secondary" />
-        </div>
+        </button>
       </div>
       <ScrollArea>
-        {Array.from({ length: 5 }).map((_, index) => (
+        {politicianNews.length === 0 && isLoadingPoliticianNews && (
+          <p>Carregando...</p>
+        )}
+        {!isLoadingPoliticianNews &&
+          (politicianNews.length > 0 ? (
+            politicianNews.map((news) => (
+              <NewsCard
+                key={news.id}
+                title={news.title}
+                summary={news.summary}
+              />
+            ))
+          ) : (
+            <p className="absolute top-1/2 left-1/2 flex h-full w-full -translate-x-1/2 -translate-y-1/2 items-center justify-center text-center text-gray-500">
+              Nenhuma notícia desse(a) político(a) encontrada.
+            </p>
+          ))}
+        {/* {Array.from({ length: 5 }).map((_, index) => (
           <div
             key={index}
             onClick={() => router.push("/news")}
@@ -36,7 +83,7 @@ export function News() {
             </div>
             <ChevronRight className="fill-secondary text-secondary" />
           </div>
-        ))}
+        ))} */}
       </ScrollArea>
     </div>
   );

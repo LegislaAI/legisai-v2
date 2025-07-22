@@ -24,7 +24,6 @@ import {
   getFunctionDeclarations,
   handleFunctionCalls,
 } from "./functions-handler";
-import { PromptFunctionTest } from "./prompts";
 import {
   ChatHistoryItem,
   FunctionCallWithId,
@@ -71,6 +70,7 @@ export function useSectionChat({
   const { PostAPI, GetAPI } = useApiContext();
   const [chatId, setChatId] = useState("");
   const [loading, setLoading] = useState(false);
+  const [screenType, setScreenType] = useState("ai");
   const [initialHistory, setInitialHistory] = useState<ChatHistoryItem[]>([]);
   const [inputMessage, setInputMessage] = useState("");
 
@@ -97,15 +97,13 @@ export function useSectionChat({
   useEffect(() => {
     if (!aiInstanceRef.current)
       aiInstanceRef.current = new GoogleGenAI({ apiKey: API_KEY });
-
+    chatSessionRef.current = null;
     if (aiInstanceRef.current) {
       chatSessionRef.current = aiInstanceRef.current.chats.create({
         model: "gemini-2.5-flash",
         history: initialHistory,
         config: {
-          systemInstruction: selectedPrompt?.prompt
-            ? selectedPrompt.prompt
-            : PromptFunctionTest,
+          systemInstruction: selectedPrompt?.prompt,
           ...(shouldUseFunctions && {
             tools: [{ functionDeclarations: getFunctionDeclarations() }],
           }),
@@ -122,6 +120,8 @@ export function useSectionChat({
         {
           name: first.split(" ").slice(0, 5).join(" ") || "Novo Chat",
           promptId: selectedPrompt.id,
+          type: screenType,
+          //  selectedPrompt.type,
         },
         true,
       );
@@ -143,7 +143,8 @@ export function useSectionChat({
   ) {
     if (!shouldSaveMessage) return;
     try {
-      await PostAPI(`/message/${id}`, msg, true);
+      const response = await PostAPI(`/message/${id}`, msg, true);
+      console.log("response", response);
     } catch (e) {
       console.error("postMessage:", e);
     }
@@ -294,11 +295,13 @@ export function useSectionChat({
   function getCallId(fc: FunctionCallWithId): string {
     return fc.toolCallId ?? fc.id ?? crypto.randomUUID();
   }
-  async function handleSendMessage() {
-    if (loading || (!inputMessage.trim() && !file)) return;
+  async function handleSendMessage(message?: string) {
+    const inputMessages2 = message ?? inputMessage;
+    console.log("inputMessages2", inputMessages2);
+
+    if (loading || (!inputMessages2.trim() && !file)) return;
     cancelStreamRef.current = false;
     setLoading(true);
-
     /* push user message + placeholder */
     const outgoing: Message[] = [];
     if (file)
@@ -309,8 +312,8 @@ export function useSectionChat({
         type: file.type,
         name: file.name,
       });
-    if (inputMessage.trim())
-      outgoing.push({ role: "user", content: inputMessage });
+    if (inputMessages2.trim())
+      outgoing.push({ role: "user", content: inputMessages2 });
     const AI_ROLE = "ai";
     setMessages((prev) => {
       const list = [
@@ -334,7 +337,7 @@ export function useSectionChat({
       /* chatId */
       if (!curChatId && shouldCreateChat) {
         const newId = await handleCreateChat(
-          inputMessage || `Chat com arquivo ${file?.name || ""}`,
+          inputMessages2 || `Chat com arquivo ${file?.name || ""}`,
         );
         if (!newId) throw new Error("Falha createChat");
         curChatId = newId;
@@ -351,10 +354,10 @@ export function useSectionChat({
       }
 
       /* TEXT */
-      if (inputMessage.trim()) parts.push({ text: inputMessage });
-      if (inputMessage.trim() && curChatId) {
+      if (inputMessages2.trim()) parts.push({ text: inputMessages2 });
+      if (inputMessages2.trim() && curChatId) {
         await handlePostMessage(curChatId, {
-          text: inputMessage,
+          text: inputMessages2,
           entity: "user",
           mimeType: "text",
         });
@@ -422,7 +425,7 @@ export function useSectionChat({
       if (!cancelStreamRef.current && curChatId) {
         await handlePostMessage(curChatId, {
           text: reply,
-          entity: "ai",
+          entity: "model",
           mimeType: "text",
         });
       }
@@ -450,6 +453,7 @@ export function useSectionChat({
   /* ─────────────────────────────── EXPORT ─────────────────────────────── */
   return {
     messages,
+    setMessages,
     loading,
     chatId,
     inputMessage,
@@ -458,7 +462,8 @@ export function useSectionChat({
     setFile,
     isRecording,
     elapsedTime,
-
+    screenType,
+    setScreenType,
     handleFileUpload,
     startRecording,
     stopRecording,

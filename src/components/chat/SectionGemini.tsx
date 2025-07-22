@@ -24,7 +24,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "./tooltip";
-import { Prompt } from "./types";
+import { Message, Prompt } from "./types";
 
 interface props {
   setLoadHistory?: React.Dispatch<React.SetStateAction<boolean>>;
@@ -33,8 +33,9 @@ interface props {
   loadOldChat?: string | null;
   setLoadOldChat?: React.Dispatch<React.SetStateAction<string | null>>;
   selectedPrompt?: Prompt;
-  setSelectedPrompt?: React.Dispatch<React.SetStateAction<Prompt>>;
-  prompts?: Prompt[];
+  setSelectedPrompt?: React.Dispatch<React.SetStateAction<Prompt | null>>;
+  startMessage?: string;
+  actualScreenType: string;
 }
 
 export function Section({
@@ -43,7 +44,9 @@ export function Section({
   setLoadOldChat,
   loadNewChat,
   setLoadNewChat,
-  // selectedPrompt,
+  startMessage,
+  selectedPrompt,
+  actualScreenType,
 }: props) {
   const {
     messages,
@@ -57,14 +60,21 @@ export function Section({
     handleFileUpload,
     startRecording,
     stopRecording,
+    setMessages,
     handleSendMessage,
+    screenType,
+    setScreenType,
   } = useSectionChat({
     loadNewChat,
     setLoadNewChat,
     shouldUseFunctions: true,
+    shouldCreateChat: true,
+    shouldSaveFile: true,
+    shouldSaveMessage: true,
     loadOldChat,
     setLoadOldChat,
     setLoadHistory,
+    selectedPrompt,
   });
 
   const scrollAreaViewportRef = useRef<HTMLDivElement>(null);
@@ -74,6 +84,40 @@ export function Section({
         scrollAreaViewportRef.current.scrollHeight;
     }
   }, [messages]);
+  useEffect(() => {
+    if (
+      startMessage &&
+      (!messages.length || messages[0]?.content !== startMessage)
+    ) {
+      const newMessage: Message = {
+        content: startMessage,
+        role: "ai",
+      };
+      setMessages((prevMessages) =>
+        prevMessages.find((m) => m.content === startMessage)
+          ? prevMessages
+          : [newMessage, ...prevMessages],
+      );
+    }
+  }, [startMessage, messages]);
+
+  useEffect(() => {
+    if (screenType !== actualScreenType) {
+      setScreenType(actualScreenType);
+    }
+    const urlParams = new URLSearchParams(window.location.search);
+    const query = urlParams.get("param2");
+    if (query && !messages.find((m) => m.content === query)) {
+      handleSendMessage(query);
+      urlParams.delete("param2");
+      window.history.replaceState(
+        {},
+        "",
+        `${window.location.pathname}?${urlParams.toString()}`,
+      );
+    }
+  }, [messages]);
+
   return (
     <div className="flex h-full w-full flex-col">
       <div className="flex h-full w-full flex-col items-center justify-between gap-2 rounded-lg xl:flex-row xl:gap-8">
@@ -96,7 +140,7 @@ export function Section({
                     {message.role === "user" ? (
                       <div className="flex justify-end gap-2 text-end">
                         <div className="flex flex-col items-end">
-                          <div className="bg-primary flex min-h-[40px] flex-col rounded-xl p-2 text-white">
+                          <div className="bg-secondary flex min-h-[40px] flex-col rounded-xl p-2 text-white">
                             {/* Lógica de renderização de arquivos na mensagem (já compatível) */}
                             {message.type?.includes("image") ? (
                               <Image
@@ -142,7 +186,7 @@ export function Section({
                               )
                             )}
                           </div>
-                          <span className="text-primary">
+                          <span className="text-secondary">
                             {moment().format("HH:mm")}
                           </span>
                         </div>
@@ -157,13 +201,13 @@ export function Section({
                           className="h-6 w-max object-contain xl:h-10 xl:w-max"
                         />
                         <div className="flex flex-col">
-                          <div className="bg-primary/80 flex flex-col rounded-xl p-2 text-white">
+                          <div className="bg-secondary/80 flex flex-col rounded-xl p-2 text-white">
                             {message.content === "..." ? (
                               <div className="mt-2 flex items-center justify-center space-x-2">
                                 <span className="sr-only text-white">...</span>
-                                <div className="border-primary h-2 w-2 animate-bounce rounded-full border bg-white [animation-delay:-0.3s]"></div>
-                                <div className="border-primary h-2 w-2 animate-bounce rounded-full border bg-white [animation-delay:-0.15s]"></div>
-                                <div className="border-primary h-2 w-2 animate-bounce rounded-full border bg-white"></div>
+                                <div className="border-secondary h-2 w-2 animate-bounce rounded-full border bg-white [animation-delay:-0.3s]"></div>
+                                <div className="border-secondary h-2 w-2 animate-bounce rounded-full border bg-white [animation-delay:-0.15s]"></div>
+                                <div className="border-secondary h-2 w-2 animate-bounce rounded-full border bg-white"></div>
                               </div>
                             ) : (
                               <div className="flex flex-col text-xs font-semibold xl:text-base">
@@ -173,7 +217,7 @@ export function Section({
                               </div>
                             )}
                           </div>
-                          <span className="text-primary">
+                          <span className="text-secondary">
                             {moment().format("HH:mm")}
                           </span>
                         </div>
@@ -191,8 +235,8 @@ export function Section({
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <button className="border-primary relative flex h-8 w-8 items-center justify-center rounded-lg border xl:h-11 xl:w-11">
-                    <div className="text-primary absolute flex h-full w-full items-center justify-center p-1">
+                  <button className="border-secondary relative flex h-8 w-8 items-center justify-center rounded-lg border xl:h-11 xl:w-11">
+                    <div className="text-secondary absolute flex h-full w-full items-center justify-center p-1">
                       <FileIcon />{" "}
                       {/* Renomeado para não conflitar com o tipo 'File' */}
                     </div>
@@ -209,18 +253,18 @@ export function Section({
                 <TooltipContent
                   side="top"
                   align="start"
-                  className="border-primary bg-primary border"
+                  className="border-secondary bg-secondary border"
                 >
                   <p className="text-white">Documento</p>
-                  <TooltipArrow className="fill-primary" />
+                  <TooltipArrow className="fill-secondary" />
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
             <TooltipProvider>
               <Tooltip>
                 <TooltipTrigger asChild>
-                  <button className="border-primary relative flex h-8 w-8 items-center justify-center rounded-lg border xl:h-11 xl:w-11">
-                    <div className="text-primary absolute flex h-full w-full items-center justify-center p-1">
+                  <button className="border-secondary relative flex h-8 w-8 items-center justify-center rounded-lg border xl:h-11 xl:w-11">
+                    <div className="text-secondary absolute flex h-full w-full items-center justify-center p-1">
                       <ImageIcon />
                     </div>
                     <input
@@ -235,21 +279,21 @@ export function Section({
                 <TooltipContent
                   side="top"
                   align="start"
-                  className="border-primary bg-primary border"
+                  className="border-secondary bg-secondary border"
                 >
                   <p className="text-white">Imagem ou vídeo</p>
-                  <TooltipArrow className="fill-primary" />
+                  <TooltipArrow className="fill-secondary" />
                 </TooltipContent>
               </Tooltip>
             </TooltipProvider>
 
             {/* BARRA DE INPUT PRINCIPAL */}
-            <div className="border-primary flex h-8 flex-1 items-center gap-2 rounded-lg border px-2 xl:h-11">
+            <div className="border-secondary flex h-8 flex-1 items-center gap-2 rounded-lg border px-2 xl:h-11">
               {/* CORREÇÃO: Lógica de preview de arquivo selecionado */}
 
               <div className="flex-1 lg:relative">
                 {file && (
-                  <div className="border-primary absolute -top-6 right-2 left-2 flex h-10 items-center justify-between gap-2 rounded-t-md border px-4 pl-2 lg:-top-12 lg:left-0">
+                  <div className="border-secondary absolute -top-6 right-2 left-2 flex h-10 items-center justify-between gap-2 rounded-t-md border px-4 pl-2 lg:-top-12 lg:left-0">
                     <div className="flex flex-1 items-center gap-2">
                       {file.type.startsWith("audio") ? (
                         <AudioPlayer
@@ -260,9 +304,9 @@ export function Section({
                         <>
                           <Paperclip
                             size={16}
-                            className="text-primary flex-shrink-0"
+                            className="text-secondary flex-shrink-0"
                           />
-                          <span className="text-primary line-clamp-1 w-[100px] flex-1 truncate text-sm">
+                          <span className="text-secondary line-clamp-1 w-[100px] flex-1 truncate text-sm">
                             {file.name}
                           </span>
                         </>
@@ -270,7 +314,7 @@ export function Section({
                     </div>
                     <button
                       onClick={() => setFile(null)} // CORREÇÃO: usa setFile(null) para limpar
-                      className="bg-primary/20 hover:bg-primary/30 flex h-6 min-h-6 w-6 min-w-6 flex-shrink-0 items-center justify-center rounded-full"
+                      className="bg-secondary/20 hover:bg-secondary/30 flex h-6 min-h-6 w-6 min-w-6 flex-shrink-0 items-center justify-center rounded-full"
                     >
                       <X className="text-red-500" size={16} />
                     </button>
@@ -279,17 +323,17 @@ export function Section({
                 {isRecording ? (
                   <>
                     <div className="flex w-full flex-1 flex-row md:hidden">
-                      <span className="text-primary text-sm">
+                      <span className="text-secondary text-sm">
                         Gravando - {elapsedTime}
                       </span>
                     </div>
-                    <span className="text-primary hidden font-mono text-sm md:block">
+                    <span className="text-secondary hidden font-mono text-sm md:block">
                       Gravando áudio - {elapsedTime}
                     </span>
                   </>
                 ) : (
                   <input
-                    className="text-primary placeholder:text-primary w-full flex-1 border-none bg-transparent pr-2 outline-none focus:outline-none"
+                    className="text-secondary placeholder:text-secondary w-full flex-1 border-none bg-transparent pr-2 outline-none focus:outline-none"
                     placeholder="Digite aqui sua ideia..."
                     disabled={isRecording || loading}
                     value={inputMessage}
@@ -308,7 +352,7 @@ export function Section({
             {/* BOTÃO DE AÇÃO UNIFICADO (Enviar / Gravar / Parar) */}
             <div className="relative flex justify-center pr-1">
               <button
-                className="border-primary text-primary flex h-8 w-8 items-center justify-center gap-2 rounded-lg border disabled:cursor-not-allowed disabled:opacity-50 xl:h-11 xl:w-11"
+                className="border-secondary text-secondary flex h-8 w-8 items-center justify-center gap-2 rounded-lg border disabled:cursor-not-allowed disabled:opacity-50 xl:h-11 xl:w-11"
                 disabled={loading}
                 onClick={() => {
                   if (isRecording) {
@@ -321,7 +365,7 @@ export function Section({
                 }}
               >
                 {isRecording ? (
-                  <div className="text-primary flex items-center gap-2">
+                  <div className="text-secondary flex items-center gap-2">
                     <Square className="animate-pulse" />
                   </div>
                 ) : inputMessage || file ? (

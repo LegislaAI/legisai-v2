@@ -9,7 +9,8 @@ const tooltipVariants = cva(
     variants: {
       color: {
         secondary: "border bg-popover text-popover-foreground",
-        primary: "border border-primary bg-primary text-primary-foreground",
+        primary:
+          "border border-secondary bg-secondary text-secondary-foreground",
         warning: "border border-warning bg-warning text-warning-foreground",
         info: "border border-info bg-info text-info-foreground",
         success: "border border-success bg-success text-success-foreground",

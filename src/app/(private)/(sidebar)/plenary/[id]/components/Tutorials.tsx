@@ -7,7 +7,7 @@ export function Tutorials() {
   const [searchTerm] = useState("");
   return (
     <>
-      <div className="col-span-12 flex min-h-80 w-full flex-col gap-4 rounded-xl bg-white p-4 text-black shadow-md">
+      <div className="col-span-12 flex min-h-72 w-full flex-col gap-4 rounded-xl bg-white p-4 text-black shadow-md xl:min-h-80">
         <div className="flex flex-col items-center justify-between md:flex-row">
           <div className="flex flex-1 flex-col">
             <span className="text-xl font-semibold text-[#252F40]">
@@ -64,26 +64,16 @@ export function Tutorials() {
                     <h2 className="text-sm font-semibold text-[#252F40]">
                       {tutorial.title}
                     </h2>
-                    <span className="text-[10px] text-[#8C8C8C]">
+                    <span className="text-xs text-[#8C8C8C]">
                       {tutorial.subtitle}
                     </span>
-                    <div className="mt-2 flex w-full flex-row flex-wrap gap-1">
-                      {tutorial.tags.map((tag, index) => (
-                        <span
-                          key={index}
-                          className="xxs:text-xs bg-primary rounded-lg p-1 text-[12px] text-[#fff]"
-                        >
-                          {tag}
-                        </span>
-                      ))}
-                    </div>
                   </div>
                   <button
                     onClick={() => {
                       // setSelectedVideo(tutorial);
                       // setIsOpenVideoModal(true);
                     }}
-                    className="border-primary text-primary mt-auto mb-2 rounded-md border font-bold transition-all duration-300 hover:scale-[1.02]"
+                    className="border-secondary text-secondary mt-auto mb-2 rounded-md border font-bold transition-all duration-300 hover:scale-[1.005]"
                   >
                     Assistir Agora
                   </button>

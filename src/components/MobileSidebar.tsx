@@ -1,7 +1,15 @@
 "use client";
 import { useSidebarContext } from "@/context/SidebarContext";
 import { cn } from "@/lib/utils";
-import { ChevronRight, Menu } from "lucide-react";
+import {
+  BellDot,
+  ChevronRight,
+  Home,
+  Settings2Icon,
+  Sparkle,
+  Sparkles,
+  Wallet,
+} from "lucide-react";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -22,7 +30,7 @@ export function MobileSidebar() {
         <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
           <SheetContent
             side="left"
-            className="flex h-full flex-col justify-between gap-4 bg-white"
+            className="flex h-full flex-col gap-4 bg-white p-2"
           >
             <SheetTitle>
               <div className="flex w-full items-center justify-between">
@@ -31,14 +39,13 @@ export function MobileSidebar() {
                   alt=""
                   width={1000}
                   height={350}
-                  className="h-max w-full object-contain"
+                  className="mx-auto h-max w-2/3 object-contain"
                 />
-                <Menu />
               </div>
             </SheetTitle>
 
-            <div className="flex flex-col gap-4">
-              {/* <div
+            <div className="flex flex-col gap-2">
+              <div
                 onClick={() => router.push("/")}
                 className={cn(
                   "group flex w-full cursor-pointer items-center justify-between",
@@ -93,7 +100,7 @@ export function MobileSidebar() {
                     pathname === "/news" && "opacity-100",
                   )}
                 />
-              </div> */}
+              </div>
               <div
                 onClick={() => router.push("/procedures")}
                 className={cn(
@@ -103,8 +110,11 @@ export function MobileSidebar() {
               >
                 <div className="flex items-center gap-2">
                   <Image
-                    // ${pathname === "/" ? "secondary" : ""}
-                    src={`/icons/circle-star.png`}
+                    src={
+                      pathname === "/procedures"
+                        ? "/icons/circle-start-secondary.png"
+                        : `/icons/circle-star.png`
+                    }
                     alt=""
                     width={250}
                     height={250}
@@ -115,11 +125,11 @@ export function MobileSidebar() {
                 <ChevronRight
                   className={cn(
                     "text-secondary opacity-0 transition duration-200 group-hover:opacity-100",
-                    // pathname === "/" && "opacity-100",
+                    pathname === "/procedures" && "opacity-100",
                   )}
                 />
               </div>
-              {/* <div
+              <div
                 onClick={() => router.push("/ai")}
                 className={cn(
                   "group flex w-full cursor-pointer items-center justify-between",
@@ -138,6 +148,7 @@ export function MobileSidebar() {
                 />
               </div>
               <div
+                onClick={() => router.push("/prediction-ai")}
                 className={cn(
                   "group flex w-full cursor-pointer items-center justify-between",
                   pathname === "/prediction-ai" &&
@@ -155,11 +166,29 @@ export function MobileSidebar() {
                   )}
                 />
               </div>
-
               <div
+                onClick={() => router.push("/tutorials")}
                 className={cn(
                   "group flex w-full cursor-pointer items-center justify-between",
-                  // pathname === "/" && "text-secondary font-semibold",
+                  pathname === "/tutorials" && "text-secondary font-semibold",
+                )}
+              >
+                <div className="flex items-center gap-2">
+                  <Settings2Icon />
+                  <span>Tutoriais</span>
+                </div>
+                <ChevronRight
+                  className={cn(
+                    "text-secondary opacity-0 transition duration-200 group-hover:opacity-100",
+                    pathname === "/tutorials" && "opacity-100",
+                  )}
+                />
+              </div>
+              <div
+                onClick={() => router.push("/profile")}
+                className={cn(
+                  "group flex w-full cursor-pointer items-center justify-between",
+                  pathname === "/profile" && "text-secondary font-semibold",
                 )}
               >
                 <div className="flex items-center gap-2">
@@ -169,12 +198,12 @@ export function MobileSidebar() {
                 <ChevronRight
                   className={cn(
                     "text-secondary opacity-0 transition duration-200 group-hover:opacity-100",
-                    // pathname === "/" && "opacity-100",
+                    pathname === "/profile" && "opacity-100",
                   )}
                 />
-              </div> */}
+              </div>
             </div>
-            <div className="bg-surface flex h-60 w-60 flex-col overflow-hidden rounded-xl">
+            <div className="bg-surface absolute bottom-4 left-1/2 flex h-60 w-11/12 -translate-x-1/2 flex-col overflow-hidden rounded-xl">
               <Image
                 src="/static/ad1.png"
                 alt=""

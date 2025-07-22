@@ -9,7 +9,7 @@ export function Input({ className, ...rest }: InputProps) {
     <>
       <input
         className={cn(
-          "border-primary bg-surface h-12 w-full rounded-xl border-2 p-1 text-xl",
+          "border-secondary bg-surface h-10 w-full rounded-xl border-2 p-1",
           className,
         )}
         {...rest}

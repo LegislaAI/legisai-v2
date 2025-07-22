@@ -2,7 +2,7 @@
 "use client";
 import axios from "axios";
 import { useCookies } from "next-client-cookies";
-import { createContext, useContext } from "react";
+import { createContext, useContext, useState } from "react";
 
 const baseURL = process.env.NEXT_PUBLIC_API_URL;
 
@@ -26,6 +26,8 @@ export interface ApiContextProps {
     auth: boolean,
   ) => Promise<{ status: number; body: any }>;
   token: string;
+  setToken: React.Dispatch<React.SetStateAction<string>>;
+  clearToken: () => void;
 }
 
 const ApiContext = createContext<ApiContextProps | undefined>(undefined);
@@ -37,7 +39,13 @@ interface ProviderProps {
 export const ApiContextProvider = ({ children }: ProviderProps) => {
   const cookies = useCookies();
 
-  const token = cookies.get(process.env.NEXT_PUBLIC_USER_TOKEN as string);
+  const [token, setToken] = useState<string>(
+    cookies.get(process.env.NEXT_PUBLIC_USER_TOKEN as string) || "",
+  );
+
+  function clearToken() {
+    cookies.remove(process.env.NEXT_PUBLIC_USER_TOKEN as string);
+  }
 
   const api = axios.create({
     baseURL,
@@ -148,8 +156,10 @@ export const ApiContextProvider = ({ children }: ProviderProps) => {
     <ApiContext.Provider
       value={{
         token: token ? token : "",
+        setToken,
         PostAPI,
         GetAPI,
+        clearToken,
         PutAPI,
         DeleteAPI,
       }}

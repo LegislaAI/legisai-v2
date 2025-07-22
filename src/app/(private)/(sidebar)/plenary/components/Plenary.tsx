@@ -1,3 +1,4 @@
+import moment from "moment";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
@@ -5,13 +6,17 @@ interface PlenaryCardProps {
   id: string;
   title: string;
   summary: string;
+  date?: string;
 }
 
-export function PlenaryCard({ title, summary, id }: PlenaryCardProps) {
+export function PlenaryCard({ title, summary, id, date }: PlenaryCardProps) {
   const router = useRouter();
 
   return (
-    <div className="relative flex w-full flex-col items-center justify-between rounded-lg p-1 pb-2 transition-all duration-300 hover:scale-[1.005] hover:shadow lg:flex-row">
+    <div
+      onClick={() => router.push(`/plenary/${id}`)}
+      className="relative flex w-full cursor-pointer flex-col items-center justify-between rounded-lg p-1 pb-2 transition-all duration-300 hover:scale-[1.005] hover:shadow lg:flex-row"
+    >
       <div className="absolute bottom-0 left-1/2 h-px w-full -translate-x-1/2 bg-zinc-200 md:w-2/3 xl:w-3/4" />
       <div className="flex items-center gap-2">
         <div className="h-max w-max rounded-full border-2 border-blue-700 bg-blue-700/10 px-3 py-3">
@@ -26,7 +31,9 @@ export function PlenaryCard({ title, summary, id }: PlenaryCardProps) {
         <div>
           <h2 className="text-dark text-lg font-medium">{title}</h2>
           <p className="w-full text-gray-600 lg:hidden lg:w-[650px] lg:truncate">
-            {summary.length > 100 ? summary.slice(0, 100) + "..." : summary}
+            {summary && summary.length > 100
+              ? summary.slice(0, 100) + "..."
+              : summary}
           </p>
           <p className="hidden w-full text-gray-600 lg:block lg:w-[650px] lg:truncate">
             {summary}
@@ -34,10 +41,12 @@ export function PlenaryCard({ title, summary, id }: PlenaryCardProps) {
         </div>
       </div>
       <div className="flex flex-col items-center gap-2">
-        <span className="text-xs text-gray-600">2m atrás</span>
+        <span className="text-xs text-gray-600">
+          {moment(date).format("DD/MM/YY")}
+        </span>
         <button
           onClick={() => router.push(`/plenary/${id}`)}
-          className="rounded-xl border border-blue-700 bg-blue-700/10 px-4 py-1 font-bold text-blue-700 hover:scale-[1.05]"
+          className="rounded-xl border border-blue-700 bg-blue-700/10 px-4 py-1 font-bold text-blue-700 hover:scale-[1.005]"
         >
           Acessar
         </button>

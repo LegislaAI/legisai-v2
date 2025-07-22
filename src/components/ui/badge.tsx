@@ -8,7 +8,7 @@ const badgeVariants = cva(
   {
     variants: {
       color: {
-        default: "border-transparent bg-primary text-primary-foreground ",
+        default: "border-transparent bg-secondary text-secondary-foreground ",
         destructive:
           "bg-destructive border-transparent text-destructive-foreground",
         success: "bg-success border-transparent  text-success-foreground ",
@@ -19,7 +19,7 @@ const badgeVariants = cva(
       },
       variant: {
         outline: "border border-current bg-background  ",
-        soft: "text-current bg-opacity-10  hover:text-primary-foreground",
+        soft: "text-current bg-opacity-10  hover:text-secondary-foreground",
       },
     },
     compoundVariants: [
@@ -57,13 +57,13 @@ const badgeVariants = cva(
       {
         variant: "outline",
         color: "default",
-        className: "text-primary",
+        className: "text-secondary",
       },
       // soft button variant
       {
         variant: "soft",
         color: "default",
-        className: "text-primary hover:text-primary",
+        className: "text-secondary hover:text-secondary",
       },
       {
         variant: "soft",
@@ -94,7 +94,7 @@ const badgeVariants = cva(
       {
         variant: "soft",
         color: "default",
-        className: "text-primary hover:text-primary",
+        className: "text-secondary hover:text-secondary",
       },
     ],
     defaultVariants: {

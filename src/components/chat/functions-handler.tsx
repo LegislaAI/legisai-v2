@@ -128,19 +128,15 @@ registerTool({
     required: ["searchParam"],
   } as Schema,
   implementation: async ({ searchParam }, { GetAPI }) => {
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-
     try {
       const result = await GetAPI(
         `/proposition/vetorial?searchParams=${searchParam}`,
         false,
       );
 
-      console.log(result.body);
-
       return result.body;
     } catch (error) {
-      console.log(error);
+      console.error(error);
     }
   },
 });
@@ -159,10 +155,6 @@ registerTool({
     required: ["propositionId"],
   } as Schema,
   implementation: async ({ propositionId }, { GetAPI }) => {
-    console.log(propositionId);
-
-    // eslint-disable-next-line react-hooks/rules-of-hooks
-
     const result = await GetAPI(`/proposition-process/${propositionId}`, false);
 
     return result.body;

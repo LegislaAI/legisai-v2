@@ -1,6 +1,5 @@
 "use client";
 import { AuthHeader } from "@/components/ui/AuthHeader";
-import { Button } from "@/components/ui/button";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,10 +36,11 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
 import { useForm, UseFormReturn } from "react-hook-form";
+import toast from "react-hot-toast";
 import { z } from "zod";
 import { SignatureCard } from "../(sidebar)/prediction-ai/components/signatureCard";
 
-const FormSchema = z.object({
+const CardFormSchema = z.object({
   holderName: z.string().min(5, {
     message: "Nome do titular deve ter pelo menos 5 caracteres.",
   }),
@@ -51,8 +51,11 @@ const FormSchema = z.object({
     message: "Data inválida",
   }),
   ccv: z.string().min(3, {
-    message: "CCV must be at least 3 characters.",
+    message: "CVC deve ter pelo menos 3 caracteres.",
   }),
+});
+
+const CardHolderFormSchema = z.object({
   name: z.string().min(2, {
     message: "Nome completo deve ter pelo menos 2 caracteres.",
   }),
@@ -72,6 +75,8 @@ const FormSchema = z.object({
     message: "Telefone inválido.",
   }),
 });
+
+const FormSchema = CardHolderFormSchema.merge(CardFormSchema);
 
 interface PlanProps {
   creditCardPrice: number;
@@ -99,6 +104,7 @@ export default function Checkout() {
 
   const form = useForm<z.infer<typeof FormSchema>>({
     resolver: zodResolver(FormSchema),
+    mode: "onChange",
     defaultValues: {
       holderName: "",
       number: "",
@@ -113,45 +119,103 @@ export default function Checkout() {
     },
   });
 
-  const handleNext = (form: UseFormReturn<z.infer<typeof FormSchema>>) => {
+  const useFormSteps = (form: UseFormReturn<z.infer<typeof FormSchema>>) => {
+    const [activeStep, setActiveStep] = useState(0);
+
+    const stepFields = {
+      0: ["holderName", "number", "expiryDate", "ccv"] as const,
+      1: [
+        "name",
+        "email",
+        "cpfCnpj",
+        "postalCode",
+        "addressNumber",
+        "phone",
+      ] as const,
+    };
+
+    const validateStep = async (step: number) => {
+      const fields = stepFields[step as keyof typeof stepFields];
+      if (!fields) return true;
+      return await form.trigger(fields);
+    };
+
+    return { activeStep, validateStep, setActiveStep };
+  };
+
+  const { validateStep } = useFormSteps(form);
+
+  const handleNext = async (
+    form: UseFormReturn<z.infer<typeof FormSchema>>,
+  ) => {
     if (selectedPayment === "card") {
       if (activeStep === 0) {
-        if (
-          form.control._formValues.holderName === "" ||
-          form.control._formValues.number === "" ||
-          form.control._formValues.expiryDate === "" ||
-          form.control._formValues.ccv === ""
-        ) {
-          return alert("Por favor, preencha todos os campos.");
-        } else if (
-          form.control._formValues.holderName !== "" &&
-          form.control._formValues.number !== "" &&
-          form.control._formValues.expiryDate !== "" &&
-          form.control._formValues.ccv !== ""
-        ) {
-          return setActiveStep((prevActiveStep) => prevActiveStep + 1);
+        const isValid = await validateStep(activeStep);
+        if (!isValid) {
+          const errors = form.formState.errors;
+
+          // Define field labels with proper typing
+          const fieldLabels: Record<
+            keyof z.infer<typeof CardFormSchema>,
+            string
+          > = {
+            holderName: "Nome no Cartão",
+            number: "Número do Cartão",
+            expiryDate: "Data de Expiração",
+            ccv: "CCV",
+          };
+
+          // Get first error with type safety
+          const firstErrorField = Object.keys(
+            errors,
+          )[0] as keyof typeof fieldLabels;
+          const firstError = errors[firstErrorField];
+
+          if (firstError?.message && firstErrorField in fieldLabels) {
+            const fieldLabel = fieldLabels[firstErrorField];
+            return toast.error(`${fieldLabel}: ${firstError.message}`);
+          }
+
+          return toast.error("Por favor, corrija os erros no formulário.");
+        } else {
+          setActiveStep(activeStep + 1);
         }
       } else if (activeStep === 1) {
-        if (
-          form.control._formValues.name === "" ||
-          form.control._formValues.email === "" ||
-          form.control._formValues.cpfCnpj === "" ||
-          form.control._formValues.postalCode === "" ||
-          form.control._formValues.addressNumber === "" ||
-          form.control._formValues.phone === ""
-        ) {
-          return alert("Por favor, preencha todos os campos.");
-        } else if (
-          form.control._formValues.name !== "" &&
-          form.control._formValues.email !== "" &&
-          form.control._formValues.cpfCnpj !== "" &&
-          form.control._formValues.postalCode !== "" &&
-          form.control._formValues.addressNumber !== "" &&
-          form.control._formValues.phone !== ""
-        ) {
-          return setActiveStep((prevActiveStep) => prevActiveStep + 1);
+        const isValid = await validateStep(activeStep);
+        if (!isValid) {
+          const errors = form.formState.errors;
+
+          // Define field labels with proper typing
+          const fieldLabels: Record<
+            keyof z.infer<typeof CardHolderFormSchema>,
+            string
+          > = {
+            name: "Nome",
+            email: "Email",
+            cpfCnpj: "CPF/CNPJ",
+            postalCode: "CEP",
+            addressNumber: "Número",
+            phone: "Telefone",
+          };
+
+          // Get first error with type safety
+          const firstErrorField = Object.keys(
+            errors,
+          )[0] as keyof typeof fieldLabels;
+          const firstError = errors[firstErrorField];
+
+          if (firstError?.message && firstErrorField in fieldLabels) {
+            const fieldLabel = fieldLabels[firstErrorField];
+            return toast.error(`${fieldLabel}: ${firstError.message}`);
+          }
+
+          return toast.error("Por favor, corrija os erros no formulário.");
+        } else {
+          setActiveStep(activeStep + 1);
         }
       } else if (activeStep === 2) {
+        router.push("/");
+      } else if (activeStep === 3) {
         HandleCard();
       }
     }
@@ -202,6 +266,7 @@ export default function Checkout() {
   }
 
   async function HandleQrCode() {
+    return router.push("/");
     setIsPixBeingGenerated(true);
     const qrCode = await PostAPI(
       `/signature/pix/${selectedPlan?.id}`,
@@ -225,18 +290,18 @@ export default function Checkout() {
   return (
     <main className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-white pb-10 md:pb-0">
       <Image
-        src={"/static/login.png"}
-        className="absolute right-0 z-10 hidden h-[95%] w-[40%] rounded-tl-lg rounded-bl-lg object-cover md:block"
+        src={"/static/register2.png"}
+        className="absolute top-0 right-0 z-10 hidden h-[95%] w-[40%] rounded-bl-lg object-cover md:block"
         alt=""
         width={1000}
         height={2500}
       />
       <div className="relative z-10 flex min-h-[100vh] w-full flex-col overflow-hidden px-8 xl:px-20">
         <AuthHeader />
-        <div className="z-20 mt-32 flex w-full flex-col gap-2 md:w-[45%] xl:mt-40 xl:ml-[10%] xl:w-[60%] xl:gap-4">
+        <div className="z-20 mt-32 flex w-full flex-col gap-2 pb-8 md:w-[45%] xl:mt-40 xl:ml-[10%] xl:w-[60%] xl:gap-4">
           <button
             onClick={() => router.back()}
-            className="text-primary static top-4 left-4 flex flex-row items-center justify-center gap-2 self-start text-xs underline md:absolute md:text-base"
+            className="text-secondary static top-4 left-4 flex flex-row items-center justify-center gap-2 self-start text-xs underline md:absolute md:text-base"
           >
             <ChevronLeft size={16} /> Voltar
           </button>
@@ -247,7 +312,7 @@ export default function Checkout() {
                 className={cn(
                   "relative flex w-full flex-col rounded-md border bg-white p-2 opacity-60 shadow-sm transition-all duration-300",
                   selectedPayment === "card" &&
-                    "border-primary bg-zinc-50 opacity-100",
+                    "border-secondary bg-zinc-50 opacity-100",
                 )}
                 htmlFor="card"
               >
@@ -263,7 +328,8 @@ export default function Checkout() {
                   <Check
                     className={cn(
                       "opacity-0 transition duration-200",
-                      selectedPayment === "card" && "text-primary opacity-100",
+                      selectedPayment === "card" &&
+                        "text-secondary opacity-100",
                     )}
                   />
                   <div className="flex flex-col text-black">
@@ -278,7 +344,7 @@ export default function Checkout() {
                 className={cn(
                   "relative flex w-full flex-col rounded-md border bg-white p-2 opacity-60 shadow-sm transition-all duration-300",
                   selectedPayment === "pix" &&
-                    "border-primary bg-zinc-50 opacity-100",
+                    "border-secondary bg-zinc-50 opacity-100",
                 )}
                 htmlFor="pix"
               >
@@ -294,7 +360,7 @@ export default function Checkout() {
                   <Check
                     className={cn(
                       "opacity-0 transition duration-200",
-                      selectedPayment === "pix" && "text-primary opacity-100",
+                      selectedPayment === "pix" && "text-secondary opacity-100",
                     )}
                   />
                   <div className="flex flex-col text-black">
@@ -329,8 +395,8 @@ export default function Checkout() {
                                 alt=""
                                 width={100}
                                 height={100}
-                                src={"/card.svg"}
-                                className="h-[22px] w-4"
+                                src={"/icons/card.png"}
+                                className="h-6 w-max object-contain"
                               />
                               <h4 className="text-sm font-semibold text-black uppercase">
                                 Preencha os dados do seu Cartão
@@ -353,15 +419,16 @@ export default function Checkout() {
                                   <FormControl>
                                     <Input
                                       placeholder="Nome no Cartão..."
+                                      type="text"
                                       {...field}
                                       className={cn("", {
-                                        "border-destructive focus:border-destructive text-text-100 rounded-md":
+                                        "text-text-100 rounded-md border-red-500 focus:border-red-500":
                                           form.formState.errors.holderName,
                                       })}
                                       autoComplete="off"
                                     />
                                   </FormControl>
-                                  <FormMessage className="font-base bg-destructive/90 text-primary-foreground inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-[10px]" />
+                                  <FormMessage className="font-base inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-xs text-red-500" />
                                 </FormItem>
                               )}
                             />
@@ -381,7 +448,7 @@ export default function Checkout() {
                                       maxLength={19}
                                       placeholder="XXXX XXXX XXXX XXXX"
                                       className={cn("", {
-                                        "border-destructive focus:border-destructive rounded-md":
+                                        "rounded-md border-red-500 focus:border-red-500":
                                           form.formState.errors.number,
                                       })}
                                       value={maskCard(field.value)}
@@ -391,7 +458,7 @@ export default function Checkout() {
                                       autoComplete="off"
                                     />
                                   </FormControl>
-                                  <FormMessage className="font-base bg-destructive/90 text-primary-foreground inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-[10px]" />
+                                  <FormMessage className="font-base inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-xs text-red-500" />
                                 </FormItem>
                               )}
                             />
@@ -413,7 +480,7 @@ export default function Checkout() {
                                         field.onChange(e.target.value)
                                       }
                                       className={cn("", {
-                                        "border-destructive focus:border-destructive rounded-md":
+                                        "rounded-md border-red-500 focus:border-red-500":
                                           form.formState.errors.expiryDate,
                                       })}
                                       maxLength={5}
@@ -421,7 +488,7 @@ export default function Checkout() {
                                       autoComplete="off"
                                     />
                                   </FormControl>
-                                  <FormMessage className="font-base bg-destructive/90 text-primary-foreground inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-[10px]" />
+                                  <FormMessage className="font-base inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-xs text-red-500" />
                                 </FormItem>
                               )}
                             />
@@ -441,14 +508,14 @@ export default function Checkout() {
                                       {...field}
                                       placeholder="XXX"
                                       className={cn("", {
-                                        "border-destructive focus:border-destructive rounded-md":
+                                        "rounded-md border-red-500 focus:border-red-500":
                                           form.formState.errors.ccv,
                                       })}
                                       maxLength={4}
                                       autoComplete="off"
                                     />
                                   </FormControl>
-                                  <FormMessage className="font-base bg-destructive/90 text-primary-foreground inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-[10px]" />
+                                  <FormMessage className="font-base inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-xs text-red-500" />
                                 </FormItem>
                               )}
                             />
@@ -462,8 +529,8 @@ export default function Checkout() {
                                 alt=""
                                 width={100}
                                 height={100}
-                                src={"/LogoIcon.png"}
-                                className="h-[22px] w-4"
+                                src={"/icons/card.png"}
+                                className="h-6 w-max object-contain"
                               />
                               <h4 className="text-text-100 text-sm font-medium">
                                 Preencha os dados do Proprietário do Cartão
@@ -485,16 +552,17 @@ export default function Checkout() {
                                   </FormLabel>
                                   <FormControl>
                                     <Input
+                                      type="text"
                                       placeholder="Nome Completo..."
                                       {...field}
                                       className={cn("", {
-                                        "border-destructive focus:border-destructive":
+                                        "border-red-500 focus:border-red-500":
                                           form.formState.errors.name,
                                       })}
                                       autoComplete="off"
                                     />
                                   </FormControl>
-                                  <FormMessage className="font-base bg-destructive/90 text-primary-foreground inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-[10px]" />
+                                  <FormMessage className="font-base inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-xs text-red-500" />
                                 </FormItem>
                               )}
                             />
@@ -515,13 +583,13 @@ export default function Checkout() {
                                       placeholder="email@email.com"
                                       {...field}
                                       className={cn("", {
-                                        "border-destructive focus:border-destructive":
+                                        "border-red-500 focus:border-red-500":
                                           form.formState.errors.email,
                                       })}
                                       autoComplete="off"
                                     />
                                   </FormControl>
-                                  <FormMessage className="font-base bg-destructive/90 text-primary-foreground inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-[10px]" />
+                                  <FormMessage className="font-base inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-xs text-red-500" />
                                 </FormItem>
                               )}
                             />
@@ -543,7 +611,7 @@ export default function Checkout() {
                                         field.onChange(e.target.value)
                                       }
                                       className={cn("", {
-                                        "border-destructive focus:border-destructive":
+                                        "border-red-500 focus:border-red-500":
                                           form.formState.errors.phone,
                                       })}
                                       value={maskPhone(field.value)}
@@ -551,7 +619,7 @@ export default function Checkout() {
                                       autoComplete="off"
                                     />
                                   </FormControl>
-                                  <FormMessage className="font-base bg-destructive/90 text-primary-foreground inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-[10px]" />
+                                  <FormMessage className="font-base inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-xs text-red-500" />
                                 </FormItem>
                               )}
                             />
@@ -573,7 +641,7 @@ export default function Checkout() {
                                         field.onChange(e.target.value)
                                       }
                                       className={cn("", {
-                                        "border-destructive focus:border-destructive":
+                                        "border-red-500 focus:border-red-500":
                                           form.formState.errors.cpfCnpj,
                                       })}
                                       maxLength={18}
@@ -581,7 +649,7 @@ export default function Checkout() {
                                       autoComplete="off"
                                     />
                                   </FormControl>
-                                  <FormMessage className="font-base bg-destructive/90 text-primary-foreground inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-[10px]" />
+                                  <FormMessage className="font-base inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-xs text-red-500" />
                                 </FormItem>
                               )}
                             />
@@ -603,7 +671,7 @@ export default function Checkout() {
                                         field.onChange(e.target.value)
                                       }
                                       className={cn("", {
-                                        "border-destructive focus:border-destructive":
+                                        "border-red-500 focus:border-red-500":
                                           form.formState.errors.postalCode,
                                       })}
                                       maxLength={9}
@@ -611,7 +679,7 @@ export default function Checkout() {
                                       autoComplete="off"
                                     />
                                   </FormControl>
-                                  <FormMessage className="font-base bg-destructive/90 text-primary-foreground inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-[10px]" />
+                                  <FormMessage className="font-base inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-xs text-red-500" />
                                 </FormItem>
                               )}
                             />
@@ -630,14 +698,14 @@ export default function Checkout() {
                                     <Input
                                       {...field}
                                       className={cn("", {
-                                        "border-destructive focus:border-destructive":
+                                        "border-red-500 focus:border-red-500":
                                           form.formState.errors.addressNumber,
                                       })}
                                       placeholder="999"
                                       autoComplete="off"
                                     />
                                   </FormControl>
-                                  <FormMessage className="font-base bg-destructive/90 text-primary-foreground inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-[10px]" />
+                                  <FormMessage className="font-base inline-flex h-[22px] items-center justify-center rounded-sm px-2 text-xs text-red-500" />
                                 </FormItem>
                               )}
                             />
@@ -647,12 +715,12 @@ export default function Checkout() {
                         <>
                           {selectedPlan && (
                             <>
-                              <h1 className="text-primary text-sm font-bold md:text-base">
+                              <h1 className="text-secondary text-sm font-bold md:text-base">
                                 Parcelamento
                               </h1>
                               <DropdownMenu>
                                 <DropdownMenuTrigger asChild>
-                                  <button className="bg-primaryp-2 relative col-span-12 w-full rounded-lg text-white">
+                                  <button className="bg-secondary relative col-span-12 w-full rounded-lg p-2 text-white">
                                     <span className="font-semibold">
                                       {selectedInstallment +
                                         " x " +
@@ -672,9 +740,9 @@ export default function Checkout() {
                                     (item) => (
                                       <DropdownMenuItem
                                         className={cn(
-                                          "hover:bg-primary text-black hover:text-white",
+                                          "hover:bg-secondary text-black hover:text-white",
                                           selectedInstallment === item &&
-                                            "bg-primary text-white",
+                                            "bg-secondary text-white",
                                         )}
                                         onSelect={() =>
                                           setSelectedInstallment(item)
@@ -707,7 +775,7 @@ export default function Checkout() {
                       <>
                         <button
                           onClick={HandleQrCode}
-                          className="bg-primary mx-auto flex h-12 w-full items-center gap-2 rounded-lg p-2 py-4 font-semibold text-white transition-all duration-300 hover:scale-[1.05]"
+                          className="bg-secondary mx-auto flex h-12 w-full items-center gap-2 rounded-lg p-2 py-4 font-semibold text-white transition-all duration-300 hover:scale-[1.005]"
                         >
                           {isPixBeingGenerated ? (
                             <Loader2 className="mx-auto h-5 w-5 animate-spin" />
@@ -736,10 +804,10 @@ export default function Checkout() {
                                 width={300}
                                 height={300}
                                 alt=""
-                                className="bg-primary h-max w-1/3 self-center rounded-2xl object-contain p-2"
+                                className="bg-secondary h-max w-1/3 self-center rounded-2xl object-contain p-2"
                               />
                               <button
-                                className="bg-pix bg-primary m-auto flex w-max items-center gap-2 rounded-lg p-1 text-sm text-white transition-all duration-300 hover:scale-[1.05]"
+                                className="bg-pix bg-secondary m-auto flex w-max items-center gap-2 rounded-lg p-1 text-sm text-white transition-all duration-300 hover:scale-[1.005]"
                                 onClick={() => {
                                   copyToClipboard(qrCode.payload);
                                   setCopiedQrCode(true);
@@ -758,7 +826,7 @@ export default function Checkout() {
                         <button
                           onClick={() => router.push("/")}
                           className={cn(
-                            "bg-primary mx-auto flex h-12 w-60 items-center justify-center gap-2 rounded-lg p-2 font-semibold text-white transition-all duration-300 hover:scale-[1.05]",
+                            "bg-secondary mx-auto flex h-12 w-60 items-center justify-center gap-2 rounded-lg p-2 font-semibold text-white transition-all duration-300 hover:scale-[1.005]",
                             !isPixGenerated && "hidden",
                           )}
                         >
@@ -774,16 +842,13 @@ export default function Checkout() {
 
               <div
                 className={cn(
-                  "flex pt-2",
+                  "flex gap-4 pt-2",
                   selectedPayment === "pix" && "hidden",
                 )}
               >
-                <Button
-                  size="xs"
-                  variant="outline"
-                  color="secondary"
+                <button
                   className={cn(
-                    "text-text-100 cursor-pointer transition-all duration-300 hover:scale-[1.05]",
+                    "border-secondary text-secondary w-full rounded-md border bg-white p-2 font-bold",
                     {
                       hidden: activeStep === 0,
                     },
@@ -791,15 +856,13 @@ export default function Checkout() {
                   onClick={handleBack}
                 >
                   Voltar
-                </Button>
-                <div className="flex-1 gap-4" />
-                <div className="flex gap-2"></div>
+                </button>
                 <button
                   // type="submit"
                   type="button"
                   disabled={isPaying}
                   onClick={() => handleNext(form)}
-                  className="bg-primary w-full rounded-md border p-2 font-bold text-white"
+                  className="bg-secondary w-full rounded-md border p-2 font-bold text-white"
                 >
                   {activeStep === 2
                     ? "Finalizar"

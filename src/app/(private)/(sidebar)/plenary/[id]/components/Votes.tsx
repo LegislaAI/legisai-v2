@@ -1,5 +1,4 @@
 "use client";
-import SingleDonutChart from "@/components/SingleItemDonnutChart";
 import {
   Table,
   TableBody,
@@ -9,345 +8,184 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import {
-  Check,
-  ChevronLeft,
-  ChevronRight,
-  Copy,
-  Search,
-  Type,
-  User2,
-  Video,
-  X,
-} from "lucide-react";
+import { Check, Loader2, Search, Type, User2, Video, X } from "lucide-react";
 import Image from "next/image";
 import "swiper/css";
 
+import { VoteDetailsProps, VotesProps } from "@/@types/proposition";
+import { CustomPagination } from "@/components/CustomPagination";
+import { useApiContext } from "@/context/ApiContext";
+import debounce from "lodash.debounce";
+import moment from "moment";
+import { usePathname } from "next/navigation";
+import { useCallback, useEffect, useState } from "react";
 import { Chat } from "./Chat";
 import { Tutorials } from "./Tutorials";
-export function Votes() {
-  const positiveVotes = [
-    { name: "Samuel Viana", party: "PT", state: "MG" },
-    { name: "Ana Silva", party: "PSDB", state: "SP" },
-    { name: "Carlos Souza", party: "MDB", state: "RJ" },
-    { name: "Mariana Lima", party: "DEM", state: "BA" },
-    { name: "Pedro Santos", party: "PSOL", state: "RS" },
-    { name: "Lucas Oliveira", party: "Novo", state: "PR" },
-    { name: "Fernanda Costa", party: "PT", state: "MG" },
-    { name: "João Almeida", party: "PSDB", state: "SP" },
-    { name: "Ricardo Pereira", party: "MDB", state: "RJ" },
-    { name: "Patrícia Gomes", party: "DEM", state: "BA" },
-    { name: "Roberto Nunes", party: "PSOL", state: "RS" },
-    { name: "Gabriela Martins", party: "Novo", state: "PR" },
+
+interface VoteProps {
+  eventUrl: string;
+}
+
+export function Votes({ eventUrl }: VoteProps) {
+  const pathname = usePathname();
+  const { GetAPI } = useApiContext();
+
+  const voteColumns = [
+    { key: "title", label: "Proposição" },
+    { key: "positive", label: "Positivos" },
+    { key: "negative", label: "Negativos" },
+    { key: "Total", label: "Total" },
+    { key: "result", label: "Resultado" },
   ];
 
-  const negativeVotes = [
-    { name: "Samuel Viana", party: "PT", state: "MG" },
-    { name: "Ana Silva", party: "PSDB", state: "SP" },
-    { name: "Carlos Souza", party: "MDB", state: "RJ" },
-    { name: "Mariana Lima", party: "DEM", state: "BA" },
-    { name: "Pedro Santos", party: "PSOL", state: "RS" },
-    { name: "Lucas Oliveira", party: "Novo", state: "PR" },
-    { name: "Fernanda Costa", party: "PT", state: "MG" },
-    { name: "João Almeida", party: "PSDB", state: "SP" },
-    { name: "Ricardo Pereira", party: "MDB", state: "RJ" },
-    { name: "Patrícia Gomes", party: "DEM", state: "BA" },
-    { name: "Roberto Nunes", party: "PSOL", state: "RS" },
-    { name: "Gabriela Martins", party: "Novo", state: "PR" },
-  ];
+  const [selectedVote, setSelectedVote] = useState<VotesProps | null>(null);
+  const [votesList, setVotesList] = useState<VotesProps[]>([]);
+  const [isGettingVotes, setIsGettingVotes] = useState(true);
+  const [positiveVotesList, setPositiveVotesList] = useState<
+    VoteDetailsProps[]
+  >([]);
+  const [negativeVotesList, setNegativeVotesList] = useState<
+    VoteDetailsProps[]
+  >([]);
+  const [positiveVotesCurrentPage, setPositiveVotesCurrentPage] = useState(1);
+  const [negativeVotesCurrentPage, setNegativeVotesCurrentPage] = useState(1);
+  const [positiveVotesTotalPages, setPositiveVotesTotalPages] = useState(1);
+  const [negativeVotesTotalPages, setNegativeVotesTotalPages] = useState(1);
+  const [positiveVotesQuery, setPositiveVotesQuery] = useState("");
+  const [negativeVotesQuery, setNegativeVotesQuery] = useState("");
 
-  const tableData = [
-    {
-      author: "Felipe Carreras (PSB-PE)",
-      proposal: "REQ 1884/2023",
-      subject: "Outro Dado",
-      yes: 43,
-      no: 3,
-      votes: 48,
-      result: "aprovado",
-      id: 1,
-    },
-    {
-      author: "Felipe Carreras (PSB-PE)",
-      proposal: "PL 8035/2014",
-      subject: "Outro Dado",
-      yes: 43,
-      no: 3,
-      votes: 48,
-      result: "aprovada com alterações",
-      id: 2,
-    },
-    {
-      author: "Felipe Carreras (PSB-PE)",
-      proposal: "PL 8035/2014",
-      subject: "Outro Dado",
-      yes: 43,
-      no: 3,
-      votes: 48,
-      result: "não analisada",
-      id: 3,
-    },
-    {
-      author: "Felipe Carreras (PSB-PE)",
-      proposal: "PL 8035/2014",
-      subject: "Outro Dado",
-      yes: 43,
-      no: 3,
-      votes: 48,
-      result: "não analisada",
-      id: 4,
-    },
-    {
-      author: "Felipe Carreras (PSB-PE)",
-      proposal: "PL 8035/2014",
-      subject: "Outro Dado",
-      yes: 43,
-      no: 3,
-      votes: 48,
-      result: "não analisada",
-      id: 5,
-    },
-    {
-      author: "Felipe Carreras (PSB-PE)",
-      proposal: "PL 8035/2014",
-      subject: "Outro Dado",
-      yes: 43,
-      no: 3,
-      votes: 48,
-      result: "não analisada",
-      id: 6,
-    },
-  ];
+  async function GetVotes() {
+    const eventId = pathname.split("/")[2];
+    const votes = await GetAPI(`/voting/${eventId}`, true);
+    console.log("votes", votes);
+    if (votes.status === 200) {
+      setVotesList(votes.body.voting);
+      return setIsGettingVotes(false);
+    }
+  }
+
+  async function GetPositiveVotes() {
+    const positiveVotes = await GetAPI(
+      `/voting-politician/positive/${selectedVote?.id}?page=${positiveVotesCurrentPage}&query=${positiveVotesQuery}`,
+      true,
+    );
+    if (positiveVotes.status === 200) {
+      setPositiveVotesList(positiveVotes.body.votes);
+      setPositiveVotesTotalPages(positiveVotes.body.pages);
+    }
+  }
+
+  async function GetNegativeVotes() {
+    const negativeVotes = await GetAPI(
+      `/voting-politician/negative/${selectedVote?.id}?page=${negativeVotesCurrentPage}&query=${negativeVotesQuery}`,
+      true,
+    );
+    if (negativeVotes.status === 200) {
+      setNegativeVotesList(negativeVotes.body.votes);
+      setNegativeVotesTotalPages(negativeVotes.body.pages);
+    }
+  }
+
+  const ProposalName = (vote: VotesProps) => {
+    if (vote.mainProposition) {
+      return (
+        vote.mainProposition.typeAcronym +
+        " " +
+        vote.mainProposition.number +
+        "/" +
+        vote.mainProposition.year +
+        " (" +
+        vote.proposition.typeAcronym +
+        ")"
+      );
+    } else {
+      return (
+        vote.proposition.typeAcronym +
+        " " +
+        vote.proposition.number +
+        "/" +
+        vote.proposition.year
+      );
+    }
+  };
+
+  const handleStopTypingPositive = (value: string) => {
+    setPositiveVotesQuery(value);
+  };
+
+  const debouncedHandleStopTypingPositive = useCallback(
+    debounce(handleStopTypingPositive, 500),
+    [],
+  );
+
+  const handleStopTypingNegative = (value: string) => {
+    setNegativeVotesQuery(value);
+  };
+
+  const debouncedHandleStopTypingNegative = useCallback(
+    debounce(handleStopTypingNegative, 500),
+    [],
+  );
+
+  const isSymbolicVote = (positive: number, negative: number) => {
+    if (positive === 0 && negative === 0) {
+      return true;
+    }
+    return false;
+  };
+
+  useEffect(() => {
+    GetVotes();
+  }, []);
+
+  useEffect(() => {
+    if (selectedVote) {
+      async function GetVotes() {
+        await Promise.all([GetPositiveVotes(), GetNegativeVotes()]);
+      }
+      GetVotes();
+    }
+  }, [selectedVote]);
+
+  useEffect(() => {
+    if (selectedVote) {
+      GetPositiveVotes();
+    }
+  }, [selectedVote, positiveVotesCurrentPage, positiveVotesQuery]);
+
+  useEffect(() => {
+    if (selectedVote) {
+      GetNegativeVotes();
+    }
+  }, [selectedVote, negativeVotesCurrentPage, negativeVotesQuery]);
 
   return (
     <div className="grid w-full grid-cols-12 gap-8">
       <div className="col-span-12 flex flex-col overflow-hidden rounded-lg bg-white xl:col-span-12">
         <div className="flex h-full w-full flex-col">
-          <span className="text-primary p-4 text-xl font-bold">
-            Propostas a Serem Analisadas
-          </span>
-          <div className="flex w-full flex-row flex-wrap justify-evenly gap-4 p-4 md:gap-0 lg:h-80 xl:h-full">
-            <div className="text-primary border-primary flex w-full flex-col gap-8 rounded-lg border p-8 md:w-max">
-              <div className="flex flex-row items-center gap-2">
-                <Image
-                  src={"/icons/plenary/user-green.svg"}
-                  alt=""
-                  width={250}
-                  height={250}
-                  className="h-6 w-6 object-contain"
-                />
-                <div className="bg-primary flex h-6 w-6 items-center justify-center rounded-full object-contain text-white">
-                  <Check />
-                </div>
-                <span className="text-xl font-bold">Quórum votação</span>
-              </div>
-              <div className="flex flex-row items-center justify-evenly gap-4">
-                <Image
-                  src="/logos/small-logo.png"
-                  alt="quorum"
-                  width={100}
-                  height={100}
-                  className="h-12 w-max"
-                />
-                <span className="text-4xl font-bold">287</span>
-              </div>
-            </div>
-            <div className="text-primary border-primary flex w-full flex-col gap-8 rounded-lg border p-8 md:w-max">
-              <div className="flex flex-row items-center gap-2">
-                <div className="bg-primary flex h-6 w-6 items-center justify-center rounded-full p-0.5 text-white">
-                  <Check />
-                </div>
-                <span className="text-xl font-bold">Total de Presentes</span>
-              </div>
-              <div className="flex flex-row items-center justify-evenly gap-4">
-                <div className="flex h-16 max-h-16 items-center justify-center">
-                  <SingleDonutChart total={340} current={320} height={120} />
-                </div>
-                <span className="text-4xl font-bold">320</span>
-              </div>
-            </div>
-            <div className="text-primary border-primary flex w-full flex-col gap-8 rounded-lg border p-8 md:w-max">
-              <div className="flex flex-row items-center gap-2">
-                <Copy className="h-6 w-6" />
-                <span className="text-xl font-bold">Total de Propostas</span>
-              </div>
-              <div className="flex flex-row items-center justify-evenly gap-4">
-                <div className="flex h-16 max-h-16 items-center justify-center">
-                  <SingleDonutChart total={3} current={3} height={120} />
-                </div>
-                <span className="text-4xl font-bold">3</span>
-              </div>
-            </div>
-          </div>
-        </div>
-        <div className="bg-primary/20 flex h-full w-full flex-col gap-4 p-4">
-          <span className="text-primary text-xl font-bold">
-            Propostas a Serem Analisadas e seus Votos
-          </span>
-          <div className="lg:px-4">
-            <div className="border-primary flex w-full flex-col overflow-hidden rounded-lg border bg-white px-4 py-2 md:px-8">
-              <div className="flex h-full w-full flex-col justify-between md:flex-row">
-                <div className="flex flex-col justify-between gap-8 md:max-w-[60%]">
-                  <div className="flex flex-col">
-                    <span className="font-semibold">PL 1847/2024</span>
-                    <div className="flex flex-wrap gap-2">
-                      <div className="border-primary rounded-full border p-1 text-sm">
-                        <span className="font-semibold">AUTOR:</span>
-                        <span>DE SENADO FEDERAL - EFRAIM FILHO</span>
-                      </div>
-                      <div className="border-primary rounded-full border p-1 text-sm">
-                        <span className="font-semibold">RELATOR:</span>
-                        <span>JOSÉ GUIMARÃES (PT-CE)</span>
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="text-justify text-sm">
-                    <span className="font-semibold underline">
-                      PL 1847/2024 {""}
-                    </span>
-                    <span>
-                      - Estabelece regime de transição para a contribuição
-                      substitutiva prevista nos arts. 7º e 8º da Lei nº 12.546,
-                      de 14 de dezembro de 2011, e para o adicional sobre a
-                      Cofins-Importação previsto no § 21 do art. 8º da Lei nº
-                      10.865, de 30 de abril de 2004; altera as Leis nºs 8.212,
-                      de 24 de julho de 1991, 8.742, de 7 de dezembro de 1993,
-                      10.522, de 19 de julho de 2002, 10.779, de 25 de novembro
-                      de 2003, 10.865, de 30 de abril de 2004 (...) {""}
-                    </span>
-                    <span className="text-primary font-semibold underline">
-                      Clique aqui para Continuar lendo
-                    </span>
-                  </div>
-                  <span className="text-xs text-[#828690]">
-                    Última Atualização do LegisAI: às 14:55
-                  </span>
-                </div>
-                <div className="flex flex-row gap-2">
-                  <div className="border-primary shadow-primary col-span-1 flex flex-col justify-between rounded-lg">
-                    <div className="flex w-full flex-col items-center justify-between gap-4 p-4">
-                      <div className="flex flex-col">
-                        <div className="flex w-full items-center justify-center gap-2">
-                          <div className="bg-primary flex h-5 w-5 items-center justify-center rounded-full text-white">
-                            <Check size={16} />
-                          </div>
-                          <h3 className="text-xl font-bold">VOTOS PARA SIM:</h3>
-                        </div>
-                      </div>
-                      <div className="flex flex-1 flex-col">
-                        <div className="h-2 w-full rounded-full bg-[#4C4C4C]">
-                          <div className="h-2 w-1/3 rounded-full bg-[#00A15D]" />
-                        </div>
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-4xl font-bold">42</span>
-                          <span className="text-center text-xl">
-                            Dos deputados presentes
-                          </span>
-                          <span className="text-2xl text-[#00a15d]">76</span>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="flex w-full flex-col-reverse items-center justify-between gap-4 p-4">
-                      <div className="flex flex-1 flex-col">
-                        <div className="h-2 w-full rounded-full bg-[#4C4C4C]">
-                          <div className="ml-auto h-2 w-1/3 rounded-full bg-rose-500" />
-                        </div>
-                        <div className="flex items-center justify-between gap-2">
-                          <span className="text-4xl font-bold">42</span>
-                          <span className="text-center text-xl">
-                            Dos deputados presentes
-                          </span>
-                          <span className="text-2xl text-rose-500">76</span>
-                        </div>
-                      </div>
-                      <div className="flex w-64 flex-col">
-                        <div className="flex w-full items-center justify-center gap-2">
-                          <h3 className="text-xl font-bold">VOTOS PARA NÃO:</h3>
-                          <div className="flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-white">
-                            <X size={16} />
-                          </div>
-                        </div>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-      <div className="col-span-12 flex flex-col overflow-hidden rounded-lg bg-white xl:col-span-12">
-        <div className="flex h-full w-full flex-col">
-          <span className="text-primary p-4 text-xl font-bold">
-            Propostas a Serem Analisadas
+          <span className="text-secondary p-4 text-xl font-bold">
+            Votações do Plenário
           </span>
           <div className="h-80 overflow-auto xl:h-full">
             <Table>
-              <TableHeader className="bg-primary">
+              <TableHeader className="bg-secondary">
                 <TableRow>
-                  {[
-                    {
-                      key: "authors",
-                      label: "Autores",
-                      image: "/icons/plenary/user.svg",
-                    },
-                    {
-                      key: "proposal",
-                      label: "Proposta",
-                      image: "/icons/plenary/folder.svg",
-                    },
-                    {
-                      key: "subject",
-                      label: "Assunto",
-                      image: "/icons/plenary/clipboard.svg",
-                    },
-                    {
-                      key: "yes",
-                      label: "Sim",
-                    },
-                    {
-                      key: "no",
-                      label: "Não",
-                    },
-                    {
-                      key: "votes",
-                      label: "Votos",
-                      image: "/icons/plenary/circles.png",
-                    },
-                    {
-                      key: "result",
-                      label: "Resultado",
-                      image: "/icons/plenary/circles.png",
-                    },
-                  ].map((column) => (
+                  {voteColumns.map((column) => (
                     <TableHead
                       key={column.key}
                       className="h-12 justify-end text-center text-sm font-semibold text-white"
                     >
-                      <div
-                        className={cn(
-                          "flex items-center gap-2",
-                          column.key === "authors" && "items-start",
-                          column.key !== "authors" && "w-full justify-center",
-                        )}
-                      >
-                        {column.image ? (
-                          <Image
-                            src={column.image}
-                            alt=""
-                            width={250}
-                            height={250}
-                            className="h-6 w-6 object-contain"
-                          />
-                        ) : (
-                          <div
-                            className={`flex h-5 w-5 items-center justify-center rounded-full ${column.key === "yes" ? "text-primary bg-white" : "bg-[#DC2626]"}`}
-                          >
-                            {column.key === "yes" ? <Check /> : <X />}
-                          </div>
-                        )}
-
+                      <div className="mx-auto flex w-max items-center gap-2">
+                        <Image
+                          src="/icons/plenary/circles.png"
+                          alt=""
+                          width={50}
+                          height={50}
+                          className={cn(
+                            "h-max w-4 object-contain",
+                            column.key === "actions" && "hidden",
+                          )}
+                        />
                         {column.label}
                       </div>
                     </TableHead>
@@ -355,338 +193,540 @@ export function Votes() {
                 </TableRow>
               </TableHeader>
 
-              {tableData.map((row) => (
-                <TableBody key={row.id}>
-                  <TableRow
-                    className={cn(
-                      "hover:bg-primary/20 h-12 cursor-pointer transition-all duration-300",
-                    )}
-                  >
-                    <TableCell className="h-4 py-1 text-sm font-medium whitespace-nowrap">
-                      {row.author}{" "}
-                      <span className="text-primary font-semibold italic">
-                        Ver Todos *
+              {isGettingVotes ? (
+                <TableBody>
+                  <TableRow>
+                    <TableCell
+                      colSpan={6}
+                      className="relative h-40 items-center text-center text-lg font-bold"
+                    >
+                      <span className="absolute top-1/2 left-1/2 mx-auto w-max -translate-x-1/2 -translate-y-1/2">
+                        <Loader2 className="animate-spin" />
                       </span>
-                    </TableCell>
-                    <TableCell className="h-4 py-1 text-center text-sm font-semibold whitespace-nowrap">
-                      {row.proposal}
-                    </TableCell>
-                    <TableCell className="h-4 py-1 text-center text-sm">
-                      {row.subject}
-                    </TableCell>
-                    <TableCell className="h-4 py-1 text-center text-sm">
-                      {row.yes}
-                    </TableCell>
-                    <TableCell className="h-4 py-1 text-center text-sm">
-                      {row.no}
-                    </TableCell>
-                    <TableCell className="h-4 py-1 text-center text-sm">
-                      {row.votes}
-                    </TableCell>
-                    <TableCell className="h-4 w-10 py-1 text-sm font-medium">
-                      <div className="flex items-end justify-end">
-                        <div className="flex h-full w-40 max-w-40 min-w-40 items-center justify-center text-center">
-                          <span
-                            className={cn(
-                              "w-full rounded-lg px-2 py-1",
-                              row.result.toLowerCase() === "aprovado"
-                                ? "bg-primary/20 text-primary"
-                                : row.result.toLowerCase() ===
-                                    "aprovada com alterações"
-                                  ? "bg-sky-500/20 text-sky-500"
-                                  : "bg-rose-500/20 text-rose-500",
-                            )}
-                          >
-                            {row.result.toLowerCase() === "aprovado"
-                              ? "Aprovado"
-                              : row.result.toLowerCase() ===
-                                  "aprovada com alterações"
-                                ? "Aprovado com alterações"
-                                : "Não Analisada"}
-                          </span>
-                        </div>
-                      </div>
                     </TableCell>
                   </TableRow>
                 </TableBody>
-              ))}
+              ) : votesList.length !== 0 ? (
+                votesList.map((row) => (
+                  <TableBody key={row.id}>
+                    <TableRow
+                      key={row.id}
+                      onClick={() => setSelectedVote(row)}
+                      className={cn(
+                        "hover:bg-secondary/20 h-12 cursor-pointer transition-all duration-300",
+                        selectedVote?.id === row.id && "bg-secondary/20",
+                      )}
+                    >
+                      <TableCell className="h-4 max-w-80 truncate py-1 text-sm font-medium whitespace-nowrap">
+                        {row.title}
+                      </TableCell>
+                      <TableCell className="h-4 w-80 py-1 text-center text-sm">
+                        {row.positiveVotes}
+                      </TableCell>
+                      <TableCell className="h-4 py-1 text-center text-sm">
+                        {row.negativeVotes}
+                      </TableCell>
+                      <TableCell className="h-4 py-1 text-center text-sm">
+                        {row.totalVotes}
+                      </TableCell>
+                      <TableCell className="h-4 w-10 py-1 text-sm font-medium">
+                        <div className="flex items-end justify-end">
+                          <div className="flex h-full w-40 max-w-40 min-w-40 items-center justify-center text-center">
+                            <span
+                              className={cn(
+                                "w-full rounded-lg px-2 py-1",
+                                row.result
+                                  ? "bg-secondary/20 text-secondary"
+                                  : "bg-rose-500/20 text-rose-500",
+                              )}
+                            >
+                              {row.result ? "Aprovado" : "Não Aprovada"}
+                            </span>
+                          </div>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  </TableBody>
+                ))
+              ) : (
+                <TableBody>
+                  <TableRow>
+                    <TableCell
+                      colSpan={6}
+                      className="relative h-40 items-center text-center text-lg font-bold"
+                    >
+                      <span className="absolute top-1/2 left-1/2 mx-auto w-max -translate-x-1/2 -translate-y-1/2">
+                        Nenhuma votação encontrada
+                      </span>
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              )}
             </Table>
           </div>
         </div>
       </div>
-
-      <div className="col-span-12 flex flex-row gap-4 rounded-lg bg-white p-4">
-        <div className="mt-4 flex w-full flex-col gap-4">
-          <h2 className="text-primary text-lg font-bold uppercase">
-            Votação da Proposta Analisada
-          </h2>
-          <div className="col-span-1 flex flex-col justify-between rounded-lg bg-white p-2 shadow-lg md:col-span-2 xl:flex-row">
-            <div className="flex w-full flex-col items-center justify-between gap-4 p-4 xl:w-[45%] xl:flex-row">
-              <div className="flex w-full flex-col">
-                <div className="flex items-center gap-2">
-                  <div className="bg-primary flex h-5 w-5 items-center justify-center rounded-full text-white">
-                    <Check size={16} />
-                  </div>
-                  <h3 className="text-2xl font-bold">VOTOS PARA SIM:</h3>
-                </div>
-              </div>
-              <div className="flex flex-1 flex-col">
-                <div className="h-2 w-full rounded-full bg-[#4C4C4C]">
-                  <div className="h-2 w-1/3 rounded-full bg-[#00A15D]" />
-                </div>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-4xl font-bold">42</span>
-                  <span className="text-xl">Dos deputados presentes</span>
-                  <span className="text-2xl text-[#00a15d]">76</span>
-                </div>
-              </div>
-            </div>
-            <div className="bg-primary h-0.5 w-[80%] self-center xl:h-[80%] xl:w-0.5" />
-            <div className="flex w-full flex-col items-center justify-between gap-4 p-4 xl:w-[45%] xl:flex-row">
-              <div className="flex flex-1 flex-col">
-                <div className="h-2 w-full rounded-full bg-[#4C4C4C]">
-                  <div className="ml-auto h-2 w-1/3 rounded-full bg-rose-500" />
-                </div>
-                <div className="flex items-center justify-between gap-2">
-                  <span className="text-4xl font-bold">42</span>
-                  <span className="text-xl">Dos deputados presentes</span>
-                  <span className="text-2xl text-rose-500">76</span>
-                </div>
-              </div>
-              <div className="flex w-64 flex-col">
-                <div className="flex items-center gap-2">
-                  <h3 className="text-2xl font-bold">VOTOS PARA NÃO:</h3>
-                  <div className="flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-white">
-                    <X size={16} />
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          <div className="flex w-full flex-col justify-between gap-4 md:flex-row md:gap-0">
-            <div className="flex w-full flex-col gap-4 p-2 md:w-[48%]">
-              <div className="flex h-8 w-[250px] flex-row self-start rounded-md border border-[#749C5B] text-[#749C5B]">
-                <input
-                  className="flex-1 bg-transparent px-2 placeholder:text-[#749C5B] placeholder:opacity-60 focus:outline-none"
-                  placeholder="Buscar aqui por nome "
-                />
-                <button className="flex h-full items-center justify-center rounded-r-md px-2 text-white">
-                  <Search color="#749C5B" />
-                </button>
-              </div>
-              <div className="grid grid-cols-2 gap-2 xl:grid-cols-3">
-                {positiveVotes.map((item, index) => (
-                  <div
-                    key={index}
-                    className="shadow-primary border-primary col-span-1 flex flex-col gap-4 rounded-lg border bg-white p-4 shadow-sm"
-                  >
-                    <div className="flex flex-row justify-between">
-                      <div className="flex flex-col justify-between">
-                        <h1 className="text lg font-bold">{item.name}</h1>
-                        <span className="text-[#828690]">
-                          {item.party}-{item.state}
-                        </span>
-                      </div>
-                      <div
-                        className={`bg-primary flex h-6 w-6 items-center justify-center rounded-full`}
-                      >
-                        <Check color="#161717" size={16} />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-4 flex flex-row items-center justify-between">
-                <span>0 de 10 linhas (s) selecionadas.</span>
-                <div className="mt-2 flex justify-end">
-                  <button className="text-primary border-primary mx-1 flex h-8 w-8 items-center justify-center rounded-md border">
-                    <ChevronLeft />
-                  </button>
-                  <button className="bg-primary mx-1 h-8 w-8 rounded-md border border-white px-2 py-1 text-[#222222]">
-                    1
-                  </button>
-                  <button className="text-primary border-primary mx-1 h-8 w-8 rounded-md border px-2 py-1">
-                    2
-                  </button>
-                  <button className="text-primary border-primary mx-1 h-8 w-8 rounded-md border px-2 py-1">
-                    3
-                  </button>
-                  <button className="text-primary border-primary mx-1 h-8 w-8 rounded-md border px-2 py-1">
-                    4
-                  </button>
-                  <button className="text-primary border-primary mx-1 flex h-8 w-8 items-center justify-center rounded-md border">
-                    <ChevronRight />
-                  </button>
-                </div>
-              </div>
-            </div>
-            <div className="bg-primary h-0.5 w-[80%] self-center md:block md:h-full md:w-0.5"></div>
-            <div className="flex w-full flex-col gap-4 p-2 md:w-[48%]">
-              <div className="flex h-8 w-[250px] flex-row-reverse self-end rounded-md border border-[#749C5B] text-[#749C5B]">
-                <input
-                  className="flex-1 bg-transparent px-2 placeholder:text-[#749C5B] placeholder:opacity-60 focus:outline-none"
-                  placeholder="Buscar aqui por nome "
-                />
-                <button className="flex h-full items-center justify-center rounded-r-md px-2 text-white">
-                  <Search color="#749C5B" />
-                </button>
-              </div>
-              <div className="grid grid-cols-2 gap-2 xl:grid-cols-3">
-                {negativeVotes.map((item, index) => (
-                  <div
-                    key={index}
-                    className="col-span-1 flex flex-col gap-4 rounded-lg border border-[#EF4444] bg-white p-4 shadow-sm shadow-[#EF4444]"
-                  >
-                    <div className="flex flex-row justify-between">
-                      <div className="flex flex-col justify-between">
-                        <h1 className="text lg font-bold">{item.name}</h1>
-                        <span className="text-[#828690]">
-                          {item.party}-{item.state}
-                        </span>
-                      </div>
-                      <div
-                        className={`flex h-6 w-6 items-center justify-center rounded-full bg-[#EF4444]`}
-                      >
-                        <X color="#161717" size={16} />
-                      </div>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <div className="mt-4 flex flex-row items-center justify-between">
-                <span>0 de 10 linhas (s) selecionadas.</span>
-                <div className="mt-2 flex justify-end">
-                  <button className="text-primary border-primary mx-1 flex h-8 w-8 items-center justify-center rounded-md border">
-                    <ChevronLeft />
-                  </button>
-                  <button className="bg-primary mx-1 h-8 w-8 rounded-md border border-white px-2 py-1 text-[#222222]">
-                    1
-                  </button>
-                  <button className="text-primary border-primary mx-1 h-8 w-8 rounded-md border px-2 py-1">
-                    2
-                  </button>
-                  <button className="text-primary border-primary mx-1 h-8 w-8 rounded-md border px-2 py-1">
-                    3
-                  </button>
-                  <button className="text-primary border-primary mx-1 h-8 w-8 rounded-md border px-2 py-1">
-                    4
-                  </button>
-                  <button className="text-primary border-primary mx-1 flex h-8 w-8 items-center justify-center rounded-md border">
-                    <ChevronRight />
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <div className="col-span-12 flex flex-col overflow-hidden rounded-lg bg-white xl:col-span-12">
-        <div className="flex h-full w-full flex-col">
-          <span className="text-primary p-4 text-xl font-bold">
-            Propostas a Serem Analisadas
+      <div
+        className={cn(
+          "col-span-12 flex flex-col overflow-hidden rounded-lg bg-white xl:col-span-12",
+          votesList.length === 0 && "hidden",
+        )}
+      >
+        <div className="bg-secondary/20 flex h-full w-full flex-col gap-4 p-4">
+          <span className="text-secondary text-xl font-bold">
+            {selectedVote
+              ? "Detalhes da Votação"
+              : "Escolha uma votação acima para ver detalhes"}
           </span>
-          <div className="grid w-full grid-cols-1 flex-row justify-evenly gap-8 p-4 lg:grid-cols-5 xl:h-full">
-            <div className="flex flex-col gap-4">
-              <div className="text-primary bg-primary/20 border-primary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
-                <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
-                  <div className="flex w-full flex-1 items-center justify-center">
-                    <Image
-                      src="/icons/plenary/paper.svg"
-                      alt=""
-                      width={40}
-                      height={40}
-                    />
-                  </div>
-                  <div className="flex items-center justify-center">
-                    <span className="h-12 text-center text-lg font-bold uppercase">
-                      Pauta da <br />
-                      Plenária
+          {selectedVote && (
+            <div className="lg:px-4">
+              <div className="border-secondary flex w-full flex-col overflow-hidden rounded-lg border bg-white px-4 py-2 md:px-8">
+                <div className="flex h-full w-full flex-col justify-between md:flex-row">
+                  <div
+                    className={cn(
+                      "flex flex-col justify-between gap-8 md:max-w-[60%]",
+                      isSymbolicVote(
+                        selectedVote.positiveVotes,
+                        selectedVote.negativeVotes,
+                      ) && "md:max-w-full",
+                    )}
+                  >
+                    <span className="font-semibold">
+                      {ProposalName(selectedVote)}
+                    </span>
+
+                    <div className="flex flex-col gap-2 text-justify text-sm">
+                      <div className="flex items-center gap-1">
+                        <span className="font-semibold underline">
+                          {ProposalName(selectedVote)}
+                        </span>
+                        <span>
+                          {" "}
+                          -{" "}
+                          {selectedVote.mainProposition
+                            ? selectedVote.mainProposition.description
+                            : selectedVote.proposition.description}
+                        </span>
+                      </div>
+                      <div className="flex items-center gap-1">
+                        <span className="font-semibold underline">
+                          Resultado:
+                        </span>
+                        <span>{selectedVote.description}</span>
+                      </div>
+                    </div>
+                    <span className="text-xs text-[#828690]">
+                      Última Atualização do LegisAI:{" "}
+                      {moment(selectedVote.date).format("DD/MM/YYYY HH:mm")}
                     </span>
                   </div>
-                </div>
-              </div>
-              <div className="border-primary text-primary bg-primary/20 flex w-full items-center justify-center rounded-lg border p-1 font-bold underline">
-                Clique aqui para Acessar
-              </div>
-            </div>
-            <div className="flex flex-col gap-4">
-              <div className="text-primary bg-primary/20 border-primary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
-                <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
-                  <div className="flex w-full flex-1 items-center justify-center">
-                    <User2 size={40} />
+                  <div
+                    className={cn(
+                      "flex flex-row gap-2",
+                      isSymbolicVote(
+                        selectedVote.positiveVotes,
+                        selectedVote.negativeVotes,
+                      ) && "hidden",
+                    )}
+                  >
+                    <div className="border-secondary shadow-secondary col-span-1 flex flex-col justify-between rounded-lg">
+                      <div className="flex w-full flex-col items-center justify-between gap-4 p-4">
+                        <div className="flex flex-col">
+                          <div className="flex w-full items-center justify-center gap-2">
+                            <div className="bg-secondary flex h-5 w-5 items-center justify-center rounded-full text-white">
+                              <Check size={16} />
+                            </div>
+                            <h3 className="text-xl font-bold">
+                              VOTOS PARA SIM:
+                            </h3>
+                          </div>
+                        </div>
+                        <div className="flex flex-1 flex-col">
+                          <div className="h-2 w-full rounded-full bg-[#4C4C4C]">
+                            <div
+                              className="h-2 rounded-full bg-[#00A15D] transition duration-300"
+                              style={{
+                                width: `${(selectedVote.positiveVotes / selectedVote.totalVotes) * 100}%`,
+                              }}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-4xl font-bold">
+                              {selectedVote.positiveVotes}
+                            </span>
+                            <span className="text-center text-xl">
+                              Dos deputados presentes
+                            </span>
+                            <span className="text-2xl text-[#00a15d]">
+                              {selectedVote.totalVotes}
+                            </span>
+                          </div>
+                        </div>
+                      </div>
+                      <div className="flex w-full flex-col-reverse items-center justify-between gap-4 p-4">
+                        <div className="flex flex-1 flex-col">
+                          <div className="h-2 w-full rounded-full bg-[#4C4C4C]">
+                            <div
+                              className="ml-auto h-2 rounded-full bg-rose-500 transition duration-300"
+                              style={{
+                                width: `${(selectedVote.negativeVotes / selectedVote.totalVotes) * 100}%`,
+                              }}
+                            />
+                          </div>
+                          <div className="flex items-center justify-between gap-2">
+                            <span className="text-4xl font-bold">
+                              {selectedVote.negativeVotes}
+                            </span>
+                            <span className="text-center text-xl">
+                              Dos deputados presentes
+                            </span>
+                            <span className="text-2xl text-rose-500">
+                              {selectedVote.totalVotes}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="flex w-64 flex-col">
+                          <div className="flex w-full items-center justify-center gap-2">
+                            <h3 className="text-xl font-bold">
+                              VOTOS PARA NÃO:
+                            </h3>
+                            <div className="flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-white">
+                              <X size={16} />
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    </div>
                   </div>
-                  <span className="h-12 text-center text-lg font-bold uppercase">
-                    Oradores inscritos <br />
-                    para discursar
-                  </span>
                 </div>
               </div>
-              <div className="border-primary text-primary bg-primary/20 flex w-full items-center justify-center rounded-lg border p-1 font-bold underline">
-                Clique aqui para Acessar
-              </div>
             </div>
-            <div className="flex flex-col gap-4">
-              <div className="text-primary bg-primary/20 border-primary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
-                <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
-                  <div className="flex w-full flex-1 items-center justify-center">
-                    <Image
-                      src="/icons/plenary/folder-green.svg"
-                      alt=""
-                      width={40}
-                      height={40}
+          )}
+        </div>
+      </div>
+
+      {selectedVote && (
+        <>
+          <div
+            className={cn(
+              "col-span-12 flex flex-row gap-4 rounded-lg p-4",
+              isSymbolicVote(
+                selectedVote.positiveVotes,
+                selectedVote.negativeVotes,
+              ) && "hidden",
+            )}
+          >
+            <div className="mt-4 flex w-full flex-col gap-4">
+              <h2 className="text-secondary text-lg font-bold uppercase">
+                Votação da Proposta Analisada
+              </h2>
+              <div className="col-span-1 flex flex-col justify-between rounded-lg bg-white p-2 shadow-lg md:col-span-2 xl:flex-row">
+                <div className="flex w-full flex-col items-center justify-between gap-4 p-4 xl:w-[45%] xl:flex-row">
+                  <div className="flex w-full flex-col">
+                    <div className="flex items-center gap-2">
+                      <div className="bg-secondary flex h-5 w-5 items-center justify-center rounded-full text-white">
+                        <Check size={16} />
+                      </div>
+                      <h3 className="text-2xl font-bold">VOTOS PARA SIM:</h3>
+                    </div>
+                  </div>
+                  <div className="flex flex-1 flex-col">
+                    <div className="h-2 w-full rounded-full bg-[#4C4C4C]">
+                      <div
+                        className="h-2 rounded-full bg-[#00A15D] transition duration-300"
+                        style={{
+                          width: `${(selectedVote.positiveVotes / selectedVote.totalVotes) * 100}%`,
+                        }}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-4xl font-bold">
+                        {selectedVote.positiveVotes}
+                      </span>
+                      <span className="text-center text-xl">
+                        Dos deputados presentes
+                      </span>
+                      <span className="text-2xl text-[#00a15d]">
+                        {selectedVote.totalVotes}
+                      </span>
+                    </div>
+                  </div>
+                </div>
+                <div className="bg-secondary h-0.5 w-[80%] self-center xl:h-[80%] xl:w-0.5" />
+                <div className="flex w-full flex-col items-center justify-between gap-4 p-4 xl:w-[45%] xl:flex-row">
+                  <div className="flex flex-1 flex-col">
+                    <div className="h-2 w-full rounded-full bg-[#4C4C4C]">
+                      <div
+                        className="ml-auto h-2 rounded-full bg-rose-500 transition duration-300"
+                        style={{
+                          width: `${(selectedVote.negativeVotes / selectedVote.totalVotes) * 100}%`,
+                        }}
+                      />
+                    </div>
+                    <div className="flex items-center justify-between gap-2">
+                      <span className="text-4xl font-bold">
+                        {selectedVote.negativeVotes}
+                      </span>
+                      <span className="text-center text-xl">
+                        Dos deputados presentes
+                      </span>
+                      <span className="text-2xl text-rose-500">
+                        {selectedVote.totalVotes}
+                      </span>
+                    </div>
+                  </div>
+                  <div className="flex w-full flex-col items-end">
+                    <div className="flex items-center gap-2">
+                      <h3 className="text-2xl font-bold">VOTOS PARA NÃO:</h3>
+                      <div className="flex h-5 w-5 items-center justify-center rounded-full bg-rose-500 text-white">
+                        <X size={16} />
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              <div className="flex w-full flex-col justify-between gap-4 md:flex-row md:gap-0">
+                <div className="flex w-full flex-col gap-4 p-2 md:w-[48%]">
+                  <div className="flex h-8 w-[250px] flex-row self-start rounded-md border border-[#749c5b] text-[#749c5b]">
+                    <input
+                      className="flex-1 bg-transparent px-2 placeholder:text-[#749c5b] placeholder:opacity-60 focus:outline-none"
+                      placeholder="Buscar aqui por nome "
+                      onChange={(e) =>
+                        debouncedHandleStopTypingPositive(e.target.value)
+                      }
                     />
+                    <button className="flex h-full items-center justify-center rounded-r-md px-2 text-white">
+                      <Search color="#749c5b" />
+                    </button>
                   </div>
-                  <span className="h-12 text-center text-lg font-bold uppercase">
-                    Atas da <br />
-                    Reunião Plenária
-                  </span>
-                </div>
-              </div>
-              <div className="border-primary text-primary bg-primary/20 flex w-full items-center justify-center rounded-lg border p-1 font-bold underline">
-                Clique aqui para Acessar
-              </div>
-            </div>
-            <div className="flex flex-col gap-4">
-              <div className="text-primary bg-primary/20 border-primary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
-                <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
-                  <div className="flex w-full flex-1 items-center justify-center">
-                    <Type size={40} />
+                  <div className="grid grid-cols-2 gap-2 xl:grid-cols-3">
+                    {positiveVotesList.length !== 0 ? (
+                      positiveVotesList.map((item, index) => (
+                        <div
+                          key={index}
+                          className="border-secondary col-span-1 flex h-20 flex-col gap-4 rounded-lg border bg-white p-2"
+                        >
+                          <div className="flex flex-row justify-between">
+                            <div className="flex flex-col justify-between">
+                              <h1 className="text lg font-bold">
+                                {item.politician.name}
+                              </h1>
+                            </div>
+                            <div
+                              className={`bg-secondary flex h-6 w-6 items-center justify-center rounded-full`}
+                            >
+                              <Check color="#161717" size={16} />
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <>
+                        {Array.from({ length: 12 }).map((_, index) => (
+                          <div
+                            key={index}
+                            className="col-span-1 flex h-20 animate-pulse flex-col gap-4 rounded-lg bg-zinc-200 p-2"
+                          ></div>
+                        ))}
+                      </>
+                    )}
                   </div>
-                  <span className="h-12 text-center text-lg font-bold uppercase">
-                    SESSÃO PLENÁRIA <br />
-                    EM TEXTO
-                  </span>
+                  {positiveVotesTotalPages !== 1 && (
+                    <div className="mt-4 flex flex-row items-center justify-between">
+                      <CustomPagination
+                        currentPage={positiveVotesCurrentPage}
+                        pages={positiveVotesTotalPages}
+                        setCurrentPage={setPositiveVotesCurrentPage}
+                      />
+                    </div>
+                  )}
                 </div>
-              </div>
-              <div className="border-primary text-primary bg-primary/20 flex w-full items-center justify-center rounded-lg border p-1 font-bold underline">
-                Clique aqui para Acessar
-              </div>
-            </div>
-            <div className="flex flex-col gap-4">
-              <div className="text-primary bg-primary/20 border-primary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
-                <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
-                  <div className="flex w-full flex-1 items-center justify-center">
-                    <Video size={40} />
+                <div className="bg-secondary h-0.5 w-[80%] self-center md:block md:h-full md:w-0.5"></div>
+                <div className="flex w-full flex-col gap-4 p-2 md:w-[48%]">
+                  <div className="flex h-8 w-[250px] flex-row-reverse self-end rounded-md border border-[#EF4444] text-[#EF4444]">
+                    <input
+                      className="flex-1 bg-transparent px-2 placeholder:text-[#EF4444] placeholder:opacity-60 focus:outline-none"
+                      placeholder="Buscar aqui por nome "
+                      onChange={(e) =>
+                        debouncedHandleStopTypingNegative(e.target.value)
+                      }
+                    />
+                    <button className="flex h-full items-center justify-center rounded-r-md px-2 text-white">
+                      <Search color="#EF4444" />
+                    </button>
                   </div>
-                  <span className="h-12 text-center text-lg font-bold uppercase">
-                    SESSÃO PLENÁRIA <br />
-                    EM Vídeo
-                  </span>
+                  <div className="grid grid-cols-2 gap-2 xl:grid-cols-3">
+                    {negativeVotesList.length !== 0 ? (
+                      negativeVotesList.map((item, index) => (
+                        <div
+                          key={index}
+                          className="col-span-1 flex h-20 flex-col gap-4 rounded-lg border border-[#EF4444] bg-white p-2"
+                        >
+                          <div className="flex flex-row justify-between">
+                            <div className="flex flex-col justify-between">
+                              <h1 className="text lg font-bold">
+                                {item.politician.name}
+                              </h1>
+                            </div>
+                            <div
+                              className={`flex h-6 w-6 items-center justify-center rounded-full bg-[#EF4444]`}
+                            >
+                              <X color="#161717" size={16} />
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <>
+                        {Array.from({ length: 12 }).map((_, index) => (
+                          <div
+                            key={index}
+                            className="col-span-1 flex h-20 animate-pulse flex-col gap-4 rounded-lg bg-zinc-200 p-2"
+                          ></div>
+                        ))}
+                      </>
+                    )}
+                  </div>
+                  {negativeVotesTotalPages !== 1 && (
+                    <div className="mt-4 flex flex-row items-center justify-between">
+                      <CustomPagination
+                        currentPage={negativeVotesCurrentPage}
+                        pages={negativeVotesTotalPages}
+                        setCurrentPage={setNegativeVotesCurrentPage}
+                      />
+                    </div>
+                  )}
                 </div>
-              </div>
-              <div className="border-primary text-primary bg-primary/20 flex w-full items-center justify-center rounded-lg border p-1 font-bold underline">
-                Clique aqui para Acessar
               </div>
             </div>
           </div>
-        </div>
-      </div>
-      <div className="col-span-12 flex min-h-80 w-full flex-col gap-4 rounded-xl bg-white p-4 text-black shadow-md">
-        <Chat title="IA de Plenário" />
-      </div>
-      <Tutorials />
+
+          <div className="col-span-12 flex flex-col overflow-hidden rounded-lg bg-white xl:col-span-12">
+            <div className="flex h-full w-full flex-col">
+              <span className="text-secondary p-4 text-xl font-bold">
+                Propostas a Serem Analisadas
+              </span>
+              <div className="grid w-full grid-cols-1 flex-row justify-evenly gap-8 p-4 lg:grid-cols-5 xl:h-full">
+                <button
+                  className="flex flex-col gap-4"
+                  onClick={() => window.open(eventUrl, "_blank")}
+                >
+                  <div className="text-secondary bg-secondary/20 border-secondary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
+                    <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
+                      <div className="flex w-full flex-1 items-center justify-center">
+                        <Image
+                          src="/icons/plenary/paper.svg"
+                          alt=""
+                          width={40}
+                          height={40}
+                        />
+                      </div>
+                      <div className="flex items-center justify-center">
+                        <span className="h-12 text-center text-lg font-bold uppercase">
+                          Pauta da <br />
+                          Plenária
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                  <div className="border-secondary text-secondary bg-secondary/20 flex w-full items-center justify-center rounded-lg border p-1 font-bold underline">
+                    Clique aqui para Acessar
+                  </div>
+                </button>
+                <button
+                  onClick={() => window.open(eventUrl, "_blank")}
+                  className="flex flex-col gap-4"
+                >
+                  <div className="text-secondary bg-secondary/20 border-secondary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
+                    <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
+                      <div className="flex w-full flex-1 items-center justify-center">
+                        <User2 size={40} />
+                      </div>
+                      <span className="h-12 text-center text-lg font-bold uppercase">
+                        Oradores inscritos <br />
+                        para discursar
+                      </span>
+                    </div>
+                  </div>
+                  <div className="border-secondary text-secondary bg-secondary/20 flex w-full items-center justify-center rounded-lg border p-1 font-bold underline">
+                    Clique aqui para Acessar
+                  </div>
+                </button>
+                <button
+                  onClick={() => window.open(eventUrl, "_blank")}
+                  className="flex flex-col gap-4"
+                >
+                  <div className="text-secondary bg-secondary/20 border-secondary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
+                    <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
+                      <div className="flex w-full flex-1 items-center justify-center">
+                        <Image
+                          src="/icons/plenary/folder-green.svg"
+                          alt=""
+                          width={40}
+                          height={40}
+                        />
+                      </div>
+                      <span className="h-12 text-center text-lg font-bold uppercase">
+                        Atas da <br />
+                        Reunião Plenária
+                      </span>
+                    </div>
+                  </div>
+                  <div className="border-secondary text-secondary bg-secondary/20 flex w-full items-center justify-center rounded-lg border p-1 font-bold underline">
+                    Clique aqui para Acessar
+                  </div>
+                </button>
+                <button
+                  onClick={() => window.open(eventUrl, "_blank")}
+                  className="flex flex-col gap-4"
+                >
+                  <div className="text-secondary bg-secondary/20 border-secondary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
+                    <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
+                      <div className="flex w-full flex-1 items-center justify-center">
+                        <Type size={40} />
+                      </div>
+                      <span className="h-12 text-center text-lg font-bold uppercase">
+                        SESSÃO PLENÁRIA <br />
+                        EM TEXTO
+                      </span>
+                    </div>
+                  </div>
+                  <div className="border-secondary text-secondary bg-secondary/20 flex w-full items-center justify-center rounded-lg border p-1 font-bold underline">
+                    Clique aqui para Acessar
+                  </div>
+                </button>
+                <button
+                  onClick={() => window.open(eventUrl, "_blank")}
+                  className="flex flex-col gap-4"
+                >
+                  <div className="text-secondary bg-secondary/20 border-secondary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
+                    <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
+                      <div className="flex w-full flex-1 items-center justify-center">
+                        <Video size={40} />
+                      </div>
+                      <span className="h-12 text-center text-lg font-bold uppercase">
+                        SESSÃO PLENÁRIA <br />
+                        EM Vídeo
+                      </span>
+                    </div>
+                  </div>
+                  <div className="border-secondary text-secondary bg-secondary/20 flex w-full items-center justify-center rounded-lg border p-1 font-bold underline">
+                    Clique aqui para Acessar
+                  </div>
+                </button>
+              </div>
+            </div>
+          </div>
+          <div className="col-span-12 flex min-h-80 w-full flex-col gap-4 rounded-xl bg-white p-4 text-black shadow-md">
+            <Chat
+              title="IA de Plenário"
+              initialMessage={"Sobre qual proposição você quer conversar?"}
+            />
+          </div>
+          <Tutorials />
+        </>
+      )}
     </div>
   );
 }

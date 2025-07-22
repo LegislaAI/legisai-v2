@@ -1,4 +1,5 @@
 @import "tailwindcss";
+@import "tailwind-scrollbar-hide/v4";
 
 @theme {
   /* Changing the default fontFamily to Poppins */
@@ -94,8 +95,9 @@
       height: 0;
     }
   }
-  --color-primary: #749c5b;
-  --color-secondary: #6baa3f;
+
+  --color-secondary: #749c5b;
+  --color-secondary: #749c5b;
   --color-dark: #1a1d1f;
   --color-light-dark: #6f767e;
   --color-surface: #f4f4f4;

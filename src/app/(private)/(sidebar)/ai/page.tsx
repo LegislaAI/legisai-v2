@@ -1,5 +1,5 @@
 "use client";
-import { aiHistory } from "@/@staticData/ai";
+import { useChatPage } from "@/components/chat/chat-history-handler";
 import { Section } from "@/components/chat/SectionGemini";
 import {
   Accordion,
@@ -11,29 +11,94 @@ import { Input } from "@/components/ui/Input";
 import { Sheet, SheetContent, SheetHeader } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
 import { ChevronDown, Minus, Plus, Search } from "lucide-react";
+import moment from "moment";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function BranchesList() {
   const [loadNewChat, setLoadNewChat] = useState(false);
+  const {
+    chats,
+    setLoadHistory,
+    loadChat,
+    setLoadChat,
+    handleChangeChat,
+    setTypes,
+    prompts,
+    selectedPrompt,
+    setSelectedPrompt,
+    setChatType,
+  } = useChatPage();
+
   const [openInfo, setOpenInfo] = useState(false);
   const [open, setOpen] = useState(false);
+  const [selectedAi, setSelectedAi] = useState<string>("IA JURÍDICA");
+
   const items = [
-    { icon: "/icons/ai-01.svg", label: "IA JURÍDICA" },
-    { icon: "/icons/ai-02.svg", label: "IA POLÍTICA" },
-    { icon: "/icons/ai-03.svg", label: "IA CONTABILIDADE" },
-    { icon: "/icons/ai-04.svg", label: "IA DOC JURÍDICO" },
-    { icon: "/icons/ai-05.svg", label: "IA GERAL" },
-    { icon: "/icons/ai-06.svg", label: "IA DOC CONTÁBIL" },
-    { icon: "/icons/ai-07.svg", label: "IA DEPUTADO" },
+    {
+      id: "827364",
+      icon: "/icons/ai-01.svg",
+      label: "IA JURÍDICA",
+      types: ["juridic"],
+      description: `IA especializada em análise e suporte político, ideal para entender cenários, dados e estratégias no campo público.`,
+    },
+    {
+      id: "264891",
+      icon: "/icons/ai-02.svg",
+      label: "IA POLÍTICA",
+      types: ["politic", "politician"],
+      description: `Assistente jurídica inteligente, ágil na interpretação de normas, decisões e análises legais com precisão.`,
+    },
+    {
+      id: "945672",
+      icon: "/icons/ai-03.svg",
+      types: ["accounting"],
+      label: "IA CONTABILIDADE",
+      description: `Especialista em contabilidade, organiza e analisa dados contábeis de forma eficiente.`,
+    },
+    {
+      id: "536781",
+      icon: "/icons/ai-04.svg",
+      label: "IA DOC JURÍDICO",
+      types: ["doc"],
+      description: `Focada na busca e análise rápida de documentos jurídicos com precisão.`,
+    },
+    {
+      id: "183947",
+      icon: "/icons/ai-05.svg",
+      label: "IA GERAL",
+      types: ["general"],
+      description: `Ferramenta versátil, útil para encontrar informações e responder perguntas em diversos contextos.`,
+    },
+    {
+      id: "678302",
+      icon: "/icons/ai-06.svg",
+      label: "IA DOC CONTÁBIL",
+      types: ["doc"],
+      description: `Auxilia na busca e análise ágil de documentos contábeis.`,
+    },
+    {
+      id: "491205",
+      icon: "/icons/ai-07.svg",
+      label: "IA DEPUTADO",
+      types: ["politician"],
+      description: `Especializada em buscar e analisar informações sobre deputados.`,
+    },
   ];
-  const items2 = [
-    { label: "Todos" },
-    { label: "Loren Ipsum is simply" },
-    { label: "Loren Ipsum is simply" },
-    { label: "Loren Ipsum is simply" },
-    { label: "Loren Ipsum is simply" },
-  ];
+
+  useEffect(() => {
+    const urlParams = new URLSearchParams(window.location.search);
+    const id = urlParams.get("param1");
+    const item = items.find((item) => item.id === id);
+    if (item) {
+      setSelectedAi(item.label);
+    }
+  }, []);
+
+  useEffect(() => {
+    setTypes("juridic,politic,accounting,doc,general,doc,politician");
+    setChatType("ai");
+  }, []);
 
   return (
     <>
@@ -76,16 +141,23 @@ export default function BranchesList() {
 
                     <AccordionContent className="flex w-full flex-col p-2 text-black">
                       {/* Se “item” tiver sub-itens: */}
-                      {items2.map((sub, subIndex) => (
-                        <button
-                          key={subIndex}
-                          className="flex w-full flex-row items-center rounded-md p-2 text-start text-base hover:bg-[#4C785D] hover:text-white"
-                        >
-                          <div className="border-primary w-full border-l px-2 text-lg">
-                            {sub.label}
-                          </div>
-                        </button>
-                      ))}
+                      {prompts
+                        .filter((sub) => item.types.includes(sub.type ?? ""))
+                        .map((sub, subIndex) => (
+                          <button
+                            onClick={() => {
+                              setSelectedAi(item.label);
+                              setSelectedPrompt(sub);
+                              setOpen(false);
+                            }}
+                            key={subIndex}
+                            className="flex w-full flex-row items-center rounded-md p-2 text-start text-base hover:bg-[#4C785D] hover:text-white"
+                          >
+                            <div className="border-secondary w-full border-l px-2 text-lg">
+                              {sub.name}
+                            </div>
+                          </button>
+                        ))}
 
                       {/* Ou qualquer outro conteúdo */}
                     </AccordionContent>
@@ -98,7 +170,7 @@ export default function BranchesList() {
       </Sheet>
 
       <div className="flex w-full flex-row-reverse items-center justify-center gap-2">
-        <div className="flex h-[calc(100vh-150px)] w-full flex-col justify-between rounded-2xl bg-white p-2 xl:w-9/12 xl:p-4">
+        <div className="flex h-[calc(100vh-150px)] w-full flex-col justify-between rounded-2xl bg-white p-2 xl:w-[70%] xl:p-4">
           <div className="relative">
             <div className="flex flex-row items-center gap-4">
               <Image
@@ -116,34 +188,52 @@ export default function BranchesList() {
             <div className="absolute top-2 right-2 flex items-center gap-2">
               <button
                 onClick={() => setOpen(true)}
-                className="bg-primary flex items-center gap-2 rounded-full px-2 py-1 text-base text-white xl:top-4 xl:right-4 xl:px-4 xl:py-2 xl:text-lg"
+                className="bg-secondary flex items-center gap-2 rounded-full px-2 py-1 text-base text-white xl:top-4 xl:right-4 xl:px-4 xl:py-2 xl:text-lg"
               >
-                IA JURÍDICA <ChevronDown />
+                {selectedAi} <ChevronDown />
               </button>
               <button
                 onClick={() => setOpenInfo(true)}
-                className="bg-primary flex items-center justify-center rounded-full p-1 text-white xl:hidden"
+                className="bg-secondary flex items-center justify-center rounded-full p-1 text-white xl:hidden"
               >
                 <Plus />
               </button>
             </div>
           </div>
-          <div className="mt-4 flex h-[calc(100vh-300px)] flex-1 flex-col">
-            <Section
-              loadNewChat={loadNewChat}
-              setLoadNewChat={setLoadNewChat}
-            />
-          </div>
+          {!selectedPrompt ? (
+            <div className="flex flex-1 flex-col items-center justify-center gap-4 font-semibold">
+              <h3>Escolha uma categoria para iniciar</h3>
+              <button
+                onClick={() => setOpen(true)}
+                className="bg-secondary rounded-full p-2 px-8 text-lg text-white"
+              >
+                Escolher categoria
+              </button>
+            </div>
+          ) : (
+            <div className="mt-4 flex h-[calc(100vh-300px)] flex-1 flex-col">
+              <Section
+                loadNewChat={loadNewChat}
+                setLoadNewChat={setLoadNewChat}
+                setLoadHistory={setLoadHistory}
+                loadOldChat={loadChat}
+                setLoadOldChat={setLoadChat}
+                selectedPrompt={selectedPrompt}
+                setSelectedPrompt={setSelectedPrompt}
+                actualScreenType="ai"
+              />
+            </div>
+          )}
         </div>
         <div
           className={cn(
-            "relative h-[calc(100vh-150px)] w-3/4 flex-col justify-between rounded-2xl border border-zinc-200 bg-white shadow-sm lg:w-1/2 xl:flex xl:w-3/12",
-            openInfo ? "absolute right-0 flex" : "hidden",
+            "relative h-[calc(100vh-150px)] w-3/4 flex-col justify-between rounded-2xl border border-zinc-200 bg-white shadow-sm lg:w-1/2 xl:flex xl:w-[30%]",
+            openInfo ? "absolute right-2 flex xl:right-8" : "hidden",
           )}
         >
           <button
             onClick={() => setOpenInfo(false)}
-            className="bg-primary absolute top-4 right-[22px] z-10 flex items-center justify-center rounded-full p-1 text-white xl:hidden"
+            className="bg-secondary absolute top-4 right-[22px] z-10 flex items-center justify-center rounded-full p-1 text-white xl:hidden"
           >
             <Minus />
           </button>
@@ -157,23 +247,34 @@ export default function BranchesList() {
                 />
               </div>
               <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">
-                {aiHistory.map((historic, index) => (
-                  <div
-                    key={index}
-                    className="rounded-lg transition-all duration-300 hover:scale-[1.02] hover:bg-gray-100"
-                  >
-                    <h4 className="font-semibold">{historic.title}</h4>
-                    <p className="text-sm text-gray-600">
-                      {historic.description}
-                    </p>
-                  </div>
-                ))}
+                {chats.length === 0 ? (
+                  <label className="mt-10 text-center text-lg font-bold text-black">
+                    Sem histórico
+                  </label>
+                ) : (
+                  <>
+                    {chats.map((ai, index) => (
+                      <button
+                        key={index}
+                        onClick={() => {
+                          handleChangeChat(ai);
+                        }}
+                        className="flex flex-col items-start justify-start rounded-lg transition-all duration-300 hover:scale-[1.005] hover:bg-gray-100"
+                      >
+                        <h4 className="font-semibold">{ai.name}</h4>
+                        <h4 className="text-secondary text-sm font-semibold">
+                          {moment(ai.createdAt).format("DD/MM/YY, HH:mm")}
+                        </h4>
+                      </button>
+                    ))}
+                  </>
+                )}
               </div>
               <button
                 onClick={() => {
                   setLoadNewChat(true);
                 }}
-                className="bg-primary mt-4 h-12 w-2/3 cursor-pointer self-center rounded-3xl text-lg font-semibold text-white"
+                className="bg-secondary mt-4 h-12 w-2/3 cursor-pointer self-center rounded-3xl text-lg font-semibold text-white"
               >
                 Novo Chat
               </button>

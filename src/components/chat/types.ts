@@ -112,12 +112,15 @@ export type Prompt = {
   name: string;
   prompt: string;
   description: string;
+  type?: string;
 };
 
 export type ChatItem = {
   id: string;
   name: string;
   promptId: string;
+  createdAt?: string;
+  type?: string;
 };
 export type FunctionCallWithId = FunctionCall & {
   id?: string; // versões mais novas do SDK

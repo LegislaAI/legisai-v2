@@ -1,26 +1,51 @@
 export const staticPlenary = [
   {
     id: "1",
-    title: "Titulo da noticia",
+    title: "Plenário Ordinário",
     summary:
-      "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.        ",
+      "Sessão destinada à discussão e votação de matérias legislativas, com a presença de todos os parlamentares.",
+    date: "2025-07-03",
   },
   {
     id: "2",
-    title: "Titulo da noticia",
+    title: "Plenário Extraordinário",
     summary:
-      "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.        ",
+      "Sessão convocada de forma excepcional para tratar de assuntos urgentes ou relevantes que não puderam ser discutidos nas sessões ordinárias.",
+    date: "2025-07-04",
   },
   {
     id: "3",
-    title: "Titulo da noticia",
+    title: "Plenário Temático",
     summary:
-      "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.        ",
+      "Sessão dedicada ao debate de temas específicos, com a participação de especialistas e autoridades no assunto em discussão.",
+    date: "2025-07-05",
   },
   {
     id: "4",
-    title: "Titulo da noticia",
+    title: "Plenário Solene",
     summary:
-      "Lorem Ipsum is simply dummy text of the printing and typesetting industry. Lorem Ipsum has been the industry's standard dummy text ever since the 1500s, when an unknown printer took a galley of type and scrambled it to make a type specimen book. It has survived not only five centuries, but also the leap into electronic typesetting, remaining essentially unchanged. It was popularised in the 1960s with the release of Letraset sheets containing Lorem Ipsum passages, and more recently with desktop publishing software like Aldus PageMaker including versions of Lorem Ipsum.        ",
+      "Sessão formal e protocolar, geralmente para homenagens, posse de autoridades, ou comemorações solenes.",
+    date: "2025-07-06",
+  },
+  {
+    id: "5",
+    title: "Plenário Ordinário",
+    summary:
+      "Sessão destinada à discussão e votação de matérias legislativas, com a presença de todos os parlamentares.",
+    date: "2025-07-07",
+  },
+  {
+    id: "6",
+    title: "Plenário Extraordinário",
+    summary:
+      "Sessão convocada de forma excepcional para tratar de assuntos urgentes ou relevantes que não puderam ser discutidos nas sessões ordinárias.",
+    date: "2025-07-08",
+  },
+  {
+    id: "7",
+    title: "Plenário Temático",
+    summary:
+      "Sessão dedicada ao debate de temas específicos, com a participação de especialistas e autoridades no assunto em discussão.",
+    date: "2025-07-09",
   },
 ];

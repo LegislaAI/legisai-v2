@@ -1,8 +1,8 @@
 "use client";
+import { AuthFooter } from "@/components/ui/AuthFooter";
 import { AuthHeader } from "@/components/ui/AuthHeader";
 import { useApiContext } from "@/context/ApiContext";
 import { zodResolver } from "@hookform/resolvers/zod";
-
 import { Eye, EyeOff } from "lucide-react";
 import { useCookies } from "next-client-cookies";
 import Image from "next/image";
@@ -11,6 +11,7 @@ import { useState } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { z } from "zod";
+
 interface LoginDataProps {
   email: string;
   password: string;
@@ -25,7 +26,7 @@ export default function Login() {
   const [continueConnected, setContinueConnected] = useState(true);
   const [isShowingPassword, setIsShowingPassword] = useState(false);
   const cookies = useCookies();
-  const { PostAPI } = useApiContext();
+  const { PostAPI, setToken } = useApiContext();
   const [loginError, setLoginError] = useState("");
   const router = useRouter();
   const [isLogging, setIsLogging] = useState(false);
@@ -54,8 +55,9 @@ export default function Login() {
         process.env.NEXT_PUBLIC_USER_TOKEN as string,
         login.body.accessToken,
       );
+      setToken(login.body.accessToken);
       setTimeout(() => {
-        router.push("/procedures");
+        router.push("/");
       }, 1000);
     } else {
       toast.error("Erro ao logar, tente novamente");
@@ -67,8 +69,8 @@ export default function Login() {
   return (
     <main className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-white">
       <Image
-        src={"/static/register.png"}
-        className="absolute right-0 z-10 hidden h-[95%] w-[40%] rounded-tl-lg rounded-bl-lg object-cover md:block"
+        src={"/static/register2.png"}
+        className="absolute top-0 right-0 z-10 hidden h-[95%] w-[40%] rounded-bl-lg object-cover md:block"
         alt=""
         width={1000}
         height={2500}
@@ -91,7 +93,7 @@ export default function Login() {
             <input
               placeholder="Digite seu email"
               {...register("email")}
-              className="outline-primary/50 focus:border-primary/50 h-8 rounded-md border border-zinc-400 p-2 text-sm text-black"
+              className="outline-secondary/50 focus:border-secondary/50 h-8 rounded-md border border-zinc-400 p-2 text-black"
               type="email"
               disabled={isLogging}
             />
@@ -102,7 +104,7 @@ export default function Login() {
             <label className="text-sm font-semibold text-[#252F40]">
               Senha
             </label>
-            <div className="outline-primary/50 focus:border-primary/50 flex flex-row items-center overflow-hidden rounded-md border border-zinc-400 bg-white">
+            <div className="outline-secondary/50 focus:border-secondary/50 flex flex-row items-center overflow-hidden rounded-md border border-zinc-400 bg-white">
               <input
                 {...register("password")}
                 placeholder="Digite sua senha"
@@ -129,7 +131,7 @@ export default function Login() {
             <button
               type="button"
               onClick={() => router.push("recover-password")}
-              className="self-start text-[10px] text-black"
+              className="self-start text-xs text-black"
             >
               Esqueci minha senha
             </button>
@@ -138,7 +140,7 @@ export default function Login() {
                 type="button"
                 onClick={() => setContinueConnected(!continueConnected)}
                 className={`flex h-4 w-8 ${
-                  continueConnected ? "bg-green-500" : "bg-[#3A416F]"
+                  continueConnected ? "bg-secondary" : "bg-zinc-400"
                 } relative rounded-full p-[1px]`}
               >
                 <div
@@ -153,7 +155,7 @@ export default function Login() {
             <button
               type="submit"
               disabled={isLogging}
-              className="bg-primary mt-6 rounded-md border p-2 font-bold text-white"
+              className="bg-secondary mt-6 rounded-md border p-2 font-bold text-white"
             >
               {isLogging ? "Carregando..." : "Acessar Plataforma"}
             </button>
@@ -166,12 +168,13 @@ export default function Login() {
             Não tem conta ainda?
             <button
               onClick={() => router.push("/register")}
-              className="bg-primary ml-1 cursor-pointer bg-clip-text font-bold text-transparent"
+              className="bg-secondary ml-1 cursor-pointer bg-clip-text font-bold text-transparent"
             >
               Se cadastre agora
             </button>
           </span>
         </div>
+        <AuthFooter />
       </div>
     </main>
   );

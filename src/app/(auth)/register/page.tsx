@@ -1,4 +1,5 @@
 "use client";
+import { AuthFooter } from "@/components/ui/AuthFooter";
 import { AuthHeader } from "@/components/ui/AuthHeader";
 import { useApiContext } from "@/context/ApiContext";
 import { maskCpfCnpj, maskPhone } from "@/lib/masks";
@@ -47,7 +48,7 @@ export default function Register() {
   const [checkedPrivacy, setCheckedPrivacy] = useState(false);
   const [openTermsModal, setOpenTermsModal] = useState(false);
   const [openPrivacyModal, setOpenPrivacyModal] = useState(false);
-  const { PostAPI, token } = useApiContext();
+  const { PostAPI, token, setToken } = useApiContext();
   const cookies = useCookies();
   const router = useRouter();
 
@@ -62,6 +63,10 @@ export default function Register() {
   });
 
   async function handleRegister(data: RegisterFormData) {
+    if (!checkedTerms || !checkedPrivacy) {
+      toast.error("Aceite os termos e a politica de privacidade");
+      return;
+    }
     setIsRegistering(true);
     const response = await PostAPI(
       "/user/signup",
@@ -76,7 +81,8 @@ export default function Register() {
     );
     if (response.status === 200) {
       cookies.set(token, response.body.accessToken);
-      router.push("/mail-code");
+      setToken(response.body.accessToken);
+      router.push("/plans");
     } else {
       toast.error("Erro ao registrar, tente novamente");
       if (response.body.message === "Resource already exists") {
@@ -109,7 +115,7 @@ export default function Register() {
     <main className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-white pb-10 md:pb-0">
       <Image
         src={"/static/register2.png"}
-        className="absolute right-0 z-10 hidden h-[95%] w-[40%] rounded-tl-lg rounded-bl-lg object-cover md:block"
+        className="absolute top-0 right-0 z-10 hidden h-[95%] w-[40%] rounded-bl-lg object-cover md:block"
         alt=""
         width={1000}
         height={2500}
@@ -136,7 +142,7 @@ export default function Register() {
               <input
                 {...register("name")}
                 placeholder="Digite seu nome"
-                className="outline-primary/50 focus:border-primary/50 h-8 rounded-md border border-zinc-400 p-2 text-xs text-black 2xl:h-8 2xl:text-sm"
+                className="outline-secondary/50 focus:border-secondary/50 h-8 rounded-md border border-zinc-400 p-2 text-black 2xl:h-8"
                 type="text"
               />
               {errors.name && (
@@ -152,7 +158,7 @@ export default function Register() {
                 {...register("cpfCnpj")}
                 onChange={handleCpfCnpjChange}
                 placeholder="Digite seu CPF ou CNPJ"
-                className="outline-primary/50 focus:border-primary/50 h-8 rounded-md border border-zinc-400 p-2 text-xs text-black 2xl:h-8 2xl:text-sm"
+                className="outline-secondary/50 focus:border-secondary/50 h-8 rounded-md border border-zinc-400 p-2 text-black 2xl:h-8"
                 type="text"
               />
               {errors.cpfCnpj && (
@@ -167,8 +173,9 @@ export default function Register() {
                 {...register("phone")}
                 onChange={handlePhoneChange}
                 placeholder="Digite seu telefone"
-                className="outline-primary/50 focus:border-primary/50 h-8 rounded-md border border-zinc-400 p-2 text-xs text-black 2xl:h-8 2xl:text-sm"
+                className="outline-secondary/50 focus:border-secondary/50 h-8 rounded-md border border-zinc-400 p-2 text-black 2xl:h-8"
                 type="text"
+                maxLength={15}
               />
               {errors.phone && (
                 <span className="text-red-500">{errors.phone.message}</span>
@@ -181,7 +188,7 @@ export default function Register() {
               <input
                 {...register("email")}
                 placeholder="Digite seu melhor email"
-                className="outline-primary/50 focus:border-primary/50 h-8 rounded-md border border-zinc-400 p-2 text-xs text-black 2xl:h-8 2xl:text-sm"
+                className="outline-secondary/50 focus:border-secondary/50 h-8 rounded-md border border-zinc-400 p-2 text-black 2xl:h-8"
                 type="email"
               />
               {errors.email && (
@@ -193,11 +200,11 @@ export default function Register() {
               <label className="text-xs font-semibold text-[#252F40] 2xl:text-sm">
                 Senha
               </label>
-              <div className="outline-primary/50 focus:border-primary/50 flex flex-row items-center overflow-hidden rounded-md border border-zinc-400 bg-white">
+              <div className="outline-secondary/50 focus:border-secondary/50 flex flex-row items-center overflow-hidden rounded-md border border-zinc-400 bg-white">
                 <input
                   {...register("password")}
                   placeholder="Digite sua senha"
-                  className="h-8 w-[90%] bg-white p-2 text-xs text-black outline-none 2xl:h-8 2xl:text-sm"
+                  className="h-8 w-[90%] bg-white p-2 text-black outline-none 2xl:h-8"
                   type={isShowingPassword ? "text" : "password"}
                 />
                 <button
@@ -206,9 +213,9 @@ export default function Register() {
                   className="flex w-[10%] items-center justify-center"
                 >
                   {isShowingPassword ? (
-                    <EyeOff className="h-4 w-4 text-black" />
+                    <EyeOff className="text-secondary h-4 w-4" />
                   ) : (
-                    <Eye className="h-4 w-4 text-black" />
+                    <Eye className="text-secondary h-4 w-4" />
                   )}
                 </button>
               </div>
@@ -220,11 +227,11 @@ export default function Register() {
               <label className="text-xs font-semibold text-[#252F40] 2xl:text-sm">
                 Confirmar Senha
               </label>
-              <div className="outline-primary/50 focus:border-primary/50 flex flex-row items-center overflow-hidden rounded-md border border-zinc-400 bg-white">
+              <div className="outline-secondary/50 focus:border-secondary/50 flex flex-row items-center overflow-hidden rounded-md border border-zinc-400 bg-white">
                 <input
                   {...register("confirmPassword")}
                   placeholder="Confirme sua senha"
-                  className="h-8 w-[90%] bg-white p-2 text-xs text-black outline-none 2xl:h-8 2xl:text-sm"
+                  className="h-8 w-[90%] bg-white p-2 text-black outline-none 2xl:h-8"
                   type={isShowingConfirmPassword ? "text" : "password"}
                 />
                 <button
@@ -235,9 +242,9 @@ export default function Register() {
                   className="flex w-[10%] items-center justify-center"
                 >
                   {isShowingConfirmPassword ? (
-                    <EyeOff className="h-4 w-4 text-black" />
+                    <EyeOff className="text-secondary h-4 w-4" />
                   ) : (
-                    <Eye className="h-4 w-4 text-black" />
+                    <Eye className="text-secondary h-4 w-4" />
                   )}
                 </button>
               </div>
@@ -253,7 +260,7 @@ export default function Register() {
                   onClick={() => setCheckedTerms(!checkedTerms)}
                   className={cn(
                     "flex h-4 w-4 items-center justify-center rounded border p-1",
-                    checkedTerms && "bg-primary",
+                    checkedTerms && "bg-secondary",
                   )}
                 >
                   {checkedTerms && <Check className="h-4 w-4 text-white" />}
@@ -265,7 +272,7 @@ export default function Register() {
                   Li e concordo com os {""}
                   <a
                     className="hover:underline"
-                    onClick={() => setOpenTermsModal(true)}
+                    // onClick={() => setOpenTermsModal(true)}
                   >
                     Termos de Uso
                   </a>
@@ -276,7 +283,7 @@ export default function Register() {
                   onClick={() => setCheckedPrivacy(!checkedPrivacy)}
                   className={cn(
                     "flex h-4 w-4 items-center justify-center rounded border p-1",
-                    checkedPrivacy && "bg-primary",
+                    checkedPrivacy && "bg-secondary",
                   )}
                 >
                   {checkedPrivacy && <Check className="h-4 w-4 text-white" />}
@@ -288,7 +295,7 @@ export default function Register() {
                   Li e concordo com os {""}
                   <a
                     className="hover:underline"
-                    onClick={() => setOpenPrivacyModal(true)}
+                    // onClick={() => setOpenPrivacyModal(true)}
                   >
                     Política de Privacidade
                   </a>
@@ -298,7 +305,7 @@ export default function Register() {
 
             <button
               type="submit"
-              className="bg-primary rounded-md border p-2 font-bold text-white"
+              className="bg-secondary rounded-md border p-2 font-bold text-white"
               disabled={isRegistering}
             >
               {isRegistering ? "Carregando..." : "Cadastrar"}
@@ -311,19 +318,20 @@ export default function Register() {
             Já possui uma conta?
             <button
               onClick={() => router.push("/login")}
-              className="bg-primary ml-1 cursor-pointer bg-clip-text font-bold text-transparent"
+              className="bg-secondary ml-1 cursor-pointer bg-clip-text font-bold text-transparent"
             >
               Entrar Agora
             </button>
           </span>
         </div>
+        <AuthFooter />
       </div>
 
       {openTermsModal && (
         <>
           <div
             onClick={() => setOpenTermsModal(false)}
-            className="bg-opacity-50 fixed top-0 right-0 bottom-0 left-0 z-20 flex items-center justify-center bg-black"
+            className="bg-opacity-50 fixed top-0 right-0 bottom-0 left-0 z-20 flex items-center justify-center bg-white/20"
           >
             <div
               onClick={(e) => e.stopPropagation()}

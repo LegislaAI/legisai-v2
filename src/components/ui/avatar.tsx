@@ -57,7 +57,7 @@ const AvatarGroup = React.forwardRef<HTMLDivElement, AvatarGroupProps>(
             ) : (
               <Avatar
                 className={cn(
-                  "ring-primary-500 ring-offset-primary-500 ring-1 ring-offset-[1px]",
+                  "ring-secondary-500 ring-offset-secondary-500 ring-1 ring-offset-[1px]",
                   countClass,
                 )}
               >

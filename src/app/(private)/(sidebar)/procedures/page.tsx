@@ -1,40 +1,36 @@
 "use client";
-import { aiHistory } from "@/@staticData/ai";
+import { useChatPage } from "@/components/chat/chat-history-handler";
 import { Section } from "@/components/chat/SectionGemini";
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
 import { Input } from "@/components/ui/Input";
 import { cn } from "@/lib/utils";
-import { ChevronDown, Minus, Plus, Search } from "lucide-react";
+import { Minus, Plus, Search } from "lucide-react";
+import moment from "moment";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 export default function BranchesList() {
   const [loadNewChat, setLoadNewChat] = useState(false);
   const [openInfo, setOpenInfo] = useState(false);
-  const items = [
-    { label: "Todos" },
-    { label: "PEC - Proposta de Emenda à Constituição" },
-    { label: "PLP - Projeto de Lei Complementar" },
-    { label: "PL - Projeto de Lei" },
-    { label: "MPV - Medida Provisória" },
-    { label: "PLV - Projeto de Lei de Conversão" },
-    { label: "PDL - Projeto de Decreto Legislativo" },
-    { label: "PRC - Projeto de Resolução" },
-    { label: "REQ - Requerimento" },
-    { label: "RIC - Requerimento de Informação" },
-    { label: "RCP - Requerimento de Inst. de CPI" },
-    { label: "MSC - Mensagem" },
-    { label: "INC - Indicação" },
-  ];
+  const {
+    chats,
+    setLoadHistory,
+    loadChat,
+    setLoadChat,
+    handleChangeChat,
+    setTypes,
+    prompts,
+    setSelectedPrompt,
+    setChatType,
+  } = useChatPage();
+
+  useEffect(() => {
+    setTypes("proposition");
+    setChatType("proposition");
+  }, []);
 
   return (
-    <div className="flex w-full items-center justify-center gap-2">
-      <div className="flex h-[calc(100vh-150px)] w-full flex-col justify-between rounded-2xl bg-white p-2 xl:w-9/12 xl:p-4">
+    <div className="flex w-full flex-row items-center justify-center gap-2">
+      <div className="flex h-[calc(100vh-150px)] w-full flex-col justify-between rounded-2xl bg-white p-2 xl:w-[70%] xl:p-4">
         <div className="relative">
           <Image
             src="/logos/camara.png"
@@ -50,51 +46,37 @@ export default function BranchesList() {
           <h2 className="text-lg font-medium xl:text-2xl">
             Acesse informações diretas da Câmara dos Deputados
           </h2>
-          <div className="absolute top-2 right-2 flex items-center gap-2">
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <button className="bg-primary flex items-center gap-2 rounded-full px-2 py-1 text-base font-medium text-white focus:outline-none xl:top-4 xl:right-4 xl:px-4 xl:py-2 xl:text-xl">
-                  Documentos <ChevronDown />
-                </button>
-              </DropdownMenuTrigger>
-
-              <DropdownMenuContent
-                align="start"
-                className="max-h-[60vh] w-full gap-2 overflow-auto p-2"
-              >
-                {items.map((item, index) => (
-                  <DropdownMenuItem
-                    key={index}
-                    className="group rounded-none border-b border-b-zinc-400 hover:bg-transparent"
-                  >
-                    <div className="w-full rounded-md p-2 text-lg group-hover:bg-zinc-400">
-                      {item.label}
-                    </div>
-                  </DropdownMenuItem>
-                ))}
-              </DropdownMenuContent>
-            </DropdownMenu>
+          <div className="top-2 right-2 mt-2 flex items-center justify-between gap-2 md:absolute md:mt-0">
             <button
               onClick={() => setOpenInfo(true)}
-              className="bg-primary flex items-center justify-center rounded-full p-1 text-white xl:hidden"
+              className="bg-secondary flex items-center justify-center rounded-full p-1 text-white xl:hidden"
             >
               <Plus />
             </button>
           </div>
         </div>
         <div className="mt-4 flex h-[calc(100vh-300px)] flex-1 flex-col">
-          <Section loadNewChat={loadNewChat} setLoadNewChat={setLoadNewChat} />
+          <Section
+            loadNewChat={loadNewChat}
+            setLoadHistory={setLoadHistory}
+            loadOldChat={loadChat}
+            setLoadOldChat={setLoadChat}
+            selectedPrompt={prompts[0]}
+            setSelectedPrompt={setSelectedPrompt}
+            actualScreenType="proposition"
+            setLoadNewChat={setLoadNewChat}
+          />
         </div>
       </div>
       <div
         className={cn(
-          "relative h-[calc(100vh-150px)] w-3/4 flex-col justify-between rounded-2xl border border-zinc-200 bg-white shadow-sm lg:w-1/2 xl:flex xl:w-3/12",
-          openInfo ? "absolute right-0 flex" : "hidden",
+          "relative h-[calc(100vh-150px)] w-3/4 flex-col justify-between rounded-2xl border border-zinc-200 bg-white shadow-sm lg:w-1/2 xl:flex xl:w-[30%]",
+          openInfo ? "absolute right-2 flex xl:right-8" : "hidden",
         )}
       >
         <button
           onClick={() => setOpenInfo(false)}
-          className="bg-primary absolute top-4 right-[22px] z-10 flex items-center justify-center rounded-full p-1 text-white xl:hidden"
+          className="bg-secondary absolute top-4 right-[22px] z-10 flex items-center justify-center rounded-full p-1 text-white xl:hidden"
         >
           <Minus />
         </button>
@@ -108,23 +90,34 @@ export default function BranchesList() {
               />
             </div>
             <div className="flex flex-1 flex-col gap-4 overflow-y-auto p-4">
-              {aiHistory.map((historic, index) => (
-                <div
-                  key={index}
-                  className="rounded-lg transition-all duration-300 hover:scale-[1.02] hover:bg-gray-100"
-                >
-                  <h4 className="text-lg font-semibold">{historic.title}</h4>
-                  <p className="text-sm text-gray-600">
-                    {historic.description}
-                  </p>
-                </div>
-              ))}
+              {chats.length === 0 ? (
+                <label className="mt-10 text-center text-lg font-bold text-black">
+                  Sem histórico
+                </label>
+              ) : (
+                <>
+                  {chats.map((ai, index) => (
+                    <button
+                      key={index}
+                      onClick={() => {
+                        handleChangeChat(ai);
+                      }}
+                      className="flex flex-col items-start justify-start rounded-lg transition-all duration-300 hover:scale-[1.005] hover:bg-gray-100"
+                    >
+                      <h4 className="font-semibold">{ai.name}</h4>
+                      <h4 className="text-secondary text-sm font-semibold">
+                        {moment(ai.createdAt).format("DD/MM/YY, HH:mm")}
+                      </h4>
+                    </button>
+                  ))}
+                </>
+              )}
             </div>
             <button
               onClick={() => {
                 setLoadNewChat(true);
               }}
-              className="bg-primary mt-4 h-12 w-2/3 cursor-pointer self-center rounded-3xl text-2xl font-semibold text-white"
+              className="bg-secondary mt-4 h-12 w-2/3 cursor-pointer self-center rounded-3xl text-lg font-semibold text-white"
             >
               Novo Chat
             </button>

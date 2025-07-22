@@ -1,4 +1,5 @@
 "use client";
+import { AuthFooter } from "@/components/ui/AuthFooter";
 import { AuthHeader } from "@/components/ui/AuthHeader";
 import { useApiContext } from "@/context/ApiContext";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -10,7 +11,6 @@ import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { z } from "zod";
 
-// Schemas de validação com Zod
 const schemaRecover = z.object({
   email: z.string().email({ message: "Email inválido" }),
 });
@@ -29,29 +29,33 @@ const schemaEdit = z
     message: "As senhas devem corresponder",
     path: ["confirmPassword"],
   });
+
 interface RecoverFormData {
   email: string;
 }
+
 interface ValidateCodeFormData {
   code: string;
 }
+
 interface EditPasswordFormData {
   code: string;
   password: string;
   confirmPassword: string;
 }
+
 export default function RecoverPassword() {
+  const router = useRouter();
+  const { PostAPI, GetAPI } = useApiContext();
   const [currentStep, setCurrentStep] = useState(1);
   const [isShowingPassword, setIsShowingPassword] = useState(false);
   const [isShowingConfirmPassword, setIsShowingConfirmPassword] =
     useState(false);
   const [recoverError, setRecoverError] = useState("");
   const [isLogging, setIsLogging] = useState(false);
-  const [timer, setTimer] = useState(10); // 2 minutos
+  const [timer, setTimer] = useState(10);
   const [email, setEmail] = useState("");
-  const router = useRouter();
-  const { PostAPI, GetAPI } = useApiContext();
-  // Contagem regressiva para reenviar o código
+
   useEffect(() => {
     if (currentStep === 2 && timer > 0) {
       const countdown = setTimeout(() => setTimer(timer - 1), 1000);
@@ -59,7 +63,6 @@ export default function RecoverPassword() {
     }
   }, [currentStep, timer]);
 
-  // Funções de formulário
   const {
     register: registerRecover,
     handleSubmit: handleSubmitRecover,
@@ -84,8 +87,6 @@ export default function RecoverPassword() {
     resolver: zodResolver(schemaEdit),
   });
 
-  // Step 1: Enviar E-mail de recuperação
-
   async function HandleSendRecover(data: RecoverFormData) {
     setIsLogging(true);
     const response = await PostAPI(
@@ -97,14 +98,12 @@ export default function RecoverPassword() {
     );
     setIsLogging(false);
     if (response.status === 200) {
-      setEmail(data.email); // Salva o email para o reenvio do código
+      setEmail(data.email);
       setCurrentStep(2);
     } else {
       setRecoverError(response.body.message);
     }
   }
-
-  // Step 2: Validar Código de recuperação
 
   async function HandleValidateCode(data: ValidateCodeFormData) {
     setIsLogging(true);
@@ -121,13 +120,12 @@ export default function RecoverPassword() {
     }
   }
 
-  // Reenviar Código
   async function handleResendCode() {
     setIsLogging(true);
     const response = await PostAPI("/password-code", { email }, false);
     setIsLogging(false);
     if (response.status === 200) {
-      setTimer(120); // Reinicia o temporizador
+      setTimer(120);
     } else {
       setRecoverError("Erro ao reenviar o código. Tente novamente.");
     }
@@ -155,8 +153,8 @@ export default function RecoverPassword() {
   return (
     <main className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-white">
       <Image
-        src={"/static/login.png"}
-        className="absolute right-0 z-10 hidden h-[95%] w-[40%] rounded-tl-lg rounded-bl-lg object-cover md:block"
+        src={"/static/register2.png"}
+        className="absolute top-0 right-0 z-10 hidden h-[95%] w-[40%] rounded-bl-lg object-cover md:block"
         alt=""
         width={1000}
         height={2500}
@@ -179,7 +177,6 @@ export default function RecoverPassword() {
                 : "Digite uma nova senha para sua conta"}
           </h2>
 
-          {/* Step 1: E-mail */}
           {currentStep === 1 && (
             <form
               onSubmit={handleSubmitRecover(HandleSendRecover)}
@@ -191,7 +188,7 @@ export default function RecoverPassword() {
               <input
                 placeholder="Digite seu email"
                 {...registerRecover("email")}
-                className="outline-primary/50 focus:border-primary/50 h-8 rounded-md border border-zinc-400 p-2 text-sm text-black"
+                className="outline-secondary/50 focus:border-secondary/50 h-8 rounded-md border border-zinc-400 p-2 text-black"
                 type="email"
                 disabled={isLogging}
               />
@@ -210,14 +207,13 @@ export default function RecoverPassword() {
               <button
                 type="submit"
                 disabled={isLogging}
-                className="bg-primary mt-6 rounded-md border p-2 font-bold text-white"
+                className="bg-secondary mt-6 rounded-md border p-2 font-bold text-white"
               >
                 {isLogging ? "Carregando..." : "Enviar Código"}
               </button>
             </form>
           )}
 
-          {/* Step 2: Código de Recuperação */}
           {currentStep === 2 && (
             <form
               onSubmit={handleSubmitCode(HandleValidateCode)}
@@ -229,7 +225,7 @@ export default function RecoverPassword() {
               <input
                 placeholder="Digite o código enviado para seu email"
                 {...registerCode("code")}
-                className="outline-primary/50 focus:border-primary/50 h-8 rounded-md border border-zinc-400 p-2 text-sm text-black"
+                className="outline-secondary/50 focus:border-secondary/50 h-8 rounded-md border border-zinc-400 p-2 text-black"
                 type="text"
                 disabled={isLogging}
               />
@@ -262,14 +258,13 @@ export default function RecoverPassword() {
               <button
                 type="submit"
                 disabled={isLogging}
-                className="bg-primary mt-6 rounded-md border p-2 font-bold text-white"
+                className="bg-secondary mt-6 rounded-md border p-2 font-bold text-white"
               >
                 {isLogging ? "Carregando..." : "Validar Código"}
               </button>
             </form>
           )}
 
-          {/* Step 3: Redefinir Senha */}
           {currentStep === 3 && (
             <form
               onSubmit={handleSubmitEdit(HandleEditPassword)}
@@ -278,7 +273,7 @@ export default function RecoverPassword() {
               <label className="text-md font-semibold text-[#252F40]">
                 Nova Senha
               </label>
-              <div className="outline-primary/50 focus:border-primary/50 flex flex-row items-center overflow-hidden rounded-md border border-zinc-400">
+              <div className="outline-secondary/50 focus:border-secondary/50 flex flex-row items-center overflow-hidden rounded-md border border-zinc-400">
                 <input
                   {...registerEdit("password")}
                   placeholder="Digite sua nova senha"
@@ -306,7 +301,7 @@ export default function RecoverPassword() {
               <label className="text-md font-semibold text-[#252F40]">
                 Confirmar Nova Senha
               </label>
-              <div className="outline-primary/50 focus:border-primary/50 flex flex-row items-center overflow-hidden rounded-md border border-zinc-400">
+              <div className="outline-secondary/50 focus:border-secondary/50 flex flex-row items-center overflow-hidden rounded-md border border-zinc-400">
                 <input
                   {...registerEdit("confirmPassword")}
                   placeholder="Confirme sua nova senha"
@@ -338,7 +333,7 @@ export default function RecoverPassword() {
               <button
                 type="submit"
                 disabled={isLogging}
-                className="bg-primary mt-6 rounded-md border p-2 font-bold text-white"
+                className="bg-secondary mt-6 rounded-md border p-2 font-bold text-white"
               >
                 {isLogging ? "Carregando..." : "Redefinir Senha"}
               </button>
@@ -346,11 +341,12 @@ export default function RecoverPassword() {
           )}
           <button
             onClick={() => router.push("/login")}
-            className="bg-primary ml-1 cursor-pointer bg-clip-text text-sm font-bold text-transparent"
+            className="bg-secondary ml-1 cursor-pointer bg-clip-text text-sm font-bold text-transparent"
           >
             Voltar ao Login
           </button>
         </div>
+        <AuthFooter />
       </div>
     </main>
   );

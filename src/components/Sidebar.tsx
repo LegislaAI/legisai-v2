@@ -1,6 +1,14 @@
 "use client";
 import { cn } from "@/lib/utils";
-import { ChevronRight, Menu } from "lucide-react";
+import {
+  BellDot,
+  ChevronRight,
+  Home,
+  Settings2Icon,
+  Sparkle,
+  Sparkles,
+  Wallet,
+} from "lucide-react";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
 
@@ -10,20 +18,22 @@ export function Sidebar() {
   const pathname = usePathname();
 
   return (
-    <div className="hidden min-h-screen w-80 min-w-80 flex-col justify-between bg-white p-4 lg:flex">
+    <div className="hidden min-h-screen w-80 min-w-80 flex-col justify-between bg-white p-2 lg:flex 2xl:p-4">
       <div className="flex flex-col gap-4">
-        <div className="flex w-full items-center justify-between">
+        <div
+          onClick={() => router.push("/")}
+          className="flex w-full cursor-pointer items-center justify-between"
+        >
           <Image
             src="/logos/logo.png"
             alt=""
             width={1000}
             height={350}
-            className="h-max w-full object-contain"
+            className="mx-auto h-max w-2/3 object-contain 2xl:w-full"
           />
-          <Menu />
         </div>
-        <div className="flex flex-col gap-4">
-          {/* <div
+        <div className="flex flex-col gap-2 2xl:gap-4">
+          <div
             onClick={() => router.push("/")}
             className={cn(
               "group flex w-full cursor-pointer items-center justify-between",
@@ -78,7 +88,7 @@ export function Sidebar() {
                 pathname === "/news" && "opacity-100",
               )}
             />
-          </div> */}
+          </div>
           <div
             onClick={() => router.push("/procedures")}
             className={cn(
@@ -102,7 +112,7 @@ export function Sidebar() {
               )}
             />
           </div>
-          {/* <div
+          <div
             onClick={() => router.push("/ai")}
             className={cn(
               "group flex w-full cursor-pointer items-center justify-between",
@@ -138,7 +148,24 @@ export function Sidebar() {
               )}
             />
           </div>
-
+          <div
+            onClick={() => router.push("/tutorials")}
+            className={cn(
+              "group flex w-full cursor-pointer items-center justify-between",
+              pathname === "/tutorials" && "text-secondary font-semibold",
+            )}
+          >
+            <div className="flex items-center gap-2">
+              <Settings2Icon />
+              <span>Tutoriais</span>
+            </div>
+            <ChevronRight
+              className={cn(
+                "text-secondary opacity-0 transition duration-200 group-hover:opacity-100",
+                pathname === "/tutorials" && "opacity-100",
+              )}
+            />
+          </div>
           <div
             onClick={() => router.push("/profile")}
             className={cn(
@@ -153,28 +180,28 @@ export function Sidebar() {
             <ChevronRight
               className={cn(
                 "text-secondary opacity-0 transition duration-200 group-hover:opacity-100",
-                pathname === "/" && "opacity-100",
+                pathname === "/profile" && "opacity-100",
               )}
             />
-          </div> */}
+          </div>
         </div>
       </div>
-      <div className="bg-surface fixed bottom-4 left-4 flex h-80 w-72 flex-col overflow-hidden rounded-xl">
+      <div className="bg-surface fixed bottom-4 left-4 flex h-60 w-72 flex-col items-center justify-between overflow-hidden rounded-xl 2xl:h-80">
         <Image
           src="/static/ad1.png"
           alt=""
           width={500}
           height={500}
-          className="h-1/2 w-full object-cover"
+          className="h-2/5 w-full object-cover 2xl:h-1/2"
         />
-        <div className="flex h-1/2 flex-col justify-between p-4">
-          <span className="text-lg font-semibold">
-            Comissão debate crise no financiamento estudantil
-          </span>
-
-          <span className="relative">Nesta quinta-feira (3/7) ...</span>
-
-          <button className="bg-dark cursor-pointer rounded-full p-2 text-white">
+        <div className="flex h-3/5 flex-col justify-between p-1 2xl:h-1/2 2xl:p-2">
+          <div className="flex flex-col">
+            <span className="font-semibold xl:text-lg">
+              Comissão debate crise no financiamento estudantil
+            </span>
+            <span className="relative">Nesta quinta-feira (3/7) ...</span>
+          </div>
+          <button className="bg-dark cursor-pointer rounded-full p-1 text-white 2xl:p-2">
             Clique aqui e veja a Propaganda
           </button>
         </div>
