@@ -12,37 +12,41 @@ export function NewsCard({ title, summary }: NewsCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
 
   return (
-    <div className="relative flex w-full cursor-pointer flex-col items-center justify-between rounded-lg border border-transparent p-1 pb-2 transition-all duration-300 hover:border-zinc-200 hover:shadow-sm lg:flex-row">
-      <div className="flex items-center gap-2">
-        <div className="bg-secondary/10 border-secondary h-max w-max rounded-full border-2 p-2">
-          <Image
-            src="./icons/news.svg"
-            alt=""
-            width={20}
-            height={20}
-            className="h-5 max-h-5 min-h-5 w-5 max-w-5 min-w-5"
-          />
+    <>
+      <div
+        onClick={() => setIsModalOpen(true)}
+        className="relative flex w-full cursor-pointer flex-col items-center justify-between rounded-lg border border-transparent p-1 pb-2 transition-all duration-300 hover:border-zinc-200 hover:shadow-sm lg:flex-row"
+      >
+        <div className="flex items-center gap-2">
+          <div className="bg-secondary/10 border-secondary h-max w-max rounded-full border-2 p-2">
+            <Image
+              src="./icons/news.svg"
+              alt=""
+              width={20}
+              height={20}
+              className="h-5 max-h-5 min-h-5 w-5 max-w-5 min-w-5"
+            />
+          </div>
+          <div>
+            <h2 className="text-dark text-lg font-medium lg:w-full">{title}</h2>
+            <p className="w-full text-gray-600 lg:hidden">
+              {summary.length > 100 ? summary.slice(0, 100) + "..." : summary}
+            </p>
+            <p className="hidden w-full text-gray-600 lg:block lg:w-full">
+              {summary.length > 100 ? summary.slice(0, 100) + "..." : summary}
+            </p>
+          </div>
         </div>
-        <div>
-          <h2 className="text-dark text-lg font-medium lg:w-full">{title}</h2>
-          <p className="w-full text-gray-600 lg:hidden">
-            {summary.length > 100 ? summary.slice(0, 100) + "..." : summary}
-          </p>
-          <p className="hidden w-full text-gray-600 lg:block lg:w-full">
-            {summary.length > 100 ? summary.slice(0, 100) + "..." : summary}
-          </p>
+        <div className="flex flex-col items-center gap-2">
+          <span className="text-xs text-gray-600">2m atrás</span>
+          <button
+            onClick={() => setIsModalOpen(true)}
+            className="bg-secondary rounded-xl px-4 py-1 font-bold text-white duration-700 hover:scale-[1.005]"
+          >
+            Resumo
+          </button>
         </div>
       </div>
-      <div className="flex flex-col items-center gap-2">
-        <span className="text-xs text-gray-600">2m atrás</span>
-        <button
-          onClick={() => setIsModalOpen(true)}
-          className="bg-secondary rounded-xl px-4 py-1 font-bold text-white duration-700 hover:scale-[1.005]"
-        >
-          Resumo
-        </button>
-      </div>
-
       <Modal
         isOpen={isModalOpen}
         close={() => setIsModalOpen(false)}
@@ -80,6 +84,6 @@ export function NewsCard({ title, summary }: NewsCardProps) {
           </button>
         </div>
       </Modal>
-    </div>
+    </>
   );
 }

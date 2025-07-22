@@ -1,4 +1,5 @@
 "use client";
+import { AuthFooter } from "@/components/ui/AuthFooter";
 import { AuthHeader } from "@/components/ui/AuthHeader";
 import { useApiContext } from "@/context/ApiContext";
 import { maskCpfCnpj, maskPhone } from "@/lib/masks";
@@ -323,6 +324,7 @@ export default function Register() {
             </button>
           </span>
         </div>
+        <AuthFooter />
       </div>
 
       {openTermsModal && (

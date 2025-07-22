@@ -50,35 +50,6 @@ export function TutorialsSection({
             Confira todos os tutoriais da plataforma LegisAi.
           </span>
           <div className="flex w-full flex-col items-center justify-between gap-4 md:flex-row">
-            {/* <div className="flex">
-              <DropdownMenu>
-                <DropdownMenuTrigger asChild>
-                  <div className="text-light-dark flex items-center gap-2 rounded-lg border px-2 py-1 lg:px-4 lg:py-2">
-                    <span className="font-semibold">{selectedTutorial}</span>
-                    <ChevronDown />
-                  </div>
-                </DropdownMenuTrigger>
-
-                <DropdownMenuContent
-                  align="center"
-                  className="max-h-[20vh] w-full gap-2 overflow-auto p-2"
-                >
-                  {activities.map((item, index) => (
-                    <DropdownMenuItem
-                      key={index}
-                      className="group rounded-none border-b border-b-zinc-400 hover:bg-transparent"
-                    >
-                      <div
-                        onClick={() => setSelectedTutorial(item?.name || "")}
-                        className="w-full cursor-pointer rounded-md p-2 text-lg group-hover:bg-zinc-400"
-                      >
-                        {item?.name}
-                      </div>
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div> */}
             <div className="xs:w-[300px] border-secondary text-secondary ml-auto flex w-full flex-row justify-between gap-1 rounded-md border p-1 md:w-[300px]">
               <input
                 value={inputText}
@@ -97,7 +68,7 @@ export function TutorialsSection({
           filteredTutorials.map((tutorial) => (
             <div
               key={tutorial.id}
-              className="relative col-span-1 flex h-96 flex-col gap-2 overflow-y-hidden rounded-md p-2 shadow-md"
+              className="relative col-span-1 flex h-72 flex-col gap-2 overflow-y-hidden rounded-md p-2 shadow-md xl:h-96"
             >
               <Image
                 alt=""

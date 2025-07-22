@@ -7,7 +7,7 @@ export function Tutorials() {
   const [searchTerm] = useState("");
   return (
     <>
-      <div className="col-span-12 flex min-h-80 w-full flex-col gap-4 rounded-xl bg-white p-4 text-black shadow-md">
+      <div className="col-span-12 flex min-h-72 w-full flex-col gap-4 rounded-xl bg-white p-4 text-black shadow-md xl:min-h-80">
         <div className="flex flex-col items-center justify-between md:flex-row">
           <div className="flex flex-1 flex-col">
             <span className="text-xl font-semibold text-[#252F40]">

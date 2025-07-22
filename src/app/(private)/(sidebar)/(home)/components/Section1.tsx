@@ -144,7 +144,7 @@ export function Section1() {
       const cabinetQuotaData = Array(12).fill(0);
       const parliamentaryQuotaData = Array(12).fill(0);
 
-      selectedPolitician.finance.monthlyCosts.forEach((cost) => {
+      selectedPolitician.finance?.monthlyCosts.forEach((cost) => {
         const monthIndex = cost.month - 1;
         if (monthIndex >= 0 && monthIndex < 12) {
           cabinetQuotaData[monthIndex] = cost.cabinetQuota || 0;
@@ -457,8 +457,8 @@ export function Section1() {
               <div className="flex flex-col text-xs">
                 <span className="font-semibold text-red-500">
                   Gasto:{" "}
-                  {selectedPolitician?.finance.usedParliamentaryQuota
-                    ? selectedPolitician?.finance.usedParliamentaryQuota.toLocaleString(
+                  {selectedPolitician?.finance?.usedParliamentaryQuota
+                    ? selectedPolitician?.finance?.usedParliamentaryQuota.toLocaleString(
                         "pt-BR",
                         { style: "currency", currency: "BRL" },
                       )
@@ -466,8 +466,8 @@ export function Section1() {
                 </span>
                 <span className="text-secondary font-semibold">
                   Não utilizado:{" "}
-                  {selectedPolitician?.finance.unusedParliamentaryQuota
-                    ? selectedPolitician?.finance.unusedParliamentaryQuota.toLocaleString(
+                  {selectedPolitician?.finance?.unusedParliamentaryQuota
+                    ? selectedPolitician?.finance?.unusedParliamentaryQuota.toLocaleString(
                         "pt-BR",
                         { style: "currency", currency: "BRL" },
                       )
@@ -480,8 +480,8 @@ export function Section1() {
               <div className="flex flex-col text-xs">
                 <span className="font-semibold text-red-500">
                   Gasto:{" "}
-                  {selectedPolitician?.finance.usedCabinetQuota
-                    ? selectedPolitician?.finance.usedCabinetQuota.toLocaleString(
+                  {selectedPolitician?.finance?.usedCabinetQuota
+                    ? selectedPolitician?.finance?.usedCabinetQuota.toLocaleString(
                         "pt-BR",
                         { style: "currency", currency: "BRL" },
                       )
@@ -489,8 +489,8 @@ export function Section1() {
                 </span>
                 <span className="text-secondary font-semibold">
                   Não utilizado:{" "}
-                  {selectedPolitician?.finance.unusedCabinetQuota
-                    ? selectedPolitician?.finance.unusedCabinetQuota.toLocaleString(
+                  {selectedPolitician?.finance?.unusedCabinetQuota
+                    ? selectedPolitician?.finance?.unusedCabinetQuota.toLocaleString(
                         "pt-BR",
                         { style: "currency", currency: "BRL" },
                       )
@@ -546,8 +546,8 @@ export function Section1() {
                 Pessoal do Gabinete
               </div>
               <span className="text-center text-xs font-bold">
-                {selectedPolitician?.finance.contractedPeople
-                  ? selectedPolitician?.finance.contractedPeople.split(
+                {selectedPolitician?.finance?.contractedPeople
+                  ? selectedPolitician?.finance?.contractedPeople.split(
                       "Pessoal de gabinete",
                     )[1]
                   : "N/A"}
@@ -558,8 +558,8 @@ export function Section1() {
                 Salário mensal bruto
               </div>
               <span className="text-center text-xs font-bold">
-                {selectedPolitician?.finance.grossSalary
-                  ? selectedPolitician?.finance.grossSalary.split(
+                {selectedPolitician?.finance?.grossSalary
+                  ? selectedPolitician?.finance?.grossSalary.split(
                       "Salário mensal bruto",
                     )[1]
                   : "N/A"}
@@ -570,8 +570,8 @@ export function Section1() {
                 Imóvel funcional
               </div>
               <span className="text-center text-xs font-bold">
-                {selectedPolitician?.finance.functionalPropertyUsage
-                  ? selectedPolitician?.finance.functionalPropertyUsage.split(
+                {selectedPolitician?.finance?.functionalPropertyUsage
+                  ? selectedPolitician?.finance?.functionalPropertyUsage.split(
                       "Imóvel funcional",
                     )[1]
                   : "N/A"}
@@ -582,8 +582,8 @@ export function Section1() {
                 Auxílio-moradia
               </div>
               <span className="text-center text-xs font-bold">
-                {selectedPolitician?.finance.housingAssistant
-                  ? selectedPolitician?.finance.housingAssistant.split(
+                {selectedPolitician?.finance?.housingAssistant
+                  ? selectedPolitician?.finance?.housingAssistant.split(
                       "Auxílio-moradia",
                     )[1]
                   : "N/A"}
@@ -594,8 +594,8 @@ export function Section1() {
                 Viagens em missão oficial
               </div>
               <span className="text-center text-xs font-bold">
-                {selectedPolitician?.finance.trips
-                  ? selectedPolitician?.finance.trips.split(
+                {selectedPolitician?.finance?.trips
+                  ? selectedPolitician?.finance?.trips.split(
                       "Viagens em missão oficial",
                     )[1]
                   : "N/A"}
@@ -606,8 +606,8 @@ export function Section1() {
                 Passaporte diplomático
               </div>
               <span className="text-center text-xs font-bold">
-                {selectedPolitician?.finance.diplomaticPassport
-                  ? selectedPolitician?.finance.diplomaticPassport.split(
+                {selectedPolitician?.finance?.diplomaticPassport
+                  ? selectedPolitician?.finance?.diplomaticPassport.split(
                       "Passaporte diplomático",
                     )[1]
                   : "N/A"}

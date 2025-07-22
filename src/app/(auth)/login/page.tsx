@@ -1,4 +1,5 @@
 "use client";
+import { AuthFooter } from "@/components/ui/AuthFooter";
 import { AuthHeader } from "@/components/ui/AuthHeader";
 import { useApiContext } from "@/context/ApiContext";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -173,6 +174,7 @@ export default function Login() {
             </button>
           </span>
         </div>
+        <AuthFooter />
       </div>
     </main>
   );

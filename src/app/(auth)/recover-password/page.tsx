@@ -1,4 +1,5 @@
 "use client";
+import { AuthFooter } from "@/components/ui/AuthFooter";
 import { AuthHeader } from "@/components/ui/AuthHeader";
 import { useApiContext } from "@/context/ApiContext";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -345,6 +346,7 @@ export default function RecoverPassword() {
             Voltar ao Login
           </button>
         </div>
+        <AuthFooter />
       </div>
     </main>
   );

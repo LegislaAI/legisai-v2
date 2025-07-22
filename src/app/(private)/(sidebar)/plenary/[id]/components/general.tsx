@@ -4,12 +4,19 @@ import {
   PropositionDetailsProps,
   PropositionProcessDetailsProps,
 } from "@/@types/proposition";
+import { ScrollArea } from "@/components/chat/scroll-area";
 import {
   Accordion,
   AccordionContent,
   AccordionItem,
   AccordionTrigger,
 } from "@/components/ui/accordion";
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
 import {
   Table,
   TableBody,
@@ -26,7 +33,7 @@ import {
 } from "@/components/ui/tooltip";
 import { useApiContext } from "@/context/ApiContext";
 import { cn } from "@/lib/utils";
-import { ArrowDown, ArrowUp, FileText, Loader2 } from "lucide-react";
+import { ArrowDown, ArrowUp, Calendar, FileText, Loader2 } from "lucide-react";
 import moment from "moment";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
@@ -75,6 +82,8 @@ export function General() {
       label: "",
     },
   ];
+
+  console.log("eventPropositions", eventPropositions);
 
   const processColumns = [
     { key: "icon", label: "" },
@@ -402,7 +411,7 @@ export function General() {
                 />{" "}
                 Filtro por Data das Tramitações:
               </h3>
-              <div className="scrollbar-hide flex h-10 w-full gap-4 overflow-x-scroll p-2">
+              <div className="scrollbar-hide hidden h-10 w-full gap-4 overflow-x-scroll p-2 xl:flex">
                 {years.map((y) => (
                   <div
                     key={y}
@@ -422,6 +431,36 @@ export function General() {
                   </div>
                 ))}
               </div>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <button className="border-secondary text-secondary flex h-max items-center gap-2 rounded-md border px-2 py-1">
+                    <Calendar />
+                    {selectedYear}
+                  </button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent side="left" className="h-80 w-max">
+                  <ScrollArea className="h-full w-full">
+                    {years.map((y) => (
+                      <DropdownMenuItem
+                        key={y}
+                        onClick={() => setSelectedYear(y)}
+                        className={cn(
+                          "relative mx-auto h-max w-max cursor-pointer px-1 py-0.5 text-sm font-semibold transition duration-300",
+                          y === selectedYear && "text-secondary",
+                        )}
+                      >
+                        <div
+                          className={cn(
+                            "absolute top-0 left-0 h-0.5 w-full bg-transparent transition duration-300",
+                            y === selectedYear && "bg-secondary",
+                          )}
+                        />
+                        <span>{y}</span>
+                      </DropdownMenuItem>
+                    ))}
+                  </ScrollArea>
+                </DropdownMenuContent>
+              </DropdownMenu>
             </div>
 
             <div className="overflow-x-auto">

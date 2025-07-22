@@ -57,6 +57,7 @@ export function Votes({ eventUrl }: VoteProps) {
   async function GetVotes() {
     const eventId = pathname.split("/")[2];
     const votes = await GetAPI(`/voting/${eventId}`, true);
+    console.log("votes", votes);
     if (votes.status === 200) {
       setVotesList(votes.body.voting);
       return setIsGettingVotes(false);
@@ -216,7 +217,7 @@ export function Votes({ eventUrl }: VoteProps) {
                         selectedVote?.id === row.id && "bg-secondary/20",
                       )}
                     >
-                      <TableCell className="h-4 py-1 text-sm font-medium whitespace-nowrap">
+                      <TableCell className="h-4 max-w-80 truncate py-1 text-sm font-medium whitespace-nowrap">
                         {row.title}
                       </TableCell>
                       <TableCell className="h-4 w-80 py-1 text-center text-sm">
@@ -265,7 +266,12 @@ export function Votes({ eventUrl }: VoteProps) {
           </div>
         </div>
       </div>
-      <div className="col-span-12 flex flex-col overflow-hidden rounded-lg bg-white xl:col-span-12">
+      <div
+        className={cn(
+          "col-span-12 flex flex-col overflow-hidden rounded-lg bg-white xl:col-span-12",
+          votesList.length === 0 && "hidden",
+        )}
+      >
         <div className="bg-secondary/20 flex h-full w-full flex-col gap-4 p-4">
           <span className="text-secondary text-xl font-bold">
             {selectedVote
