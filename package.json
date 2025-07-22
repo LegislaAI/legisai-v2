@@ -61,7 +61,6 @@
     "@commitlint/types": "^19.8.0",
     "@eslint/eslintrc": "^3",
     "@svgr/webpack": "^8.1.0",
-    "@tailwindcss/postcss": "^4",
     "@types/lodash.debounce": "^4.0.9",
     "@types/node": "^20",
     "@types/react": "^19",

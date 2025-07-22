@@ -5,6 +5,7 @@ frontend:
       commands:
         - nvm install 20
         - nvm use 20
+        - export NODE_OPTIONS="--max-old-space-size=4096"
         - export TAILWIND_DISABLE_OXIDE=1
         - npm ci
     build:
