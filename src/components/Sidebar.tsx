@@ -61,12 +61,34 @@ export function Sidebar() {
           >
             <div className="flex items-center gap-2">
               <Wallet />
-              <span>Plenários e Reuniões</span>
+              <span>Plenários / Sessões</span>
             </div>
             <ChevronRight
               className={cn(
                 "text-secondary opacity-0 transition duration-200 group-hover:opacity-100",
                 (pathname === "/plenary" || pathname.includes("plenary")) &&
+                  "opacity-100",
+              )}
+            />
+          </div>
+          <div
+            onClick={() => router.push("/commissions")}
+            className={cn(
+              "group flex w-full cursor-pointer items-center justify-between",
+              (pathname === "/commissions" ||
+                pathname.includes("commissions")) &&
+                "text-secondary font-semibold",
+            )}
+          >
+            <div className="flex items-center gap-2">
+              <Wallet />
+              <span>Comissões / Reuniões</span>
+            </div>
+            <ChevronRight
+              className={cn(
+                "text-secondary opacity-0 transition duration-200 group-hover:opacity-100",
+                (pathname === "/commissions" ||
+                  pathname.includes("commissions")) &&
                   "opacity-100",
               )}
             />

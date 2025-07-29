@@ -5,6 +5,11 @@ import Image from "next/image";
 import { useRouter } from "next/navigation";
 
 import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu";
+import {
   Tooltip,
   TooltipArrow,
   TooltipContent,
@@ -57,7 +62,7 @@ export function Plenaries() {
     <div className="lg:w-col-span-1 flex h-96 w-full flex-col rounded-lg bg-white p-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-dark font-semibold">Últimos Plenários</span>
+          <span className="text-dark font-semibold">Plenários</span>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>
@@ -77,6 +82,18 @@ export function Plenaries() {
             </Tooltip>
           </TooltipProvider>
         </div>
+
+        <DropdownMenu>
+          <DropdownMenuTrigger asChild>
+            <button className="flex cursor-pointer items-center gap-2 rounded border border-zinc-200 px-2 py-1 text-zinc-400 transition duration-200 hover:bg-zinc-200">
+              {moment().format("DD/MM/YYYY")}
+            </button>
+          </DropdownMenuTrigger>
+          <DropdownMenuContent className="flex h-20 w-20 items-center justify-center text-center">
+            Calendário
+          </DropdownMenuContent>
+        </DropdownMenu>
+
         <button
           onClick={() => router.push("/plenary")}
           className="flex items-center gap-2"
