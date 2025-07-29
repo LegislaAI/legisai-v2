@@ -272,7 +272,12 @@ export default function Register() {
                   Li e concordo com os {""}
                   <a
                     className="hover:underline"
-                    // onClick={() => setOpenTermsModal(true)}
+                    onClick={() =>
+                      window.open(
+                        "https://docs.google.com/document/d/1qq5tUWY9g3j0zj1g1fhcp_xwvK1cJN4SsGUnlRWer84/edit?tab=t.0#heading=h.19g25mwtxn88",
+                        "_blank",
+                      )
+                    }
                   >
                     Termos de Uso
                   </a>
@@ -295,7 +300,12 @@ export default function Register() {
                   Li e concordo com os {""}
                   <a
                     className="hover:underline"
-                    // onClick={() => setOpenPrivacyModal(true)}
+                    onClick={() =>
+                      window.open(
+                        "https://docs.google.com/document/d/1Kgh0fDCaFO0WYc6rhHoYdP36pLUGO9MEu2W0ZY4usRw/edit?tab=t.0#heading=h.alfhhowg17b1",
+                        "_blank",
+                      )
+                    }
                   >
                     Política de Privacidade
                   </a>
