@@ -1,5 +1,6 @@
 "use client";
 import { SignatureCard } from "@/app/(private)/(sidebar)/prediction-ai/components/signatureCard";
+import { AuthFooter } from "@/components/ui/AuthFooter";
 import { AuthHeader } from "@/components/ui/AuthHeader";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -27,9 +28,9 @@ export default function Plans() {
       />
       <div className="relative z-10 flex min-h-[100vh] w-full flex-col overflow-hidden px-8 xl:px-20">
         <AuthHeader />
-        <div className="z-20 mt-32 flex w-full flex-col gap-2 md:mt-40 md:w-[calc(60%-32px)] 2xl:ml-[10%] 2xl:w-[40%] 2xl:gap-4">
+        <div className="z-20 mt-32 flex w-full flex-col gap-2 pb-20 md:mt-20 md:w-[45%] xl:ml-[10%] xl:w-[40%] xl:gap-4">
           <h1 className="text-xl font-bold md:text-3xl">Escolha seu plano</h1>
-          <h2 className="text-lg text-[#8392AB]">
+          <h2 className="text-sm text-[#8392AB] lg:text-lg">
             Selecione o plano que melhor se adequá ao seu perfil
           </h2>
           <div
@@ -63,6 +64,7 @@ export default function Plans() {
             />
           </div>
         </div>
+        <AuthFooter />
       </div>
     </main>
   );

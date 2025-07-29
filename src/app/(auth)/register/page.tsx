@@ -112,7 +112,7 @@ export default function Register() {
   };
 
   return (
-    <main className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-white pb-10 md:pb-0">
+    <main className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-white">
       <Image
         src={"/static/register2.png"}
         className="absolute top-0 right-0 z-10 hidden h-[95%] w-[40%] rounded-bl-lg object-cover md:block"
@@ -122,11 +122,11 @@ export default function Register() {
       />
       <div className="relative z-10 flex min-h-[100vh] w-full flex-col overflow-hidden px-8 xl:px-20">
         <AuthHeader />
-        <div className="z-20 mt-32 flex w-full flex-col gap-2 md:mt-32 md:w-[45%] md:pb-0 xl:ml-[10%] xl:w-[40%] 2xl:gap-4">
+        <div className="z-20 mt-32 flex w-full flex-col gap-2 pb-20 md:mt-20 md:w-[45%] xl:ml-[10%] xl:w-[40%] xl:gap-4">
           <h1 className="bg-clip-text text-2xl font-bold md:text-3xl">
             Cadastrar-se
           </h1>
-          <h2 className="text-lg text-[#8392AB] md:text-lg">
+          <h2 className="text-sm text-[#8392AB] md:text-lg">
             Preencha os dados abaixo para criar sua conta
           </h2>
           <form
