@@ -143,8 +143,8 @@ export function useSectionChat({
   ) {
     if (!shouldSaveMessage) return;
     try {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
       const response = await PostAPI(`/message/${id}`, msg, true);
-      console.log("response", response);
     } catch (e) {
       console.error("postMessage:", e);
     }
@@ -297,7 +297,6 @@ export function useSectionChat({
   }
   async function handleSendMessage(message?: string) {
     const inputMessages2 = message ?? inputMessage;
-    console.log("inputMessages2", inputMessages2);
 
     if (loading || (!inputMessages2.trim() && !file)) return;
     cancelStreamRef.current = false;

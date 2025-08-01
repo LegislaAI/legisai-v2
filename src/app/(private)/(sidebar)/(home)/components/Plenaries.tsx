@@ -4,6 +4,7 @@ import { ChevronRight, Info } from "lucide-react";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
+import { Calendar } from "@/components/ui/calendar";
 import {
   DropdownMenu,
   DropdownMenuContent,
@@ -37,26 +38,30 @@ interface Event {
 export function Plenaries() {
   const router = useRouter();
   const { GetAPI } = useApiContext();
-  const [events, setEvents] = useState<Event[]>([]);
   const { selectedPoliticianId } = usePoliticianContext();
+  const [events, setEvents] = useState<Event[]>([]);
+  const [selectedDateFilter, setSelectedDateFilter] = useState<Date | null>(
+    null,
+  );
+
   async function handleGetEvent() {
-    const response = await GetAPI(
-      `/event?page=1&politicianId=${selectedPoliticianId}`,
-      true,
-    );
-    try {
-      if (response.status === 200) {
-        setEvents(response.body.events);
-        // return response.body.politician;
-      }
-    } catch (error) {
-      console.error("Error carregando politician:", error);
+    let data = "";
+    if (selectedDateFilter) {
+      data += `&date=${moment(selectedDateFilter).format("YYYY-MM-DD")}`;
+    }
+    if (selectedPoliticianId) {
+      data += `&politicianId=${selectedPoliticianId}`;
+    }
+    const response = await GetAPI(`/event?page=1${data}`, true);
+    if (response.status === 200) {
+      setEvents(response.body.events);
+      // return response.body.politician;
     }
   }
 
   useEffect(() => {
     handleGetEvent();
-  }, [selectedPoliticianId]);
+  }, [selectedPoliticianId, selectedDateFilter]);
 
   return (
     <div className="lg:w-col-span-1 flex h-96 w-full flex-col rounded-lg bg-white p-4">
@@ -85,12 +90,19 @@ export function Plenaries() {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex cursor-pointer items-center gap-2 rounded border border-zinc-200 px-2 py-1 text-zinc-400 transition duration-200 hover:bg-zinc-200">
-              {moment().format("DD/MM/YYYY")}
+            <button className="flex w-32 cursor-pointer items-center justify-center gap-2 rounded border border-zinc-200 px-2 py-1 text-center text-zinc-400 transition duration-200 hover:bg-zinc-200">
+              {selectedDateFilter
+                ? moment(selectedDateFilter).format("DD/MM/YYYY")
+                : "Filtrar por data"}
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="flex h-20 w-20 items-center justify-center text-center">
-            Calendário
+          <DropdownMenuContent className="flex items-center justify-center text-center">
+            <Calendar
+              mode="single"
+              selected={selectedDateFilter || undefined}
+              onSelect={(date) => setSelectedDateFilter(date || null)}
+              initialFocus
+            />
           </DropdownMenuContent>
         </DropdownMenu>
 

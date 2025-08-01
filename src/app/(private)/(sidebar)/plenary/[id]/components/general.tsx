@@ -83,8 +83,6 @@ export function General() {
     },
   ];
 
-  console.log("eventPropositions", eventPropositions);
-
   const processColumns = [
     { key: "icon", label: "" },
     { key: "date", label: "Data" },
