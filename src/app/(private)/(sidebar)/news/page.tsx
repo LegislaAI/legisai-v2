@@ -44,9 +44,9 @@ export default function News() {
   }, [currentPage]);
 
   return (
-    <div className="flex h-full w-full flex-col items-center gap-4 rounded-xl bg-white lg:gap-12">
+    <div className="flex h-full w-full flex-col items-center gap-4 rounded-xl bg-white xl:gap-12">
       {/* Filtros */}
-      <div className="flex w-full gap-6 p-2 lg:px-8 lg:pt-10">
+      <div className="flex w-full gap-6 p-2 xl:px-8 xl:pt-10">
         {[
           { key: "all", label: "Todos" },
           { key: "legis", label: "Câmara Legislativa" },
@@ -55,7 +55,7 @@ export default function News() {
             key={tab.key}
             onClick={() => setSelected(tab.key as typeof selected)}
             className={cn(
-              "hover:border-secondary/80 cursor-pointer rounded-4xl border-2 border-transparent text-sm font-medium text-gray-600 hover:px-2 focus:outline-none lg:text-base",
+              "hover:border-secondary/80 cursor-pointer rounded-4xl border-2 border-transparent text-sm font-medium text-gray-600 hover:px-2 focus:outline-none xl:text-base",
               selected === tab.key &&
                 "border-secondary text-secondary px-2 py-1 font-bold",
             )}
@@ -65,8 +65,8 @@ export default function News() {
         ))}
       </div>
 
-      <div className="flex w-full flex-col gap-2 px-2 lg:gap-6 lg:px-8">
-        <div className="flex flex-col gap-4 overflow-hidden p-1 lg:gap-8">
+      <div className="flex w-full flex-col gap-2 px-2 xl:gap-6 xl:px-8">
+        <div className="flex flex-col gap-4 overflow-hidden p-1 xl:gap-8">
           {news.length === 0 && loadingNews && <p>Carregando...</p>}
           {!loadingNews &&
             (news.length > 0 ? (

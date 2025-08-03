@@ -90,7 +90,7 @@ export function Plenaries() {
 
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex w-32 cursor-pointer items-center justify-center gap-2 rounded border border-zinc-200 px-2 py-1 text-center text-zinc-400 transition duration-200 hover:bg-zinc-200">
+            <button className="flex w-32 cursor-pointer items-center justify-center gap-2 rounded border border-zinc-200 px-2 py-1 text-center text-xs text-zinc-400 transition duration-200 hover:bg-zinc-200 xl:text-sm">
               {selectedDateFilter
                 ? moment(selectedDateFilter).format("DD/MM/YYYY")
                 : "Filtrar por data"}

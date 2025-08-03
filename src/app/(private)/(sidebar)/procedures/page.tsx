@@ -29,7 +29,7 @@ export default function BranchesList() {
 
   return (
     <div className="flex w-full flex-row items-center justify-center gap-2">
-      <div className="flex h-[calc(100vh-150px)] w-full flex-col justify-between rounded-2xl bg-white p-2">
+      <div className="flex h-[calc(100vh-75px)] w-full flex-col justify-between rounded-2xl bg-white p-2 xl:h-[calc(100vh-150px)]">
         <div className="relative">
           <h2 className="text-sm font-medium text-zinc-400 xl:text-base">
             Inteligência artificial treinada com dados da Câmara legislativa.
@@ -61,7 +61,7 @@ export default function BranchesList() {
       </div>
       <div
         className={cn(
-          "relative h-[calc(100vh-150px)] w-3/4 flex-col justify-between rounded-2xl border border-zinc-200 bg-white shadow-sm lg:w-1/2 xl:w-[30%]",
+          "relative h-[calc(100vh-75px)] w-3/4 flex-col justify-between rounded-2xl border border-zinc-200 bg-white shadow-sm lg:w-1/2 xl:h-[calc(100vh-150px)] xl:w-[30%]",
           openInfo ? "absolute right-2 flex xl:right-8" : "hidden",
         )}
       >

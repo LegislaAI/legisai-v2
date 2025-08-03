@@ -39,12 +39,12 @@ export function MobileSidebar() {
                   alt=""
                   width={1000}
                   height={350}
-                  className="mx-auto h-max w-2/3 object-contain"
+                  className="mx-auto h-40 w-max object-contain"
                 />
               </div>
             </SheetTitle>
 
-            <div className="flex flex-col gap-2">
+            <div className="flex h-[calc(100%-432px)] flex-col gap-8 overflow-y-scroll">
               <div
                 onClick={() => router.push("/")}
                 className={cn(
@@ -73,12 +73,34 @@ export function MobileSidebar() {
               >
                 <div className="flex items-center gap-2">
                   <Wallet />
-                  <span>Plenários e Reuniões</span>
+                  <span>Plenários / Sessões</span>
                 </div>
                 <ChevronRight
                   className={cn(
                     "text-secondary opacity-0 transition duration-200 group-hover:opacity-100",
                     (pathname === "/plenary" || pathname.includes("plenary")) &&
+                      "opacity-100",
+                  )}
+                />
+              </div>
+              <div
+                onClick={() => router.push("/commissions")}
+                className={cn(
+                  "group flex w-full cursor-pointer items-center justify-between",
+                  (pathname === "/commissions" ||
+                    pathname.includes("commissions")) &&
+                    "text-secondary font-semibold",
+                )}
+              >
+                <div className="flex items-center gap-2">
+                  <Wallet />
+                  <span>Comissões / Reuniões</span>
+                </div>
+                <ChevronRight
+                  className={cn(
+                    "text-secondary opacity-0 transition duration-200 group-hover:opacity-100",
+                    (pathname === "/commissions" ||
+                      pathname.includes("commissions")) &&
                       "opacity-100",
                   )}
                 />

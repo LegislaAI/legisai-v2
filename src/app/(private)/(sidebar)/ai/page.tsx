@@ -170,7 +170,7 @@ export default function BranchesList() {
       </Sheet>
 
       <div className="flex w-full flex-row-reverse items-center justify-center gap-2">
-        <div className="flex h-[calc(100vh-150px)] w-full flex-col justify-between rounded-2xl bg-white p-2">
+        <div className="flex h-[calc(100vh-75px)] w-full flex-col justify-between rounded-2xl bg-white p-2 xl:h-[calc(100vh-150px)]">
           <div className="relative">
             <div className="flex flex-row items-center gap-4">
               <Image
@@ -227,7 +227,7 @@ export default function BranchesList() {
         </div>
         <div
           className={cn(
-            "relative h-[calc(100vh-150px)] w-3/4 flex-col justify-between rounded-2xl border border-zinc-200 bg-white shadow-sm lg:w-1/2 xl:w-[30%]",
+            "relative h-[calc(100vh-75px)] w-3/4 flex-col justify-between rounded-2xl border border-zinc-200 bg-white shadow-sm lg:w-1/2 xl:h-[calc(100vh-150px)] xl:w-[30%]",
             openInfo ? "absolute right-2 flex xl:right-8" : "hidden",
           )}
         >

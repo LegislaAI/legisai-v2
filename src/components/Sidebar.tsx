@@ -19,7 +19,7 @@ export function Sidebar() {
 
   return (
     <div className="hidden min-h-screen w-80 min-w-80 flex-col justify-between bg-white p-2 lg:flex 2xl:p-4">
-      <div className="flex flex-col gap-4">
+      <div className="flex flex-col gap-2 text-xs xl:gap-4 xl:text-sm">
         <div
           onClick={() => router.push("/")}
           className="flex w-full cursor-pointer items-center justify-between"
@@ -32,7 +32,7 @@ export function Sidebar() {
             className="mx-auto h-max w-2/3 object-contain 2xl:w-full"
           />
         </div>
-        <div className="flex flex-col gap-2 2xl:gap-4">
+        <div className="flex flex-col 2xl:gap-4">
           <div
             onClick={() => router.push("/")}
             className={cn(
@@ -41,7 +41,12 @@ export function Sidebar() {
             )}
           >
             <div className="flex items-center gap-2">
-              <Home />
+              <Home
+                className={cn(
+                  "h-5 object-contain text-[20px] text-current xl:h-8",
+                  pathname === "/" && "text-secondary",
+                )}
+              />
               <span>Home</span>
             </div>
             <ChevronRight
@@ -60,7 +65,12 @@ export function Sidebar() {
             )}
           >
             <div className="flex items-center gap-2">
-              <Wallet />
+              <Wallet
+                className={cn(
+                  "h-5 object-contain text-[20px] text-current xl:h-8",
+                  pathname === "/plenary" && "text-secondary",
+                )}
+              />
               <span>Plenários / Sessões</span>
             </div>
             <ChevronRight
@@ -81,7 +91,12 @@ export function Sidebar() {
             )}
           >
             <div className="flex items-center gap-2">
-              <Wallet />
+              <Wallet
+                className={cn(
+                  "h-5 object-contain text-[20px] text-current xl:h-8",
+                  pathname === "/commissions" && "text-secondary",
+                )}
+              />
               <span>Comissões / Reuniões</span>
             </div>
             <ChevronRight
@@ -101,7 +116,13 @@ export function Sidebar() {
             )}
           >
             <div className="flex items-center gap-2">
-              <BellDot />
+              <BellDot
+                className={cn(
+                  "h-5 object-contain text-[20px] text-current xl:h-8",
+                  pathname === "/news" && "text-secondary",
+                )}
+              />
+
               <span>Novidades e Notícias</span>
             </div>
             <ChevronRight
@@ -121,7 +142,7 @@ export function Sidebar() {
             <div className="flex items-center gap-2">
               <CogIcon
                 className={cn(
-                  "h-max w-5 object-contain text-[20px] text-current",
+                  "h-5 object-contain text-[20px] text-current xl:h-8",
                   pathname === "/procedures" && "text-secondary",
                 )}
               />
@@ -142,7 +163,12 @@ export function Sidebar() {
             )}
           >
             <div className="flex items-center gap-2">
-              <Sparkles />
+              <Sparkles
+                className={cn(
+                  "h-5 object-contain text-[20px] text-current xl:h-8",
+                  pathname === "/ai" && "text-secondary",
+                )}
+              />
               <span>Inteligência Artificial - Legis AI</span>
             </div>
             <ChevronRight
@@ -160,7 +186,12 @@ export function Sidebar() {
             )}
           >
             <div className="flex items-center gap-2">
-              <Sparkle />
+              <Sparkle
+                className={cn(
+                  "h-5 object-contain text-[20px] text-current xl:h-8",
+                  pathname === "/prediction-ai" && "text-secondary",
+                )}
+              />
               <span>IA Preditiva - Legis AI</span>
             </div>
             <ChevronRight
@@ -178,7 +209,12 @@ export function Sidebar() {
             )}
           >
             <div className="flex items-center gap-2">
-              <Settings2Icon />
+              <Settings2Icon
+                className={cn(
+                  "h-5 object-contain text-[20px] text-current xl:h-8",
+                  pathname === "/tutorials" && "text-secondary",
+                )}
+              />
               <span>Tutoriais</span>
             </div>
             <ChevronRight
@@ -196,7 +232,12 @@ export function Sidebar() {
             )}
           >
             <div className="flex items-center gap-2">
-              <Settings2Icon />
+              <Settings2Icon
+                className={cn(
+                  "h-5 object-contain text-[20px] text-current xl:h-8",
+                  pathname === "/profile" && "text-secondary",
+                )}
+              />
               <span>Configurações</span>
             </div>
             <ChevronRight
@@ -208,7 +249,7 @@ export function Sidebar() {
           </div>
         </div>
       </div>
-      <div className="bg-surface fixed bottom-4 left-4 flex h-60 w-72 flex-col items-center justify-between overflow-hidden rounded-xl 2xl:h-80">
+      <div className="bg-surface fixed bottom-4 left-4 flex h-40 w-72 flex-col items-center justify-between overflow-hidden rounded-xl 2xl:h-80">
         <Image
           src="/static/ad1.png"
           alt=""
@@ -218,12 +259,14 @@ export function Sidebar() {
         />
         <div className="flex h-3/5 flex-col justify-between p-1 2xl:h-1/2 2xl:p-2">
           <div className="flex flex-col">
-            <span className="font-semibold xl:text-lg">
+            <span className="text-xs font-semibold 2xl:text-lg">
               Comissão debate crise no financiamento estudantil
             </span>
-            <span className="relative">Nesta quinta-feira (3/7) ...</span>
+            <span className="relative text-[10px] 2xl:text-sm">
+              Nesta quinta-feira (3/7) ...
+            </span>
           </div>
-          <button className="bg-dark cursor-pointer rounded-full p-1 text-white 2xl:p-2">
+          <button className="bg-dark cursor-pointer rounded-full p-1 text-xs text-white 2xl:p-2 2xl:text-sm">
             Clique aqui e veja a Propaganda
           </button>
         </div>

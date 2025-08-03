@@ -32,7 +32,7 @@ export default function Plenary() {
   const [loadingPlenaries, setLoadingPlenaries] = useState(true);
   const [plenaries, setPlenaries] = useState<PlenaryProps[]>([]);
   const [plenaryPages, setPlenaryPages] = useState<number>(0);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(3);
   const [selectedDateFilter, setSelectedDateFilter] = useState<Date | null>(
     null,
   );
@@ -108,7 +108,7 @@ export default function Plenary() {
           )}
         </div>
       </div>
-      <div className="w-full">
+      <div className="w-full pb-10 lg:pb-2">
         <CustomPagination
           pages={plenaryPages}
           setCurrentPage={setCurrentPage}

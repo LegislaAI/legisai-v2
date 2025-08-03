@@ -159,7 +159,7 @@ export function Votes({ eventUrl }: VoteProps) {
   }, [selectedVote, negativeVotesCurrentPage, negativeVotesQuery]);
 
   return (
-    <div className="grid w-full grid-cols-12 gap-8">
+    <div className="grid w-full grid-cols-12 gap-8 pb-20 xl:pb-10">
       <div className="col-span-12 flex flex-col overflow-hidden rounded-lg bg-white xl:col-span-12">
         <div className="flex h-full w-full flex-col">
           <span className="text-secondary p-4 text-xl font-bold">
@@ -278,7 +278,7 @@ export function Votes({ eventUrl }: VoteProps) {
               : "Escolha uma votação acima para ver detalhes"}
           </span>
           {selectedVote && (
-            <div className="lg:px-4">
+            <div className="xl:px-4">
               <div className="border-secondary flex w-full flex-col overflow-hidden rounded-lg border bg-white px-4 py-2 md:px-8">
                 <div className="flex h-full w-full flex-col justify-between md:flex-row">
                   <div
@@ -295,7 +295,7 @@ export function Votes({ eventUrl }: VoteProps) {
                     </span>
 
                     <div className="flex flex-col gap-2 text-justify text-sm">
-                      <div className="flex items-center gap-1">
+                      <div className="flex flex-col items-start gap-1 xl:flex-row xl:items-center">
                         <span className="font-semibold underline">
                           {ProposalName(selectedVote)}
                         </span>
@@ -307,11 +307,13 @@ export function Votes({ eventUrl }: VoteProps) {
                             : selectedVote.proposition.description}
                         </span>
                       </div>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center">
                         <span className="font-semibold underline">
-                          Resultado:
+                          Resultado
+                          {""}
                         </span>
-                        <span>{selectedVote.description}</span>
+                        <span className="no-underline">:</span>{" "}
+                        <span className="ml-1">{selectedVote.description}</span>
                       </div>
                     </div>
                     <span className="text-xs text-[#828690]">
@@ -606,7 +608,7 @@ export function Votes({ eventUrl }: VoteProps) {
               <span className="text-secondary p-4 text-xl font-bold">
                 Propostas a Serem Analisadas
               </span>
-              <div className="grid w-full grid-cols-1 flex-row justify-evenly gap-8 p-4 lg:grid-cols-5 xl:h-full">
+              <div className="grid w-full grid-cols-1 flex-row justify-evenly gap-8 p-4 xl:h-full xl:grid-cols-5">
                 <button
                   className="flex flex-col gap-4"
                   onClick={() => window.open(eventUrl, "_blank")}

@@ -47,7 +47,7 @@ export function Chat({ title, initialMessage }: ChatProps) {
             <div className="bg-secondary flex h-full w-60 flex-col justify-between rounded-r-lg border-r border-r-[#E5E5E5]/5 p-4 text-white">
               <div className="flex flex-1 flex-col gap-4 border-b border-b-[#E5E5E5]/5">
                 <button className="flx-row flex w-full gap-2 rounded-md bg-[#E5E5E5]/5 p-4">
-                  <div className="flex h-10 min-h-10 w-10 min-w-10 items-center justify-center rounded-full bg-[#019A5A]">
+                  <div className="bg-secondary flex h-10 min-h-10 w-10 min-w-10 items-center justify-center rounded-full">
                     <StarIcon size={14} fill="white" />
                   </div>
                   <div className="flex h-full w-full flex-col justify-between text-start">
@@ -81,7 +81,7 @@ export function Chat({ title, initialMessage }: ChatProps) {
                 </div>
                 <button
                   onClick={() => setNewChat(true)}
-                  className="flx-row flex w-full items-center gap-2 rounded-md bg-gradient-to-br from-[#019A5A]/70 to-[#019A5A]/80 px-2 py-1"
+                  className="flx-row from-secondary/70 to-secondary/80 flex w-full items-center gap-2 rounded-md bg-gradient-to-br px-2 py-1"
                 >
                   <Plus />
                   <h3 className="text-[12px]">Iniciar Novo Chat</h3>
@@ -110,16 +110,16 @@ export function Chat({ title, initialMessage }: ChatProps) {
               </button>
               {showMenu && (
                 <div className="absolute left-0 z-[50] flex h-full w-full flex-row md:hidden">
-                  <div className="flex h-full w-60 flex-col justify-between rounded-r-md border-r border-r-[#E5E5E5]/5 bg-[#222222] p-4 md:hidden">
+                  <div className="flex h-full w-60 flex-col justify-between rounded-r-md border-r border-r-[#E5E5E5]/5 bg-white p-4 md:hidden">
                     <div className="flex flex-1 flex-col gap-4 border-b border-b-[#E5E5E5]/5">
                       <button className="flx-row flex w-full gap-2 rounded-md bg-[#E5E5E5]/5 p-4">
-                        <div className="flex h-10 min-h-10 w-10 min-w-10 items-center justify-center rounded-full bg-[#019A5A]">
-                          <StarIcon size={14} fill="white" />
+                        <div className="bg-secondary flex h-10 min-h-10 w-10 min-w-10 items-center justify-center rounded-full">
+                          <StarIcon size={14} className="fill-secondary" />
                         </div>
                         <div className="flex h-full w-full flex-col justify-between text-start">
                           <h3 className="text-[12px]">Leonardo Cavalcanti</h3>
-                          <p className="text-[10px] text-[#E5E5E5]/40">
-                            Master LegisAIt
+                          <p className="text-[10px] text-black/40">
+                            Master LegisAI
                           </p>
                         </div>
                       </button>
@@ -147,7 +147,7 @@ export function Chat({ title, initialMessage }: ChatProps) {
                       </div>
                       <button
                         onClick={() => setNewChat(true)}
-                        className="flx-row flex w-full items-center gap-2 rounded-md bg-gradient-to-br from-[#019A5A]/70 to-[#019A5A]/80 px-2 py-1"
+                        className="flx-row from-secondary/70 to-secondary/80 flex w-full items-center gap-2 rounded-md bg-gradient-to-br px-2 py-1"
                       >
                         <Plus />
                         <h3 className="text-[12px]">Iniciar Novo Chat</h3>
