@@ -36,6 +36,7 @@ export default function News() {
       setNews(news.body.news);
       setNewsPages(news.body.pages);
       setLoadingNews(false);
+      window.dispatchEvent(new CustomEvent("navigationComplete"));
     }
   }
 

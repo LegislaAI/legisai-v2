@@ -27,6 +27,10 @@ export default function BranchesList() {
     setChatType("proposition");
   }, []);
 
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("navigationComplete"));
+  }, []);
+
   return (
     <div className="flex w-full flex-row items-center justify-center gap-2">
       <div className="flex h-[calc(100vh-75px)] w-full flex-col justify-between rounded-2xl bg-white p-2 xl:h-[calc(100vh-150px)]">

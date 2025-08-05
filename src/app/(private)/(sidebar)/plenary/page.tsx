@@ -50,6 +50,7 @@ export default function Plenary() {
       setPlenaries(response.body.events);
       setPlenaryPages(response.body.pages);
       setLoadingPlenaries(false);
+      window.dispatchEvent(new CustomEvent("navigationComplete"));
       // return response.body.plenaries;
     }
   }

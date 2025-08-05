@@ -52,6 +52,7 @@ export default function PlenaryDetails() {
           moment(details.body.event.startDate).diff(moment(), "milliseconds"),
         );
       }
+      window.dispatchEvent(new CustomEvent("navigationComplete"));
     }
   }
 
@@ -74,13 +75,6 @@ export default function PlenaryDetails() {
     return () => clearInterval(interval);
   }, [eventDetails]);
 
-  // useEffect(() => {
-  //   setAnimateSection(true);
-  //   setTimeout(() => {
-  //     setAnimateSection(false);
-  //   }, 300);
-  // }, [selectedStep]);
-
   return (
     <>
       {eventDetails ? (
@@ -101,19 +95,19 @@ export default function PlenaryDetails() {
                       <span
                         className={cn(
                           "text-secondary text-lg font-bold",
-                          eventDetails?.description.length > 200 &&
+                          eventDetails?.description.length > 48 &&
                             "cursor-pointer",
                         )}
                       >
-                        {eventDetails?.description.length > 200
-                          ? eventDetails.description.slice(0, 200) + "..."
+                        {eventDetails?.description.length > 48
+                          ? eventDetails.description.slice(0, 48) + "..."
                           : eventDetails.description}
                       </span>
                     </TooltipTrigger>
                     <TooltipContent
                       className={cn(
                         "scrollbar-hide max-h-40 w-80 overflow-y-scroll p-0.5 text-justify text-sm text-white",
-                        eventDetails?.description.length <= 200 && "hidden",
+                        eventDetails?.description.length <= 48 && "hidden",
                       )}
                     >
                       <p>{eventDetails.description}</p>

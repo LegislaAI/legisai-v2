@@ -79,6 +79,10 @@ export default function Profile() {
     return toast.error("Erro ao editar perfil");
   }
 
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("navigationComplete"));
+  }, []);
+
   return (
     <>
       <div className="relative flex h-full w-full flex-col overflow-hidden p-4 pb-24">

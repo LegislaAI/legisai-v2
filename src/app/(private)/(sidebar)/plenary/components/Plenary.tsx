@@ -1,3 +1,4 @@
+import { useLoadingContext } from "@/context/LoadingContext";
 import moment from "moment";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -11,10 +12,11 @@ interface PlenaryCardProps {
 
 export function PlenaryCard({ title, summary, id, date }: PlenaryCardProps) {
   const router = useRouter();
+  const { handleNavigation } = useLoadingContext();
 
   return (
     <div
-      onClick={() => router.push(`/plenary/${id}`)}
+      onClick={() => handleNavigation(`/plenary/${id}`)}
       className="relative flex w-full cursor-pointer flex-col justify-between rounded-lg p-1 pb-2 transition-all duration-300 hover:scale-[1.005] hover:shadow xl:flex-row xl:items-center"
     >
       <div className="absolute bottom-0 left-1/2 h-px w-full -translate-x-1/2 bg-zinc-200 md:w-2/3 xl:w-3/4" />

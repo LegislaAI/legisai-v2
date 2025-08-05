@@ -191,6 +191,10 @@ export function Section1() {
     [],
   );
 
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("navigationComplete"));
+  }, []);
+
   return (
     <div className="flex h-full flex-col gap-2 rounded-lg bg-white p-2 xl:p-4">
       <div className="flex w-full items-center justify-between">
@@ -378,7 +382,7 @@ export function Section1() {
                 alt={""}
                 width={500}
                 height={1000}
-                className={"h-full w-[80%]"}
+                className={"h-full w-[80%] object-contain"}
               />
             </div>
           )}

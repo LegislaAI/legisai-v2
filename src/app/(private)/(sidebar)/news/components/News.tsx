@@ -2,7 +2,7 @@ import { Modal } from "@/components/ui/modal";
 import { ArrowLeft } from "lucide-react";
 import moment from "moment";
 import Image from "next/image";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 interface NewsCardProps {
   title: string;
@@ -12,6 +12,10 @@ interface NewsCardProps {
 
 export function NewsCard({ title, summary, createdAt }: NewsCardProps) {
   const [isModalOpen, setIsModalOpen] = useState(false);
+
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("navigationComplete"));
+  }, []);
 
   return (
     <>

@@ -1,6 +1,12 @@
+"use client";
 import Image from "next/image";
+import { useEffect } from "react";
 
 export default function Commissions() {
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("navigationComplete"));
+  }, []);
+
   return (
     <div className="flex h-full w-full items-center justify-center">
       <Image

@@ -1,9 +1,14 @@
 "use client";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { SignatureCard } from "./components/signatureCard";
 
 export default function PredictionAi() {
   const router = useRouter();
+
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("navigationComplete"));
+  }, []);
 
   return (
     <div className="flex flex-col items-center">

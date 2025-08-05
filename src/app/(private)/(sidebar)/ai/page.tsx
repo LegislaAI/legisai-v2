@@ -100,6 +100,10 @@ export default function BranchesList() {
     setChatType("ai");
   }, []);
 
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("navigationComplete"));
+  }, []);
+
   return (
     <>
       <Sheet open={open} onOpenChange={() => setOpen(false)}>
