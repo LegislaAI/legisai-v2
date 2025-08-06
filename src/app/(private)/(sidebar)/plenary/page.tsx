@@ -32,7 +32,7 @@ export default function Plenary() {
   const [loadingPlenaries, setLoadingPlenaries] = useState(true);
   const [plenaries, setPlenaries] = useState<PlenaryProps[]>([]);
   const [plenaryPages, setPlenaryPages] = useState<number>(0);
-  const [currentPage, setCurrentPage] = useState(1);
+  const [currentPage, setCurrentPage] = useState(14);
   const [selectedDateFilter, setSelectedDateFilter] = useState<Date | null>(
     null,
   );
@@ -45,7 +45,7 @@ export default function Plenary() {
     if (selectedDateFilter) {
       data += `&date=${moment(selectedDateFilter).format("YYYY-MM-DD")}`;
     }
-    const response = await GetAPI(`/event${data}`, true);
+    const response = await GetAPI(`/event${data}&type=PLENARY`, true);
     if (response.status === 200) {
       setPlenaries(response.body.events);
       setPlenaryPages(response.body.pages);
@@ -105,17 +105,21 @@ export default function Plenary() {
               />
             ))
           ) : (
-            <p className="text-gray-500">Nenhuma notícia anterior.</p>
+            <p className="m-auto h-full w-full text-center text-gray-500">
+              Nenhum Plenário encontrada no período Selecionado
+            </p>
           )}
         </div>
       </div>
-      <div className="w-full pb-10 lg:pb-2">
-        <CustomPagination
-          pages={plenaryPages}
-          setCurrentPage={setCurrentPage}
-          currentPage={currentPage}
-        />
-      </div>
+      {plenaries.length > 0 && (
+        <div className="w-full pb-10 lg:pb-2">
+          <CustomPagination
+            pages={plenaryPages}
+            setCurrentPage={setCurrentPage}
+            currentPage={currentPage}
+          />
+        </div>
+      )}
     </div>
   );
 }

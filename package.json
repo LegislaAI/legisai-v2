@@ -56,7 +56,8 @@
     "tailwind-scrollbar-hide": "^4.0.0",
     "tailwindcss-animate": "^1.0.7",
     "uuid": "^11.1.0",
-    "webm-duration-fix": "^1.0.4"
+    "webm-duration-fix": "^1.0.4",
+    "zod": "^4.0.15"
   },
   "devDependencies": {
     "@commitlint/cli": "^19.8.0",

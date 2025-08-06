@@ -1,4 +1,5 @@
 "use client";
+import { useLoadingContext } from "@/context/LoadingContext";
 import { cn } from "@/lib/utils";
 import {
   BellDot,
@@ -7,14 +8,14 @@ import {
   Settings2Icon,
   Sparkle,
   Sparkles,
+  UsersRound,
   Wallet,
 } from "lucide-react";
 import Image from "next/image";
 import { usePathname } from "next/navigation";
-
-import { useLoadingContext } from "@/context/LoadingContext";
 import CogIcon from "../../public/icons/cog.svg";
 import { LoadingOverlay } from "./loading-overlay";
+
 export function Sidebar() {
   const pathname = usePathname();
   const { isNavigating, handleNavigation } = useLoadingContext();
@@ -95,7 +96,7 @@ export function Sidebar() {
               )}
             >
               <div className="flex items-center gap-2">
-                <Wallet
+                <UsersRound
                   className={cn(
                     "h-5 object-contain text-[20px] text-current xl:h-8",
                     pathname === "/commissions" && "text-secondary",
@@ -221,11 +222,11 @@ export function Sidebar() {
                   fill="none"
                   xmlns="http://www.w3.org/2000/svg"
                 >
-                  <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                  <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
                   <g
                     id="SVGRepo_tracerCarrier"
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
                   ></g>
                   <g id="SVGRepo_iconCarrier">
                     {" "}
@@ -234,38 +235,38 @@ export function Sidebar() {
                       stroke={cn(
                         pathname === "/tutorials" ? "#749c5b" : "#000",
                       )}
-                      stroke-width="1.5"
+                      strokeWidth="1.5"
                     ></path>{" "}
                     <path
                       d="M19.8978 16H7.89778C6.96781 16 6.50282 16 6.12132 16.1022C5.08604 16.3796 4.2774 17.1883 4 18.2235"
                       stroke={cn(
                         pathname === "/tutorials" ? "#749c5b" : "#000",
                       )}
-                      stroke-width="1.5"
+                      strokeWidth="1.5"
                     ></path>{" "}
                     <path
                       d="M8 7H16"
                       stroke={cn(
                         pathname === "/tutorials" ? "#749c5b" : "#000",
                       )}
-                      stroke-width="1.5"
-                      stroke-linecap="round"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
                     ></path>{" "}
                     <path
                       d="M8 10.5H13"
                       stroke={cn(
                         pathname === "/tutorials" ? "#749c5b" : "#000",
                       )}
-                      stroke-width="1.5"
-                      stroke-linecap="round"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
                     ></path>{" "}
                     <path
                       d="M13 16V19.5309C13 19.8065 13 19.9443 12.9051 20C12.8103 20.0557 12.6806 19.9941 12.4211 19.8708L11.1789 19.2808C11.0911 19.2391 11.0472 19.2182 11 19.2182C10.9528 19.2182 10.9089 19.2391 10.8211 19.2808L9.57889 19.8708C9.31943 19.9941 9.18971 20.0557 9.09485 20C9 19.9443 9 19.8065 9 19.5309V16.45"
                       stroke={cn(
                         pathname === "/tutorials" ? "#749c5b" : "#000",
                       )}
-                      stroke-width="1.5"
-                      stroke-linecap="round"
+                      strokeWidth="1.5"
+                      strokeLinecap="round"
                     ></path>{" "}
                   </g>
                 </svg>

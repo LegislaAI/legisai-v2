@@ -52,7 +52,7 @@ export function Plenaries() {
     if (selectedPoliticianId) {
       data += `&politicianId=${selectedPoliticianId}`;
     }
-    const response = await GetAPI(`/event?page=1${data}`, true);
+    const response = await GetAPI(`/event?page=1${data}&type=PLENARY`, true);
     if (response.status === 200) {
       setEvents(response.body.events);
       // return response.body.politician;
@@ -87,16 +87,19 @@ export function Plenaries() {
             </Tooltip>
           </TooltipProvider>
         </div>
-
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
-            <button className="flex w-32 cursor-pointer items-center justify-center gap-2 rounded border border-zinc-200 px-2 py-1 text-center text-xs text-zinc-400 transition duration-200 hover:bg-zinc-200 xl:text-sm">
+            <button className="flex w-32 cursor-pointer items-center justify-center gap-2 rounded border border-zinc-200 px-2 py-1 text-center text-zinc-400 transition duration-200 hover:bg-zinc-200">
               {selectedDateFilter
                 ? moment(selectedDateFilter).format("DD/MM/YYYY")
                 : "Filtrar por data"}
             </button>
           </DropdownMenuTrigger>
-          <DropdownMenuContent className="flex items-center justify-center text-center">
+          <DropdownMenuContent
+            side="left"
+            align="start"
+            className="flex items-center justify-center text-center"
+          >
             <Calendar
               mode="single"
               selected={selectedDateFilter || undefined}
@@ -105,7 +108,6 @@ export function Plenaries() {
             />
           </DropdownMenuContent>
         </DropdownMenu>
-
         <button
           onClick={() => router.push("/plenary")}
           className="flex items-center gap-2"

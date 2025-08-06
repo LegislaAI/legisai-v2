@@ -1,4 +1,5 @@
 "use client";
+import { useLoadingContext } from "@/context/LoadingContext";
 import { useSidebarContext } from "@/context/SidebarContext";
 import { cn } from "@/lib/utils";
 import {
@@ -8,17 +9,19 @@ import {
   Settings2Icon,
   Sparkle,
   Sparkles,
+  UsersRound,
   Wallet,
 } from "lucide-react";
 import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect } from "react";
+import { LoadingOverlay } from "./loading-overlay";
 import { Sheet, SheetContent, SheetTitle } from "./ui/sheet";
 
 export function MobileSidebar() {
-  const router = useRouter();
   const pathname = usePathname();
   const { isSidebarOpen, setIsSidebarOpen } = useSidebarContext();
+  const { isNavigating, handleNavigation } = useLoadingContext();
 
   useEffect(() => {
     setIsSidebarOpen(false);
@@ -26,6 +29,7 @@ export function MobileSidebar() {
 
   return (
     <>
+      {isNavigating && <LoadingOverlay />}
       {isSidebarOpen && (
         <Sheet open={isSidebarOpen} onOpenChange={setIsSidebarOpen}>
           <SheetContent
@@ -46,7 +50,7 @@ export function MobileSidebar() {
 
             <div className="flex h-[calc(100%-432px)] flex-col gap-8 overflow-y-scroll">
               <div
-                onClick={() => router.push("/")}
+                onClick={() => handleNavigation("/")}
                 className={cn(
                   "group flex w-full cursor-pointer items-center justify-between",
                   pathname === "/" && "text-secondary font-semibold",
@@ -64,7 +68,7 @@ export function MobileSidebar() {
                 />
               </div>
               <div
-                onClick={() => router.push("/plenary")}
+                onClick={() => handleNavigation("/plenary")}
                 className={cn(
                   "group flex w-full cursor-pointer items-center justify-between",
                   (pathname === "/plenary" || pathname.includes("plenary")) &&
@@ -84,7 +88,7 @@ export function MobileSidebar() {
                 />
               </div>
               <div
-                onClick={() => router.push("/commissions")}
+                onClick={() => handleNavigation("/commissions")}
                 className={cn(
                   "group flex w-full cursor-pointer items-center justify-between",
                   (pathname === "/commissions" ||
@@ -93,7 +97,7 @@ export function MobileSidebar() {
                 )}
               >
                 <div className="flex items-center gap-2">
-                  <Wallet />
+                  <UsersRound />
                   <span>Comissões / Reuniões</span>
                 </div>
                 <ChevronRight
@@ -106,7 +110,29 @@ export function MobileSidebar() {
                 />
               </div>
               <div
-                onClick={() => router.push("/news")}
+                onClick={() => handleNavigation("/commissions")}
+                className={cn(
+                  "group flex w-full cursor-pointer items-center justify-between",
+                  (pathname === "/commissions" ||
+                    pathname.includes("commissions")) &&
+                    "text-secondary font-semibold",
+                )}
+              >
+                <div className="flex items-center gap-2">
+                  <UsersRound />
+                  <span>Comissões / Reuniões</span>
+                </div>
+                <ChevronRight
+                  className={cn(
+                    "text-secondary opacity-0 transition duration-200 group-hover:opacity-100",
+                    (pathname === "/commissions" ||
+                      pathname.includes("commissions")) &&
+                      "opacity-100",
+                  )}
+                />
+              </div>
+              <div
+                onClick={() => handleNavigation("/news")}
                 className={cn(
                   "group flex w-full cursor-pointer items-center justify-between",
                   pathname === "/news" && "text-secondary font-semibold",
@@ -124,7 +150,7 @@ export function MobileSidebar() {
                 />
               </div>
               <div
-                onClick={() => router.push("/procedures")}
+                onClick={() => handleNavigation("/procedures")}
                 className={cn(
                   "group flex w-full cursor-pointer items-center justify-between",
                   pathname === "/procedures" && "text-secondary font-semibold",
@@ -152,7 +178,7 @@ export function MobileSidebar() {
                 />
               </div>
               <div
-                onClick={() => router.push("/ai")}
+                onClick={() => handleNavigation("/ai")}
                 className={cn(
                   "group flex w-full cursor-pointer items-center justify-between",
                   pathname === "/ai" && "text-secondary font-semibold",
@@ -170,7 +196,7 @@ export function MobileSidebar() {
                 />
               </div>
               <div
-                onClick={() => router.push("/prediction-ai")}
+                onClick={() => handleNavigation("/prediction-ai")}
                 className={cn(
                   "group flex w-full cursor-pointer items-center justify-between",
                   pathname === "/prediction-ai" &&
@@ -189,7 +215,7 @@ export function MobileSidebar() {
                 />
               </div>
               <div
-                onClick={() => router.push("/tutorials")}
+                onClick={() => handleNavigation("/tutorials")}
                 className={cn(
                   "group flex w-full cursor-pointer items-center justify-between",
                   pathname === "/tutorials" && "text-secondary font-semibold",
@@ -204,11 +230,11 @@ export function MobileSidebar() {
                     fill="none"
                     xmlns="http://www.w3.org/2000/svg"
                   >
-                    <g id="SVGRepo_bgCarrier" stroke-width="0"></g>
+                    <g id="SVGRepo_bgCarrier" strokeWidth="0"></g>
                     <g
                       id="SVGRepo_tracerCarrier"
-                      stroke-linecap="round"
-                      stroke-linejoin="round"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
                     ></g>
                     <g id="SVGRepo_iconCarrier">
                       {" "}
@@ -217,38 +243,38 @@ export function MobileSidebar() {
                         stroke={cn(
                           pathname === "/tutorials" ? "#749c5b" : "#000",
                         )}
-                        stroke-width="1.5"
+                        strokeWidth="1.5"
                       ></path>{" "}
                       <path
                         d="M19.8978 16H7.89778C6.96781 16 6.50282 16 6.12132 16.1022C5.08604 16.3796 4.2774 17.1883 4 18.2235"
                         stroke={cn(
                           pathname === "/tutorials" ? "#749c5b" : "#000",
                         )}
-                        stroke-width="1.5"
+                        strokeWidth="1.5"
                       ></path>{" "}
                       <path
                         d="M8 7H16"
                         stroke={cn(
                           pathname === "/tutorials" ? "#749c5b" : "#000",
                         )}
-                        stroke-width="1.5"
-                        stroke-linecap="round"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
                       ></path>{" "}
                       <path
                         d="M8 10.5H13"
                         stroke={cn(
                           pathname === "/tutorials" ? "#749c5b" : "#000",
                         )}
-                        stroke-width="1.5"
-                        stroke-linecap="round"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
                       ></path>{" "}
                       <path
                         d="M13 16V19.5309C13 19.8065 13 19.9443 12.9051 20C12.8103 20.0557 12.6806 19.9941 12.4211 19.8708L11.1789 19.2808C11.0911 19.2391 11.0472 19.2182 11 19.2182C10.9528 19.2182 10.9089 19.2391 10.8211 19.2808L9.57889 19.8708C9.31943 19.9941 9.18971 20.0557 9.09485 20C9 19.9443 9 19.8065 9 19.5309V16.45"
                         stroke={cn(
                           pathname === "/tutorials" ? "#749c5b" : "#000",
                         )}
-                        stroke-width="1.5"
-                        stroke-linecap="round"
+                        strokeWidth="1.5"
+                        strokeLinecap="round"
                       ></path>{" "}
                     </g>
                   </svg>
@@ -262,7 +288,7 @@ export function MobileSidebar() {
                 />
               </div>
               <div
-                onClick={() => router.push("/profile")}
+                onClick={() => handleNavigation("/profile")}
                 className={cn(
                   "group flex w-full cursor-pointer items-center justify-between",
                   pathname === "/profile" && "text-secondary font-semibold",

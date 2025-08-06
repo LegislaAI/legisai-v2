@@ -57,6 +57,7 @@ export function Votes({ eventUrl }: VoteProps) {
   async function GetVotes() {
     const eventId = pathname.split("/")[2];
     const votes = await GetAPI(`/voting/${eventId}`, true);
+    console.log("votes", votes);
     if (votes.status === 200) {
       setVotesList(votes.body.voting);
       return setIsGettingVotes(false);
@@ -159,20 +160,20 @@ export function Votes({ eventUrl }: VoteProps) {
   }, [selectedVote, negativeVotesCurrentPage, negativeVotesQuery]);
 
   return (
-    <div className="grid w-full grid-cols-12 gap-8 pb-20 xl:pb-10">
-      <div className="col-span-12 flex flex-col overflow-hidden rounded-lg bg-white xl:col-span-12">
+    <div className="grid w-full grid-cols-12 gap-8 pb-20 2xl:pb-10">
+      <div className="col-span-12 flex flex-col overflow-hidden rounded-lg bg-white 2xl:col-span-12">
         <div className="flex h-full w-full flex-col">
           <span className="text-secondary p-4 text-xl font-bold">
-            Votações do Plenário
+            Votações da Comissão
           </span>
-          <div className="h-80 overflow-auto xl:h-full">
+          <div className="h-80 overflow-auto 2xl:h-full">
             <Table>
               <TableHeader className="bg-secondary">
                 <TableRow>
                   {voteColumns.map((column) => (
                     <TableHead
                       key={column.key}
-                      className="justify-end text-center text-sm font-semibold text-white"
+                      className="h-12 justify-end text-center text-sm font-semibold text-white"
                     >
                       <div className="mx-auto flex w-max items-center gap-2">
                         <Image
@@ -267,7 +268,7 @@ export function Votes({ eventUrl }: VoteProps) {
       </div>
       <div
         className={cn(
-          "col-span-12 flex flex-col overflow-hidden rounded-lg bg-white xl:col-span-12",
+          "col-span-12 flex flex-col overflow-hidden rounded-lg bg-white 2xl:col-span-12",
           votesList.length === 0 && "hidden",
         )}
       >
@@ -278,7 +279,7 @@ export function Votes({ eventUrl }: VoteProps) {
               : "Escolha uma votação acima para ver detalhes"}
           </span>
           {selectedVote && (
-            <div className="xl:px-4">
+            <div className="2xl:px-4">
               <div className="border-secondary flex w-full flex-col overflow-hidden rounded-lg border bg-white px-4 py-2 md:px-8">
                 <div className="flex h-full w-full flex-col justify-between md:flex-row">
                   <div
@@ -295,7 +296,7 @@ export function Votes({ eventUrl }: VoteProps) {
                     </span>
 
                     <div className="flex flex-col gap-2 text-justify text-sm">
-                      <div className="flex flex-col items-start gap-1 xl:flex-row xl:items-center">
+                      <div className="flex flex-col items-start gap-1 2xl:flex-row 2xl:items-center">
                         <span className="font-semibold underline">
                           {ProposalName(selectedVote)}
                         </span>
@@ -421,8 +422,8 @@ export function Votes({ eventUrl }: VoteProps) {
               <h2 className="text-secondary text-lg font-bold uppercase">
                 Votação da Proposta Analisada
               </h2>
-              <div className="col-span-1 flex flex-col justify-between rounded-lg bg-white p-2 shadow-lg md:col-span-2 xl:flex-row">
-                <div className="flex w-full flex-col items-center justify-between gap-4 p-4 xl:w-[45%] xl:flex-row">
+              <div className="col-span-1 flex flex-col justify-between rounded-lg bg-white p-2 shadow-lg md:col-span-2 2xl:flex-row">
+                <div className="flex w-full flex-col items-center justify-between gap-4 p-4 2xl:w-[45%] 2xl:flex-row">
                   <div className="flex w-full flex-col">
                     <div className="flex items-center gap-2">
                       <div className="bg-secondary flex h-5 w-5 items-center justify-center rounded-full text-white">
@@ -453,8 +454,8 @@ export function Votes({ eventUrl }: VoteProps) {
                     </div>
                   </div>
                 </div>
-                <div className="bg-secondary h-0.5 w-[80%] self-center xl:h-[80%] xl:w-0.5" />
-                <div className="flex w-full flex-col items-center justify-between gap-4 p-4 xl:w-[45%] xl:flex-row">
+                <div className="bg-secondary h-0.5 w-[80%] self-center 2xl:h-[80%] 2xl:w-0.5" />
+                <div className="flex w-full flex-col items-center justify-between gap-4 p-4 2xl:w-[45%] 2xl:flex-row">
                   <div className="flex flex-1 flex-col">
                     <div className="h-2 w-full rounded-full bg-[#4C4C4C]">
                       <div
@@ -501,7 +502,7 @@ export function Votes({ eventUrl }: VoteProps) {
                       <Search color="#749c5b" />
                     </button>
                   </div>
-                  <div className="grid grid-cols-2 gap-2 xl:grid-cols-3">
+                  <div className="grid grid-cols-2 gap-2 2xl:grid-cols-3">
                     {positiveVotesList.length !== 0 ? (
                       positiveVotesList.map((item, index) => (
                         <div
@@ -557,7 +558,7 @@ export function Votes({ eventUrl }: VoteProps) {
                       <Search color="#EF4444" />
                     </button>
                   </div>
-                  <div className="grid grid-cols-2 gap-2 xl:grid-cols-3">
+                  <div className="grid grid-cols-2 gap-2 2xl:grid-cols-3">
                     {negativeVotesList.length !== 0 ? (
                       negativeVotesList.map((item, index) => (
                         <div
@@ -603,17 +604,17 @@ export function Votes({ eventUrl }: VoteProps) {
             </div>
           </div>
 
-          <div className="col-span-12 flex flex-col overflow-hidden rounded-lg bg-white xl:col-span-12">
+          <div className="col-span-12 flex flex-col overflow-hidden rounded-lg bg-white 2xl:col-span-12">
             <div className="flex h-full w-full flex-col">
               <span className="text-secondary p-4 text-xl font-bold">
                 Propostas a Serem Analisadas
               </span>
-              <div className="grid w-full grid-cols-1 flex-row justify-evenly gap-8 p-4 xl:h-full xl:grid-cols-5">
+              <div className="grid w-full grid-cols-1 flex-row justify-evenly gap-8 p-4 2xl:h-full 2xl:grid-cols-5">
                 <button
                   className="flex flex-col gap-4"
                   onClick={() => window.open(eventUrl, "_blank")}
                 >
-                  <div className="text-secondary bg-secondary/20 border-secondary flex max-h-52 min-h-40 w-full flex-col gap-8 rounded-lg border p-4 px-8 shadow-lg">
+                  <div className="text-secondary bg-secondary/20 border-secondary flex h-max w-full flex-col gap-2 rounded-lg border p-2 px-2 shadow-lg 2xl:h-40 2xl:gap-8 2xl:p-4 2xl:px-8">
                     <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
                       <div className="flex w-full flex-1 items-center justify-center">
                         <Image
@@ -621,6 +622,7 @@ export function Votes({ eventUrl }: VoteProps) {
                           alt=""
                           width={40}
                           height={40}
+                          className="h-6 w-max object-contain"
                         />
                       </div>
                       <div className="flex items-center justify-center">
@@ -639,10 +641,10 @@ export function Votes({ eventUrl }: VoteProps) {
                   onClick={() => window.open(eventUrl, "_blank")}
                   className="flex flex-col gap-4"
                 >
-                  <div className="text-secondary bg-secondary/20 border-secondary flex max-h-52 min-h-40 w-full flex-col gap-8 rounded-lg border p-4 px-8 shadow-lg">
+                  <div className="text-secondary bg-secondary/20 border-secondary flex h-max w-full flex-col gap-2 rounded-lg border p-2 px-2 shadow-lg 2xl:h-40 2xl:gap-8 2xl:p-4 2xl:px-8">
                     <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
                       <div className="flex w-full flex-1 items-center justify-center">
-                        <User2 size={40} />
+                        <User2 size={24} />
                       </div>
                       <span className="text-center text-lg font-bold uppercase">
                         Oradores inscritos <br />
@@ -658,7 +660,7 @@ export function Votes({ eventUrl }: VoteProps) {
                   onClick={() => window.open(eventUrl, "_blank")}
                   className="flex flex-col gap-4"
                 >
-                  <div className="text-secondary bg-secondary/20 border-secondary flex max-h-52 min-h-40 w-full flex-col gap-8 rounded-lg border p-4 px-8 shadow-lg">
+                  <div className="text-secondary bg-secondary/20 border-secondary flex h-max w-full flex-col gap-2 rounded-lg border p-2 px-2 shadow-lg 2xl:h-40 2xl:gap-8 2xl:p-4 2xl:px-8">
                     <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
                       <div className="flex w-full flex-1 items-center justify-center">
                         <Image
@@ -666,6 +668,7 @@ export function Votes({ eventUrl }: VoteProps) {
                           alt=""
                           width={40}
                           height={40}
+                          className="h-6 w-max object-contain"
                         />
                       </div>
                       <span className="text-center text-lg font-bold uppercase">
@@ -682,10 +685,10 @@ export function Votes({ eventUrl }: VoteProps) {
                   onClick={() => window.open(eventUrl, "_blank")}
                   className="flex flex-col gap-4"
                 >
-                  <div className="text-secondary bg-secondary/20 border-secondary flex max-h-52 min-h-40 w-full flex-col gap-8 rounded-lg border p-4 px-8 shadow-lg">
+                  <div className="text-secondary bg-secondary/20 border-secondary flex h-max w-full flex-col gap-2 rounded-lg border p-2 px-2 shadow-lg 2xl:h-40 2xl:gap-8 2xl:p-4 2xl:px-8">
                     <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
                       <div className="flex w-full flex-1 items-center justify-center">
-                        <Type size={40} />
+                        <Type size={24} />
                       </div>
                       <span className="text-center text-lg font-bold uppercase">
                         SESSÃO PLENÁRIA <br />
@@ -701,10 +704,10 @@ export function Votes({ eventUrl }: VoteProps) {
                   onClick={() => window.open(eventUrl, "_blank")}
                   className="flex flex-col gap-4"
                 >
-                  <div className="text-secondary bg-secondary/20 border-secondary flex max-h-52 min-h-40 w-full flex-col gap-8 rounded-lg border p-4 px-8 shadow-lg">
+                  <div className="text-secondary bg-secondary/20 border-secondary flex h-max w-full flex-col gap-2 rounded-lg border p-2 px-2 shadow-lg 2xl:h-40 2xl:gap-8 2xl:p-4 2xl:px-8">
                     <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
                       <div className="flex w-full flex-1 items-center justify-center">
-                        <Video size={40} />
+                        <Video size={24} />
                       </div>
                       <span className="text-center text-lg font-bold uppercase">
                         SESSÃO PLENÁRIA <br />
