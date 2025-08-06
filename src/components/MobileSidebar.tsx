@@ -13,13 +13,12 @@ import {
   Wallet,
 } from "lucide-react";
 import Image from "next/image";
-import { usePathname, useRouter } from "next/navigation";
+import { usePathname } from "next/navigation";
 import { useEffect } from "react";
 import { LoadingOverlay } from "./loading-overlay";
 import { Sheet, SheetContent, SheetTitle } from "./ui/sheet";
 
 export function MobileSidebar() {
-  const router = useRouter();
   const pathname = usePathname();
   const { isSidebarOpen, setIsSidebarOpen } = useSidebarContext();
   const { isNavigating, handleNavigation } = useLoadingContext();
