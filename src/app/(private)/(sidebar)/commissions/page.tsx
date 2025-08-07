@@ -10,11 +10,15 @@ import {
 import { useApiContext } from "@/context/ApiContext";
 import moment from "moment";
 import { useEffect, useState } from "react";
-import { PlenaryCard } from "./components/Plenary";
+import { CommissionCard } from "./components/Commission";
 
-interface PlenaryProps {
+interface CommissionProps {
   createdAt: string;
-  departmentId: string;
+  department: {
+    id: string;
+    name: string;
+    surname: string;
+  };
   description: string;
   endDate: string | null;
   eventTypeId: string;
@@ -27,17 +31,17 @@ interface PlenaryProps {
   videoUrl: string | null;
 }
 
-export default function Plenary() {
+export default function Commissions() {
   const { GetAPI } = useApiContext();
-  const [loadingPlenaries, setLoadingPlenaries] = useState(true);
-  const [plenaries, setPlenaries] = useState<PlenaryProps[]>([]);
-  const [plenaryPages, setPlenaryPages] = useState<number>(0);
-  const [currentPage, setCurrentPage] = useState(14);
+  const [loadingCommissions, setLoadingCommissions] = useState(true);
+  const [commissions, setCommissions] = useState<CommissionProps[]>([]);
+  const [commissionPages, setCommissionPages] = useState<number>(0);
+  const [currentPage, setCurrentPage] = useState(1);
   const [selectedDateFilter, setSelectedDateFilter] = useState<Date | null>(
     null,
   );
 
-  async function handleGetPlenary() {
+  async function handleGetCommission() {
     let data = "";
     if (currentPage) {
       data += `?page=${currentPage}`;
@@ -45,19 +49,19 @@ export default function Plenary() {
     if (selectedDateFilter) {
       data += `&date=${moment(selectedDateFilter).format("YYYY-MM-DD")}`;
     }
-    const response = await GetAPI(`/event${data}&type=PLENARY`, true);
+    const response = await GetAPI(`/event${data}&type=ALL`, true);
     if (response.status === 200) {
-      setPlenaries(response.body.events);
-      setPlenaryPages(response.body.pages);
-      setLoadingPlenaries(false);
+      setCommissions(response.body.events);
+      setCommissionPages(response.body.pages);
+      setLoadingCommissions(false);
       window.dispatchEvent(new CustomEvent("navigationComplete"));
-      // return response.body.plenaries;
+      // return response.body.commissions;
     }
   }
 
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
-    handleGetPlenary();
+    handleGetCommission();
   }, [currentPage, selectedDateFilter]);
 
   return (
@@ -87,34 +91,34 @@ export default function Plenary() {
           </DropdownMenu>
         </div>
         <div className="flex flex-col gap-4 overflow-hidden p-1 lg:gap-8">
-          {plenaries.length === 0 && loadingPlenaries ? (
+          {commissions.length === 0 && loadingCommissions ? (
             Array.from({ length: 12 }).map((_, index) => (
               <div
                 key={index}
                 className="h-18 w-full animate-pulse rounded-md bg-zinc-200"
               />
             ))
-          ) : !loadingPlenaries && plenaries.length > 0 ? (
-            plenaries.map((plenaries) => (
-              <PlenaryCard
-                key={plenaries.id}
-                title="Plenário - Sessão Deliberativa"
-                summary={plenaries.description}
-                date={plenaries.startDate}
-                id={plenaries.id}
+          ) : !loadingCommissions && commissions.length > 0 ? (
+            commissions.map((commissions) => (
+              <CommissionCard
+                key={commissions.id}
+                title={commissions.department.name}
+                summary={commissions.description}
+                date={commissions.startDate}
+                id={commissions.id}
               />
             ))
           ) : (
             <p className="m-auto h-full w-full text-center text-gray-500">
-              Nenhum Plenário encontrada no período Selecionado
+              Nenhuma Comissão encontrada no período Selecionado
             </p>
           )}
         </div>
       </div>
-      {plenaries.length > 0 && (
+      {commissions.length > 0 && (
         <div className="w-full pb-10 lg:pb-2">
           <CustomPagination
-            pages={plenaryPages}
+            pages={commissionPages}
             setCurrentPage={setCurrentPage}
             currentPage={currentPage}
           />

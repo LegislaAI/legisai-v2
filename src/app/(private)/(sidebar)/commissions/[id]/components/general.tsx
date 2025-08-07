@@ -110,6 +110,7 @@ export function General() {
   async function GetEventPropositions() {
     const eventId = pathname.split("/")[2];
     const dayOrder = await GetAPI(`/event-proposition/${eventId}`, true);
+    console.log("dayOrder", dayOrder);
     if (dayOrder.status === 200) {
       setEventPropositions(dayOrder.body.propositions);
       return setIsGettingPropositions(false);
@@ -122,6 +123,7 @@ export function General() {
       `/proposition/details/${selected?.proposition.id}`,
       true,
     );
+    console.log("details", details);
     if (details.status === 200) {
       setSelectedDetails(details.body.proposition);
       return setIsGettingDetails(false);

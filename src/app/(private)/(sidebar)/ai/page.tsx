@@ -10,7 +10,7 @@ import {
 import { Input } from "@/components/ui/Input";
 import { Sheet, SheetContent, SheetHeader } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-import { ChevronDown, Minus, Plus, Search } from "lucide-react";
+import { Calendar, ChevronDown, Minus, Search } from "lucide-react";
 import moment from "moment";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -100,6 +100,10 @@ export default function BranchesList() {
     setChatType("ai");
   }, []);
 
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("navigationComplete"));
+  }, []);
+
   return (
     <>
       <Sheet open={open} onOpenChange={() => setOpen(false)}>
@@ -170,7 +174,7 @@ export default function BranchesList() {
       </Sheet>
 
       <div className="flex w-full flex-row-reverse items-center justify-center gap-2">
-        <div className="flex h-[calc(100vh-150px)] w-full flex-col justify-between rounded-2xl bg-white p-2 xl:w-[70%] xl:p-4">
+        <div className="flex h-[calc(100vh-75px)] w-full flex-col justify-between rounded-2xl bg-white p-2 xl:h-[calc(100vh-150px)]">
           <div className="relative">
             <div className="flex flex-row items-center gap-4">
               <Image
@@ -194,9 +198,9 @@ export default function BranchesList() {
               </button>
               <button
                 onClick={() => setOpenInfo(true)}
-                className="bg-secondary flex items-center justify-center rounded-full p-1 text-white xl:hidden"
+                className="bg-secondary flex items-center justify-center rounded-full p-1 text-white"
               >
-                <Plus />
+                <Calendar />
               </button>
             </div>
           </div>
@@ -227,13 +231,13 @@ export default function BranchesList() {
         </div>
         <div
           className={cn(
-            "relative h-[calc(100vh-150px)] w-3/4 flex-col justify-between rounded-2xl border border-zinc-200 bg-white shadow-sm lg:w-1/2 xl:flex xl:w-[30%]",
+            "relative h-[calc(100vh-75px)] w-3/4 flex-col justify-between rounded-2xl border border-zinc-200 bg-white shadow-sm lg:w-1/2 xl:h-[calc(100vh-150px)] xl:w-[30%]",
             openInfo ? "absolute right-2 flex xl:right-8" : "hidden",
           )}
         >
           <button
             onClick={() => setOpenInfo(false)}
-            className="bg-secondary absolute top-4 right-[22px] z-10 flex items-center justify-center rounded-full p-1 text-white xl:hidden"
+            className="bg-secondary absolute top-4 right-[22px] z-10 flex items-center justify-center rounded-full p-1 text-white"
           >
             <Minus />
           </button>

@@ -19,7 +19,7 @@ import { DayOrder } from "./components/dayOrder";
 import { General } from "./components/general";
 import { Presence } from "./components/presence";
 
-export default function PlenaryDetails() {
+export default function CommissionDetails() {
   const pathname = usePathname();
   const { GetAPI } = useApiContext();
   const [selectedStep, setSelectedStep] = useState(0);
@@ -41,6 +41,7 @@ export default function PlenaryDetails() {
   async function GetEventDetails() {
     const eventId = pathname.split("/")[2];
     const details = await GetAPI(`/event/details/${eventId}`, true);
+    console.log("details", details);
     if (details.status === 200) {
       setEventDetails(details.body.event);
       const time = moment(details.body.event.startDate).diff(
@@ -241,8 +242,8 @@ export default function PlenaryDetails() {
               </div>
               <div className="px-8 text-center text-sm font-bold text-white uppercase">
                 {eventDetails.videoUrl
-                  ? "ACESSE O LINK PARA ACOMPANHAR O PLENÁRIO"
-                  : "LOGO VOCÊ TERÁ ACESSO AO LINK PARA ACOMPANHAMENTO AO VIVO DO PRÓXIMO PLENÁRIO"}
+                  ? "ACESSE O LINK PARA ACOMPANHAR A COMISSÃO"
+                  : "LOGO VOCÊ TERÁ ACESSO AO LINK PARA ACOMPANHAMENTO AO VIVO DA PRÓXIMA COMISSÃO"}
               </div>
               <button
                 onClick={() => {

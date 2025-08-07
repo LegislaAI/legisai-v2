@@ -1,20 +1,25 @@
 "use client";
 import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 import { SignatureCard } from "./components/signatureCard";
 
 export default function PredictionAi() {
   const router = useRouter();
 
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("navigationComplete"));
+  }, []);
+
   return (
     <div className="flex flex-col items-center">
       <h1 className="mb-4 text-3xl font-bold">IA Preditiva</h1>
-      <p className="mb-12 w-full text-center text-lg lg:w-1/2">
+      <p className="mb-12 w-full text-center text-lg xl:w-1/2">
         Uma tecnologia revolucionária que permite prever votações em Projetos de
         Lei, analisar as intenções dos parlamentares, entender seus votos,
         identificar os setores beneficiados e muito mais — tudo isso com o poder
         da Inteligência Artificial preditiva do LegisDados
       </p>
-      <div className="flex flex-col items-center justify-center gap-4 lg:flex-row">
+      <div className="flex flex-col items-center justify-center gap-4 xl:flex-row">
         <SignatureCard
           benefits={[
             "Verificar Notícias",

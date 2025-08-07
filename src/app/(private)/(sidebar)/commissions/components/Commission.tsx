@@ -3,20 +3,25 @@ import moment from "moment";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 
-interface PlenaryCardProps {
+interface CommissionCardProps {
   id: string;
   title: string;
   summary: string;
   date?: string;
 }
 
-export function PlenaryCard({ title, summary, id, date }: PlenaryCardProps) {
+export function CommissionCard({
+  title,
+  summary,
+  id,
+  date,
+}: CommissionCardProps) {
   const router = useRouter();
   const { handleNavigation } = useLoadingContext();
 
   return (
     <div
-      onClick={() => handleNavigation(`/plenary/${id}`)}
+      onClick={() => handleNavigation(`/commissions/${id}`)}
       className="relative flex w-full cursor-pointer flex-col justify-between rounded-lg p-1 pb-2 transition-all duration-300 hover:scale-[1.005] hover:shadow xl:flex-row xl:items-center"
     >
       <div className="absolute bottom-0 left-1/2 h-px w-full -translate-x-1/2 bg-zinc-200 md:w-2/3 xl:w-3/4" />
@@ -47,7 +52,7 @@ export function PlenaryCard({ title, summary, id, date }: PlenaryCardProps) {
           {moment(date).format("DD/MM/YY")}
         </span>
         <button
-          onClick={() => router.push(`/plenary/${id}`)}
+          onClick={() => router.push(`/commission/${id}`)}
           className="mx-auto rounded-xl border border-blue-700 bg-blue-700/10 px-4 py-1 font-bold text-blue-700 hover:scale-[1.005] xl:mx-0"
         >
           Acessar

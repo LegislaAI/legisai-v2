@@ -3,7 +3,7 @@ import Image from "next/image";
 
 export function AuthFooter() {
   return (
-    <footer className="absolute bottom-4 z-20 flex h-16 w-[90%] flex-row items-center justify-between gap-4 self-center rounded-full border-zinc-200 bg-white p-4 shadow-lg md:w-auto md:gap-16">
+    <footer className="absolute bottom-4 z-20 flex h-8 w-[90%] flex-row items-center justify-between gap-4 self-center rounded-full border-zinc-200 bg-white px-8 py-1 shadow-lg md:w-auto md:gap-16 lg:h-16">
       <div className="flex flex-col">
         <span
           onClick={() =>
@@ -48,7 +48,7 @@ export function AuthFooter() {
         </a>
       </div>
       <Image
-        className="h-auto w-32"
+        className="h-full w-max object-contain"
         alt=" "
         width={1000}
         height={1000}
