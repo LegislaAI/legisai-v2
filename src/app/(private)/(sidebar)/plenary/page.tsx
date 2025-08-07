@@ -32,7 +32,7 @@ export default function Plenary() {
   const [loadingPlenaries, setLoadingPlenaries] = useState(true);
   const [plenaries, setPlenaries] = useState<PlenaryProps[]>([]);
   const [plenaryPages, setPlenaryPages] = useState<number>(0);
-  const [currentPage, setCurrentPage] = useState(14);
+  const [currentPage, setCurrentPage] = useState(1);
   const [selectedDateFilter, setSelectedDateFilter] = useState<Date | null>(
     null,
   );

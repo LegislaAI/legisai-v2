@@ -267,7 +267,7 @@ export default function CommissionDetails() {
             className={`col-span-12 ${animateSection ? "opacity-0" : "opacity-100 transition-all duration-700"} `}
           >
             {selectedStep === 0 && <General />}
-            {selectedStep === 1 && <Votes eventUrl={eventDetails.uri} />}
+            {selectedStep === 1 && <Votes />}
             {selectedStep === 2 && <Presence />}
             {selectedStep === 3 && <DayOrder />}
           </div>

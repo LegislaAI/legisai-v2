@@ -8,7 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { Check, Loader2, Search, Type, User2, Video, X } from "lucide-react";
+import { Check, Loader2, Search, X } from "lucide-react";
 import Image from "next/image";
 import "swiper/css";
 
@@ -19,14 +19,8 @@ import debounce from "lodash.debounce";
 import moment from "moment";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { Chat } from "./Chat";
-import { Tutorials } from "./Tutorials";
 
-interface VoteProps {
-  eventUrl: string;
-}
-
-export function Votes({ eventUrl }: VoteProps) {
+export function Votes() {
   const pathname = usePathname();
   const { GetAPI } = useApiContext();
 
@@ -603,132 +597,6 @@ export function Votes({ eventUrl }: VoteProps) {
               </div>
             </div>
           </div>
-
-          <div className="col-span-12 flex flex-col overflow-hidden rounded-lg bg-white 2xl:col-span-12">
-            <div className="flex h-full w-full flex-col">
-              <span className="text-secondary p-4 text-xl font-bold">
-                Propostas a Serem Analisadas
-              </span>
-              <div className="grid w-full grid-cols-1 flex-row justify-evenly gap-8 p-4 2xl:h-full 2xl:grid-cols-5">
-                <button
-                  className="flex flex-col gap-4"
-                  onClick={() => window.open(eventUrl, "_blank")}
-                >
-                  <div className="text-secondary bg-secondary/20 border-secondary flex h-max w-full flex-col gap-2 rounded-lg border p-2 px-2 shadow-lg 2xl:h-40 2xl:gap-8 2xl:p-4 2xl:px-8">
-                    <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
-                      <div className="flex w-full flex-1 items-center justify-center">
-                        <Image
-                          src="/icons/plenary/paper.svg"
-                          alt=""
-                          width={40}
-                          height={40}
-                          className="h-6 w-max object-contain"
-                        />
-                      </div>
-                      <div className="flex items-center justify-center">
-                        <span className="text-center text-lg font-bold uppercase">
-                          Pauta da <br />
-                          Plenária
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="border-secondary text-secondary bg-secondary/20 flex w-full items-center justify-center rounded-lg border p-1 font-bold underline">
-                    Clique aqui para Acessar
-                  </div>
-                </button>
-                <button
-                  onClick={() => window.open(eventUrl, "_blank")}
-                  className="flex flex-col gap-4"
-                >
-                  <div className="text-secondary bg-secondary/20 border-secondary flex h-max w-full flex-col gap-2 rounded-lg border p-2 px-2 shadow-lg 2xl:h-40 2xl:gap-8 2xl:p-4 2xl:px-8">
-                    <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
-                      <div className="flex w-full flex-1 items-center justify-center">
-                        <User2 size={24} />
-                      </div>
-                      <span className="text-center text-lg font-bold uppercase">
-                        Oradores inscritos <br />
-                        para discursar
-                      </span>
-                    </div>
-                  </div>
-                  <div className="border-secondary text-secondary bg-secondary/20 flex w-full items-center justify-center rounded-lg border p-1 font-bold underline">
-                    Clique aqui para Acessar
-                  </div>
-                </button>
-                <button
-                  onClick={() => window.open(eventUrl, "_blank")}
-                  className="flex flex-col gap-4"
-                >
-                  <div className="text-secondary bg-secondary/20 border-secondary flex h-max w-full flex-col gap-2 rounded-lg border p-2 px-2 shadow-lg 2xl:h-40 2xl:gap-8 2xl:p-4 2xl:px-8">
-                    <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
-                      <div className="flex w-full flex-1 items-center justify-center">
-                        <Image
-                          src="/icons/plenary/folder-green.svg"
-                          alt=""
-                          width={40}
-                          height={40}
-                          className="h-6 w-max object-contain"
-                        />
-                      </div>
-                      <span className="text-center text-lg font-bold uppercase">
-                        Atas da <br />
-                        Reunião Plenária
-                      </span>
-                    </div>
-                  </div>
-                  <div className="border-secondary text-secondary bg-secondary/20 flex w-full items-center justify-center rounded-lg border p-1 font-bold underline">
-                    Clique aqui para Acessar
-                  </div>
-                </button>
-                <button
-                  onClick={() => window.open(eventUrl, "_blank")}
-                  className="flex flex-col gap-4"
-                >
-                  <div className="text-secondary bg-secondary/20 border-secondary flex h-max w-full flex-col gap-2 rounded-lg border p-2 px-2 shadow-lg 2xl:h-40 2xl:gap-8 2xl:p-4 2xl:px-8">
-                    <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
-                      <div className="flex w-full flex-1 items-center justify-center">
-                        <Type size={24} />
-                      </div>
-                      <span className="text-center text-lg font-bold uppercase">
-                        SESSÃO PLENÁRIA <br />
-                        EM TEXTO
-                      </span>
-                    </div>
-                  </div>
-                  <div className="border-secondary text-secondary bg-secondary/20 flex w-full items-center justify-center rounded-lg border p-1 font-bold underline">
-                    Clique aqui para Acessar
-                  </div>
-                </button>
-                <button
-                  onClick={() => window.open(eventUrl, "_blank")}
-                  className="flex flex-col gap-4"
-                >
-                  <div className="text-secondary bg-secondary/20 border-secondary flex h-max w-full flex-col gap-2 rounded-lg border p-2 px-2 shadow-lg 2xl:h-40 2xl:gap-8 2xl:p-4 2xl:px-8">
-                    <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
-                      <div className="flex w-full flex-1 items-center justify-center">
-                        <Video size={24} />
-                      </div>
-                      <span className="text-center text-lg font-bold uppercase">
-                        SESSÃO PLENÁRIA <br />
-                        EM Vídeo
-                      </span>
-                    </div>
-                  </div>
-                  <div className="border-secondary text-secondary bg-secondary/20 flex w-full items-center justify-center rounded-lg border p-1 font-bold underline">
-                    Clique aqui para Acessar
-                  </div>
-                </button>
-              </div>
-            </div>
-          </div>
-          <div className="col-span-12 flex min-h-80 w-full flex-col gap-4 rounded-xl bg-white p-4 text-black shadow-md">
-            <Chat
-              title="IA de Plenário"
-              initialMessage={"Sobre qual proposição você quer conversar?"}
-            />
-          </div>
-          <Tutorials />
         </>
       )}
     </div>
