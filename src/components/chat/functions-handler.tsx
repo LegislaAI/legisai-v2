@@ -76,6 +76,7 @@ export async function handleFunctionCalls(
   const toolResponses: Part[] = [];
 
   for (const { name, args, toolCallId } of functionCalls) {
+    console.log(args);
     const def = toolRegistry[name];
     try {
       if (!def) throw new Error(`Unknown function: ${name}`);
@@ -124,13 +125,29 @@ registerTool({
         description:
           "keywords based on the user request to maximize the search results",
       },
+      type: {
+        type: Type.STRING,
+        description:
+          "type of the proposition to search, example: PL, REQ, PEC, etc",
+      },
+      year: {
+        type: Type.STRING,
+        description: "year of the proposition to search",
+      },
+      number: {
+        type: Type.STRING,
+        description: "number of the proposition to search",
+      },
     },
     required: ["searchParam"],
   } as Schema,
-  implementation: async ({ searchParam }, { GetAPI }) => {
+  implementation: async ({ searchParam, type, year, number }, { GetAPI }) => {
+    console.log("year: ", year);
+    console.log("number: ", number);
+    console.log("type: ", type);
     try {
       const result = await GetAPI(
-        `/proposition/vetorial?searchParams=${searchParam}`,
+        `/proposition/vetorial?searchParams=${searchParam}&type=${type}&year=${year}&number=${number}`,
         false,
       );
 
@@ -160,60 +177,3 @@ registerTool({
     return result.body;
   },
 });
-
-/* ------------------------------------------------------------------
- * Example tool: createClient
- * ----------------------------------------------------------------*/
-// registerTool({
-//   name: "createClient",
-//   description:
-//     "Create a client lead at the end of the conversation using contact info.",
-//   parameters: {
-//     type: Type.OBJECT,
-//     properties: {
-//       name: { type: Type.STRING, description: "Client full name" },
-//       phone: { type: Type.STRING, description: "Phone number" },
-//       summary: { type: Type.STRING, description: "Chat summary" },
-//       email: { type: Type.STRING, description: "Email address" },
-//     },
-//     required: ["name", "phone", "summary", "email"],
-//   } as Schema,
-//   implementation: async ({ name, phone, summary, email }) => {
-//     const resp = await PostAPI("/lead", {
-//       name,
-//       phone,
-//       aiChat: summary,
-//       email,
-//       boardId: "72c955f3-d6d0-4843-9067-fd4889ff37a1",
-//     });
-
-//     if (resp.status === 201) {
-//       return {
-//         status: "success",
-//         clientName: name,
-//         message: "Client creation process initiated.",
-//       };
-//     }
-//     throw new Error(`API error (${resp.status})`);
-//   },
-// });
-/* ------------------------------------------------------------------
- * HOW TO ADD NEW TOOLS
- * ------------------------------------------------------------------
- * registerTool({
- *   name: "sendEmail",
- *   description: "Send an email to the given address",
- *   parameters: {
- *     type: Type.OBJECT,
- *     properties: {
- *       to:   { type: Type.STRING },
- *       body: { type: Type.STRING },
- *     },
- *     required: ["to", "body"],
- *   } as Schema,
- *   implementation: async ({ to, body }) => {
- *     // ...your logic...
- *     return { sent: true };
- *   },
- * });
- */

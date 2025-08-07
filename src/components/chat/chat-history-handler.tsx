@@ -62,9 +62,7 @@ export function useChatPage() {
 
   async function handleGetPrompt() {
     try {
-      console.log("types: ", types);
       const response = await GetAPI(`/prompt?&types=${types}`, true);
-      console.log("response", response);
       if (response.status === 200) {
         setPrompts(response.body.prompts);
       }
