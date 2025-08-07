@@ -217,16 +217,23 @@ export function Votes({ eventUrl }: VoteProps) {
                       )}
                     >
                       <TableCell className="h-4 max-w-80 truncate py-1 text-sm font-medium whitespace-nowrap">
-                        {row.title}
+                        {row.title ||
+                          `Votação ${row.proposition.typeAcronym} ${row.proposition.number}/${row.proposition.year}`}
                       </TableCell>
                       <TableCell className="h-4 w-80 py-1 text-center text-sm">
-                        {row.positiveVotes}
+                        {row.totalVotes === 0
+                          ? "Votação Simbólica"
+                          : row.positiveVotes}
                       </TableCell>
                       <TableCell className="h-4 py-1 text-center text-sm">
-                        {row.negativeVotes}
+                        {row.totalVotes === 0
+                          ? "Votação Simbólica"
+                          : row.negativeVotes}
                       </TableCell>
                       <TableCell className="h-4 py-1 text-center text-sm">
-                        {row.totalVotes}
+                        {row.totalVotes === 0
+                          ? "Votação Simbólica"
+                          : row.totalVotes}
                       </TableCell>
                       <TableCell className="h-4 w-10 py-1 text-sm font-medium">
                         <div className="flex items-end justify-end">
