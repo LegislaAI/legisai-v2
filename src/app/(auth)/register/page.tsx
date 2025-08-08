@@ -2,7 +2,7 @@
 import { AuthFooter } from "@/components/ui/AuthFooter";
 import { AuthHeader } from "@/components/ui/AuthHeader";
 import { useApiContext } from "@/context/ApiContext";
-import { maskCpfCnpj, maskPhone } from "@/lib/masks";
+import { maskCpfCnpj, maskDate, maskPhone } from "@/lib/masks";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, Check, Eye, EyeOff } from "lucide-react";
@@ -14,12 +14,17 @@ import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { z } from "zod";
 
+import moment from "moment";
+import "react-datepicker/dist/react-datepicker.css";
+
 const schema = z
   .object({
     email: z.string().email({ message: "Email inválido" }),
     name: z.string().min(1, "Nome é obrigatório"),
     phone: z.string().min(14, "Telefone inválido"),
     cpfCnpj: z.string().min(14, "CPF/CNPJ inválido"),
+    birthDate: z.string().min(10, "Data de nascimento inválida"),
+    profession: z.string().min(1, "Profissão é obrigatória"),
     password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
     confirmPassword: z
       .string()
@@ -34,6 +39,8 @@ interface RegisterFormData {
   name: string;
   phone: string;
   cpfCnpj: string;
+  birthDate: string;
+  profession: string;
   password: string;
   confirmPassword: string;
 }
@@ -75,6 +82,8 @@ export default function Register() {
         email: data.email,
         phone: data.phone,
         cpfCnpj: data.cpfCnpj,
+        birthDate: moment(data.birthDate).toDate(),
+        profession: data.profession,
         password: data.password,
       },
       false,
@@ -88,10 +97,16 @@ export default function Register() {
       if (response.body.message === "Resource already exists") {
         toast.error("Cpf, email ou telefone ja cadastrados");
         setRegisterError("Cpf, email ou telefone ja cadastrados");
+        return setIsRegistering(false);
       } else {
-        setRegisterError(response.body.message!);
+        setRegisterError(
+          response.body.message
+            ? response.body.message
+            : "Falha ao criar conta",
+        );
+        return setIsRegistering(false);
       }
-      setIsRegistering(false);
+      return setIsRegistering(false);
     }
   }
 
@@ -109,6 +124,11 @@ export default function Register() {
   const handleCpfCnpjChange = (event: PhoneChangeEvent): void => {
     const maskedValue: string = maskCpfCnpj(event.target.value);
     setValue("cpfCnpj", maskedValue);
+  };
+
+  const handleDateChange = (event: PhoneChangeEvent): void => {
+    const maskedValue: string = maskDate(event.target.value);
+    setValue("birthDate", maskedValue);
   };
 
   return (
@@ -137,7 +157,7 @@ export default function Register() {
           >
             <div className="flex flex-col">
               <label className="text-xs font-semibold text-[#252F40] 2xl:text-sm">
-                Nome
+                Nome*
               </label>
               <input
                 {...register("name")}
@@ -152,7 +172,7 @@ export default function Register() {
 
             <div className="flex flex-col">
               <label className="text-xs font-semibold text-[#252F40] 2xl:text-sm">
-                CPF/CNPJ
+                CPF/CNPJ*
               </label>
               <input
                 {...register("cpfCnpj")}
@@ -167,7 +187,7 @@ export default function Register() {
             </div>
             <div className="flex flex-col">
               <label className="text-xs font-semibold text-[#252F40] 2xl:text-sm">
-                Telefone
+                Telefone*
               </label>
               <input
                 {...register("phone")}
@@ -183,7 +203,7 @@ export default function Register() {
             </div>
             <div className="flex flex-col">
               <label className="text-xs font-semibold text-[#252F40] 2xl:text-sm">
-                Email
+                Email*
               </label>
               <input
                 {...register("email")}
@@ -198,7 +218,41 @@ export default function Register() {
 
             <div className="flex flex-col">
               <label className="text-xs font-semibold text-[#252F40] 2xl:text-sm">
-                Senha
+                Data de Nascimento
+              </label>
+              <input
+                {...register("birthDate")}
+                onChange={handleDateChange}
+                placeholder="Digite sua Data de Nascimento"
+                className="outline-secondary/50 focus:border-secondary/50 h-8 rounded-md border border-zinc-400 p-2 text-black 2xl:h-8"
+                type="text"
+                maxLength={10}
+              />
+              {errors.birthDate && (
+                <span className="text-red-500">{errors.birthDate.message}</span>
+              )}
+            </div>
+
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold text-[#252F40] 2xl:text-sm">
+                Profissão
+              </label>
+              <input
+                {...register("profession")}
+                placeholder="Digite sua Profissão"
+                className="outline-secondary/50 focus:border-secondary/50 h-8 rounded-md border border-zinc-400 p-2 text-black 2xl:h-8"
+                type="text"
+              />
+              {errors.profession && (
+                <span className="text-red-500">
+                  {errors.profession?.message}
+                </span>
+              )}
+            </div>
+
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold text-[#252F40] 2xl:text-sm">
+                Senha*
               </label>
               <div className="outline-secondary/50 focus:border-secondary/50 flex flex-row items-center overflow-hidden rounded-md border border-zinc-400 bg-white">
                 <input
@@ -225,7 +279,7 @@ export default function Register() {
             </div>
             <div className="flex flex-col">
               <label className="text-xs font-semibold text-[#252F40] 2xl:text-sm">
-                Confirmar Senha
+                Confirmar Senha*
               </label>
               <div className="outline-secondary/50 focus:border-secondary/50 flex flex-row items-center overflow-hidden rounded-md border border-zinc-400 bg-white">
                 <input

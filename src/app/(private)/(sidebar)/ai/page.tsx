@@ -128,7 +128,11 @@ export default function BranchesList() {
                   <AccordionItem
                     key={index}
                     value={`item-${index}`}
-                    className="group group peer w-full rounded-lg px-4 shadow-none shadow-transparent transition-colors duration-300 data-[state=open]:border data-[state=open]:border-[#4C785D] data-[state=open]:text-black"
+                    className={cn(
+                      "group group peer w-full rounded-lg px-4 shadow-none shadow-transparent transition-colors duration-300 data-[state=open]:border data-[state=open]:border-[#4C785D] data-[state=open]:text-black",
+                      selectedAi === item.label &&
+                        "border border-[#4C785D] text-black",
+                    )}
                   >
                     <AccordionTrigger className="w-full border-b border-b-[#4C785D] text-start text-lg outline-none focus:border-0 focus:outline-none">
                       <div className="flex flex-row items-center justify-center gap-2 text-lg font-bold text-[#4C785D]">
@@ -155,7 +159,11 @@ export default function BranchesList() {
                               setOpen(false);
                             }}
                             key={subIndex}
-                            className="flex w-full flex-row items-center rounded-md p-2 text-start text-base hover:bg-[#4C785D] hover:text-white"
+                            className={cn(
+                              "flex w-full flex-row items-center rounded-md p-2 text-start text-base hover:bg-[#4C785D] hover:text-white",
+                              selectedPrompt?.id === sub.id &&
+                                "bg-[#4C785D] text-white",
+                            )}
                           >
                             <div className="border-secondary w-full border-l px-2 text-lg">
                               {sub.name}
@@ -187,7 +195,7 @@ export default function BranchesList() {
               <h1 className="text-2xl font-bold xl:text-2xl">Legis.AI</h1>
             </div>
             <h2 className="mt-1 text-lg font-medium xl:text-xl">
-              Elaboração de Parecer Jurídico:
+              {selectedPrompt?.name ?? "Chat IA"}
             </h2>
             <div className="absolute top-2 right-2 flex items-center gap-2">
               <button
