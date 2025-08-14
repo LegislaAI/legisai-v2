@@ -104,7 +104,8 @@ export function useSectionChat({
         model: "gemini-2.5-flash",
         history: initialHistory,
         config: {
-          systemInstruction: PromptFunctionTest,
+          systemInstruction:
+            (selectedPrompt && selectedPrompt.prompt) || PromptFunctionTest,
           ...(shouldUseFunctions && {
             tools: [{ functionDeclarations: getFunctionDeclarations() }],
           }),
@@ -429,7 +430,7 @@ export function useSectionChat({
         });
       }
     } catch (err) {
-      console.error(err);
+      console.log(err);
       setMessages((prev) =>
         prev.map((m, i) =>
           i === placeholderIndexRef.current

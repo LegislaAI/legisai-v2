@@ -138,18 +138,63 @@ registerTool({
         type: Type.STRING,
         description: "number of the proposition to search",
       },
+      regime: {
+        type: Type.STRING,
+        description: "regime of the proposition to search",
+      },
+      page: {
+        type: Type.NUMBER,
+        description: "page of the search result",
+      },
     },
     required: ["searchParam"],
   } as Schema,
-  implementation: async ({ searchParam, type, year, number }, { GetAPI }) => {
-    console.log("year: ", year);
-    console.log("number: ", number);
-    console.log("type: ", type);
+  implementation: async (
+    {
+      searchParam,
+      type,
+      year,
+      number,
+      regime,
+      page,
+      situation,
+      lastMovementDescription,
+    },
+    { GetAPI },
+  ) => {
+    let query = "";
+
+    if (type) {
+      query += `&type=${type}`;
+    }
+
+    if (year) {
+      query += `&year=${year}`;
+    }
+
+    if (number) {
+      query += `&number=${number}`;
+    }
+
+    if (regime) {
+      query += `&regime=${regime}`;
+    }
+
+    if (situation) {
+      query += `&situation=${situation}`;
+    }
+
+    if (lastMovementDescription) {
+      query += `&lastMovementDescription=${lastMovementDescription}`;
+    }
+
     try {
       const result = await GetAPI(
-        `/proposition/vetorial?searchParams=${searchParam}&type=${type}&year=${year}&number=${number}`,
+        `/proposition/vetorial?searchParams=${searchParam}&page=${page}&${query}`,
         false,
       );
+
+      console.log(result);
 
       return result.body;
     } catch (error) {
