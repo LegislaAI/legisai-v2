@@ -240,7 +240,7 @@ export default function PlenaryDetails() {
               </div>
             </div>
           </div>
-          <div className="relative col-span-12 flex h-full flex-col items-center justify-between overflow-hidden rounded-xl bg-[url('/static/livePlenary2.png')] bg-cover bg-no-repeat lg:col-span-4">
+          <div className="relative col-span-12 flex h-full flex-col items-center justify-between overflow-hidden rounded-xl bg-[url('/static/plenary.jpg')] bg-cover bg-no-repeat lg:col-span-4">
             <div className="bg-secondary/60 flex h-full w-full flex-col items-center justify-between gap-4 p-4">
               <div className="text-6xl font-bold text-white">
                 {formatTime(timeLeft)}

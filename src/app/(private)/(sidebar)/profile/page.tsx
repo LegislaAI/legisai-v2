@@ -246,35 +246,37 @@ export default function Profile() {
               visibleSections.includes(4)
                 ? "translate-y-0 opacity-100"
                 : "translate-y-10 opacity-0"
-            } flex flex-col justify-between gap-4 rounded-lg bg-[url(/static/card.png)] bg-cover bg-center p-2 px-4 text-white shadow-lg transition-all duration-300 md:col-span-7 lg:col-span-4 lg:row-span-4`}
+            } flex flex-col justify-between gap-4 overflow-hidden rounded-lg bg-[url(/static/camara.jpg)] bg-cover bg-center text-white shadow-lg transition-all duration-300 md:col-span-7 lg:col-span-4 lg:row-span-4`}
           >
-            <div className="flex flex-row items-center gap-4">
-              <div className="flex h-20 w-20 items-center justify-center rounded-md bg-white object-cover">
-                <Image
-                  src={`/icons/support.svg`}
-                  alt="logo"
-                  width={100}
-                  height={100}
-                  className="h-12 w-12"
-                />
+            <div className="bg-secondary/80 h-full p-2 px-4">
+              <div className="flex flex-row items-center gap-4">
+                <div className="flex h-20 w-20 items-center justify-center rounded-md bg-white object-cover">
+                  <Image
+                    src={`/icons/support.svg`}
+                    alt="logo"
+                    width={100}
+                    height={100}
+                    className="h-12 w-12"
+                  />
+                </div>
+                <span className="text-lg font-bold">Solicitar suporte</span>
               </div>
-              <span className="text-lg font-bold">Solicitar suporte</span>
-            </div>
-            <div
-              className={`col-span-12 ${
-                visibleSections.includes(5)
-                  ? "translate-y-0 opacity-100"
-                  : "translate-y-10 opacity-0"
-              } flex flex-col self-end rounded-lg p-2 px-4 transition-all duration-300 md:col-span-12 lg:col-span-4 lg:row-span-4`}
-            >
-              <button
-                onClick={() =>
-                  window.open("https://wa.me/556195900545", "_blank")
-                }
-                className="bg-secondary self-center rounded-md border border-white p-2 text-white transition-all duration-300 hover:scale-[1.005]"
+              <div
+                className={`col-span-12 ${
+                  visibleSections.includes(5)
+                    ? "translate-y-0 opacity-100"
+                    : "translate-y-10 opacity-0"
+                } flex flex-col self-end rounded-lg p-2 px-4 transition-all duration-300 md:col-span-12 lg:col-span-4 lg:row-span-4`}
               >
-                Solicitar suporte
-              </button>
+                <button
+                  onClick={() =>
+                    window.open("https://wa.me/556195900545", "_blank")
+                  }
+                  className="bg-secondary self-center rounded-md border border-white p-2 text-white transition-all duration-300 hover:scale-[1.005]"
+                >
+                  Solicitar suporte
+                </button>
+              </div>
             </div>
           </div>
           <div

@@ -11,7 +11,7 @@ export function Tutorials() {
         <div className="flex flex-col items-center justify-between md:flex-row">
           <div className="flex flex-1 flex-col">
             <span className="text-xl font-semibold text-[#252F40]">
-              Tutorial Avançado de Como usar o Legis.AI para Plenários
+              Tutorial Avançado de Como usar o LegisDados para Plenários
             </span>
           </div>
         </div>

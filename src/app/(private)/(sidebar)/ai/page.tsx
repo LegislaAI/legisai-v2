@@ -180,7 +180,7 @@ export default function BranchesList() {
                 className="h-12 w-12"
                 src={"/logos/small-logo.png"}
               />
-              <h1 className="text-2xl font-bold xl:text-2xl">Legis.AI</h1>
+              <h1 className="text-2xl font-bold xl:text-2xl">LegisDados</h1>
             </div>
             <h2 className="mt-1 text-lg font-medium xl:text-xl">
               Elaboração de Parecer Jurídico:

@@ -41,6 +41,7 @@ export default function Login() {
   });
 
   async function HandleLogin(data: LoginDataProps) {
+    console.log("entro");
     setIsLogging(true);
     const login = await PostAPI(
       "/user/signin",
@@ -50,6 +51,7 @@ export default function Login() {
       },
       false,
     );
+    console.log("login", login);
     if (login.status === 200) {
       cookies.set(
         process.env.NEXT_PUBLIC_USER_TOKEN as string,
@@ -69,7 +71,7 @@ export default function Login() {
   return (
     <main className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-white">
       <Image
-        src={"/static/register2.png"}
+        src={"/static/login3.png"}
         className="absolute top-0 right-0 z-10 hidden h-[95%] w-[40%] rounded-bl-lg object-cover md:block"
         alt=""
         width={1000}
