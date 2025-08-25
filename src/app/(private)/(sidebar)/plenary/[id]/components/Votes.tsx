@@ -8,7 +8,7 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { cn } from "@/lib/utils";
-import { Check, Loader2, Search, Type, User2, Video, X } from "lucide-react";
+import { Check, Loader2, Search, X } from "lucide-react";
 import Image from "next/image";
 import "swiper/css";
 
@@ -19,14 +19,8 @@ import debounce from "lodash.debounce";
 import moment from "moment";
 import { usePathname } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
-import { Chat } from "./Chat";
-import { Tutorials } from "./Tutorials";
 
-interface VoteProps {
-  eventUrl: string;
-}
-
-export function Votes({ eventUrl }: VoteProps) {
+export function Votes() {
   const pathname = usePathname();
   const { GetAPI } = useApiContext();
 
@@ -57,7 +51,6 @@ export function Votes({ eventUrl }: VoteProps) {
   async function GetVotes() {
     const eventId = pathname.split("/")[2];
     const votes = await GetAPI(`/voting/${eventId}`, true);
-    console.log("votes", votes);
     if (votes.status === 200) {
       setVotesList(votes.body.voting);
       return setIsGettingVotes(false);
@@ -160,7 +153,7 @@ export function Votes({ eventUrl }: VoteProps) {
   }, [selectedVote, negativeVotesCurrentPage, negativeVotesQuery]);
 
   return (
-    <div className="grid w-full grid-cols-12 gap-8">
+    <div className="grid w-full grid-cols-12 gap-8 pb-20 xl:pb-10">
       <div className="col-span-12 flex flex-col overflow-hidden rounded-lg bg-white xl:col-span-12">
         <div className="flex h-full w-full flex-col">
           <span className="text-secondary p-4 text-xl font-bold">
@@ -173,7 +166,7 @@ export function Votes({ eventUrl }: VoteProps) {
                   {voteColumns.map((column) => (
                     <TableHead
                       key={column.key}
-                      className="h-12 justify-end text-center text-sm font-semibold text-white"
+                      className="justify-end text-center text-sm font-semibold text-white"
                     >
                       <div className="mx-auto flex w-max items-center gap-2">
                         <Image
@@ -218,16 +211,23 @@ export function Votes({ eventUrl }: VoteProps) {
                       )}
                     >
                       <TableCell className="h-4 max-w-80 truncate py-1 text-sm font-medium whitespace-nowrap">
-                        {row.title}
+                        {row.title ||
+                          `Votação ${row.proposition.typeAcronym} ${row.proposition.number}/${row.proposition.year}`}
                       </TableCell>
                       <TableCell className="h-4 w-80 py-1 text-center text-sm">
-                        {row.positiveVotes}
+                        {row.totalVotes === 0
+                          ? "Votação Simbólica"
+                          : row.positiveVotes}
                       </TableCell>
                       <TableCell className="h-4 py-1 text-center text-sm">
-                        {row.negativeVotes}
+                        {row.totalVotes === 0
+                          ? "Votação Simbólica"
+                          : row.negativeVotes}
                       </TableCell>
                       <TableCell className="h-4 py-1 text-center text-sm">
-                        {row.totalVotes}
+                        {row.totalVotes === 0
+                          ? "Votação Simbólica"
+                          : row.totalVotes}
                       </TableCell>
                       <TableCell className="h-4 w-10 py-1 text-sm font-medium">
                         <div className="flex items-end justify-end">
@@ -279,7 +279,7 @@ export function Votes({ eventUrl }: VoteProps) {
               : "Escolha uma votação acima para ver detalhes"}
           </span>
           {selectedVote && (
-            <div className="lg:px-4">
+            <div className="xl:px-4">
               <div className="border-secondary flex w-full flex-col overflow-hidden rounded-lg border bg-white px-4 py-2 md:px-8">
                 <div className="flex h-full w-full flex-col justify-between md:flex-row">
                   <div
@@ -296,7 +296,7 @@ export function Votes({ eventUrl }: VoteProps) {
                     </span>
 
                     <div className="flex flex-col gap-2 text-justify text-sm">
-                      <div className="flex items-center gap-1">
+                      <div className="flex flex-col items-start gap-1 xl:flex-row xl:items-center">
                         <span className="font-semibold underline">
                           {ProposalName(selectedVote)}
                         </span>
@@ -308,11 +308,13 @@ export function Votes({ eventUrl }: VoteProps) {
                             : selectedVote.proposition.description}
                         </span>
                       </div>
-                      <div className="flex items-center gap-1">
+                      <div className="flex items-center">
                         <span className="font-semibold underline">
-                          Resultado:
+                          Resultado
+                          {""}
                         </span>
-                        <span>{selectedVote.description}</span>
+                        <span className="no-underline">:</span>{" "}
+                        <span className="ml-1">{selectedVote.description}</span>
                       </div>
                     </div>
                     <span className="text-xs text-[#828690]">
@@ -601,130 +603,6 @@ export function Votes({ eventUrl }: VoteProps) {
               </div>
             </div>
           </div>
-
-          <div className="col-span-12 flex flex-col overflow-hidden rounded-lg bg-white xl:col-span-12">
-            <div className="flex h-full w-full flex-col">
-              <span className="text-secondary p-4 text-xl font-bold">
-                Propostas a Serem Analisadas
-              </span>
-              <div className="grid w-full grid-cols-1 flex-row justify-evenly gap-8 p-4 lg:grid-cols-5 xl:h-full">
-                <button
-                  className="flex flex-col gap-4"
-                  onClick={() => window.open(eventUrl, "_blank")}
-                >
-                  <div className="text-secondary bg-secondary/20 border-secondary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
-                    <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
-                      <div className="flex w-full flex-1 items-center justify-center">
-                        <Image
-                          src="/icons/plenary/paper.svg"
-                          alt=""
-                          width={40}
-                          height={40}
-                        />
-                      </div>
-                      <div className="flex items-center justify-center">
-                        <span className="h-12 text-center text-lg font-bold uppercase">
-                          Pauta da <br />
-                          Plenária
-                        </span>
-                      </div>
-                    </div>
-                  </div>
-                  <div className="border-secondary text-secondary bg-secondary/20 flex w-full items-center justify-center rounded-lg border p-1 font-bold underline">
-                    Clique aqui para Acessar
-                  </div>
-                </button>
-                <button
-                  onClick={() => window.open(eventUrl, "_blank")}
-                  className="flex flex-col gap-4"
-                >
-                  <div className="text-secondary bg-secondary/20 border-secondary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
-                    <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
-                      <div className="flex w-full flex-1 items-center justify-center">
-                        <User2 size={40} />
-                      </div>
-                      <span className="h-12 text-center text-lg font-bold uppercase">
-                        Oradores inscritos <br />
-                        para discursar
-                      </span>
-                    </div>
-                  </div>
-                  <div className="border-secondary text-secondary bg-secondary/20 flex w-full items-center justify-center rounded-lg border p-1 font-bold underline">
-                    Clique aqui para Acessar
-                  </div>
-                </button>
-                <button
-                  onClick={() => window.open(eventUrl, "_blank")}
-                  className="flex flex-col gap-4"
-                >
-                  <div className="text-secondary bg-secondary/20 border-secondary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
-                    <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
-                      <div className="flex w-full flex-1 items-center justify-center">
-                        <Image
-                          src="/icons/plenary/folder-green.svg"
-                          alt=""
-                          width={40}
-                          height={40}
-                        />
-                      </div>
-                      <span className="h-12 text-center text-lg font-bold uppercase">
-                        Atas da <br />
-                        Reunião Plenária
-                      </span>
-                    </div>
-                  </div>
-                  <div className="border-secondary text-secondary bg-secondary/20 flex w-full items-center justify-center rounded-lg border p-1 font-bold underline">
-                    Clique aqui para Acessar
-                  </div>
-                </button>
-                <button
-                  onClick={() => window.open(eventUrl, "_blank")}
-                  className="flex flex-col gap-4"
-                >
-                  <div className="text-secondary bg-secondary/20 border-secondary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
-                    <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
-                      <div className="flex w-full flex-1 items-center justify-center">
-                        <Type size={40} />
-                      </div>
-                      <span className="h-12 text-center text-lg font-bold uppercase">
-                        SESSÃO PLENÁRIA <br />
-                        EM TEXTO
-                      </span>
-                    </div>
-                  </div>
-                  <div className="border-secondary text-secondary bg-secondary/20 flex w-full items-center justify-center rounded-lg border p-1 font-bold underline">
-                    Clique aqui para Acessar
-                  </div>
-                </button>
-                <button
-                  onClick={() => window.open(eventUrl, "_blank")}
-                  className="flex flex-col gap-4"
-                >
-                  <div className="text-secondary bg-secondary/20 border-secondary p-x8 flex h-40 w-full flex-col gap-8 rounded-lg border p-4 shadow-lg">
-                    <div className="flex h-full flex-1 flex-col items-center justify-between gap-2">
-                      <div className="flex w-full flex-1 items-center justify-center">
-                        <Video size={40} />
-                      </div>
-                      <span className="h-12 text-center text-lg font-bold uppercase">
-                        SESSÃO PLENÁRIA <br />
-                        EM Vídeo
-                      </span>
-                    </div>
-                  </div>
-                  <div className="border-secondary text-secondary bg-secondary/20 flex w-full items-center justify-center rounded-lg border p-1 font-bold underline">
-                    Clique aqui para Acessar
-                  </div>
-                </button>
-              </div>
-            </div>
-          </div>
-          <div className="col-span-12 flex min-h-80 w-full flex-col gap-4 rounded-xl bg-white p-4 text-black shadow-md">
-            <Chat
-              title="IA de Plenário"
-              initialMessage={"Sobre qual proposição você quer conversar?"}
-            />
-          </div>
-          <Tutorials />
         </>
       )}
     </div>

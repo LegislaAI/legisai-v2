@@ -39,6 +39,7 @@ import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 import "swiper/css";
+import { Swiper, SwiperSlide } from "swiper/react";
 
 export function General() {
   const pathname = usePathname();
@@ -55,6 +56,8 @@ export function General() {
     PropositionProcessDetailsProps[]
   >([]);
   const [selectedRowIndex, setSelectedRowIndex] = useState<number | null>(null);
+  const [isGettingDetails, setIsGettingDetails] = useState(false);
+
   const years = new Array(125).fill(0).map((_, i) => 2025 - i);
   const columns = [
     {
@@ -82,8 +85,6 @@ export function General() {
       label: "",
     },
   ];
-
-  console.log("eventPropositions", eventPropositions);
 
   const processColumns = [
     { key: "icon", label: "" },
@@ -116,13 +117,16 @@ export function General() {
   }
 
   async function GetPropositionDetails() {
+    setIsGettingDetails(true);
     const details = await GetAPI(
       `/proposition/details/${selected?.proposition.id}`,
       true,
     );
     if (details.status === 200) {
       setSelectedDetails(details.body.proposition);
+      return setIsGettingDetails(false);
     }
+    return setIsGettingDetails(false);
   }
 
   async function GetPropositionProcess() {
@@ -134,6 +138,15 @@ export function General() {
       setPropositionProcessList(processList.body.processes);
     }
   }
+
+  useEffect(() => {
+    if (selected && selectedDetails) {
+      window.scrollTo({
+        top: document.documentElement.scrollHeight,
+        behavior: "smooth",
+      });
+    }
+  }, [selected, selectedDetails]);
 
   useEffect(() => {
     if (selected) {
@@ -152,7 +165,7 @@ export function General() {
   }, []);
 
   return (
-    <div className="grid w-full grid-cols-12 gap-8">
+    <div className="grid w-full grid-cols-12 gap-8 pb-20 xl:pb-10">
       {/* ────────────────────────────── TABLE */}
       <div className="col-span-12 flex flex-col overflow-hidden rounded-lg bg-white p-4 xl:col-span-12">
         <div className="flex h-full w-full flex-col gap-4">
@@ -204,7 +217,10 @@ export function General() {
                 eventPropositions.map((row) => (
                   <TableBody key={row.id}>
                     <TableRow
-                      onClick={() => setSelected(row)}
+                      onClick={() => {
+                        setSelected(row);
+                        setSelectedRowIndex(null);
+                      }}
                       className={cn(
                         "hover:bg-secondary/20 h-12 cursor-pointer transition-all duration-300",
                         selected?.id === row.id && "bg-secondary/20",
@@ -221,10 +237,10 @@ export function General() {
                           "DD/MM/YYYY HH:mm",
                         )}
                       </TableCell>
-                      <TableCell className="h-4 py-1 text-center text-sm">
+                      <TableCell className="h-4 min-w-40 py-1 text-center text-sm">
                         {row.regime}
                       </TableCell>
-                      <TableCell className="h-4 py-1 text-center text-sm">
+                      <TableCell className="h-4 min-w-40 py-1 text-center text-sm">
                         {row.reporter ? row.reporter.name : "N/A"}
                       </TableCell>
                       <TableCell className="h-4 py-1 text-center text-sm">
@@ -258,16 +274,32 @@ export function General() {
         </div>
       </div>
 
-      {!selected && (
-        <div className="bg-secondary col-span-12 flex w-full items-center justify-center rounded-lg p-4">
-          <span className="text-xl text-white uppercase">
+      {!selected && !isGettingDetails && !selectedDetails ? (
+        <div
+          className={cn(
+            "bg-secondary col-span-12 flex w-full items-center justify-center rounded-lg p-4",
+            eventPropositions.length === 0 && "hidden",
+          )}
+        >
+          <span className="text-center text-xl text-white uppercase">
             Clique em uma proposta acima para visualizar os{" "}
             <span className="font-bold">detalhes da tramitação </span>
           </span>
         </div>
-      )}
-
-      {selected && selectedDetails && (
+      ) : selected && isGettingDetails && !selectedDetails ? (
+        <>
+          <div className="bg-secondary col-span-12 flex w-full items-center justify-center rounded-lg p-4 text-white">
+            <Loader2 className="animate-spin" />
+          </div>
+          <section className="col-span-12 mt-6 h-40 animate-pulse rounded-lg bg-zinc-200 shadow-sm ring-1 ring-gray-200"></section>
+        </>
+      ) : selected && !isGettingDetails && !selectedDetails ? (
+        <div className="bg-secondary col-span-12 flex w-full items-center justify-center rounded-lg p-4">
+          <span className="text-center text-xl text-white uppercase">
+            Nenhum detalhe encontrado
+          </span>
+        </div>
+      ) : selected && !isGettingDetails && selectedDetails ? (
         <>
           <Accordion
             type="single"
@@ -401,7 +433,7 @@ export function General() {
 
           <section className="col-span-12 mt-6 rounded-lg bg-white shadow-sm ring-1 ring-gray-200">
             <div className="flex h-14 items-center justify-between gap-4 px-6 py-4">
-              <h3 className="text-secondary flex items-center gap-2 text-xl font-semibold">
+              <h3 className="text-secondary flex items-center gap-2 text-sm font-semibold xl:text-lg">
                 <Image
                   src={"/icons/plenary/documents.svg"}
                   alt=""
@@ -411,25 +443,28 @@ export function General() {
                 />{" "}
                 Filtro por Data das Tramitações:
               </h3>
-              <div className="scrollbar-hide hidden h-10 w-full gap-4 overflow-x-scroll p-2 xl:flex">
-                {years.map((y) => (
-                  <div
-                    key={y}
-                    onClick={() => setSelectedYear(y)}
-                    className={cn(
-                      "relative h-max w-max cursor-pointer px-1 py-0.5 text-sm font-semibold transition duration-300",
-                      y === selectedYear && "text-secondary",
-                    )}
-                  >
-                    <div
-                      className={cn(
-                        "absolute top-0 left-0 h-0.5 w-full bg-transparent transition duration-300",
-                        y === selectedYear && "bg-secondary",
-                      )}
-                    />
-                    <span>{y}</span>
-                  </div>
-                ))}
+              <div className="hidden h-10 w-1/2 items-center gap-4 p-2 xl:flex">
+                <Swiper slidesPerView={"auto"} spaceBetween={10}>
+                  {years.map((y) => (
+                    <SwiperSlide key={y}>
+                      <div
+                        onClick={() => setSelectedYear(y)}
+                        className={cn(
+                          "relative h-max w-max cursor-pointer px-1 py-0.5 text-sm font-semibold transition duration-300",
+                          y === selectedYear && "text-secondary",
+                        )}
+                      >
+                        <div
+                          className={cn(
+                            "absolute top-0 left-0 h-0.5 w-full bg-transparent transition duration-300",
+                            y === selectedYear && "bg-secondary",
+                          )}
+                        />
+                        <span>{y}</span>
+                      </div>
+                    </SwiperSlide>
+                  ))}
+                </Swiper>
               </div>
               <DropdownMenu>
                 <DropdownMenuTrigger asChild>
@@ -438,7 +473,11 @@ export function General() {
                     {selectedYear}
                   </button>
                 </DropdownMenuTrigger>
-                <DropdownMenuContent side="left" className="h-80 w-max">
+                <DropdownMenuContent
+                  side="left"
+                  align="end"
+                  className="h-80 w-max"
+                >
                   <ScrollArea className="h-full w-full">
                     {years.map((y) => (
                       <DropdownMenuItem
@@ -499,7 +538,7 @@ export function General() {
                             alt=""
                             width={100}
                             height={100}
-                            className="h-max w-4 object-contain"
+                            className="h-max w-4 max-w-4 min-w-4 object-contain"
                           />
                         </TableCell>
                         <TableCell className="py-1 text-center text-sm whitespace-nowrap">
@@ -538,17 +577,16 @@ export function General() {
                         <TableCell className="py-1 text-sm">
                           <div>
                             {t.dispatch}
-                            {/* Enhanced content when selected */}
-                            {selectedRowIndex === idx && (
+                            {/* {selectedRowIndex === idx && (
                               <div className="mt-2 space-y-2">
                                 <div className="text-xs text-gray-600">
                                   Additional details about this process...
                                 </div>
                               </div>
-                            )}
+                            )} */}
                           </div>
                         </TableCell>
-                        <TableCell className="py-1 text-center text-sm">
+                        <TableCell className="min-w-40 py-1 text-center text-sm">
                           <a
                             href={selected.proposition.fullPropositionUrl}
                             target="_blank"
@@ -578,6 +616,13 @@ export function General() {
               </Table>
             </div>
           </section>
+        </>
+      ) : (
+        <>
+          <div className="bg-secondary col-span-12 flex w-full items-center justify-center rounded-lg p-4 text-white">
+            <Loader2 className="animate-spin" />
+          </div>
+          <section className="col-span-12 mt-6 h-40 animate-pulse rounded-lg bg-zinc-200 shadow-sm ring-1 ring-gray-200"></section>
         </>
       )}
     </div>

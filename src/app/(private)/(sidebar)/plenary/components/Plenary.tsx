@@ -1,3 +1,4 @@
+import { useLoadingContext } from "@/context/LoadingContext";
 import moment from "moment";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
@@ -11,11 +12,12 @@ interface PlenaryCardProps {
 
 export function PlenaryCard({ title, summary, id, date }: PlenaryCardProps) {
   const router = useRouter();
+  const { handleNavigation } = useLoadingContext();
 
   return (
     <div
-      onClick={() => router.push(`/plenary/${id}`)}
-      className="relative flex w-full cursor-pointer flex-col items-center justify-between rounded-lg p-1 pb-2 transition-all duration-300 hover:scale-[1.005] hover:shadow lg:flex-row"
+      onClick={() => handleNavigation(`/plenary/${id}`)}
+      className="relative flex w-full cursor-pointer flex-col justify-between rounded-lg p-1 pb-2 transition-all duration-300 hover:scale-[1.005] hover:shadow xl:flex-row xl:items-center"
     >
       <div className="absolute bottom-0 left-1/2 h-px w-full -translate-x-1/2 bg-zinc-200 md:w-2/3 xl:w-3/4" />
       <div className="flex items-center gap-2">
@@ -30,12 +32,12 @@ export function PlenaryCard({ title, summary, id, date }: PlenaryCardProps) {
         </div>
         <div>
           <h2 className="text-dark text-lg font-medium">{title}</h2>
-          <p className="w-full text-gray-600 lg:hidden lg:w-[650px] lg:truncate">
+          <p className="w-full text-gray-600 xl:hidden xl:w-[650px] xl:truncate">
             {summary && summary.length > 100
               ? summary.slice(0, 100) + "..."
               : summary}
           </p>
-          <p className="hidden w-full text-gray-600 lg:block lg:w-[650px] lg:truncate">
+          <p className="hidden w-full text-gray-600 xl:block xl:w-[650px] xl:truncate">
             {summary}
           </p>
         </div>
@@ -46,7 +48,7 @@ export function PlenaryCard({ title, summary, id, date }: PlenaryCardProps) {
         </span>
         <button
           onClick={() => router.push(`/plenary/${id}`)}
-          className="rounded-xl border border-blue-700 bg-blue-700/10 px-4 py-1 font-bold text-blue-700 hover:scale-[1.005]"
+          className="mx-auto rounded-xl border border-blue-700 bg-blue-700/10 px-4 py-1 font-bold text-blue-700 hover:scale-[1.005] xl:mx-0"
         >
           Acessar
         </button>

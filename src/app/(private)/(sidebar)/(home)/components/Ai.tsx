@@ -166,7 +166,7 @@ export function Ai() {
               <div
                 onClick={() => handleCardClick(item, index)}
                 className={cn(
-                  "bg-secondary/20 flex h-56 cursor-pointer flex-col justify-between rounded-lg border border-transparent p-4",
+                  "bg-secondary/20 flex h-56 cursor-pointer flex-col justify-between rounded-lg border border-transparent p-2 xl:p-4",
                   item.label === selectedAi.label && "border-secondary",
                 )}
               >
@@ -177,15 +177,17 @@ export function Ai() {
                     height={16}
                     alt={item.label}
                   />
-                  <span className="text-lg font-semibold">{item.label}</span>
+                  <span className="text-sm font-semibold xl:text-lg">
+                    {item.label}
+                  </span>
                 </div>
-                <span>{item.description}</span>
+                <span className="text-xs xl:text-sm">{item.description}</span>
                 {selectedAi.label === item.label ? (
-                  <button className="bg-secondary flex h-10 items-center justify-center gap-2 self-start rounded-lg px-4 font-semibold text-white">
+                  <button className="bg-secondary flex h-8 items-center justify-center gap-2 self-start rounded-lg px-2 font-semibold text-white xl:h-10 xl:px-4">
                     Em uso <Check />
                   </button>
                 ) : (
-                  <button className="text-secondary flex h-10 items-center justify-center gap-2 self-start rounded-lg border px-4">
+                  <button className="text-secondary flex h-8 items-center justify-center gap-2 self-start rounded-lg border px-2 xl:h-10 xl:px-4">
                     Usar essa AI
                   </button>
                 )}
@@ -194,7 +196,7 @@ export function Ai() {
           ))}
         </Swiper>
       </div>
-      <div className="bg-surface flex h-12 w-full items-center rounded-full">
+      <div className="bg-surface flex h-10 w-full items-center rounded-full xl:h-12">
         <input
           value={value}
           onChange={(e) => setValue(e.target.value)}

@@ -10,7 +10,7 @@ import {
 import { Input } from "@/components/ui/Input";
 import { Sheet, SheetContent, SheetHeader } from "@/components/ui/sheet";
 import { cn } from "@/lib/utils";
-import { ChevronDown, Minus, Plus, Search } from "lucide-react";
+import { Calendar, ChevronDown, Minus, Search } from "lucide-react";
 import moment from "moment";
 import Image from "next/image";
 import { useEffect, useState } from "react";
@@ -100,6 +100,10 @@ export default function AiChat() {
     setChatType("ai");
   }, []);
 
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("navigationComplete"));
+  }, []);
+
   return (
     <>
       <Sheet open={open} onOpenChange={() => setOpen(false)}>
@@ -124,7 +128,11 @@ export default function AiChat() {
                   <AccordionItem
                     key={index}
                     value={`item-${index}`}
-                    className="group group peer w-full rounded-lg px-4 shadow-none shadow-transparent transition-colors duration-300 data-[state=open]:border data-[state=open]:border-[#4C785D] data-[state=open]:text-black"
+                    className={cn(
+                      "group group peer w-full rounded-lg px-4 shadow-none shadow-transparent transition-colors duration-300 data-[state=open]:border data-[state=open]:border-[#4C785D] data-[state=open]:text-black",
+                      selectedAi === item.label &&
+                        "border border-[#4C785D] text-black",
+                    )}
                   >
                     <AccordionTrigger className="w-full border-b border-b-[#4C785D] text-start text-lg outline-none focus:border-0 focus:outline-none">
                       <div className="flex flex-row items-center justify-center gap-2 text-lg font-bold text-[#4C785D]">
@@ -151,7 +159,11 @@ export default function AiChat() {
                               setOpen(false);
                             }}
                             key={subIndex}
-                            className="flex w-full flex-row items-center rounded-md p-2 text-start text-base hover:bg-[#4C785D] hover:text-white"
+                            className={cn(
+                              "flex w-full flex-row items-center rounded-md p-2 text-start text-base hover:bg-[#4C785D] hover:text-white",
+                              selectedPrompt?.id === sub.id &&
+                                "bg-[#4C785D] text-white",
+                            )}
                           >
                             <div className="border-secondary w-full border-l px-2 text-lg">
                               {sub.name}
@@ -170,7 +182,7 @@ export default function AiChat() {
       </Sheet>
 
       <div className="flex w-full flex-row-reverse items-center justify-center gap-2">
-        <div className="flex h-[calc(100vh-150px)] w-full flex-col justify-between rounded-2xl bg-white p-2 xl:w-[70%] xl:p-4">
+        <div className="flex h-[calc(100vh-75px)] w-full flex-col justify-between rounded-2xl bg-white p-2 xl:h-[calc(100vh-150px)]">
           <div className="relative">
             <div className="flex flex-row items-center gap-4">
               <Image
@@ -183,7 +195,7 @@ export default function AiChat() {
               <h1 className="text-2xl font-bold xl:text-2xl">LegisDados</h1>
             </div>
             <h2 className="mt-1 text-lg font-medium xl:text-xl">
-              Elaboração de Parecer Jurídico:
+              {selectedPrompt?.name ?? "Chat IA"}
             </h2>
             <div className="absolute top-2 right-2 flex items-center gap-2">
               <button
@@ -194,9 +206,9 @@ export default function AiChat() {
               </button>
               <button
                 onClick={() => setOpenInfo(true)}
-                className="bg-secondary flex items-center justify-center rounded-full p-1 text-white xl:hidden"
+                className="bg-secondary flex items-center justify-center rounded-full p-1 text-white"
               >
-                <Plus />
+                <Calendar />
               </button>
             </div>
           </div>
@@ -227,13 +239,13 @@ export default function AiChat() {
         </div>
         <div
           className={cn(
-            "relative h-[calc(100vh-150px)] w-3/4 flex-col justify-between rounded-2xl border border-zinc-200 bg-white shadow-sm lg:w-1/2 xl:flex xl:w-[30%]",
+            "relative h-[calc(100vh-75px)] w-3/4 flex-col justify-between rounded-2xl border border-zinc-200 bg-white shadow-sm lg:w-1/2 xl:h-[calc(100vh-150px)] xl:w-[30%]",
             openInfo ? "absolute right-2 flex xl:right-8" : "hidden",
           )}
         >
           <button
             onClick={() => setOpenInfo(false)}
-            className="bg-secondary absolute top-4 right-[22px] z-10 flex items-center justify-center rounded-full p-1 text-white xl:hidden"
+            className="bg-secondary absolute top-4 right-[22px] z-10 flex items-center justify-center rounded-full p-1 text-white"
           >
             <Minus />
           </button>

@@ -242,8 +242,8 @@ export default function CommissionDetails() {
               </div>
               <div className="px-8 text-center text-sm font-bold text-white uppercase">
                 {eventDetails.videoUrl
-                  ? "ACESSE O LINK PARA ACOMPANHAR O PLENÁRIO"
-                  : "LOGO VOCÊ TERÁ ACESSO AO LINK PARA ACOMPANHAMENTO AO VIVO DO PRÓXIMO PLENÁRIO"}
+                  ? "ACESSE O LINK PARA ACOMPANHAR A COMISSÃO"
+                  : "LOGO VOCÊ TERÁ ACESSO AO LINK PARA ACOMPANHAMENTO AO VIVO DA PRÓXIMA COMISSÃO"}
               </div>
               <button
                 onClick={() => {
@@ -267,7 +267,7 @@ export default function CommissionDetails() {
             className={`col-span-12 ${animateSection ? "opacity-0" : "opacity-100 transition-all duration-700"} `}
           >
             {selectedStep === 0 && <General />}
-            {selectedStep === 1 && <Votes eventUrl={eventDetails.uri} />}
+            {selectedStep === 1 && <Votes />}
             {selectedStep === 2 && <Presence />}
             {selectedStep === 3 && <DayOrder />}
           </div>

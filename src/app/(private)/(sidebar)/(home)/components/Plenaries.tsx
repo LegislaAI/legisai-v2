@@ -38,8 +38,8 @@ interface Event {
 export function Plenaries() {
   const router = useRouter();
   const { GetAPI } = useApiContext();
-  const [events, setEvents] = useState<Event[]>([]);
   const { selectedPoliticianId } = usePoliticianContext();
+  const [events, setEvents] = useState<Event[]>([]);
   const [selectedDateFilter, setSelectedDateFilter] = useState<Date | null>(
     null,
   );
@@ -61,13 +61,13 @@ export function Plenaries() {
 
   useEffect(() => {
     handleGetEvent();
-  }, [selectedPoliticianId]);
+  }, [selectedPoliticianId, selectedDateFilter]);
 
   return (
     <div className="lg:w-col-span-1 flex h-96 w-full flex-col rounded-lg bg-white p-4">
       <div className="flex items-center justify-between">
         <div className="flex items-center gap-2">
-          <span className="text-dark font-semibold">Últimos Plenários</span>
+          <span className="text-dark font-semibold">Plenários</span>
           <TooltipProvider>
             <Tooltip>
               <TooltipTrigger>

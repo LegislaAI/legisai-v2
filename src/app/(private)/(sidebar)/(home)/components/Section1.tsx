@@ -191,6 +191,10 @@ export function Section1() {
     [],
   );
 
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("navigationComplete"));
+  }, []);
+
   return (
     <div className="flex h-full flex-col gap-2 rounded-lg bg-white p-2 xl:p-4">
       <div className="flex w-full items-center justify-between">
@@ -378,11 +382,16 @@ export function Section1() {
                 alt={""}
                 width={500}
                 height={1000}
-                className={"h-auto w-[80%]"}
+                className={"h-full w-[80%] object-contain"}
               />
             </div>
           )}
-          <div className="MOBILE flex h-full flex-1 flex-col items-center justify-center rounded-lg xl:hidden">
+          <div
+            className={cn(
+              "MOBILE flex h-full flex-1 flex-col items-center justify-center rounded-lg xl:hidden",
+              !selectedPolitician && "hidden",
+            )}
+          >
             <div className="bg-secondary/20 flex w-full flex-col items-center justify-center gap-2 rounded-lg p-2 xl:flex-row">
               <span className="text-secondary text-lg">Partido:</span>
               <span className="text-secondary text-lg font-semibold">
@@ -545,7 +554,7 @@ export function Section1() {
               <div className="flex items-center border-r border-b border-r-white border-b-white px-1 font-semibold">
                 Pessoal do Gabinete
               </div>
-              <span className="text-center text-xs font-bold">
+              <span className="text-end text-xs font-bold">
                 {selectedPolitician?.finance?.contractedPeople
                   ? selectedPolitician?.finance?.contractedPeople.split(
                       "Pessoal de gabinete",

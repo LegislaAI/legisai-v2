@@ -139,7 +139,7 @@ export function Presence() {
           </span>
 
           {/* Filtros */}
-          <div className="border-secondary flex w-full flex-col items-center justify-between gap-4 rounded-lg border p-4 lg:flex-row lg:gap-0">
+          <div className="border-secondary flex w-full flex-col items-center justify-between gap-4 rounded-lg border p-4 xl:flex-row xl:gap-0">
             <div className="flex flex-1 flex-col gap-2">
               <h2 className="text-lg font-bold text-black uppercase">
                 deputados presentes:
@@ -149,23 +149,17 @@ export function Presence() {
                 Deliberativa
               </span>
             </div>
-            <div className="group border-secondary flex h-8 w-full flex-row overflow-hidden rounded-md border md:w-1/3">
-              <button
-                onClick={triggerSearch}
-                className="flex h-full items-center justify-center bg-[#749c5b] px-2 text-white transition-opacity duration-300"
-              >
-                Buscar
-              </button>
+            <div className="group border-secondary flex h-8 w-full flex-row overflow-hidden rounded-md border xl:w-1/3">
               <input
                 value={input}
                 onChange={handleChange}
                 onKeyDown={handleEnter}
                 className="flex-1 bg-transparent px-2 text-[#749c5b] transition-opacity duration-300 outline-none placeholder:text-[#749c5b] placeholder:opacity-40"
-                placeholder="Buscar aqui por nome ou partido..."
+                placeholder="Buscar aqui..."
               />
               <button
                 onClick={triggerSearch}
-                className="flex h-full items-center justify-center bg-[#749c5b] px-2 text-white transition-opacity duration-300"
+                className="flex h-8 max-h-8 min-h-8 w-8 max-w-8 min-w-8 items-center justify-center bg-[#749c5b] text-white transition-opacity duration-300"
               >
                 <Search color="#fff" size={14} />
               </button>
@@ -282,12 +276,8 @@ export function Presence() {
           </div>
 
           {/* Paginação */}
-          <div className="mt-4 flex flex-row items-center justify-between">
-            <span>
-              {politicians.length} registro(s) exibido(s) • página {page} de{" "}
-              {totalPages}
-            </span>
-            <div className="mt-2 flex justify-end">
+          <div className="mt-4 flex flex-row items-center">
+            <div className="mt-2 ml-auto flex items-center justify-end">
               <button
                 onClick={prev}
                 disabled={page === 1 || loading}

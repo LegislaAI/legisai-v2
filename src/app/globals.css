@@ -27,6 +27,27 @@
       opacity: 0;
     }
   }
+
+  @keyframes spring-spin {
+    0% {
+      transform: rotate(0deg) scale(1);
+    }
+    25% {
+      transform: rotate(90deg) scale(1.1);
+    }
+    50% {
+      transform: rotate(180deg) scale(1);
+    }
+    75% {
+      transform: rotate(270deg) scale(0.9);
+    }
+    100% {
+      transform: rotate(360deg) scale(1);
+    }
+  }
+
+  --animate-spring-spin: spring-spin 5s cubic-bezier(0.68, -0.55, 0.265, 1.55)
+    infinite;
   --animate-accordion-down: accordion-down 100ms ease-out;
   --animate-accordion-up: accordion-up 100ms ease-in;
   --animate-slide-in: slide-in 300ms ease-out both;
@@ -133,9 +154,6 @@
   [role="button"]:not(:disabled) {
     cursor: pointer;
     transition: all 300ms;
-    &:hover {
-      transform: scale(1.02);
-    }
   }
 }
 .swiper-slide {

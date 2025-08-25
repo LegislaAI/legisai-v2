@@ -52,6 +52,7 @@ export default function PlenaryDetails() {
           moment(details.body.event.startDate).diff(moment(), "milliseconds"),
         );
       }
+      window.dispatchEvent(new CustomEvent("navigationComplete"));
     }
   }
 
@@ -74,18 +75,11 @@ export default function PlenaryDetails() {
     return () => clearInterval(interval);
   }, [eventDetails]);
 
-  // useEffect(() => {
-  //   setAnimateSection(true);
-  //   setTimeout(() => {
-  //     setAnimateSection(false);
-  //   }, 300);
-  // }, [selectedStep]);
-
   return (
     <>
       {eventDetails ? (
         <div className="grid grid-cols-12 gap-4">
-          <div className="col-span-12 flex flex-col rounded-lg bg-white lg:col-span-8">
+          <div className="col-span-12 flex flex-col rounded-lg bg-white xl:col-span-8">
             <div className="flex w-full items-center justify-between border-b border-b-zinc-200 p-2">
               <div className="flex items-center gap-4">
                 <Image
@@ -93,7 +87,7 @@ export default function PlenaryDetails() {
                   alt=""
                   width={500}
                   height={500}
-                  className="border-secondary/40 h-10 w-10 rounded-lg border object-cover lg:h-10 lg:w-10"
+                  className="border-secondary/40 h-10 w-10 rounded-lg border object-cover xl:h-10 xl:w-10"
                 />
                 <TooltipProvider>
                   <Tooltip>
@@ -101,19 +95,19 @@ export default function PlenaryDetails() {
                       <span
                         className={cn(
                           "text-secondary text-lg font-bold",
-                          eventDetails?.description.length > 200 &&
+                          eventDetails?.description.length > 48 &&
                             "cursor-pointer",
                         )}
                       >
-                        {eventDetails?.description.length > 200
-                          ? eventDetails.description.slice(0, 200) + "..."
+                        {eventDetails?.description.length > 48
+                          ? eventDetails.description.slice(0, 48) + "..."
                           : eventDetails.description}
                       </span>
                     </TooltipTrigger>
                     <TooltipContent
                       className={cn(
                         "scrollbar-hide max-h-40 w-80 overflow-y-scroll p-0.5 text-justify text-sm text-white",
-                        eventDetails?.description.length <= 200 && "hidden",
+                        eventDetails?.description.length <= 48 && "hidden",
                       )}
                     >
                       <p>{eventDetails.description}</p>
@@ -169,7 +163,7 @@ export default function PlenaryDetails() {
                 </div>
               </div>
             </div>
-            <div className="flex w-full items-center gap-8 overflow-x-scroll overflow-y-hidden border-t border-t-zinc-200 p-4 lg:h-12 lg:overflow-x-auto lg:p-4">
+            <div className="flex w-full items-center gap-8 overflow-x-scroll overflow-y-hidden border-t border-t-zinc-200 p-4 xl:h-12 xl:overflow-x-auto xl:p-4">
               <div
                 className={cn(
                   "hover:text-secondary flex cursor-pointer flex-col items-center whitespace-nowrap",
@@ -242,13 +236,13 @@ export default function PlenaryDetails() {
           </div>
           <div className="relative col-span-12 flex h-full flex-col items-center justify-between overflow-hidden rounded-xl bg-[url('/static/plenary.jpg')] bg-cover bg-no-repeat lg:col-span-4">
             <div className="bg-secondary/60 flex h-full w-full flex-col items-center justify-between gap-4 p-4">
-              <div className="text-6xl font-bold text-white">
+              <div className="font-bold text-white xl:text-4xl 2xl:text-6xl">
                 {formatTime(timeLeft)}
               </div>
               <div className="px-8 text-center text-sm font-bold text-white uppercase">
-                {" "}
-                LOGO VOCÊ ACESSARÁ O LINK PARA acompanhamento{" "}
-                <span className="font-black">ao vivo</span> O PRÓXIMO PLENÁRIO
+                {eventDetails.videoUrl
+                  ? "ACESSE O LINK PARA ACOMPANHAR O PLENÁRIO"
+                  : "LOGO VOCÊ TERÁ ACESSO AO LINK PARA ACOMPANHAMENTO AO VIVO DO PRÓXIMO PLENÁRIO"}
               </div>
               <button
                 onClick={() => {
@@ -261,7 +255,7 @@ export default function PlenaryDetails() {
                   <Tv />
                   <span>
                     {eventDetails.videoUrl
-                      ? "Acessar ao vivo"
+                      ? "Acessar transmissão"
                       : "Em breve disponível"}
                   </span>
                 </div>
@@ -272,15 +266,15 @@ export default function PlenaryDetails() {
             className={`col-span-12 ${animateSection ? "opacity-0" : "opacity-100 transition-all duration-700"} `}
           >
             {selectedStep === 0 && <General />}
-            {selectedStep === 1 && <Votes eventUrl={eventDetails.uri} />}
+            {selectedStep === 1 && <Votes />}
             {selectedStep === 2 && <Presence />}
             {selectedStep === 3 && <DayOrder />}
           </div>
         </div>
       ) : (
         <div className="grid grid-cols-12 gap-4">
-          <div className="col-span-12 flex h-52 animate-pulse flex-col rounded-lg bg-zinc-200 lg:col-span-8"></div>
-          <div className="relative col-span-12 flex h-full animate-pulse flex-col items-center justify-between overflow-hidden rounded-xl bg-zinc-200 lg:col-span-4"></div>
+          <div className="col-span-12 flex h-52 animate-pulse flex-col rounded-lg bg-zinc-200 xl:col-span-8"></div>
+          <div className="relative col-span-12 flex h-full animate-pulse flex-col items-center justify-between overflow-hidden rounded-xl bg-zinc-200 xl:col-span-4"></div>
           <div className="col-span-12 h-52 animate-pulse bg-zinc-200"></div>
         </div>
       )}

@@ -79,18 +79,22 @@ export default function Profile() {
     return toast.error("Erro ao editar perfil");
   }
 
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("navigationComplete"));
+  }, []);
+
   return (
     <>
       <div className="relative flex h-full w-full flex-col overflow-hidden p-4 pb-24">
-        <section className="z-20 mt-6 grid w-full flex-grow grid-cols-12 gap-2 px-1 lg:grid-rows-12">
+        <section className="z-20 mt-6 grid w-full flex-grow grid-cols-12 gap-2 px-1 xl:grid-rows-12">
           <div
             className={`col-span-12 md:col-span-6 ${
               visibleSections.includes(0)
                 ? "translate-y-0 opacity-100"
                 : "translate-y-10 opacity-0"
-            } flex flex-col items-center justify-around overflow-hidden rounded-lg bg-white bg-[url(/PeopleOnComputer.png)] bg-cover bg-center bg-no-repeat shadow-lg transition-all duration-300 lg:col-span-4 lg:row-span-8`}
+            } flex flex-col items-center justify-around overflow-hidden rounded-lg bg-white bg-[url(/PeopleOnComputer.png)] bg-cover bg-center bg-no-repeat shadow-lg transition-all duration-300 xl:col-span-4 xl:row-span-8`}
           >
-            <div className="relative flex h-full w-full flex-col items-center justify-center gap-4 bg-white/80 p-4 lg:gap-0 lg:p-0">
+            <div className="relative flex h-full w-full flex-col items-center justify-center gap-4 bg-white/80 p-4 xl:gap-0 xl:p-0">
               <Image
                 width={2000}
                 height={2000}
@@ -110,7 +114,7 @@ export default function Profile() {
                   Plano Preditivo
                 </span>
               </div>
-              <div className="bg-secondary/80 hover:bg-secondary bottom-4 z-[1] rounded-full p-2 px-10 py-1 font-bold text-white transition-all duration-300 hover:scale-[1.005] lg:absolute">
+              <div className="bg-secondary/80 hover:bg-secondary bottom-4 z-[1] rounded-full p-2 px-10 py-1 font-bold text-white transition-all duration-300 hover:scale-[1.005] xl:absolute">
                 Em breve mais planos
               </div>
             </div>
@@ -120,7 +124,7 @@ export default function Profile() {
               visibleSections.includes(1)
                 ? "translate-y-0 opacity-100"
                 : "translate-y-10 opacity-0"
-            } flex flex-col gap-4 rounded-lg bg-white p-2 px-4 pb-8 shadow-lg transition-all duration-300 md:col-span-6 lg:col-span-4 lg:row-span-8`}
+            } flex flex-col gap-4 rounded-lg bg-white p-2 px-4 pb-8 shadow-lg transition-all duration-300 md:col-span-6 xl:col-span-4 xl:row-span-8`}
           >
             <div className="flex w-full flex-row items-center justify-between">
               <span className="text-default-900 text-secondary text-lg font-black">
@@ -284,7 +288,7 @@ export default function Profile() {
               visibleSections.includes(4)
                 ? "translate-y-0 opacity-100"
                 : "translate-y-10 opacity-0"
-            } border-secondary flex flex-col justify-between gap-4 rounded-lg border bg-white bg-cover bg-center p-2 px-4 text-white shadow-lg transition-all duration-300 md:col-span-7 lg:col-span-4 lg:row-span-4`}
+            } border-secondary flex flex-col justify-between gap-4 rounded-lg border bg-white bg-cover bg-center p-2 px-4 text-white shadow-lg transition-all duration-300 md:col-span-7 xl:col-span-4 xl:row-span-4`}
           >
             <div className="flex flex-row items-center gap-4">
               <div className="border-secondary flex h-20 w-20 items-center justify-center rounded-md border bg-white object-cover">
@@ -303,7 +307,7 @@ export default function Profile() {
                 visibleSections.includes(5)
                   ? "translate-y-0 opacity-100"
                   : "translate-y-10 opacity-0"
-              } flex flex-col self-end rounded-lg p-2 px-4 transition-all duration-300 md:col-span-12 lg:col-span-4 lg:row-span-4`}
+              } flex flex-col self-end rounded-lg p-2 px-4 transition-all duration-300 md:col-span-12 xl:col-span-4 xl:row-span-4`}
             >
               <button
                 // onClick={() =>

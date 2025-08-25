@@ -14,6 +14,11 @@ export default function Tutorials() {
   }, []);
   const [isOpenVideoModal, setIsOpenVideoModal] = useState(false);
   const [selectedVideo, setSelectedVideo] = useState<VideoProps | null>(null);
+
+  useEffect(() => {
+    window.dispatchEvent(new CustomEvent("navigationComplete"));
+  }, []);
+
   return (
     <>
       <div className="relative flex h-full w-full flex-col overflow-hidden p-4 pb-4">

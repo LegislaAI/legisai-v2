@@ -43,12 +43,12 @@ export function MobileSidebar() {
                   alt=""
                   width={1000}
                   height={350}
-                  className="mx-auto h-max w-2/3 object-contain"
+                  className="mx-auto h-40 w-max object-contain"
                 />
               </div>
             </SheetTitle>
 
-            <div className="flex flex-col gap-2">
+            <div className="flex h-[calc(100%-432px)] flex-col gap-8 overflow-y-scroll">
               <div
                 onClick={() => handleNavigation("/")}
                 className={cn(

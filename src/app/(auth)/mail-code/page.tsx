@@ -1,4 +1,5 @@
 "use client";
+import { AuthFooter } from "@/components/ui/AuthFooter";
 import { AuthHeader } from "@/components/ui/AuthHeader";
 import { ChevronLeft } from "lucide-react";
 import Image from "next/image";
@@ -70,19 +71,19 @@ export default function Login() {
         width={1000}
         height={2500}
       />
-      <div className="relative z-10 flex h-[100vh] w-full flex-col overflow-hidden px-8 xl:px-20">
+      <div className="relative z-10 flex min-h-[100vh] w-full flex-col overflow-hidden px-8 xl:px-20">
         <AuthHeader />
-        <button
-          onClick={() => router.back()}
-          className="text-secondary absolute top-24 left-4 flex flex-row items-center justify-center gap-2 self-start text-xs underline md:top-4 md:text-base"
-        >
-          <ChevronLeft size={16} /> Voltar
-        </button>
-        <div className="z-20 mt-32 flex w-full flex-col gap-2 md:mt-40 md:w-[45%] xl:ml-[10%] xl:w-[40%] xl:gap-4">
+        <div className="z-20 mt-32 flex w-full flex-col gap-2 pb-12 md:mt-20 md:w-[45%] xl:ml-[10%] xl:w-[40%] xl:gap-4">
+          <button
+            onClick={() => router.back()}
+            className="text-secondary absolute top-24 left-4 flex flex-row items-center justify-center gap-2 self-start text-xs underline md:top-4 md:text-base"
+          >
+            <ChevronLeft size={16} /> Voltar
+          </button>
           <h1 className="text-xl font-bold md:text-3xl">
             Enviamos um Código no seu WhatsApp
           </h1>
-          <h2 className="text-lg text-[#8392AB]">
+          <h2 className="text-sm text-[#8392AB] lg:text-lg">
             Verifique a mensagem em seu WhatsApp
             <br /> para confirmar seu cadastro
           </h2>
@@ -134,7 +135,7 @@ export default function Login() {
           >
             Confirmar código
           </button>
-          <span className="text-md mt-4 text-[#8392AB]">
+          <span className="text-md text-[#8392AB]">
             Ja tem conta ainda?
             <button
               onClick={() => router.push("/login")}
@@ -144,6 +145,7 @@ export default function Login() {
             </button>
           </span>
         </div>
+        <AuthFooter />
       </div>
     </main>
   );

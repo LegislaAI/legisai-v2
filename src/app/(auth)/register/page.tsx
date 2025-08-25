@@ -2,7 +2,7 @@
 import { AuthFooter } from "@/components/ui/AuthFooter";
 import { AuthHeader } from "@/components/ui/AuthHeader";
 import { useApiContext } from "@/context/ApiContext";
-import { maskCpfCnpj, maskPhone } from "@/lib/masks";
+import { maskCpfCnpj, maskDate, maskPhone } from "@/lib/masks";
 import { cn } from "@/lib/utils";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { ArrowLeft, Check, Eye, EyeOff } from "lucide-react";
@@ -14,12 +14,17 @@ import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import { z } from "zod";
 
+import moment from "moment";
+import "react-datepicker/dist/react-datepicker.css";
+
 const schema = z
   .object({
     email: z.string().email({ message: "Email inválido" }),
     name: z.string().min(1, "Nome é obrigatório"),
     phone: z.string().min(14, "Telefone inválido"),
     cpfCnpj: z.string().min(14, "CPF/CNPJ inválido"),
+    birthDate: z.string().min(10, "Data de nascimento inválida"),
+    profession: z.string().min(1, "Profissão é obrigatória"),
     password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
     confirmPassword: z
       .string()
@@ -34,6 +39,8 @@ interface RegisterFormData {
   name: string;
   phone: string;
   cpfCnpj: string;
+  birthDate: string;
+  profession: string;
   password: string;
   confirmPassword: string;
 }
@@ -75,6 +82,8 @@ export default function Register() {
         email: data.email,
         phone: data.phone,
         cpfCnpj: data.cpfCnpj,
+        birthDate: moment(data.birthDate).toDate(),
+        profession: data.profession,
         password: data.password,
       },
       false,
@@ -88,10 +97,16 @@ export default function Register() {
       if (response.body.message === "Resource already exists") {
         toast.error("Cpf, email ou telefone ja cadastrados");
         setRegisterError("Cpf, email ou telefone ja cadastrados");
+        return setIsRegistering(false);
       } else {
-        setRegisterError(response.body.message!);
+        setRegisterError(
+          response.body.message
+            ? response.body.message
+            : "Falha ao criar conta",
+        );
+        return setIsRegistering(false);
       }
-      setIsRegistering(false);
+      return setIsRegistering(false);
     }
   }
 
@@ -111,8 +126,13 @@ export default function Register() {
     setValue("cpfCnpj", maskedValue);
   };
 
+  const handleDateChange = (event: PhoneChangeEvent): void => {
+    const maskedValue: string = maskDate(event.target.value);
+    setValue("birthDate", maskedValue);
+  };
+
   return (
-    <main className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-white pb-10 md:pb-0">
+    <main className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-white">
       <Image
         src={"/static/register2.png"}
         className="absolute top-0 right-0 z-10 hidden h-[95%] w-[40%] rounded-bl-lg object-cover md:block"
@@ -122,11 +142,11 @@ export default function Register() {
       />
       <div className="relative z-10 flex min-h-[100vh] w-full flex-col overflow-hidden px-8 xl:px-20">
         <AuthHeader />
-        <div className="z-20 mt-32 flex w-full flex-col gap-2 md:mt-32 md:w-[45%] md:pb-0 xl:ml-[10%] xl:w-[40%] 2xl:gap-4">
+        <div className="z-20 mt-32 flex w-full flex-col gap-2 pb-20 md:mt-20 md:w-[45%] xl:ml-[10%] xl:w-[40%] xl:gap-4">
           <h1 className="bg-clip-text text-2xl font-bold md:text-3xl">
             Cadastrar-se
           </h1>
-          <h2 className="text-lg text-[#8392AB] md:text-lg">
+          <h2 className="text-sm text-[#8392AB] md:text-lg">
             Preencha os dados abaixo para criar sua conta
           </h2>
           <form
@@ -137,7 +157,7 @@ export default function Register() {
           >
             <div className="flex flex-col">
               <label className="text-xs font-semibold text-[#252F40] 2xl:text-sm">
-                Nome
+                Nome*
               </label>
               <input
                 {...register("name")}
@@ -152,7 +172,7 @@ export default function Register() {
 
             <div className="flex flex-col">
               <label className="text-xs font-semibold text-[#252F40] 2xl:text-sm">
-                CPF/CNPJ
+                CPF/CNPJ*
               </label>
               <input
                 {...register("cpfCnpj")}
@@ -167,7 +187,7 @@ export default function Register() {
             </div>
             <div className="flex flex-col">
               <label className="text-xs font-semibold text-[#252F40] 2xl:text-sm">
-                Telefone
+                Telefone*
               </label>
               <input
                 {...register("phone")}
@@ -183,7 +203,7 @@ export default function Register() {
             </div>
             <div className="flex flex-col">
               <label className="text-xs font-semibold text-[#252F40] 2xl:text-sm">
-                Email
+                Email*
               </label>
               <input
                 {...register("email")}
@@ -198,7 +218,41 @@ export default function Register() {
 
             <div className="flex flex-col">
               <label className="text-xs font-semibold text-[#252F40] 2xl:text-sm">
-                Senha
+                Data de Nascimento
+              </label>
+              <input
+                {...register("birthDate")}
+                onChange={handleDateChange}
+                placeholder="Digite sua Data de Nascimento"
+                className="outline-secondary/50 focus:border-secondary/50 h-8 rounded-md border border-zinc-400 p-2 text-black 2xl:h-8"
+                type="text"
+                maxLength={10}
+              />
+              {errors.birthDate && (
+                <span className="text-red-500">{errors.birthDate.message}</span>
+              )}
+            </div>
+
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold text-[#252F40] 2xl:text-sm">
+                Profissão
+              </label>
+              <input
+                {...register("profession")}
+                placeholder="Digite sua Profissão"
+                className="outline-secondary/50 focus:border-secondary/50 h-8 rounded-md border border-zinc-400 p-2 text-black 2xl:h-8"
+                type="text"
+              />
+              {errors.profession && (
+                <span className="text-red-500">
+                  {errors.profession?.message}
+                </span>
+              )}
+            </div>
+
+            <div className="flex flex-col">
+              <label className="text-xs font-semibold text-[#252F40] 2xl:text-sm">
+                Senha*
               </label>
               <div className="outline-secondary/50 focus:border-secondary/50 flex flex-row items-center overflow-hidden rounded-md border border-zinc-400 bg-white">
                 <input
@@ -225,7 +279,7 @@ export default function Register() {
             </div>
             <div className="flex flex-col">
               <label className="text-xs font-semibold text-[#252F40] 2xl:text-sm">
-                Confirmar Senha
+                Confirmar Senha*
               </label>
               <div className="outline-secondary/50 focus:border-secondary/50 flex flex-row items-center overflow-hidden rounded-md border border-zinc-400 bg-white">
                 <input
@@ -272,7 +326,12 @@ export default function Register() {
                   Li e concordo com os {""}
                   <a
                     className="hover:underline"
-                    // onClick={() => setOpenTermsModal(true)}
+                    onClick={() =>
+                      window.open(
+                        "https://docs.google.com/document/d/1qq5tUWY9g3j0zj1g1fhcp_xwvK1cJN4SsGUnlRWer84/edit?tab=t.0#heading=h.19g25mwtxn88",
+                        "_blank",
+                      )
+                    }
                   >
                     Termos de Uso
                   </a>
@@ -295,7 +354,12 @@ export default function Register() {
                   Li e concordo com os {""}
                   <a
                     className="hover:underline"
-                    // onClick={() => setOpenPrivacyModal(true)}
+                    onClick={() =>
+                      window.open(
+                        "https://docs.google.com/document/d/1Kgh0fDCaFO0WYc6rhHoYdP36pLUGO9MEu2W0ZY4usRw/edit?tab=t.0#heading=h.alfhhowg17b1",
+                        "_blank",
+                      )
+                    }
                   >
                     Política de Privacidade
                   </a>

@@ -69,9 +69,7 @@ export function DayOrder() {
     <div className="grid w-full grid-cols-12 gap-8">
       <div className="col-span-12 flex flex-col overflow-hidden rounded-lg bg-white p-4 xl:col-span-12">
         <div className="flex h-full w-full flex-col gap-4">
-          <span className="text-secondary text-xl font-bold">
-            Presença de Parlamentares na Sessão Deliberativa
-          </span>
+          <span className="text-secondary text-xl font-bold">Ordem do Dia</span>
 
           <div className="overflow-auto xl:h-full">
             <Table>
@@ -132,10 +130,10 @@ export function DayOrder() {
                           "DD/MM/YYYY HH:mm",
                         )}
                       </TableCell>
-                      <TableCell className="h-4 py-1 text-center text-sm">
+                      <TableCell className="h-4 min-w-40 py-1 text-center text-sm">
                         {row.regime}
                       </TableCell>
-                      <TableCell className="h-4 py-1 text-center text-sm">
+                      <TableCell className="h-4 min-w-40 py-1 text-center text-sm">
                         {row.reporter ? row.reporter.name : "N/A"}
                       </TableCell>
                       <TableCell className="h-4 py-1 text-center text-sm">

@@ -5,7 +5,6 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
-import { ScrollArea } from "@/components/ui/scroll-area";
 import {
   Tooltip,
   TooltipArrow,
@@ -90,10 +89,10 @@ export function Procedures() {
 
           <DropdownMenuContent
             side="top"
-            align="center"
+            align="end"
             className="h-[30vh] w-full gap-2 overflow-auto p-0"
           >
-            <ScrollArea className="h-full w-full">
+            <div className="h-full w-full overflow-y-scroll">
               {items.map((item, index) => (
                 <DropdownMenuItem
                   key={index}
@@ -110,11 +109,11 @@ export function Procedures() {
                   </div>
                 </DropdownMenuItem>
               ))}
-            </ScrollArea>
+            </div>
           </DropdownMenuContent>
         </DropdownMenu>
 
-        <div className="border-light-dark flex h-12 w-full items-center overflow-hidden rounded-lg border lg:w-4/5">
+        <div className="border-light-dark flex h-10 w-full items-center overflow-hidden rounded-lg border lg:w-4/5 xl:h-12">
           <input
             value={value}
             onChange={(e) => setValue(e.target.value)}

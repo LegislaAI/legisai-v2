@@ -34,6 +34,7 @@ import {
 
 /*  🔧  hub de function calling */
 import { useApiContext } from "@/context/ApiContext";
+import { PromptFunctionTest } from "./prompts";
 
 export interface UseSectionChatParams {
   /* controles de UI/histórico */
@@ -103,7 +104,8 @@ export function useSectionChat({
         model: "gemini-2.5-flash",
         history: initialHistory,
         config: {
-          systemInstruction: selectedPrompt?.prompt,
+          systemInstruction:
+            (selectedPrompt && selectedPrompt.prompt) || PromptFunctionTest,
           ...(shouldUseFunctions && {
             tools: [{ functionDeclarations: getFunctionDeclarations() }],
           }),
@@ -143,8 +145,7 @@ export function useSectionChat({
   ) {
     if (!shouldSaveMessage) return;
     try {
-      const response = await PostAPI(`/message/${id}`, msg, true);
-      console.log("response", response);
+      await PostAPI(`/message/${id}`, msg, true);
     } catch (e) {
       console.error("postMessage:", e);
     }
@@ -297,7 +298,6 @@ export function useSectionChat({
   }
   async function handleSendMessage(message?: string) {
     const inputMessages2 = message ?? inputMessage;
-    console.log("inputMessages2", inputMessages2);
 
     if (loading || (!inputMessages2.trim() && !file)) return;
     cancelStreamRef.current = false;
@@ -430,7 +430,7 @@ export function useSectionChat({
         });
       }
     } catch (err) {
-      console.error(err);
+      console.log(err);
       setMessages((prev) =>
         prev.map((m, i) =>
           i === placeholderIndexRef.current
