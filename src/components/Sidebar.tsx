@@ -27,7 +27,7 @@ export function Sidebar() {
         <div className="flex flex-col gap-2 text-xs xl:gap-4 xl:text-sm">
           <div
             onClick={() => handleNavigation("/")}
-            className="flex w-full cursor-pointer items-center justify-between"
+            className="flex w-full items-center justify-between"
           >
             <Image
               src="/logos/logo.png"
@@ -41,7 +41,7 @@ export function Sidebar() {
             <div
               onClick={() => handleNavigation("/")}
               className={cn(
-                "group flex w-full cursor-pointer items-center justify-between",
+                "group flex w-full items-center justify-between",
                 pathname === "/" && "text-secondary font-semibold",
               )}
             >
@@ -62,9 +62,9 @@ export function Sidebar() {
               />
             </div>
             <div
-              onClick={() => handleNavigation("/plenary")}
+              // onClick={() => handleNavigation("/plenary")}
               className={cn(
-                "group flex w-full cursor-pointer items-center justify-between",
+                "group relative flex w-full cursor-not-allowed items-center justify-between",
                 (pathname === "/plenary" || pathname.includes("plenary")) &&
                   "text-secondary font-semibold",
               )}
@@ -85,11 +85,21 @@ export function Sidebar() {
                     "opacity-100",
                 )}
               />
+              <div className="absolute flex h-full w-full flex-row items-center justify-end gap-2 rounded-md bg-white/60 text-white">
+                <div className="bg-secondary rounded-lg p-1">Em Breve</div>
+                {/* <Image
+                  src={"/static/lock-and-chain.svg"}
+                  alt=""
+                  width={400}
+                  height={400}
+                  className="h-full w-max object-contain"
+                /> */}
+              </div>
             </div>
             <div
-              onClick={() => handleNavigation("/commissions")}
+              // onClick={() => handleNavigation("/commissions")}
               className={cn(
-                "group flex w-full cursor-pointer items-center justify-between",
+                "group relative flex w-full cursor-not-allowed items-center justify-between",
                 (pathname === "/commissions" ||
                   pathname.includes("commissions")) &&
                   "text-secondary font-semibold",
@@ -112,11 +122,21 @@ export function Sidebar() {
                     "opacity-100",
                 )}
               />
+              <div className="absolute flex h-full w-full flex-row items-center justify-end gap-2 rounded-md bg-white/60 text-white">
+                <div className="bg-secondary rounded-lg p-1">Em Breve</div>
+                {/* <Image
+                  src={"/static/lock-and-chain.svg"}
+                  alt=""
+                  width={400}
+                  height={400}
+                  className="h-full w-max object-contain"
+                /> */}
+              </div>
             </div>
             <div
-              onClick={() => handleNavigation("/news")}
+              // onClick={() => handleNavigation("/news")}
               className={cn(
-                "group flex w-full cursor-pointer items-center justify-between",
+                "group relative flex w-full cursor-not-allowed items-center justify-between",
                 pathname === "/news" && "text-secondary font-semibold",
               )}
             >
@@ -136,11 +156,21 @@ export function Sidebar() {
                   pathname === "/news" && "opacity-100",
                 )}
               />
+              <div className="absolute flex h-full w-full flex-row items-center justify-end gap-2 rounded-md bg-white/60 text-white">
+                <div className="bg-secondary rounded-lg p-1">Em Breve</div>
+                {/* <Image
+                  src={"/static/lock-and-chain.svg"}
+                  alt=""
+                  width={400}
+                  height={400}
+                  className="h-full w-max object-contain"
+                /> */}
+              </div>
             </div>
             <div
-              onClick={() => handleNavigation("/procedures")}
+              // onClick={() => handleNavigation("/procedures")}
               className={cn(
-                "group flex w-full cursor-pointer items-center justify-between text-black",
+                "group relative flex w-full cursor-not-allowed items-center justify-between",
                 pathname === "/procedures" && "text-secondary font-semibold",
               )}
             >
@@ -159,11 +189,21 @@ export function Sidebar() {
                   pathname === "/procedures" && "opacity-100",
                 )}
               />
+              <div className="absolute flex h-full w-full flex-row items-center justify-end gap-2 rounded-md bg-white/60 text-white">
+                <div className="bg-secondary rounded-lg p-1">Em Breve</div>
+                {/* <Image
+                  src={"/static/lock-and-chain.svg"}
+                  alt=""
+                  width={400}
+                  height={400}
+                  className="h-full w-max object-contain"
+                /> */}
+              </div>
             </div>
             <div
-              onClick={() => handleNavigation("/ai")}
+              // onClick={() => handleNavigation("/ai")}
               className={cn(
-                "group flex w-full cursor-pointer items-center justify-between",
+                "group relative flex w-full cursor-not-allowed items-center justify-between",
                 pathname === "/ai" && "text-secondary font-semibold",
               )}
             >
@@ -182,11 +222,14 @@ export function Sidebar() {
                   pathname === "/ai" && "opacity-100",
                 )}
               />
+              <div className="absolute flex h-full w-full flex-row items-center justify-end gap-2 rounded-md bg-white/60 text-white">
+                <div className="bg-secondary rounded-lg p-1">Em Breve</div>
+              </div>
             </div>
             <div
-              onClick={() => handleNavigation("/prediction-ai")}
+              // onClick={() => handleNavigation("/prediction-ai")}
               className={cn(
-                "group flex w-full cursor-pointer items-center justify-between",
+                "group relative flex w-full cursor-not-allowed items-center justify-between",
                 pathname === "/prediction-ai" && "text-secondary font-semibold",
               )}
             >
@@ -205,11 +248,21 @@ export function Sidebar() {
                   pathname === "/prediction-ai" && "opacity-100",
                 )}
               />
+              <div className="absolute flex h-full w-full flex-row items-center justify-end gap-2 rounded-md bg-white/60 text-white">
+                <div className="bg-secondary rounded-lg p-1">Em Breve</div>
+                {/* <Image
+                  src={"/static/lock-and-chain.svg"}
+                  alt=""
+                  width={400}
+                  height={400}
+                  className="h-full w-max object-contain"
+                /> */}
+              </div>
             </div>
             <div
-              onClick={() => handleNavigation("/tutorials")}
+              // onClick={() => handleNavigation("/tutorials")}
               className={cn(
-                "group flex w-full cursor-pointer items-center justify-between",
+                "group relative flex w-full cursor-not-allowed items-center justify-between",
                 pathname === "/tutorials" && "text-secondary font-semibold",
               )}
             >
@@ -279,11 +332,21 @@ export function Sidebar() {
                   pathname === "/tutorials" && "opacity-100",
                 )}
               />
+              <div className="absolute flex h-full w-full flex-row items-center justify-end gap-2 rounded-md bg-white/60 text-white">
+                <div className="bg-secondary rounded-lg p-1">Em Breve</div>
+                {/* <Image
+                  src={"/static/lock-and-chain.svg"}
+                  alt=""
+                  width={400}
+                  height={400}
+                  className="h-full w-max object-contain"
+                /> */}
+              </div>
             </div>
             <div
-              onClick={() => handleNavigation("/profile")}
+              // onClick={() => handleNavigation("/profile")}
               className={cn(
-                "group flex w-full cursor-pointer items-center justify-between",
+                "group relative flex w-full cursor-not-allowed items-center justify-between",
                 pathname === "/profile" && "text-secondary font-semibold",
               )}
             >
@@ -302,6 +365,16 @@ export function Sidebar() {
                   pathname === "/profile" && "opacity-100",
                 )}
               />
+              <div className="absolute flex h-full w-full flex-row items-center justify-end gap-2 rounded-md bg-white/60 text-white">
+                <div className="bg-secondary rounded-lg p-1">Em Breve</div>
+                {/* <Image
+                  src={"/static/lock-and-chain.svg"}
+                  alt=""
+                  width={400}
+                  height={400}
+                  className="h-full w-max object-contain"
+                /> */}
+              </div>
             </div>
           </div>
         </div>
