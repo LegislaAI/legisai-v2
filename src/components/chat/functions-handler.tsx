@@ -146,6 +146,18 @@ registerTool({
         type: Type.NUMBER,
         description: "page of the search result",
       },
+      authorId: {
+        type: Type.STRING,
+        description: "id of the author of the proposition",
+      },
+      situation: {
+        type: Type.STRING,
+        description: "situation of the proposition to search",
+      },
+      lastMovementDescription: {
+        type: Type.STRING,
+        description: "last movement description of the proposition to search",
+      },
     },
     required: ["searchParam"],
   } as Schema,
@@ -159,6 +171,7 @@ registerTool({
       page,
       situation,
       lastMovementDescription,
+      authorId,
     },
     { GetAPI },
   ) => {
@@ -186,6 +199,10 @@ registerTool({
 
     if (lastMovementDescription) {
       query += `&lastMovementDescription=${lastMovementDescription}`;
+    }
+
+    if (authorId) {
+      query += `&authorId=${authorId}`;
     }
 
     try {
@@ -218,6 +235,30 @@ registerTool({
   } as Schema,
   implementation: async ({ propositionId }, { GetAPI }) => {
     const result = await GetAPI(`/proposition-process/${propositionId}`, false);
+
+    return result.body;
+  },
+});
+
+registerTool({
+  name: "fetchAuthors",
+  description: "search author list",
+  parameters: {
+    type: Type.OBJECT,
+    properties: {
+      name: {
+        type: Type.STRING,
+        description: "First name of the authors",
+      },
+      page: {
+        type: Type.NUMBER,
+        description: "Page of the search result",
+      },
+    },
+    required: ["name", "page"],
+  } as Schema,
+  implementation: async ({ name, page }, { GetAPI }) => {
+    const result = await GetAPI(`/politician?query=${name}&page=${page}`, true);
 
     return result.body;
   },
