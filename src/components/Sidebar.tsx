@@ -168,9 +168,9 @@ export function Sidebar() {
               </div>
             </div>
             <div
-              // onClick={() => handleNavigation("/procedures")}
+              onClick={() => handleNavigation("/procedures")}
               className={cn(
-                "group relative flex w-full cursor-not-allowed items-center justify-between",
+                "group relative flex w-full cursor-pointer items-center justify-between",
                 pathname === "/procedures" && "text-secondary font-semibold",
               )}
             >
@@ -185,20 +185,10 @@ export function Sidebar() {
               </div>
               <ChevronRight
                 className={cn(
-                  "text-secondary opacity-0 transition duration-200 group-hover:opacity-100",
+                  "text-secondary transition duration-200 group-hover:opacity-100",
                   pathname === "/procedures" && "opacity-100",
                 )}
               />
-              <div className="absolute flex h-full w-full flex-row items-center justify-end gap-2 rounded-md bg-white/60 text-white">
-                <div className="bg-secondary rounded-lg p-1">Em Breve</div>
-                {/* <Image
-                  src={"/static/lock-and-chain.svg"}
-                  alt=""
-                  width={400}
-                  height={400}
-                  className="h-full w-max object-contain"
-                /> */}
-              </div>
             </div>
             <div
               // onClick={() => handleNavigation("/ai")}
