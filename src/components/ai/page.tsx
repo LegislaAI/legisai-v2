@@ -15,7 +15,7 @@ import moment from "moment";
 import Image from "next/image";
 import { useEffect, useState } from "react";
 
-export default function BranchesList() {
+export default function AiChat() {
   const [loadNewChat, setLoadNewChat] = useState(false);
   const {
     chats,

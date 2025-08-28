@@ -3,7 +3,7 @@ import { useApiContext } from "@/context/ApiContext";
 import { useSidebarContext } from "@/context/SidebarContext";
 import { cn } from "@/lib/utils";
 import { DropdownMenuArrow } from "@radix-ui/react-dropdown-menu";
-import { ArrowLeft, CogIcon, LogOut, Menu, User2 } from "lucide-react";
+import { ArrowLeft, LogOut, Menu, User2 } from "lucide-react";
 import { useCookies } from "next-client-cookies";
 import { usePathname, useRouter } from "next/navigation";
 import {
@@ -42,12 +42,12 @@ export function Header() {
         </span>
       </div>
       <div className="ml-auto flex items-center gap-4">
-        <button
+        {/* <button
           onClick={() => router.push("/prediction-ai")}
           className="bg-secondary h-8 rounded-full px-4 text-white"
         >
           Upgrade
-        </button>
+        </button> */}
         {/* <Search />
         <BellDot /> */}
         <DropdownMenu>
@@ -62,7 +62,7 @@ export function Header() {
             className="max-h-[20vh] w-full gap-2 overflow-hidden p-0"
           >
             <DropdownMenuArrow className="fill-zinc-400" />
-            <DropdownMenuItem className="group rounded-none border-b border-b-zinc-400 p-0 hover:bg-transparent">
+            {/* <DropdownMenuItem className="group rounded-none border-b border-b-zinc-400 p-0 hover:bg-transparent">
               <button
                 onClick={() => router.push("/profile")}
                 className="group-hover:bg-secondary text-secondary flex w-full cursor-pointer flex-row items-center gap-2 p-2 text-lg transition-all duration-300 group-hover:text-white"
@@ -74,7 +74,7 @@ export function Header() {
                 />
                 Meus dados
               </button>
-            </DropdownMenuItem>
+            </DropdownMenuItem> */}
             <DropdownMenuItem className="group rounded-none border-b border-b-zinc-400 p-0 hover:bg-transparent">
               <button
                 onClick={() => {
