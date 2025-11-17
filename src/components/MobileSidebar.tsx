@@ -68,7 +68,7 @@ export function MobileSidebar() {
                 />
               </div>
               <div
-                // onClick={() => handleNavigation("/plenary")}
+                onClick={() => handleNavigation("/plenary")}
                 className={cn(
                   "group relative flex w-full cursor-pointer items-center justify-between",
                   (pathname === "/plenary" || pathname.includes("plenary")) &&
@@ -91,7 +91,7 @@ export function MobileSidebar() {
                 </div>
               </div>
               <div
-                // onClick={() => handleNavigation("/commissions")}
+                onClick={() => handleNavigation("/commissions")}
                 className={cn(
                   "group relative flex w-full cursor-pointer items-center justify-between",
                   (pathname === "/commissions" ||
@@ -116,7 +116,7 @@ export function MobileSidebar() {
                 </div>
               </div>
               <div
-                // onClick={() => handleNavigation("/news")}
+                onClick={() => handleNavigation("/news")}
                 className={cn(
                   "group relative flex w-full cursor-pointer items-center justify-between",
                   pathname === "/news" && "text-secondary font-semibold",
@@ -137,7 +137,7 @@ export function MobileSidebar() {
                 </div>
               </div>
               <div
-                // onClick={() => handleNavigation("/procedures")}
+                onClick={() => handleNavigation("/procedures")}
                 className={cn(
                   "group relative flex w-full cursor-pointer items-center justify-between",
                   pathname === "/procedures" && "text-secondary font-semibold",
@@ -168,7 +168,7 @@ export function MobileSidebar() {
                 </div>
               </div>
               <div
-                // onClick={() => handleNavigation("/ai")}
+                onClick={() => handleNavigation("/ai")}
                 className={cn(
                   "group relative flex w-full cursor-pointer items-center justify-between",
                   pathname === "/ai" && "text-secondary font-semibold",
@@ -189,7 +189,7 @@ export function MobileSidebar() {
                 </div>
               </div>
               <div
-                // onClick={() => handleNavigation("/prediction-ai")}
+                onClick={() => handleNavigation("/prediction-ai")}
                 className={cn(
                   "group relative flex w-full cursor-pointer items-center justify-between",
                   pathname === "/prediction-ai" &&
@@ -211,7 +211,7 @@ export function MobileSidebar() {
                 </div>
               </div>
               <div
-                // onClick={() => handleNavigation("/tutorials")}
+                onClick={() => handleNavigation("/tutorials")}
                 className={cn(
                   "group relative flex w-full cursor-pointer items-center justify-between",
                   pathname === "/tutorials" && "text-secondary font-semibold",
@@ -287,7 +287,7 @@ export function MobileSidebar() {
                 </div>
               </div>
               <div
-                // onClick={() => handleNavigation("/profile")}
+                onClick={() => handleNavigation("/profile")}
                 className={cn(
                   "group relative flex w-full cursor-pointer items-center justify-between",
                   pathname === "/profile" && "text-secondary font-semibold",

@@ -62,7 +62,7 @@ export function Sidebar() {
               />
             </div>
             <div
-              // onClick={() => handleNavigation("/plenary")}
+              onClick={() => handleNavigation("/plenary")}
               className={cn(
                 "group relative flex w-full cursor-not-allowed items-center justify-between",
                 (pathname === "/plenary" || pathname.includes("plenary")) &&
@@ -97,7 +97,7 @@ export function Sidebar() {
               </div>
             </div>
             <div
-              // onClick={() => handleNavigation("/commissions")}
+              onClick={() => handleNavigation("/commissions")}
               className={cn(
                 "group relative flex w-full cursor-not-allowed items-center justify-between",
                 (pathname === "/commissions" ||
@@ -134,7 +134,7 @@ export function Sidebar() {
               </div>
             </div>
             <div
-              // onClick={() => handleNavigation("/news")}
+              onClick={() => handleNavigation("/news")}
               className={cn(
                 "group relative flex w-full cursor-not-allowed items-center justify-between",
                 pathname === "/news" && "text-secondary font-semibold",
@@ -191,7 +191,7 @@ export function Sidebar() {
               />
             </div>
             <div
-              // onClick={() => handleNavigation("/ai")}
+              onClick={() => handleNavigation("/ai")}
               className={cn(
                 "group relative flex w-full cursor-not-allowed items-center justify-between",
                 pathname === "/ai" && "text-secondary font-semibold",
@@ -217,7 +217,7 @@ export function Sidebar() {
               </div>
             </div>
             <div
-              // onClick={() => handleNavigation("/prediction-ai")}
+              onClick={() => handleNavigation("/prediction-ai")}
               className={cn(
                 "group relative flex w-full cursor-not-allowed items-center justify-between",
                 pathname === "/prediction-ai" && "text-secondary font-semibold",
@@ -250,7 +250,7 @@ export function Sidebar() {
               </div>
             </div>
             <div
-              // onClick={() => handleNavigation("/tutorials")}
+              onClick={() => handleNavigation("/tutorials")}
               className={cn(
                 "group relative flex w-full cursor-not-allowed items-center justify-between",
                 pathname === "/tutorials" && "text-secondary font-semibold",
@@ -334,7 +334,7 @@ export function Sidebar() {
               </div>
             </div>
             <div
-              // onClick={() => handleNavigation("/profile")}
+              onClick={() => handleNavigation("/profile")}
               className={cn(
                 "group relative flex w-full cursor-not-allowed items-center justify-between",
                 pathname === "/profile" && "text-secondary font-semibold",
