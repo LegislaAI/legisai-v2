@@ -12,8 +12,24 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  turbopack: {
+    rules: {
+      "*.svg": {
+        loaders: [
+          {
+            loader: "@svgr/webpack",
+            options: {
+              icon: true,
+            },
+          },
+        ],
+        as: "*.js",
+      },
+    },
+  },
 
   // Aqui você adiciona a configuração do SVGR
+
   webpack(config) {
     config.module.rules.push({
       test: /\.svg$/i,
