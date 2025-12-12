@@ -1,5 +1,5 @@
 "use client";
-import { endOfDay, format, isWithinInterval, startOfDay } from "date-fns";
+import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
   ArrowRight,
@@ -11,11 +11,13 @@ import {
   SlidersHorizontal,
   X,
 } from "lucide-react";
-import { useMemo, useState } from "react";
+import moment from "moment";
+import { useEffect, useMemo, useState } from "react";
 import { DateRange } from "react-day-picker";
 
 // --- IMPORT SOLICITADO ---
 import { Calendar } from "@/components/ui/calendar";
+import { useApiContext } from "@/context/ApiContext";
 import { useRouter } from "next/navigation";
 
 // --- TIPOS ---
@@ -30,161 +32,142 @@ interface SessionSummary {
   status: "agendada" | "realizada" | "cancelada";
 }
 
-// --- MOCK DATA ---
-// Adicionei mais itens para garantir que a paginação apareça
-const mockSessions: SessionSummary[] = [
-  {
-    id: "1",
-    type: "solene",
-    date: "2023-10-25T10:00:00",
-    title: "Sessão Solene em Homenagem ao Empreendedorismo",
-    subtitle: "Comemoração do Dia Nacional da Micro e Pequena Empresa.",
-    status: "realizada",
-  },
-  {
-    id: "2",
-    type: "deliberativa",
-    date: "2023-10-26T14:00:00",
-    title: "Sessão Deliberativa Extraordinária",
-    subtitle: "Votação da PL 1234/2023 sobre Energia Renovável.",
-    status: "agendada",
-  },
-  {
-    id: "3",
-    type: "geral",
-    date: "2023-10-27T09:00:00",
-    title: "Comissão Geral sobre Segurança Pública",
-    subtitle: "Debate com o Ministro da Justiça e especialistas.",
-    status: "realizada",
-  },
-  {
-    id: "4",
-    type: "solene",
-    date: "2023-11-01T10:00:00",
-    title: "Sessão Solene - Dia do Médico",
-    subtitle: "Homenagem aos profissionais de saúde do Brasil.",
-    status: "agendada",
-  },
-  {
-    id: "5",
-    type: "solene",
-    date: "2023-10-15T15:00:00",
-    title: "Sessão Solene - Dia do Professor",
-    subtitle: "Entrega de medalhas de mérito educacional.",
-    status: "realizada",
-  },
-  {
-    id: "6",
-    type: "solene",
-    date: "2023-11-05T10:00:00",
-    title: "Sessão Solene - 50 Anos da Embrapa",
-    subtitle: "Reconhecimento à pesquisa agropecuária.",
-    status: "agendada",
-  },
-  {
-    id: "7",
-    type: "deliberativa",
-    date: "2023-11-06T14:00:00",
-    title: "Sessão Deliberativa Ordinária",
-    subtitle: "Discussão de pautas trancadas.",
-    status: "agendada",
-  },
-  {
-    id: "8",
-    type: "solene",
-    date: "2023-10-25T10:00:00",
-    title: "Sessão Solene em Homenagem ao Empreendedorismo",
-    subtitle: "Comemoração do Dia Nacional da Micro e Pequena Empresa.",
-    status: "realizada",
-  },
-  {
-    id: "9",
-    type: "deliberativa",
-    date: "2023-10-26T14:00:00",
-    title: "Sessão Deliberativa Extraordinária",
-    subtitle: "Votação da PL 1234/2023 sobre Energia Renovável.",
-    status: "agendada",
-  },
-  {
-    id: "10",
-    type: "geral",
-    date: "2023-10-27T09:00:00",
-    title: "Comissão Geral sobre Segurança Pública",
-    subtitle: "Debate com o Ministro da Justiça e especialistas.",
-    status: "realizada",
-  },
-  {
-    id: "11",
-    type: "solene",
-    date: "2023-11-01T10:00:00",
-    title: "Sessão Solene - Dia do Médico",
-    subtitle: "Homenagem aos profissionais de saúde do Brasil.",
-    status: "agendada",
-  },
-  {
-    id: "12",
-    type: "solene",
-    date: "2023-10-15T15:00:00",
-    title: "Sessão Solene - Dia do Professor",
-    subtitle: "Entrega de medalhas de mérito educacional.",
-    status: "realizada",
-  },
-  {
-    id: "13",
-    type: "solene",
-    date: "2023-11-05T10:00:00",
-    title: "Sessão Solene - 50 Anos da Embrapa",
-    subtitle: "Reconhecimento à pesquisa agropecuária.",
-    status: "agendada",
-  },
-  {
-    id: "14",
-    type: "deliberativa",
-    date: "2023-11-06T14:00:00",
-    title: "Sessão Deliberativa Ordinária",
-    subtitle: "Discussão de pautas trancadas.",
-    status: "agendada",
-  },
-];
-
-const ITEMS_PER_PAGE = 5; // Reduzi para 4 para forçar a paginação visualmente com poucos dados
+// API Event Interface (from plenary page)
+interface EventProps {
+  createdAt: string;
+  departmentId: string;
+  description: string;
+  endDate: string | null;
+  eventTypeId: string;
+  eventType: {
+    name: string;
+    acronym?: string;
+  };
+  id: string;
+  local: string;
+  situation: string;
+  startDate: string;
+  updatedAt: string;
+  uri: string;
+  videoUrl: string | null;
+}
 
 export default function SessionListScreen() {
   const router = useRouter();
+  const { GetAPI } = useApiContext();
   const [activeTab, setActiveTab] = useState<SessionType>("solene");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [currentPage, setCurrentPage] = useState(1);
+  const [loading, setLoading] = useState(true);
+  const [events, setEvents] = useState<EventProps[]>([]);
+  const [totalPages, setTotalPages] = useState(0);
+
+  // Status filter state
+  const [statusFilters, setStatusFilters] = useState<{
+    agendada: boolean;
+    realizada: boolean;
+    cancelada: boolean;
+  }>({
+    agendada: true,
+    realizada: true,
+    cancelada: true,
+  });
+
+  // Helper function to determine session type from event name
+  const getSessionType = (eventTypeName: string): SessionType => {
+    const name = eventTypeName.toLowerCase();
+    if (name.includes("solene")) return "solene";
+    if (name.includes("deliberativa")) return "deliberativa";
+    return "geral";
+  };
+
+  // Helper function to map situation to status
+  const getStatus = (
+    situation: string,
+  ): "agendada" | "realizada" | "cancelada" => {
+    const sit = situation.toLowerCase();
+    if (sit.includes("realizada") || sit.includes("encerrada"))
+      return "realizada";
+    if (sit.includes("cancelada")) return "cancelada";
+    return "agendada";
+  };
+
+  // Fetch events from API
+  async function fetchEvents() {
+    setLoading(true);
+    let queryParams = `?page=${currentPage}`;
+
+    if (dateRange?.from) {
+      queryParams += `&date=${moment(dateRange.from).format("YYYY-MM-DD")}`;
+    }
+
+    const response = await GetAPI(`/event${queryParams}&type=PLENARY`, true);
+
+    if (response.status === 200) {
+      setEvents(response.body.events || []);
+      setTotalPages(response.body.pages || 0);
+    }
+    setLoading(false);
+  }
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    fetchEvents();
+  }, [currentPage, dateRange]);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    if (currentPage !== 1) {
+      setCurrentPage(1);
+    }
+  }, [dateRange, activeTab, statusFilters]);
 
   // --- FILTROS ---
   const filteredSessions = useMemo(() => {
-    return mockSessions
-      .filter((session) => {
-        if (session.type !== activeTab) return false;
+    return events
+      .filter((event) => {
+        const eventType = getSessionType(event.eventType.name);
+        const eventStatus = getStatus(event.situation);
 
-        if (dateRange?.from) {
-          const sessionDate = new Date(session.date);
-          const start = startOfDay(dateRange.from);
-          const end = dateRange.to
-            ? endOfDay(dateRange.to)
-            : endOfDay(dateRange.from);
-          if (!isWithinInterval(sessionDate, { start, end })) return false;
-        }
+        // Filter by active tab (session type)
+        if (eventType !== activeTab) return false;
+
+        // Filter by status checkboxes
+        if (!statusFilters[eventStatus]) return false;
+
         return true;
       })
+      .map(
+        (event): SessionSummary => ({
+          id: event.id,
+          type: getSessionType(event.eventType.name),
+          date: event.startDate,
+          title: event.eventType.name,
+          subtitle: event.description,
+          status: getStatus(event.situation),
+        }),
+      )
       .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime());
-  }, [activeTab, dateRange]);
-
-  // --- PAGINAÇÃO ---
-  const totalPages = Math.ceil(filteredSessions.length / ITEMS_PER_PAGE);
-  const currentSessions = filteredSessions.slice(
-    (currentPage - 1) * ITEMS_PER_PAGE,
-    currentPage * ITEMS_PER_PAGE,
-  );
+  }, [events, activeTab, statusFilters]);
 
   const handleTabChange = (tab: SessionType) => {
     setActiveTab(tab);
-    setCurrentPage(1);
-    setDateRange(undefined); // Opcional: limpar data ao trocar aba
+  };
+
+  const handleNavigation = (session: SessionSummary) => {
+    // Route to test2 for solene, test3 for deliberativa/geral
+    if (session.type === "solene") {
+      router.push(`/test2/${session.id}`);
+    } else {
+      router.push(`/test3/${session.id}`);
+    }
+  };
+
+  const toggleStatusFilter = (status: keyof typeof statusFilters) => {
+    setStatusFilters((prev) => ({
+      ...prev,
+      [status]: !prev[status],
+    }));
   };
 
   return (
@@ -218,17 +201,22 @@ export default function SessionListScreen() {
           </div>
         </div>
 
-        {/* --- ABAS --- */}
-
         {/* --- GRID LAYOUT --- */}
         <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-3">
           {/* --- COLUNA ESQUERDA: LISTA --- */}
           <div className="flex flex-col gap-6 lg:col-span-2">
-            {currentSessions.length > 0 ? (
+            {loading ? (
               <div className="min-h-[400px] space-y-4">
-                {" "}
-                {/* Altura mínima para evitar pulos layout */}
-                {currentSessions.map((session) => (
+                {Array.from({ length: 5 }).map((_, index) => (
+                  <div
+                    key={index}
+                    className="h-32 w-full animate-pulse rounded-xl bg-gray-200"
+                  />
+                ))}
+              </div>
+            ) : filteredSessions.length > 0 ? (
+              <div className="min-h-[400px] space-y-4">
+                {filteredSessions.map((session) => (
                   <div
                     key={session.id}
                     className="group relative overflow-hidden rounded-xl border border-gray-100 bg-white p-6 shadow-sm transition-all hover:border-[#749c5b]/30 hover:shadow-md"
@@ -248,12 +236,16 @@ export default function SessionListScreen() {
                             className={`rounded px-2 py-1 text-xs font-medium ${
                               session.status === "realizada"
                                 ? "bg-gray-100 text-gray-600"
-                                : "bg-[#749c5b]/10 text-[#749c5b]"
+                                : session.status === "cancelada"
+                                  ? "bg-red-100 text-red-600"
+                                  : "bg-[#749c5b]/10 text-[#749c5b]"
                             }`}
                           >
                             {session.status === "realizada"
                               ? "Realizada"
-                              : "Agendada"}
+                              : session.status === "cancelada"
+                                ? "Cancelada"
+                                : "Agendada"}
                           </span>
                         </div>
 
@@ -267,7 +259,7 @@ export default function SessionListScreen() {
 
                       <div className="flex items-center sm:self-center">
                         <button
-                          onClick={() => router.push(`/test`)}
+                          onClick={() => handleNavigation(session)}
                           className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-[#1a1d1f] shadow-sm transition-all hover:bg-[#749c5b] hover:text-white sm:h-auto sm:w-auto sm:rounded-lg sm:border-transparent sm:bg-[#1a1d1f] sm:px-4 sm:py-2 sm:text-white"
                         >
                           <ArrowRight size={18} className="sm:mr-2" />
@@ -302,21 +294,15 @@ export default function SessionListScreen() {
             )}
 
             {/* --- COMPONENTE DE PAGINAÇÃO --- */}
-            {totalPages > 1 && (
+            {filteredSessions.length > 0 && totalPages > 1 && !loading && (
               <div className="flex items-center justify-between rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
                 <div className="hidden text-sm text-[#6f767e] sm:block">
-                  Mostrando{" "}
+                  Página{" "}
                   <span className="font-bold text-[#1a1d1f]">
-                    {(currentPage - 1) * ITEMS_PER_PAGE + 1}
+                    {currentPage}
                   </span>{" "}
-                  a{" "}
-                  <span className="font-bold text-[#1a1d1f]">
-                    {Math.min(
-                      currentPage * ITEMS_PER_PAGE,
-                      filteredSessions.length,
-                    )}
-                  </span>{" "}
-                  de {filteredSessions.length}
+                  de{" "}
+                  <span className="font-bold text-[#1a1d1f]">{totalPages}</span>
                 </div>
 
                 <div className="mx-auto flex items-center gap-2 sm:mx-0">
@@ -331,21 +317,33 @@ export default function SessionListScreen() {
 
                   {/* Números de página */}
                   <div className="flex items-center gap-1">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(
-                      (page) => (
+                    {Array.from({ length: Math.min(totalPages, 5) }, (_, i) => {
+                      // Smart pagination: show first, last, current and surrounding pages
+                      let pageNum;
+                      if (totalPages <= 5) {
+                        pageNum = i + 1;
+                      } else if (currentPage <= 3) {
+                        pageNum = i + 1;
+                      } else if (currentPage >= totalPages - 2) {
+                        pageNum = totalPages - 4 + i;
+                      } else {
+                        pageNum = currentPage - 2 + i;
+                      }
+
+                      return (
                         <button
-                          key={page}
-                          onClick={() => setCurrentPage(page)}
+                          key={pageNum}
+                          onClick={() => setCurrentPage(pageNum)}
                           className={`flex h-8 w-8 items-center justify-center rounded-lg text-sm font-bold transition-all ${
-                            currentPage === page
+                            currentPage === pageNum
                               ? "bg-[#749c5b] text-white shadow-md shadow-[#749c5b]/20"
                               : "text-[#6f767e] hover:bg-gray-100"
                           }`}
                         >
-                          {page}
+                          {pageNum}
                         </button>
-                      ),
-                    )}
+                      );
+                    })}
                   </div>
 
                   <button
@@ -365,7 +363,7 @@ export default function SessionListScreen() {
 
           {/* --- COLUNA DIREITA: SIDEBAR --- */}
           <div className="sticky top-6 space-y-6 lg:col-span-1">
-            {/* 1. MOCK DE FILTROS (LOREM) */}
+            {/* 1. FILTROS DE STATUS */}
             <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
               <div className="mb-4 flex items-center justify-between border-b border-gray-100 pb-4">
                 <h2 className="flex items-center gap-2 font-bold text-[#1a1d1f]">
@@ -375,42 +373,67 @@ export default function SessionListScreen() {
               </div>
 
               <div className="space-y-4">
-                {/* Mock Select */}
-                <div>
-                  <label className="mb-1.5 block text-xs font-bold text-[#6f767e] uppercase">
-                    Categorias
-                  </label>
-                  <div className="relative">
-                    <select className="w-full appearance-none rounded-lg border border-gray-200 bg-[#f4f4f4] p-2.5 text-sm text-[#1a1d1f] focus:border-[#749c5b] focus:ring-1 focus:ring-[#749c5b] focus:outline-none">
-                      <option>Sessões Solenes</option>
-                      <option>Sessões Deliberativas</option>
-                      <option>Commissões Gerais</option>
-                    </select>
-                    <ChevronRight
-                      className="pointer-events-none absolute top-3 right-3 rotate-90 text-gray-400"
-                      size={14}
-                    />
-                  </div>
-                </div>
-
-                {/* Mock Checkboxes */}
+                {/* Status Checkboxes */}
                 <div>
                   <label className="mb-2 block text-xs font-bold text-[#6f767e] uppercase">
                     Status
                   </label>
                   <div className="space-y-2">
-                    <label className="group flex cursor-pointer items-center gap-2">
-                      <div className="flex h-4 w-4 items-center justify-center rounded border border-gray-300 transition-colors group-hover:border-[#749c5b]">
-                        {/* Fake check */}
+                    <label
+                      className="group flex cursor-pointer items-center gap-2"
+                      onClick={() => toggleStatusFilter("agendada")}
+                    >
+                      <div
+                        className={`flex h-4 w-4 items-center justify-center rounded border transition-colors ${
+                          statusFilters.agendada
+                            ? "border-[#749c5b] bg-[#749c5b] text-white"
+                            : "border-gray-300 group-hover:border-[#749c5b]"
+                        }`}
+                      >
+                        {statusFilters.agendada && <CheckSquare size={10} />}
                       </div>
-                      <span className="text-sm text-[#1a1d1f]">Agendadas</span>
+                      <span
+                        className={`text-sm ${statusFilters.agendada ? "font-medium text-[#1a1d1f]" : "text-[#6f767e]"}`}
+                      >
+                        Agendadas
+                      </span>
                     </label>
-                    <label className="group flex cursor-pointer items-center gap-2">
-                      <div className="flex h-4 w-4 items-center justify-center rounded border border-[#749c5b] bg-[#749c5b] text-white">
-                        <CheckSquare size={10} />
+                    <label
+                      className="group flex cursor-pointer items-center gap-2"
+                      onClick={() => toggleStatusFilter("realizada")}
+                    >
+                      <div
+                        className={`flex h-4 w-4 items-center justify-center rounded border transition-colors ${
+                          statusFilters.realizada
+                            ? "border-[#749c5b] bg-[#749c5b] text-white"
+                            : "border-gray-300 group-hover:border-[#749c5b]"
+                        }`}
+                      >
+                        {statusFilters.realizada && <CheckSquare size={10} />}
                       </div>
-                      <span className="text-sm font-medium text-[#1a1d1f]">
+                      <span
+                        className={`text-sm ${statusFilters.realizada ? "font-medium text-[#1a1d1f]" : "text-[#6f767e]"}`}
+                      >
                         Realizadas
+                      </span>
+                    </label>
+                    <label
+                      className="group flex cursor-pointer items-center gap-2"
+                      onClick={() => toggleStatusFilter("cancelada")}
+                    >
+                      <div
+                        className={`flex h-4 w-4 items-center justify-center rounded border transition-colors ${
+                          statusFilters.cancelada
+                            ? "border-[#749c5b] bg-[#749c5b] text-white"
+                            : "border-gray-300 group-hover:border-[#749c5b]"
+                        }`}
+                      >
+                        {statusFilters.cancelada && <CheckSquare size={10} />}
+                      </div>
+                      <span
+                        className={`text-sm ${statusFilters.cancelada ? "font-medium text-[#1a1d1f]" : "text-[#6f767e]"}`}
+                      >
+                        Canceladas
                       </span>
                     </label>
                   </div>
@@ -438,9 +461,11 @@ export default function SessionListScreen() {
               {/* Calendário Importado */}
               <div className="mb-4 flex justify-center rounded-lg border border-gray-100 bg-white p-2">
                 <Calendar
-                  mode="range"
-                  selected={dateRange}
-                  onSelect={setDateRange}
+                  mode="single"
+                  selected={dateRange?.from}
+                  onSelect={(date) =>
+                    setDateRange(date ? { from: date, to: date } : undefined)
+                  }
                   locale={ptBR}
                   className="rounded-md"
                   styles={{
@@ -454,18 +479,15 @@ export default function SessionListScreen() {
                 {dateRange?.from ? (
                   <div className="flex flex-col">
                     <span className="mb-1 text-xs text-[#6f767e]">
-                      Intervalo selecionado:
+                      Data selecionada:
                     </span>
                     <span className="text-sm font-bold text-[#1a1d1f]">
-                      {format(dateRange.from, "dd/MM")}
-                      {dateRange.to
-                        ? ` - ${format(dateRange.to, "dd/MM/yyyy")}`
-                        : ` - ${format(dateRange.from, "dd/MM/yyyy")}`}
+                      {format(dateRange.from, "dd/MM/yyyy", { locale: ptBR })}
                     </span>
                   </div>
                 ) : (
                   <span className="text-sm text-[#6f767e] italic">
-                    Selecione uma data ou período
+                    Selecione uma data
                   </span>
                 )}
               </div>

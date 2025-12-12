@@ -63,8 +63,6 @@ export default function Plenary() {
     handleGetPlenary();
   }, [currentPage, selectedDateFilter]);
 
-  console.log("plenaries", plenaries);
-
   return (
     <div className="flex h-full w-full flex-col items-center gap-4 rounded-xl bg-white lg:gap-12">
       <div className="flex w-full flex-col gap-2 px-2 lg:gap-6 lg:px-8">

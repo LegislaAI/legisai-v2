@@ -41,7 +41,6 @@ export default function CommissionDetails() {
   async function GetEventDetails() {
     const eventId = pathname.split("/")[2];
     const details = await GetAPI(`/event/details/${eventId}`, true);
-    console.log("details", details);
     if (details.status === 200) {
       setEventDetails(details.body.event);
       const time = moment(details.body.event.startDate).diff(

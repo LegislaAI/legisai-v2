@@ -41,7 +41,6 @@ export default function Login() {
   });
 
   async function HandleLogin(data: LoginDataProps) {
-    console.log("entro");
     setIsLogging(true);
     const login = await PostAPI(
       "/user/signin",
@@ -51,7 +50,6 @@ export default function Login() {
       },
       false,
     );
-    console.log("login", login);
     if (login.status === 200) {
       cookies.set(
         process.env.NEXT_PUBLIC_USER_TOKEN as string,

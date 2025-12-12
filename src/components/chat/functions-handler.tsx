@@ -76,7 +76,6 @@ export async function handleFunctionCalls(
   const toolResponses: Part[] = [];
 
   for (const { name, args, toolCallId } of functionCalls) {
-    console.log(args);
     const def = toolRegistry[name];
     try {
       if (!def) throw new Error(`Unknown function: ${name}`);
@@ -210,8 +209,6 @@ registerTool({
         `/proposition/vetorial?searchParams=${searchParam}&page=${page}&${query}`,
         false,
       );
-
-      console.log(result);
 
       return result.body;
     } catch (error) {

@@ -430,7 +430,7 @@ export function useSectionChat({
         });
       }
     } catch (err) {
-      console.log(err);
+      console.error(err);
       setMessages((prev) =>
         prev.map((m, i) =>
           i === placeholderIndexRef.current

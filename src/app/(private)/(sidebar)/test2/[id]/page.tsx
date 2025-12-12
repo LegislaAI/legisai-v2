@@ -1,4 +1,5 @@
 "use client";
+import { useApiContext } from "@/context/ApiContext";
 import * as Select from "@radix-ui/react-select";
 import {
   Calendar,
@@ -14,7 +15,9 @@ import {
   User,
   Users,
 } from "lucide-react";
-import { useState } from "react";
+import moment from "moment";
+import { usePathname } from "next/navigation";
+import { useEffect, useState } from "react";
 
 // --- CORES DEFINIDAS (Mapeamento para referência) ---
 // Secondary: #749c5b
@@ -66,6 +69,33 @@ interface SessionData {
   status: "agendada" | "em_andamento" | "realizada" | "cancelada";
   mediaLink?: string;
   updatedBy: string; // Responsável pela lista de oradores
+}
+
+// API Event Details Interface
+interface EventDetailsAPI {
+  createdAt: string;
+  department: {
+    id: string;
+    name: string;
+    surname: string;
+  };
+  description: string;
+  endDate: string | null;
+  eventType: {
+    acronym: string;
+    description: string;
+    id: string;
+    name: string;
+  };
+  id: string;
+  local: string;
+  presences: number;
+  propositions: number;
+  situation: string;
+  startDate: string;
+  updatedAt: string;
+  uri: string;
+  videoUrl: string | null;
 }
 
 interface Speaker {
@@ -227,13 +257,74 @@ const StatusBadge = ({ status }: { status: SessionData["status"] }) => {
 };
 
 export default function SessionDetailScreen() {
+  const pathname = usePathname();
+  const { GetAPI } = useApiContext();
   const [selectedSpeakerId, setSelectedSpeakerId] = useState<string>("all");
+  const [loading, setLoading] = useState(true);
+  const [eventDetails, setEventDetails] = useState<EventDetailsAPI | null>(
+    null,
+  );
+  const [sessionData, setSessionData] = useState<SessionData>(mockSession);
+
+  // Fetch event details from API
+  useEffect(() => {
+    async function fetchEventDetails() {
+      const eventId = pathname.split("/").pop();
+      if (!eventId) return;
+
+      setLoading(true);
+      const response = await GetAPI(`/event/details/${eventId}`, true);
+
+      if (response.status === 200) {
+        const event: EventDetailsAPI = response.body.event;
+        setEventDetails(event);
+
+        // Map API data to SessionData format
+        const startDate = new Date(event.startDate);
+        const endDate = event.endDate ? new Date(event.endDate) : null;
+
+        setSessionData({
+          organ: event.local,
+          date: event.startDate,
+          scheduledTime: moment(startDate).format("HH:mm"),
+          realTime: moment(startDate).format("HH:mm"),
+          endTime: endDate ? moment(endDate).format("HH:mm") : undefined,
+          title: event.eventType.name,
+          subtitle: event.description,
+          authors: [], // Not available in API - keep empty for now
+          status: event.situation.toLowerCase().includes("realizada")
+            ? "realizada"
+            : "agendada",
+          mediaLink: event.videoUrl || undefined,
+          updatedBy: event.department.name || "Secretaria Geral da Mesa",
+        });
+      }
+      setLoading(false);
+    }
+
+    fetchEventDetails();
+  }, [pathname]);
 
   // Filtragem do Mock da seção 1.4
   const filteredSpeeches =
     selectedSpeakerId === "all"
       ? mockSpeeches
       : mockSpeeches.filter((s) => s.speakerId === selectedSpeakerId);
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-[#f4f4f4] p-6 font-sans text-[#1a1d1f]">
+        <div className="mx-auto space-y-8">
+          <div className="h-64 w-full animate-pulse rounded-xl bg-gray-200" />
+          <div className="h-48 w-full animate-pulse rounded-xl bg-gray-200" />
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+            <div className="h-96 w-full animate-pulse rounded-xl bg-gray-200 lg:col-span-1" />
+            <div className="h-96 w-full animate-pulse rounded-xl bg-gray-200 lg:col-span-2" />
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-[#f4f4f4] p-6 font-sans text-[#1a1d1f]">
@@ -245,16 +336,16 @@ export default function SessionDetailScreen() {
               <div className="flex items-center space-x-2 text-[#749c5b]">
                 <MapPin size={18} />
                 <span className="text-sm font-semibold tracking-wide uppercase">
-                  {mockSession.organ}
+                  {sessionData.organ}
                 </span>
               </div>
-              <StatusBadge status={mockSession.status} />
+              <StatusBadge status={sessionData.status} />
             </div>
 
-            <h1 className="mb-2 text-3xl font-bold">{mockSession.title}</h1>
+            <h1 className="mb-2 text-3xl font-bold">{sessionData.title}</h1>
             <p className="mb-6 text-lg text-gray-700 italic">
               {"'"}
-              {mockSession.subtitle}
+              {sessionData.subtitle}
               {"'"}
             </p>
 
@@ -264,7 +355,7 @@ export default function SessionDetailScreen() {
                   <Calendar size={14} /> Data
                 </span>
                 <span className="font-medium">
-                  {new Date(mockSession.date).toLocaleDateString("pt-BR")}
+                  {new Date(sessionData.date).toLocaleDateString("pt-BR")}
                 </span>
               </div>
 
@@ -273,18 +364,18 @@ export default function SessionDetailScreen() {
                   <Clock size={14} /> Horário (Prev/Real)
                 </span>
                 <span className="font-medium">
-                  {mockSession.scheduledTime}h{" "}
+                  {sessionData.scheduledTime}h{" "}
                   <span className="text-gray-500">/</span>{" "}
-                  {mockSession.realTime || "--"}h
+                  {sessionData.realTime || "--"}h
                 </span>
               </div>
 
-              {mockSession.endTime && (
+              {sessionData.endTime && (
                 <div className="flex flex-col">
                   <span className="mb-1 flex items-center gap-2 text-gray-400">
                     <Clock size={14} /> Encerramento
                   </span>
-                  <span className="font-medium">{mockSession.endTime}h</span>
+                  <span className="font-medium">{sessionData.endTime}h</span>
                 </div>
               )}
 
@@ -293,16 +384,18 @@ export default function SessionDetailScreen() {
                   <User size={14} /> Autoria
                 </span>
                 <span className="truncate font-medium">
-                  {mockSession.authors.join(", ")}
+                  {sessionData.authors.length > 0
+                    ? sessionData.authors.join(", ")
+                    : "Informação indisponível"}
                 </span>
               </div>
             </div>
           </div>
 
-          {mockSession.mediaLink && (
+          {sessionData.mediaLink && (
             <div className="flex cursor-pointer items-center justify-center gap-2 bg-[#749c5b] p-3 text-center font-medium text-white transition-colors hover:bg-[#658a4e]">
               <PlayCircle size={20} />
-              <a href={mockSession.mediaLink} target="_blank" rel="noreferrer">
+              <a href={sessionData.mediaLink} target="_blank" rel="noreferrer">
                 Assitir Íntegra da Sessão
               </a>
             </div>
@@ -310,7 +403,14 @@ export default function SessionDetailScreen() {
         </header>
 
         {/* --- 1.2 BLOCO DE REQUERIMENTOS --- */}
-        <section className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+        <section className="relative rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+          {/* PLACEHOLDER BANNER */}
+          <div className="absolute top-4 right-4 z-10 flex items-center gap-2 rounded-lg border-2 border-orange-300 bg-orange-50 px-3 py-1.5">
+            <Info size={16} className="text-orange-600" />
+            <span className="text-xs font-bold text-orange-800 uppercase">
+              PLACEHOLDER - API Não Disponível
+            </span>
+          </div>
           <h2 className="mb-4 flex items-center gap-2 text-xl font-bold text-[#1a1d1f]">
             <FileText className="text-[#749c5b]" />
             Requerimentos de Origem
@@ -345,7 +445,14 @@ export default function SessionDetailScreen() {
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           {/* --- 1.3 ORADORES INSCRITOS --- */}
-          <section className="h-fit rounded-xl border border-gray-100 bg-white p-6 shadow-sm lg:col-span-1">
+          <section className="relative h-fit rounded-xl border border-gray-100 bg-white p-6 shadow-sm lg:col-span-1">
+            {/* PLACEHOLDER BANNER */}
+            <div className="absolute top-4 right-4 z-10 flex items-center gap-2 rounded-lg border-2 border-orange-300 bg-orange-50 px-3 py-1.5">
+              <Info size={16} className="text-orange-600" />
+              <span className="text-xs font-bold text-orange-800 uppercase">
+                PLACEHOLDER - API Não Disponível
+              </span>
+            </div>
             <div className="mb-4 flex items-center justify-between">
               <h2 className="flex items-center gap-2 text-lg font-bold text-[#1a1d1f]">
                 <Users className="text-[#749c5b]" />
@@ -390,12 +497,19 @@ export default function SessionDetailScreen() {
             </div>
             <div className="mt-3 flex items-center gap-1 text-xs text-[#6f767e]">
               <Info size={12} />
-              Atualizado por: {mockSession.updatedBy}
+              Atualizado por: {sessionData.updatedBy}
             </div>
           </section>
 
           {/* --- 1.4 TRECHOS POR ORADOR (MOCK COM RADIX) --- */}
-          <section className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm lg:col-span-2">
+          <section className="relative rounded-xl border border-gray-100 bg-white p-6 shadow-sm lg:col-span-2">
+            {/* PLACEHOLDER BANNER */}
+            <div className="absolute top-4 right-4 z-10 flex items-center gap-2 rounded-lg border-2 border-orange-300 bg-orange-50 px-3 py-1.5">
+              <Info size={16} className="text-orange-600" />
+              <span className="text-xs font-bold text-orange-800 uppercase">
+                PLACEHOLDER - API Não Disponível
+              </span>
+            </div>
             <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
               <h2 className="flex items-center gap-2 text-lg font-bold text-[#1a1d1f]">
                 <Mic2 className="text-[#749c5b]" />

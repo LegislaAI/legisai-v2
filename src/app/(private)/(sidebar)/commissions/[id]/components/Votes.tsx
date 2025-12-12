@@ -51,7 +51,6 @@ export function Votes() {
   async function GetVotes() {
     const eventId = pathname.split("/")[2];
     const votes = await GetAPI(`/voting/${eventId}`, true);
-    console.log("votes", votes);
     if (votes.status === 200) {
       setVotesList(votes.body.voting);
       return setIsGettingVotes(false);
