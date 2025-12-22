@@ -48,7 +48,7 @@ export default function Login() {
         email: data.email,
         password: data.password,
       },
-      false,
+      false, 
     );
     if (login.status === 200) {
       cookies.set(

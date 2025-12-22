@@ -1,8 +1,8 @@
 import { CookiesProvider } from "next-client-cookies/server";
 import { ApiContextProvider } from "./ApiContext";
 import { LoadingContextProvider } from "./LoadingContext";
-import { SampleContextProvider } from "./SampleContext";
 import { SidebarContextProvider } from "./SidebarContext";
+import { UserContextProvider } from "./UserContext";
 
 export function ContextProviders({ children }: { children: React.ReactNode }) {
   return (
@@ -11,11 +11,11 @@ export function ContextProviders({ children }: { children: React.ReactNode }) {
         <CookiesProvider>
           <ApiContextProvider>
             <SidebarContextProvider>
-              <SampleContextProvider>
+              <UserContextProvider>
                 {/* Any other Context Providers */}
                 {children}
                 {/* Any other Context Providers */}
-              </SampleContextProvider>
+              </UserContextProvider>
             </SidebarContextProvider>
           </ApiContextProvider>
         </CookiesProvider>

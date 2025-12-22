@@ -70,8 +70,8 @@ export const ApiContextProvider = ({ children }: ProviderProps) => {
         };
       })
       .catch((err) => {
-        const message = err.response.data;
-        const status = err.response.status;
+        const message = err.response?.data || "Erro de conexão";
+        const status = err.response?.status || 500;
         return { status, body: message };
       });
 
@@ -84,26 +84,30 @@ export const ApiContextProvider = ({ children }: ProviderProps) => {
   }
 
   async function GetAPI(url: string, auth: boolean) {
-    const connect = await api
-      .get(url, config(auth))
-      .then(({ data }) => {
-        return {
-          status: 200,
-          body: data,
-        };
-      })
-      .catch((err) => {
-        const message = err.response.data;
-        const status = err.response.status;
-        return { status, body: message };
-      });
+    try {
+      const connect = await api
+        .get(url, config(auth))
+        .then(({ data }) => {
+          return {
+            status: 200,
+            body: data,
+          };
+        })
+        .catch((err) => {
+          const message = err.response?.data || "Erro de conexão";
+          const status = err.response?.status || 500;
+          return { status, body: message };
+        });
 
-    return connect.status === 500
-      ? {
-          status: connect.status,
-          body: "Ops! algo deu errado, tente novamente",
-        }
-      : connect;
+      return connect.status === 500
+        ? {
+            status: connect.status,
+            body: "Ops! algo deu errado, tente novamente",
+          }
+        : connect;
+    } catch (criticalError) {
+      return { status: 500, body: "Critical API Error" };
+    }
   }
 
   async function PutAPI(url: string, data: unknown, auth: boolean) {
@@ -116,8 +120,8 @@ export const ApiContextProvider = ({ children }: ProviderProps) => {
         };
       })
       .catch((err) => {
-        const message = err.response.data;
-        const status = err.response.status;
+        const message = err.response?.data || "Erro de conexão";
+        const status = err.response?.status || 500;
         return { status, body: message };
       });
 

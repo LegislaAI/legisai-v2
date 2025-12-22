@@ -8,7 +8,7 @@ export interface PoliticianProps {
   instagram: string | null;
   name: string;
   phone: string;
-  placeOfBirth: string; 
+  placeOfBirth: string;
   politicalParty: string;
   politicalPartyAcronym: string;
   state: string;
@@ -64,7 +64,14 @@ export interface PoliticianDetailsProps extends PoliticianProps {
     speechesVideosUrl: string;
     year: number;
   };
-  positions: unknown;
+  positions: {
+    id: string;
+    name: string;
+    politicianId: string;
+    position: string;
+    startDate: string;
+    year: number;
+  }[];
 }
 
 export interface PoliticianNewsProps {

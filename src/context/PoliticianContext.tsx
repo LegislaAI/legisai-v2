@@ -4,7 +4,7 @@ import {
   PoliticianDetailsProps,
   PoliticianNewsProps,
   PoliticianProps,
-} from "@/@types/politician";
+} from "@/@types/v2/politician";
 import { useCookies } from "next-client-cookies";
 import { createContext, useContext, useEffect, useState } from "react";
 import { useApiContext } from "./ApiContext";
@@ -75,7 +75,6 @@ export const PoliticianContextProvider = ({ children }: ProviderProps) => {
     if (query) {
       params += `&query=${query}`;
     }
-
     const politicians = await GetAPI(`/politician${params}`, true);
     if (politicians.status === 200) {
       setPoliticians(politicians.body.politicians);
@@ -96,10 +95,12 @@ export const PoliticianContextProvider = ({ children }: ProviderProps) => {
     let params = "";
     params += id;
     params += `?year=${selectedYear}`;
+    console.log("params", params);
     const details = await GetAPI(`/politician/details/${params}`, true);
+    console.log("details", details.body);
     if (details.status === 200) {
       setLoading(false);
-      return setSelectedPolitician(details.body.politician);
+      return setSelectedPolitician(details.body);
     } else {
       setLoading(false);
       return setSelectedPolitician(null);
