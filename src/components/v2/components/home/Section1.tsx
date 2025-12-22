@@ -101,8 +101,8 @@ export function Section1() {
     legend: { show: true, position: 'top' },
   };
 
-  const cota = displayPolitician?.finance?.monthlyCosts?.map((item) => item.parliamentaryQuota);
-  const gabinete = displayPolitician?.finance?.monthlyCosts?.map((item) => item.cabinetQuota);
+  const cota = displayPolitician?.finance?.monthlyCosts?.map((item) => item.parliamentaryQuota) || [];
+  const gabinete = displayPolitician?.finance?.monthlyCosts?.map((item) => item.cabinetQuota) || [];
   const chartSeries = [
     {
       name: "Cota Parlamentar",
@@ -265,7 +265,7 @@ export function Section1() {
                                 chart: { ...chartOptions.chart, toolbar: { show: false } },
                                 grid: { borderColor: '#f3f4f6', strokeDashArray: 4 },
                             }} 
-                            series={chartSeries} 
+                            series={chartSeries ? chartSeries : [ { name: "Gastos", data: [] } ]} 
                             type="area" 
                             height={320} 
                             width="100%"

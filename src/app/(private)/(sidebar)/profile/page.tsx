@@ -35,6 +35,8 @@ export default function Profile() {
     name: "",
     email: "",
     phone: "",
+    birthDate: "",
+    profession: "",
   });
   async function handleGetProfile() {
     try {
