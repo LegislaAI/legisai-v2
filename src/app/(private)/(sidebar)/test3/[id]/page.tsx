@@ -160,6 +160,9 @@ export default function DeliberativeSessionScreen() {
       if (response.status === 200) {
         const event: EventDetailsAPI = response.body; // Adjusted based on backend response structure (body.event)
         setEventDetails(event);
+         setOrderPropositions(event.EventProposition || []);
+          setVotesList(event.voting || []);
+          setPresenceList(event.politicians || []);
       }
       setLoading(false);
     }
@@ -167,67 +170,7 @@ export default function DeliberativeSessionScreen() {
     fetchEventDetails();
   }, [pathname]);
 
-  // Fetch Order of Day when tab is active
-  useEffect(() => {
-    if (
-      activeTab === "order_day" &&
-      !loadingOrder &&
-      orderPropositions.length === 0
-    ) {
-      async function fetchOrderOfDay() {
-        const eventId = pathname.split("/").pop();
-        if (!eventId) return;
-
-        setLoadingOrder(true);
-        const response = await GetAPI(`/event-proposition/${eventId}`, true);
-        if (response.status === 200) {
-          setOrderPropositions(response.body.propositions || []);
-        }
-        setLoadingOrder(false);
-      }
-      fetchOrderOfDay();
-    }
-  }, [activeTab, pathname]);
-
-  // Fetch Voting when tab is active
-  useEffect(() => {
-    if (activeTab === "voting" && !loadingVotes && votesList.length === 0) {
-      async function fetchVotes() {
-        const eventId = pathname.split("/").pop();
-        if (!eventId) return;
-
-        setLoadingVotes(true);
-        const response = await GetAPI(`/voting/${eventId}`, true);
-        if (response.status === 200) {
-          setVotesList(response.body.voting || []);
-        }
-        setLoadingVotes(false);
-      }
-      fetchVotes();
-    }
-  }, [activeTab, pathname]);
-
-  // Fetch Presence when tab is active
-  useEffect(() => {
-    if (activeTab === "presence") {
-      async function fetchPresence() {
-        const eventId = pathname.split("/").pop();
-        if (!eventId) return;
-
-        setLoadingPresence(true);
-        const response = await GetAPI(
-          `/event-politician/${eventId}?page=${presencePage}`,
-          true,
-        );
-        if (response.status === 200) {
-          setPresenceList(response.body.politicians || []);
-          setPresencePages(response.body.pages || 1);
-        }
-        setLoadingPresence(false);
-      }
-      fetchPresence();
-    }
-  }, [activeTab, presencePage, pathname]);
+ 
 
   if (loading ) {
     return (
