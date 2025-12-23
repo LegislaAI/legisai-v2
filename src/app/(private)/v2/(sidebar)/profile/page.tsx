@@ -1,14 +1,18 @@
 "use client";
 
 import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
 } from "@/components/ui/dialog";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/v2/components/ui/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/v2/components/ui/avatar";
 import { Badge } from "@/components/v2/components/ui/badge";
 import { Button } from "@/components/v2/components/ui/Button";
 import { Card } from "@/components/v2/components/ui/Card";
@@ -18,15 +22,14 @@ import { useApiContext } from "@/context/ApiContext";
 import { useUserContext } from "@/context/UserContext";
 import { zodResolver } from "@hookform/resolvers/zod";
 import {
-    Briefcase,
-    Calendar,
-    Camera,
-    Edit2,
-    Lock,
-    Mail,
-    Phone,
-    Save,
-    User
+  Briefcase,
+  Calendar,
+  Edit2,
+  Lock,
+  Mail,
+  Phone,
+  Save,
+  User,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 import { useForm } from "react-hook-form";
@@ -99,7 +102,7 @@ export default function ProfilePage() {
           profession: data.profession,
           birthDate: data.birthDate,
         },
-        true
+        true,
       );
 
       if (response.status === 200 || response.status === 201) {
@@ -126,7 +129,7 @@ export default function ProfilePage() {
       const response = await PostAPI(
         "/password-code",
         { email: user.email },
-        false
+        false,
       );
       if (response.status === 200 || response.status === 201) {
         toast.success("Código enviado para seu e-mail!");
@@ -170,7 +173,7 @@ export default function ProfilePage() {
           code: resetCode,
           password: data.password,
         },
-        false
+        false,
       );
 
       if (response.status === 200 || response.status === 201) {
@@ -192,69 +195,69 @@ export default function ProfilePage() {
       <div className="w-full space-y-8">
         <h1 className="text-3xl font-bold text-[#1a1d1f]">Meu Perfil</h1>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
           {/* Left Column: Avatar & Main Info */}
-          <div className="md:col-span-1 space-y-6">
-            <Card className="p-6 flex flex-col items-center text-center border-gray-100 shadow-sm">
-              <div className="relative mb-4 group cursor-pointer">
-                <Avatar className="w-32 h-32 border-4 border-white shadow-xl">
+          <div className="space-y-6 md:col-span-1">
+            <Card className="flex flex-col items-center border-gray-100 p-6 text-center shadow-sm">
+              <div className="group relative mb-4 cursor-pointer">
+                <Avatar className="h-32 w-32 border-4 border-white shadow-xl">
                   <AvatarImage src="" />
                   {user && (
-                    <AvatarFallback className="bg-[#749c5b] text-white text-4xl">
+                    <AvatarFallback className="bg-[#749c5b] text-4xl text-white">
                       {user?.name?.split(" ")[0][0] +
                         user?.name?.split(" ")[1][0]}
                     </AvatarFallback>
                   )}
                 </Avatar>
-                <div className="absolute inset-0 bg-black/40 rounded-full flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+                {/* <div className="absolute inset-0 flex items-center justify-center rounded-full bg-black/40 opacity-0 transition-opacity group-hover:opacity-100">
                   <Camera className="text-white" size={24} />
-                </div>
+                </div> */}
               </div>
 
-              <h2 className="text-xl font-bold text-[#1a1d1f] mb-1">
+              <h2 className="mb-1 text-xl font-bold text-[#1a1d1f]">
                 {user?.name}
               </h2>
               {/* <p className="text-sm text-gray-500 mb-4">Parlamentar / Assessor</p> */}
 
-              <Badge className="bg-[#f0fdf4] text-green-700 hover:bg-[#dcfce7] mb-2 cursor-default">
+              <Badge className="mb-2 cursor-default bg-[#f0fdf4] text-green-700 hover:bg-[#dcfce7]">
                 Conta Verificada
               </Badge>
             </Card>
 
             {/* Support Card */}
-            <Card className="p-6 border-gray-100 shadow-sm bg-[#1a1d1f] text-white relative overflow-hidden">
+            <Card className="relative overflow-hidden border-gray-100 bg-[#1a1d1f] p-6 text-white shadow-sm">
               <div className="relative z-10">
-                <h3 className="font-bold text-lg mb-2">Precisa de Ajuda?</h3>
-                <p className="text-sm text-gray-400 mb-4">
+                <h3 className="mb-2 text-lg font-bold">Precisa de Ajuda?</h3>
+                <p className="mb-4 text-sm text-gray-400">
                   Entre em contato com nosso suporte especializado.
                 </p>
                 <Button
                   variant="outline"
-                  className="bg-white/10 text-white border-white/20 hover:bg-white/20 w-full"
+                  className="w-full border-white/20 bg-white/10 text-white hover:bg-white/20"
                   onClick={() =>
-                    window.open("https://wa.me/556100000000", "_blank")
+                    window.open("https://wa.me/556195900545", "_blank")
                   }
                 >
                   Falar no WhatsApp
                 </Button>
               </div>
               {/* Abstract background shape */}
-              <div className="absolute top-0 right-0 -mr-8 -mt-8 w-32 h-32 bg-[#749c5b] rounded-full opacity-20 blur-2xl"></div>
+              <div className="absolute top-0 right-0 -mt-8 -mr-8 h-32 w-32 rounded-full bg-[#749c5b] opacity-20 blur-2xl"></div>
             </Card>
           </div>
 
           {/* Right Column: Edit Form & Plan */}
-          <div className="md:col-span-2 space-y-6">
+          <div className="space-y-6 md:col-span-2">
             {/* Personal Information */}
-            <Card className="p-6 border-gray-100 shadow-sm">
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="text-lg font-bold flex items-center gap-2">
+            <Card className="border-gray-100 p-6 shadow-sm">
+              <div className="mb-6 flex items-center justify-between">
+                <h3 className="flex items-center gap-2 text-lg font-bold">
                   <User className="text-[#749c5b]" size={20} /> Informações
                   Pessoais
                 </h3>
                 <Button
                   variant="ghost"
-                  className="text-[#749c5b] hover:text-[#749c5b]/80 hover:bg-[#749c5b]/10"
+                  className="text-[#749c5b] hover:bg-[#749c5b]/10 hover:text-[#749c5b]/80"
                   onClick={() => {
                     if (isEditing) {
                       profileForm.handleSubmit(onProfileSubmit)();
@@ -276,13 +279,13 @@ export default function ProfilePage() {
               </div>
 
               <div className="space-y-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
                   <div className="space-y-2">
                     <Label>Nome Completo</Label>
                     <div className="relative">
                       <User
                         size={16}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                        className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400"
                       />
                       <Input
                         className="pl-9"
@@ -301,7 +304,7 @@ export default function ProfilePage() {
                     <div className="relative">
                       <Phone
                         size={16}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                        className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400"
                       />
                       <Input
                         className="pl-9"
@@ -320,7 +323,7 @@ export default function ProfilePage() {
                     <div className="relative">
                       <Briefcase
                         size={16}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                        className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400"
                       />
                       <Input
                         className="pl-9"
@@ -334,7 +337,7 @@ export default function ProfilePage() {
                     <div className="relative">
                       <Calendar
                         size={16}
-                        className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                        className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400"
                       />
                       <Input
                         type="date"
@@ -351,10 +354,10 @@ export default function ProfilePage() {
                   <div className="relative">
                     <Mail
                       size={16}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                      className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400"
                     />
                     <Input
-                      className="pl-9 bg-gray-50"
+                      className="bg-gray-50 pl-9"
                       value={user?.email || ""}
                       disabled
                     />
@@ -369,7 +372,7 @@ export default function ProfilePage() {
                   <div className="relative">
                     <Lock
                       size={16}
-                      className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+                      className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400"
                     />
                     <Input
                       className="pl-9"
@@ -380,7 +383,7 @@ export default function ProfilePage() {
                   </div>
                   <Button
                     variant="link"
-                    className="px-0 text-[#749c5b] h-auto text-sm"
+                    className="h-auto px-0 text-sm text-[#749c5b]"
                     onClick={startPasswordChange}
                   >
                     Alterar senha
@@ -390,7 +393,7 @@ export default function ProfilePage() {
             </Card>
 
             {/* Plan Card */}
-            <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-[#1a1d1f] to-[#2d3238] p-6 text-white shadow-lg">
+            {/* <div className="relative overflow-hidden rounded-xl bg-gradient-to-r from-[#1a1d1f] to-[#2d3238] p-6 text-white shadow-lg">
               <div className="relative z-10 flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
                 <div>
                   <p className="text-sm text-gray-400 uppercase tracking-wider mb-1">
@@ -411,7 +414,7 @@ export default function ProfilePage() {
                   Gerenciar Assinatura
                 </Button>
               </div>
-            </div>
+            </div> */}
           </div>
         </div>
       </div>

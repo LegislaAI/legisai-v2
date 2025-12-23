@@ -1,21 +1,25 @@
 "use client";
 
-import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/v2/components/ui/tooltip";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/v2/components/ui/tooltip";
 import { useApiContext } from "@/context/ApiContext";
 import { useLoadingContext } from "@/context/LoadingContext";
 import { useSidebarContext } from "@/context/SidebarContext2";
 import { cn } from "@/lib/utils";
 import {
-    BellDot,
-    ChevronRight,
-    Cog,
-    Home,
-    LogOut,
-    PlayCircle,
-    Settings2,
-    Sparkles,
-    UsersRound,
-    Wallet
+  BellDot,
+  ChevronRight,
+  Cog,
+  Home,
+  LogOut,
+  PlayCircle,
+  Settings2,
+  Sparkles,
+  Wallet,
 } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
@@ -30,20 +34,41 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   { label: "Home", href: "/v2/", icon: Home },
   { label: "Plenários / Sessões", href: "/v2/plenary", icon: Wallet },
-  { label: "Comissões / Reuniões", href: "/v2/commissions", icon: UsersRound, disabled: false },
-  { label: "Novidades e Notícias", href: "/v2/news", icon: BellDot, disabled: false },
+  //   { label: "Comissões / Reuniões", href: "/v2/commissions", icon: UsersRound, disabled: false },
+  {
+    label: "Novidades e Notícias",
+    href: "/v2/news",
+    icon: BellDot,
+    disabled: false,
+  },
   { label: "Tramitação e Informações", href: "/v2/procedures", icon: Cog },
-  { label: "Inteligência Artificial", href: "/v2/ai", icon: Sparkles, disabled: false },
-  { label: "IA Preditiva", href: "/v2/prediction-ai", icon: Sparkles, disabled: true },
-  { label: "Tutoriais", href: "/v2/tutorials", icon: PlayCircle, disabled: false },
-  { label: "Configurações", href: "/v2/profile", icon: Settings2, disabled: false },
+  {
+    label: "Inteligência Artificial",
+    href: "/v2/ai",
+    icon: Sparkles,
+    disabled: false,
+  },
+  //   { label: "IA Preditiva", href: "/v2/prediction-ai", icon: Sparkles, disabled: true },
+  {
+    label: "Tutoriais",
+    href: "/v2/tutorials",
+    icon: PlayCircle,
+    disabled: false,
+  },
+  {
+    label: "Configurações",
+    href: "/v2/profile",
+    icon: Settings2,
+    disabled: false,
+  },
 ];
 
 export function Sidebar() {
   const pathname = usePathname();
   const { clearToken } = useApiContext();
   const { handleNavigation } = useLoadingContext();
-  const { isMobileOpen, isDesktopExpanded, closeMobileSidebar } = useSidebarContext();
+  const { isMobileOpen, isDesktopExpanded, closeMobileSidebar } =
+    useSidebarContext();
 
   const handleLogout = () => {
     clearToken();
@@ -51,121 +76,160 @@ export function Sidebar() {
   };
 
   const SidebarContent = () => (
-      <div className="flex flex-col h-full">
-        <div className={cn("flex items-center h-16 px-6", isDesktopExpanded ? "justify-between" : "justify-center")}>
-            <Link href="/v2/" className="font-bold text-xl text-secondary flex items-center gap-2">
-            {isDesktopExpanded ? (
-                <>
-                    <span className="bg-secondary text-white w-8 h-8 flex items-center justify-center rounded-lg">LA</span>
-                    <span className="text-dark">LegisAi</span>
-                </>
-            ) : (
-                <span className="bg-secondary text-white w-8 h-8 flex items-center justify-center rounded-lg">LA</span>
-            )}
-            </Link>
-            
-        </div>
-
-        <nav className="flex-1 flex flex-col w-full gap-2 px-3 py-4 overflow-y-auto">
-            <TooltipProvider>
-            {menuItems.map((item) => {
-                const isActive = pathname === item.href;
-                const Icon = item.icon;
-
-                return (
-                <Tooltip key={item.href} delayDuration={0}>
-                    <TooltipTrigger asChild>
-                    {item.disabled ? (
-                        <div
-                        className={cn(
-                            "relative flex items-center p-3 rounded-xl transition-colors cursor-not-allowed group opacity-50 hover:bg-gray-50",
-                            isDesktopExpanded ? "justify-start gap-3" : "justify-center",
-                            isActive && "bg-secondary/10 text-secondary"
-                        )}
-                        >
-                        <Icon className="h-6 w-6 min-w-[24px]" />
-                        {isDesktopExpanded && <span className="font-medium truncate">{item.label}</span>}
-                        {/* Badge for disabled */}
-                        <div className={cn("absolute rounded-full bg-gray-300", isDesktopExpanded ? "right-3 top-1/2 -translate-y-1/2 h-2 w-2" : "top-0 right-0 h-2 w-2")} />
-                        </div>
-                    ) : (
-                        <Link
-                        href={item.href}
-                        onClick={(e) => {
-                            e.preventDefault();
-                            handleNavigation(item.href);
-                            closeMobileSidebar(); // Close on mobile navigation
-                        }}
-                        className={cn(
-                            "relative flex items-center p-3 rounded-xl transition-colors hover:bg-surface group",
-                            isDesktopExpanded ? "justify-start gap-3" : "justify-center",
-                            isActive ? "bg-secondary text-white shadow-md hover:bg-secondary/90" : "text-gray-500"
-                        )}
-                        >
-                        <Icon className="h-6 w-6 min-w-[24px]" />
-                        {isDesktopExpanded && <span className="font-medium truncate">{item.label}</span>}
-                        
-                        {!isDesktopExpanded && isActive && (
-                            <div className="absolute right-[-8px] top-1/2 -translate-y-1/2 bg-white rounded-full p-0.5 shadow-sm hidden">
-                                <ChevronRight className="h-3 w-3 text-secondary" />
-                            </div>
-                        )}
-                        </Link>
-                    )}
-                    </TooltipTrigger>
-                    {!isDesktopExpanded && <TooltipContent side="right" className="flex items-center gap-2">
-                        {item.label}
-                    </TooltipContent>}
-                </Tooltip>
-                );
-            })}
-            </TooltipProvider>
-        </nav>
-
-        <div className="p-4 border-t border-gray-100">
-            <TooltipProvider>
-                <Tooltip delayDuration={0}>
-                    <TooltipTrigger asChild>
-                        <button
-                            onClick={handleLogout}
-                            className={cn(
-                                "flex items-center p-3 rounded-xl text-gray-400 hover:bg-red-50 hover:text-red-500 transition-colors w-full",
-                                isDesktopExpanded ? "justify-start gap-3" : "justify-center"
-                            )}
-                        >
-                            <LogOut className="h-6 w-6 min-w-[24px]" />
-                            {isDesktopExpanded && <span className="font-medium">Sair</span>}
-                        </button>
-                    </TooltipTrigger>
-                    {!isDesktopExpanded && <TooltipContent side="right">Sair</TooltipContent>}
-                </Tooltip>
-            </TooltipProvider>
-        </div>
+    <div className="flex h-full flex-col">
+      <div
+        className={cn(
+          "flex h-16 items-center px-6",
+          isDesktopExpanded ? "justify-between" : "justify-center",
+        )}
+      >
+        <Link
+          href="/v2/"
+          className="text-secondary flex items-center gap-2 text-xl font-bold"
+        >
+          {isDesktopExpanded ? (
+            <>
+              <span className="bg-secondary flex h-8 w-8 items-center justify-center rounded-lg text-white">
+                LA
+              </span>
+              <span className="text-dark">LegisAi</span>
+            </>
+          ) : (
+            <span className="bg-secondary flex h-8 w-8 items-center justify-center rounded-lg text-white">
+              LA
+            </span>
+          )}
+        </Link>
       </div>
+
+      <nav className="flex w-full flex-1 flex-col gap-2 overflow-y-auto px-3 py-4">
+        <TooltipProvider>
+          {menuItems.map((item) => {
+            const isActive = pathname === item.href;
+            const Icon = item.icon;
+
+            return (
+              <Tooltip key={item.href} delayDuration={0}>
+                <TooltipTrigger asChild>
+                  {item.disabled ? (
+                    <div
+                      className={cn(
+                        "group relative flex cursor-not-allowed items-center rounded-xl p-3 opacity-50 transition-colors hover:bg-gray-50",
+                        isDesktopExpanded
+                          ? "justify-start gap-3"
+                          : "justify-center",
+                        isActive && "bg-secondary/10 text-secondary",
+                      )}
+                    >
+                      <Icon className="h-6 w-6 min-w-[24px]" />
+                      {isDesktopExpanded && (
+                        <span className="truncate font-medium">
+                          {item.label}
+                        </span>
+                      )}
+                      {/* Badge for disabled */}
+                      <div
+                        className={cn(
+                          "absolute rounded-full bg-gray-300",
+                          isDesktopExpanded
+                            ? "top-1/2 right-3 h-2 w-2 -translate-y-1/2"
+                            : "top-0 right-0 h-2 w-2",
+                        )}
+                      />
+                    </div>
+                  ) : (
+                    <Link
+                      href={item.href}
+                      onClick={(e) => {
+                        e.preventDefault();
+                        handleNavigation(item.href);
+                        closeMobileSidebar(); // Close on mobile navigation
+                      }}
+                      className={cn(
+                        "hover:bg-surface group relative flex items-center rounded-xl p-3 transition-colors",
+                        isDesktopExpanded
+                          ? "justify-start gap-3"
+                          : "justify-center",
+                        isActive
+                          ? "bg-secondary hover:bg-secondary/90 text-white shadow-md"
+                          : "text-gray-500",
+                      )}
+                    >
+                      <Icon className="h-6 w-6 min-w-[24px]" />
+                      {isDesktopExpanded && (
+                        <span className="truncate font-medium">
+                          {item.label}
+                        </span>
+                      )}
+
+                      {!isDesktopExpanded && isActive && (
+                        <div className="absolute top-1/2 right-[-8px] hidden -translate-y-1/2 rounded-full bg-white p-0.5 shadow-sm">
+                          <ChevronRight className="text-secondary h-3 w-3" />
+                        </div>
+                      )}
+                    </Link>
+                  )}
+                </TooltipTrigger>
+                {!isDesktopExpanded && (
+                  <TooltipContent
+                    side="right"
+                    className="flex items-center gap-2"
+                  >
+                    {item.label}
+                  </TooltipContent>
+                )}
+              </Tooltip>
+            );
+          })}
+        </TooltipProvider>
+      </nav>
+
+      <div className="border-t border-gray-100 p-4">
+        <TooltipProvider>
+          <Tooltip delayDuration={0}>
+            <TooltipTrigger asChild>
+              <button
+                onClick={handleLogout}
+                className={cn(
+                  "flex w-full items-center rounded-xl p-3 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500",
+                  isDesktopExpanded ? "justify-start gap-3" : "justify-center",
+                )}
+              >
+                <LogOut className="h-6 w-6 min-w-[24px]" />
+                {isDesktopExpanded && <span className="font-medium">Sair</span>}
+              </button>
+            </TooltipTrigger>
+            {!isDesktopExpanded && (
+              <TooltipContent side="right">Sair</TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
+      </div>
+    </div>
   );
 
   return (
     <>
-        {/* Mobile Backdrop */}
-        {isMobileOpen && (
-            <div 
-                className="fixed inset-0 bg-black/50 z-40 md:hidden animate-in fade-in"
-                onClick={closeMobileSidebar}
-            />
-        )}
+      {/* Mobile Backdrop */}
+      {isMobileOpen && (
+        <div
+          className="animate-in fade-in fixed inset-0 z-40 bg-black/50 md:hidden"
+          onClick={closeMobileSidebar}
+        />
+      )}
 
-        {/* Sidebar Element */}
-        <aside 
-            className={cn(
-                "fixed top-0 left-0 h-full bg-white border-r border-gray-100 z-50 transition-all duration-300 ease-in-out",
-                // Mobile Open/Close
-                isMobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
-                // Desktop Width
-                isDesktopExpanded ? "w-64" : "w-20"
-            )}
-        >
-            <SidebarContent />
-        </aside>
+      {/* Sidebar Element */}
+      <aside
+        className={cn(
+          "fixed top-0 left-0 z-50 h-full border-r border-gray-100 bg-white transition-all duration-300 ease-in-out",
+          // Mobile Open/Close
+          isMobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
+          // Desktop Width
+          isDesktopExpanded ? "w-64" : "w-20",
+        )}
+      >
+        <SidebarContent />
+      </aside>
     </>
   );
 }

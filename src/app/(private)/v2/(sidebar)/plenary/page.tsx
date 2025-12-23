@@ -22,6 +22,7 @@ import { useRouter } from "next/navigation";
 
 // --- TIPOS ---
 type SessionType = "solene" | "deliberativa" | "geral";
+type ApiEventType = "SOLEMN" | "DELIBERATIVE" | "COMMISSION";
 
 interface SessionSummary {
   id: string;
@@ -73,6 +74,18 @@ export default function SessionListScreen() {
     cancelada: true,
   });
 
+  // Helper function to map session type to API type
+  const getApiType = (type: SessionType): ApiEventType => {
+    switch (type) {
+      case "solene":
+        return "SOLEMN";
+      case "deliberativa":
+        return "DELIBERATIVE";
+      case "geral":
+        return "COMMISSION";
+    }
+  };
+
   // Helper function to determine session type from event name
   const getSessionType = (eventTypeName: string): SessionType => {
     const name = eventTypeName.toLowerCase();
@@ -101,10 +114,12 @@ export default function SessionListScreen() {
       queryParams += `&date=${moment(dateRange.from).format("YYYY-MM-DD")}`;
     }
 
-    const response = await GetAPI(`/event${queryParams}&type=PLENARY`, true);
+    const apiType = getApiType(activeTab);
+    const response = await GetAPI(`/event${queryParams}&type=${apiType}`, true);
+
     if (response.status === 200) {
       setEvents(response.body.events || []);
-      setTotalPages(response.body.pages || 0);
+      setTotalPages(response.body.pages || 0); // Assuming API returns 'pages' for total pages
     }
     setLoading(false);
   }
@@ -112,14 +127,17 @@ export default function SessionListScreen() {
   useEffect(() => {
     window.scrollTo({ top: 0, behavior: "smooth" });
     fetchEvents();
-  }, [currentPage, dateRange]);
+  }, [currentPage, dateRange, activeTab]);
 
   // Reset to page 1 when filters change
   useEffect(() => {
     if (currentPage !== 1) {
       setCurrentPage(1);
     }
-  }, [dateRange, activeTab, statusFilters]);
+  }, [dateRange, activeTab]); // statusFilters are client-side only now, or do we want to re-fetch?
+  // User asked: "faça a paginaçao somente conter a quantidade total de paginas, que vai vir no body.pages, faça rebuscar toda ves que trocar de tab zerando as pages se trocar de tab"
+  // So adding activeTab to dependency of fetchEvents covers the re-fetch.
+  // Resetting page on activeTab change is handled here.
 
   // --- FILTROS ---
   const filteredSessions = useMemo(() => {
@@ -128,8 +146,8 @@ export default function SessionListScreen() {
         const eventType = getSessionType(event.eventType.name);
         const eventStatus = getStatus(event.situation);
 
-        // Filter by active tab (session type)
-        if (eventType !== activeTab) return false;
+        // Filter by active tab (session type) - REMOVED since it's server-side now
+        // if (eventType !== activeTab) return false;
 
         // Filter by status checkboxes
         if (!statusFilters[eventStatus]) return false;
@@ -155,10 +173,10 @@ export default function SessionListScreen() {
 
   const handleNavigation = (session: SessionSummary) => {
     // Route to test2 for solene, test3 for deliberativa/geral
-    if (session.type === "solene") {
-      router.push(`/v2/commisions2/${session.id}`);
+    if (activeTab === "solene") {
+      router.push(`/v2/plenary/solene/${session.id}`);
     } else {
-      router.push(`/v2/commisions3/${session.id}`);
+      router.push(`/v2/plenary/deliberativa/${session.id}`);
     }
   };
 
@@ -175,7 +193,7 @@ export default function SessionListScreen() {
         {/* --- CABEÇALHO --- */}
         <div className="overflow-hidden rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
           <h1 className="mb-2 text-3xl font-bold text-[#1a1d1f]">
-            Acompanhe os Plenários
+            Acompanhe as Sessões
           </h1>
           <p className="text-gray-700">
             Selecione o tipo de sessão e utilize os filtros para refinar sua
