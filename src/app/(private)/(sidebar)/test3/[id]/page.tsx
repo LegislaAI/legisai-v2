@@ -1,9 +1,5 @@
 "use client";
-import {
-  EventPropositionProps,
-  VoteDetailsProps,
-  VotesProps,
-} from "@/@types/proposition";
+import { VoteDetailsProps } from "@/@types/proposition";
 import { useApiContext } from "@/context/ApiContext";
 import { cn } from "@/lib/utils";
 import * as Progress from "@radix-ui/react-progress";
@@ -56,9 +52,12 @@ interface Politician {
   name: string;
   fullName: string;
   email: string;
-  imageUrl: string; // O log usa 'imageUrl' em vez de 'urlFoto'
+  imageUrl: string;
   siglaPartido?: string;
   siglaUf?: string;
+  politicalParty?: string; // For VoteDetailsProps compatibility
+  state?: string; // For presence list filtering
+  uf?: string; // Alternative state field
 }
 
 interface EventPolitician {
@@ -97,7 +96,7 @@ interface EventProposition {
   proposition: PropositionDetails | null; // Objeto com detalhes completos
 }
 
-// 6. Votações (Nova interface baseada no log)
+// 6. Votações (Compatível com VotesProps)
 interface EventVoting {
   id: string;
   uri: string;
@@ -106,6 +105,12 @@ interface EventVoting {
   date: string;
   result: boolean;
   propositionId: string;
+  // Additional fields for voting details
+  proposition?: PropositionDetails | null;
+  positiveVotes: number;
+  negativeVotes: number;
+  totalVotes: number;
+  otherVotes?: number;
 }
 
 // 7. Interface Principal (EventDetailsAPI)
@@ -120,7 +125,7 @@ interface EventDetailsAPI {
   videoUrl: string | null;
   eventType: EventType;
   department: Department;
-  politicians: EventPolitician[]; 
+  politicians: EventPolitician[];
   reporterId: string;
 
   EventProposition: EventProposition[]; // Note o 'E' maiúsculo conforme seu log
@@ -173,9 +178,8 @@ export default function DeliberativeSessionScreen() {
   const [eventDetails, setEventDetails] = useState<EventDetailsAPI | null>(
     null,
   );
-  const [selectedProposition, setSelectedProposition] = useState<EventProposition | null>(
-    null,
-  );
+  const [selectedProposition, setSelectedProposition] =
+    useState<EventProposition | null>(null);
   // API state for Order of Day, Voting, and Presence
   const [orderPropositions, setOrderPropositions] = useState<
     EventProposition[]
@@ -184,7 +188,7 @@ export default function DeliberativeSessionScreen() {
 
   const [votesList, setVotesList] = useState<EventVoting[]>([]);
   const [loadingVotes, setLoadingVotes] = useState(false);
-  const [selectedVote, setSelectedVote] = useState<VotesProps | null>(null);
+  const [selectedVote, setSelectedVote] = useState<EventVoting | null>(null);
   const [positiveVotesList, setPositiveVotesList] = useState<
     VoteDetailsProps[]
   >([]);
@@ -231,50 +235,134 @@ export default function DeliberativeSessionScreen() {
     fetchEventDetails();
   }, [pathname]);
 
- function getCategoriaPorCodigo(codigo?: string): string {
-  // Lista de códigos para situações iniciais ou burocráticas
-  if (!codigo) return "nao_apreciado";
-  const naoApreciado = [
-    '901', '902', '905', '906', '907', '912', '917', '1010', '1030', 
-    '1110', '1170', '1180', '1185', '1200', '1201', '1210', '1220', 
-    '1221', '1223', '1290', '1291', '1312', '1381'
-  ];
-
-  // Lista de códigos para proposições em trâmite ativo ou aguardando decisão
-  const emApreciacao = [
-    '900', '903', '904', '910', '911', '914', '915', '918', '920', 
-    '921', '922', '924', '925', '926', '927', '928', '929', '932', 
-    '933', '934', '935', '936', '939', '1000', '1020', '1040', '1050', 
-    '1052', '1060', '1070', '1080', '1090', '1150', '1160', '1161', 
-    '1270', '1280', '1293', '1294', '1295', '1296', '1297', '1298', 
-    '1299', '1300', '1301', '1302', '1303', '1304', '1305', '1310', 
-    '1313', '1314', '1350', '1355', '1360', '1380'
-  ];
-
-  // Lista de códigos para proposições com trâmite finalizado ou arquivado
-  const jaApreciado = [
-    '923', '930', '931', '937', '940', '941', '950', '1120', 
-    '1140', '1222', '1230', '1250', '1260', '1285', '1292'
-  ];
-
-  // 1º If: Verifica se é "Não Apreciado"
-  if (naoApreciado.includes(codigo)) {
-    return "nao_apreciado";
-  }
-
-  // 2º If: Verifica se está "Em Apreciação"
-  if (emApreciacao.includes(codigo)) {
-    return "em_apreciacao";
-  }
-
-  // 3º If: Verifica se "Já Apreciado"
-  if (jaApreciado.includes(codigo)) {
-    return "ja_apreciado";
-  }
-
-  return "Código não categorizado";
-}
   console.log("selectedVote: ", selectedVote);
+
+  function getCategoriaPorCodigo(codigo?: string): string {
+    // Lista de códigos para situações iniciais ou burocráticas
+    if (!codigo) return "nao_apreciado";
+    const naoApreciado = [
+      "901",
+      "902",
+      "905",
+      "906",
+      "907",
+      "912",
+      "917",
+      "1010",
+      "1030",
+      "1110",
+      "1170",
+      "1180",
+      "1185",
+      "1200",
+      "1201",
+      "1210",
+      "1220",
+      "1221",
+      "1223",
+      "1290",
+      "1291",
+      "1312",
+      "1381",
+    ];
+
+    // Lista de códigos para proposições em trâmite ativo ou aguardando decisão
+    const emApreciacao = [
+      "900",
+      "903",
+      "904",
+      "910",
+      "911",
+      "914",
+      "915",
+      "918",
+      "920",
+      "921",
+      "922",
+      "924",
+      "925",
+      "926",
+      "927",
+      "928",
+      "929",
+      "932",
+      "933",
+      "934",
+      "935",
+      "936",
+      "939",
+      "1000",
+      "1020",
+      "1040",
+      "1050",
+      "1052",
+      "1060",
+      "1070",
+      "1080",
+      "1090",
+      "1150",
+      "1160",
+      "1161",
+      "1270",
+      "1280",
+      "1293",
+      "1294",
+      "1295",
+      "1296",
+      "1297",
+      "1298",
+      "1299",
+      "1300",
+      "1301",
+      "1302",
+      "1303",
+      "1304",
+      "1305",
+      "1310",
+      "1313",
+      "1314",
+      "1350",
+      "1355",
+      "1360",
+      "1380",
+    ];
+
+    // Lista de códigos para proposições com trâmite finalizado ou arquivado
+    const jaApreciado = [
+      "923",
+      "930",
+      "931",
+      "937",
+      "940",
+      "941",
+      "950",
+      "1120",
+      "1140",
+      "1222",
+      "1230",
+      "1250",
+      "1260",
+      "1285",
+      "1292",
+    ];
+
+    // 1º If: Verifica se é "Não Apreciado"
+    if (naoApreciado.includes(codigo)) {
+      return "nao_apreciado";
+    }
+
+    // 2º If: Verifica se está "Em Apreciação"
+    if (emApreciacao.includes(codigo)) {
+      return "em_apreciacao";
+    }
+
+    // 3º If: Verifica se "Já Apreciado"
+    if (jaApreciado.includes(codigo)) {
+      return "ja_apreciado";
+    }
+
+    return "Código não categorizado";
+  }
 
   // Fetch vote details when a vote is selected
   useEffect(() => {
@@ -335,10 +423,16 @@ export default function DeliberativeSessionScreen() {
 
   const quorumCount = eventDetails?.politicians?.length || 0;
   const propCount = eventDetails?.EventProposition?.length || 0;
-  const findIfRelactorIsPresent = (id: string) => eventDetails?.politicians?.find((politician) => politician.politicianId === id);
-  const findRelactorName = (id: string) => eventDetails?.politicians?.find((politician) => politician.politicianId === id)?.politician.fullName;
+  const findIfRelactorIsPresent = (id: string) =>
+    eventDetails?.politicians?.find(
+      (politician) => politician.politicianId === id,
+    );
+  const findRelactorName = (id: string) =>
+    eventDetails?.politicians?.find(
+      (politician) => politician.politicianId === id,
+    )?.politician.fullName;
   return (
-    <div className="min-h-screen  bg-[#f4f4f4] p-6 font-sans text-[#1a1d1f]">
+    <div className="min-h-screen bg-[#f4f4f4] p-6 font-sans text-[#1a1d1f]">
       <div className="mx-auto space-y-8">
         {/* --- 1. CABEÇALHO DA SESSÃO (DADOS REAIS DA API) --- */}
         <header className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
@@ -544,26 +638,31 @@ export default function DeliberativeSessionScreen() {
                 </h3>
 
                 {/* Scroll Horizontal de Números */}
-                <div className=" w-full flex gap-2 overflow-x-auto pb-2">
-                  {orderPropositions.map((item,index) => (
+                <div className="flex w-full gap-2 overflow-x-auto pb-2">
+                  {orderPropositions.map((item, index) => (
                     <div
                       key={index}
                       className={cn(
                         "group relative flex h-12 w-12 flex-shrink-0 cursor-pointer flex-col items-center justify-center rounded-lg border font-bold transition-all",
-                        getCategoriaPorCodigo(item.proposition?.situationId || "") === "ja_apreciado"
+                        getCategoriaPorCodigo(
+                          item.proposition?.situationId || "",
+                        ) === "ja_apreciado"
                           ? "border-[#3e5f48] bg-[#3e5f48] text-white" // Greenish
-                          : getCategoriaPorCodigo(item.proposition?.situationId || "") === "em_apreciacao"// Highlight active
+                          : getCategoriaPorCodigo(
+                                item.proposition?.situationId || "",
+                              ) === "em_apreciacao" // Highlight active
                             ? "border-[#d4a017] bg-[#d4a017] text-white" // Yellow/Gold
                             : "border-[#4a6b7c] bg-[#4a6b7c] text-white hover:bg-[#3b5563]", // Blueish/Gray
                       )}
                     >
-                      <span className="text-lg">{index +1}</span>
+                      <span className="text-lg">{index + 1}</span>
 
-                      { item.reporterId && findIfRelactorIsPresent(item.reporterId) && (
-                        <div className="absolute right-1/2 -bottom-2 translate-x-1/2 rounded-full bg-white p-0.5 shadow-sm">
-                          <Users size={10} className="text-[#3e5f48]" />
-                        </div>
-                      )}
+                      {item.reporterId &&
+                        findIfRelactorIsPresent(item.reporterId) && (
+                          <div className="absolute right-1/2 -bottom-2 translate-x-1/2 rounded-full bg-white p-0.5 shadow-sm">
+                            <Users size={10} className="text-[#3e5f48]" />
+                          </div>
+                        )}
                     </div>
                   ))}
                 </div>
@@ -590,7 +689,7 @@ export default function DeliberativeSessionScreen() {
               </div>
 
               {/* Box 2: Índice por Proposição e Matéria sobre a mesa */}
-              <div className="rounded-xl border w-full border-gray-100 bg-[#fefcf8] p-6 shadow-sm">
+              <div className="w-full rounded-xl border border-gray-100 bg-[#fefcf8] p-6 shadow-sm">
                 <h3 className="mb-4 flex items-center justify-between border-b border-gray-200 pb-2 font-serif text-lg font-bold text-[#1a1d1f]">
                   <span>2. Índice por Proposição</span>
                 </h3>
@@ -601,60 +700,77 @@ export default function DeliberativeSessionScreen() {
                       onClick={() => setSelectedProposition(prop)}
                       key={idx}
                       className={cn(
-                        "cursor-pointer rounded-md relative border px-3 py-2 text-center text-sm font-bold shadow-sm transition-colors",
-                        getCategoriaPorCodigo(prop.proposition?.situationId || "") === "ja_apreciado"
+                        "relative cursor-pointer rounded-md border px-3 py-2 text-center text-sm font-bold shadow-sm transition-colors",
+                        getCategoriaPorCodigo(
+                          prop.proposition?.situationId || "",
+                        ) === "ja_apreciado"
                           ? "border-[#3e5f48] bg-[#3e5f48] text-white" // Greenish
-                          : getCategoriaPorCodigo(prop.proposition?.situationId || "") === "em_apreciacao"// Highlight active
-                            ? "s border-[#d4a017] bg-[#d4a017] text-white " // Yellow/Gold
+                          : getCategoriaPorCodigo(
+                                prop.proposition?.situationId || "",
+                              ) === "em_apreciacao" // Highlight active
+                            ? "s border-[#d4a017] bg-[#d4a017] text-white" // Yellow/Gold
                             : "border-[#4a6b7c] bg-[#4a6b7c] text-white hover:bg-[#3b5563]", // Blueish/Gray
                       )}
                     >
                       {prop.title}
-                      {prop.reporterId && findIfRelactorIsPresent(prop.reporterId) && (
-                        <div className="absolute right-1/2 -bottom-2 translate-x-1/2 rounded-full bg-white p-0.5 shadow-sm">
-                          <Users size={10} className="text-[#3e5f48]" />
-                        </div>
-                      )}
+                      {prop.reporterId &&
+                        findIfRelactorIsPresent(prop.reporterId) && (
+                          <div className="absolute right-1/2 -bottom-2 translate-x-1/2 rounded-full bg-white p-0.5 shadow-sm">
+                            <Users size={10} className="text-[#3e5f48]" />
+                          </div>
+                        )}
                     </button>
                   ))}
                 </div>
                 {selectedProposition && (
-                   <div className="mt-6 overflow-hidden rounded-lg border border-[#3e5f48] bg-[#eef5f0]">
-                  <div className="bg-[#3e5f48] px-4 py-2 text-center text-sm font-bold tracking-wider text-white uppercase">
-                    Matéria Sobre a Mesa
-                  </div>
-                  <div className="space-y-3 p-4">
-                    <h4 className="text-md font-bold text-[#1a1d1f] underline decoration-gray-300 underline-offset-4">
-                      {selectedProposition.title}
-                    </h4>
-                    <p className="text-sm leading-relaxed text-gray-700">
-                      {selectedProposition.proposition?.description}
-                    </p>
-                    { selectedProposition.proposition?.situationDescription || (selectedProposition.reporterId && findIfRelactorIsPresent(selectedProposition.reporterId) ) ? (
-                      
-                      <div className="rounded border flex flex-col gap-4 border-gray-200 bg-white p-3 text-xs text-gray-500 shadow-sm">
-                     {selectedProposition.proposition?.situationDescription && 
-                     <>
-                      <span className="mb-1 block font-bold text-gray-700">
-                        Situação:
-                      </span>
-                     {selectedProposition.proposition?.situationDescription}
-                     </>
-                     } {selectedProposition.reporterId && findIfRelactorIsPresent(selectedProposition.reporterId) && 
-                      <>
-                      <span className="mb-1 block font-bold text-gray-700">
-                        Relator:
-                      </span>
-                     {findRelactorName(selectedProposition.reporterId)}
-                    </>
-                    }
+                  <div className="mt-6 overflow-hidden rounded-lg border border-[#3e5f48] bg-[#eef5f0]">
+                    <div className="bg-[#3e5f48] px-4 py-2 text-center text-sm font-bold tracking-wider text-white uppercase">
+                      Matéria Sobre a Mesa
                     </div>
-                    ) : null}
+                    <div className="space-y-3 p-4">
+                      <h4 className="text-md font-bold text-[#1a1d1f] underline decoration-gray-300 underline-offset-4">
+                        {selectedProposition.title}
+                      </h4>
+                      <p className="text-sm leading-relaxed text-gray-700">
+                        {selectedProposition.proposition?.description}
+                      </p>
+                      {selectedProposition.proposition?.situationDescription ||
+                      (selectedProposition.reporterId &&
+                        findIfRelactorIsPresent(
+                          selectedProposition.reporterId,
+                        )) ? (
+                        <div className="flex flex-col gap-4 rounded border border-gray-200 bg-white p-3 text-xs text-gray-500 shadow-sm">
+                          {selectedProposition.proposition
+                            ?.situationDescription && (
+                            <>
+                              <span className="mb-1 block font-bold text-gray-700">
+                                Situação:
+                              </span>
+                              {
+                                selectedProposition.proposition
+                                  ?.situationDescription
+                              }
+                            </>
+                          )}{" "}
+                          {selectedProposition.reporterId &&
+                            findIfRelactorIsPresent(
+                              selectedProposition.reporterId,
+                            ) && (
+                              <>
+                                <span className="mb-1 block font-bold text-gray-700">
+                                  Relator:
+                                </span>
+                                {findRelactorName(
+                                  selectedProposition.reporterId,
+                                )}
+                              </>
+                            )}
+                        </div>
+                      ) : null}
+                    </div>
                   </div>
-                </div>
                 )}
                 {/* Matéria Sobre a Mesa (Active Item) */}
-               
               </div>
             </div>
 
@@ -708,13 +824,13 @@ export default function DeliberativeSessionScreen() {
 
                           <td className="px-6 py-4 text-right">
                             <a
-  href={item.proposition?.fullPropositionUrl || "#"}
-  target="_blank"
-  rel="noopener noreferrer"
-  className="text-xs font-medium text-[#749c5b] hover:underline"
->
-  Ver Detalhes
-</a>
+                              href={item.proposition?.fullPropositionUrl || "#"}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="text-xs font-medium text-[#749c5b] hover:underline"
+                            >
+                              Ver Detalhes
+                            </a>
                           </td>
                         </tr>
                       ))}
@@ -1241,29 +1357,6 @@ export default function DeliberativeSessionScreen() {
                   </span>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                  {presenceList.map((p) => (
-                    <div
-                      key={p.id}
-                      className="flex items-center gap-3 rounded-lg border border-gray-100 p-3 shadow-sm"
-                    >
-                      <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-gray-200">
-                        {/* Placeholder avatar if no image */}
-                        <div className="flex h-full w-full items-center justify-center text-gray-400">
-                          <Users size={20} />
-                        </div>
-                      </div>
-                      <div className="overflow-hidden">
-                        <p className="truncate text-sm font-bold text-[#1a1d1f]">
-                          {p.politician.name}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {p.politician.siglaPartido} - {p.politician.siglaUf}
-                        </p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
                 (() => {
                   const filteredList = presenceList.filter((p) => {
                     if (!presenceSearch) return true;
