@@ -1,5 +1,9 @@
 "use client";
-import { EventPropositionProps, VotesProps } from "@/@types/proposition";
+import {
+  EventPropositionProps,
+  VoteDetailsProps,
+  VotesProps,
+} from "@/@types/proposition";
 import { useApiContext } from "@/context/ApiContext";
 import { cn } from "@/lib/utils";
 import * as Progress from "@radix-ui/react-progress";
@@ -8,13 +12,19 @@ import {
   BarChart3,
   Calendar,
   Check,
+  ChevronLeft,
+  ChevronRight,
+  ChevronsLeft,
+  ChevronsRight,
   Clock,
   FileText,
   Info,
   MapPin,
   Mic2,
+  Search,
   Users,
   Video,
+  X,
 } from "lucide-react";
 import moment from "moment";
 import { usePathname } from "next/navigation";
@@ -141,11 +151,28 @@ export default function DeliberativeSessionScreen() {
 
   const [votesList, setVotesList] = useState<VotesProps[]>([]);
   const [loadingVotes, setLoadingVotes] = useState(false);
+  const [selectedVote, setSelectedVote] = useState<VotesProps | null>(null);
+  const [positiveVotesList, setPositiveVotesList] = useState<
+    VoteDetailsProps[]
+  >([]);
+  const [negativeVotesList, setNegativeVotesList] = useState<
+    VoteDetailsProps[]
+  >([]);
+  const [loadingPositiveVotes, setLoadingPositiveVotes] = useState(false);
+  const [loadingNegativeVotes, setLoadingNegativeVotes] = useState(false);
+  const [positiveVotesPage, setPositiveVotesPage] = useState(1);
+  const [negativeVotesPage, setNegativeVotesPage] = useState(1);
+  const [positiveVotesPages, setPositiveVotesPages] = useState(1);
+  const [negativeVotesPages, setNegativeVotesPages] = useState(1);
+  const [positiveVotesSearch, setPositiveVotesSearch] = useState("");
+  const [negativeVotesSearch, setNegativeVotesSearch] = useState("");
 
   const [presenceList, setPresenceList] = useState<PoliticianPresence[]>([]);
   const [loadingPresence, setLoadingPresence] = useState(false);
   const [presencePage, setPresencePage] = useState(1);
   const [presencePages, setPresencePages] = useState(1);
+  const [presenceSearch, setPresenceSearch] = useState("");
+  const [presenceTotal, setPresenceTotal] = useState(0);
 
   // Fetch event details from API
   useEffect(() => {
@@ -157,11 +184,13 @@ export default function DeliberativeSessionScreen() {
       const response = await GetAPI(`/event/details/${eventId}`, true);
       console.log("response: ", response);
       if (response.status === 200) {
-        const event: EventDetailsAPI = response.body; // Adjusted based on backend response structure (body.event)
-        setEventDetails(event);
-         setOrderPropositions(event.EventProposition || []);
-          setVotesList(event.voting || []);
-          setPresenceList(event.politicians || []);
+        setEventDetails(response.body);
+        setOrderPropositions(response.body.EventProposition || []);
+        setVotesList(response.body.voting || []);
+        const politicians = response.body.politicians || [];
+        setPresenceList(politicians);
+        setPresenceTotal(politicians.length);
+        setPresencePages(Math.ceil(politicians.length / 20)); // 20 items per page
       }
       setLoading(false);
     }
@@ -169,7 +198,52 @@ export default function DeliberativeSessionScreen() {
     fetchEventDetails();
   }, [pathname]);
 
- 
+  console.log("selectedVote: ", selectedVote);
+
+  // Fetch vote details when a vote is selected
+  useEffect(() => {
+    async function fetchVoteDetails() {
+      if (!selectedVote || selectedVote.totalVotes === 0) return;
+
+      setLoadingPositiveVotes(true);
+      setLoadingNegativeVotes(true);
+
+      try {
+        const [positiveRes, negativeRes] = await Promise.all([
+          GetAPI(
+            `/voting-politician/positive/${selectedVote.id}?page=${positiveVotesPage}&query=${positiveVotesSearch}`,
+            true,
+          ),
+          GetAPI(
+            `/voting-politician/negative/${selectedVote.id}?page=${negativeVotesPage}&query=${negativeVotesSearch}`,
+            true,
+          ),
+        ]);
+        console.log("positiveRes: ", positiveRes);
+        console.log("negativeRes: ", negativeRes);
+        if (positiveRes.status === 200) {
+          setPositiveVotesList(positiveRes.body.votes || []);
+          setPositiveVotesPages(positiveRes.body.pages || 1);
+        }
+
+        if (negativeRes.status === 200) {
+          setNegativeVotesList(negativeRes.body.votes || []);
+          setNegativeVotesPages(negativeRes.body.pages || 1);
+        }
+      } finally {
+        setLoadingPositiveVotes(false);
+        setLoadingNegativeVotes(false);
+      }
+    }
+
+    fetchVoteDetails();
+  }, [
+    selectedVote,
+    positiveVotesPage,
+    negativeVotesPage,
+    positiveVotesSearch,
+    negativeVotesSearch,
+  ]);
 
   if (loading) {
     return (
@@ -560,30 +634,466 @@ export default function DeliberativeSessionScreen() {
                 </span>
               </div>
             ) : votesList.length === 0 ? (
-              <div className="flex h-40 items-center justify-center text-gray-500">
-                Nenhuma votação registrada.
+              <div className="flex flex-col items-center justify-center py-16 text-center">
+                <div className="mb-4 rounded-full bg-gray-100 p-4 text-gray-400">
+                  <Check size={32} />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-700">
+                  Nenhuma votação registrada
+                </h3>
+                <p className="mt-2 text-sm text-gray-500">
+                  Não há votações registradas para este evento.
+                </p>
               </div>
             ) : (
-              votesList.map((vote) => (
-                <div
-                  key={vote.id}
-                  className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm"
-                >
-                  <h3 className="text-lg font-bold text-[#1a1d1f]">
-                    {vote.title || vote.description}
-                  </h3>
-                  <div className="mt-2 flex gap-4">
-                    <span
-                      className={`text-sm font-bold ${vote.result ? "text-green-600" : "text-red-600"}`}
+              <div className="space-y-4">
+                {votesList.map((vote) => {
+                  const isExpanded = selectedVote?.id === vote.id;
+                  const isSymbolic = vote.totalVotes === 0;
+
+                  return (
+                    <div
+                      key={vote.id}
+                      className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm transition-all"
                     >
-                      Resultado: {vote.result ? "Aprovado" : "Rejeitado"}
-                    </span>
-                    <span className="text-sm text-gray-500">
-                      {moment(vote.date).format("DD/MM/YYYY HH:mm")}
-                    </span>
-                  </div>
-                </div>
-              ))
+                      {/* Vote Header - Always Visible */}
+                      <div
+                        onClick={() =>
+                          setSelectedVote(isExpanded ? null : vote)
+                        }
+                        className="cursor-pointer p-6 transition-colors hover:bg-gray-50"
+                      >
+                        <div className="flex items-start justify-between gap-4">
+                          <div className="flex-1">
+                            <h3 className="text-lg font-bold text-[#1a1d1f]">
+                              {vote.title || vote.description}
+                            </h3>
+                            {vote.proposition && (
+                              <p className="mt-1 text-sm text-gray-600">
+                                {vote.proposition.typeAcronym}{" "}
+                                {vote.proposition.number}/
+                                {vote.proposition.year}
+                              </p>
+                            )}
+                          </div>
+                          <div className="flex items-center gap-3">
+                            {/* Votos ou Simbólica */}
+                            {isSymbolic ? (
+                              <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700">
+                                Votação Simbólica
+                              </span>
+                            ) : (
+                              <div className="flex items-center gap-3 text-sm">
+                                <span className="rounded-md bg-green-50 px-2 py-1 font-semibold text-green-700">
+                                  {vote.positiveVotes} SIM
+                                </span>
+                                <span className="rounded-md bg-red-50 px-2 py-1 font-semibold text-red-700">
+                                  {vote.negativeVotes} NÃO
+                                </span>
+                              </div>
+                            )}
+                            {/* Resultado */}
+                            <span
+                              className={`rounded-full px-3 py-1 text-xs font-bold ${
+                                vote.result
+                                  ? "bg-green-100 text-green-700"
+                                  : "bg-red-100 text-red-700"
+                              }`}
+                            >
+                              {vote.result ? "Aprovado" : "Rejeitado"}
+                            </span>
+                          </div>
+                        </div>
+                        <div className="mt-3 flex items-center gap-2 text-xs text-gray-500">
+                          <Clock size={14} />
+                          {moment(vote.date).format("DD/MM/YYYY HH:mm")}
+                        </div>
+                      </div>
+
+                      {/* Expanded Details - Only when selected and not symbolic */}
+                      {isExpanded && !isSymbolic && (
+                        <div className="border-t border-gray-100 bg-gray-50 p-6">
+                          {/* Detalhes da Votação */}
+                          <div className="mb-6 rounded-lg border border-[#749c5b] bg-white p-4">
+                            <h4 className="mb-3 font-bold text-[#749c5b]">
+                              Detalhes da Votação
+                            </h4>
+                            <div className="space-y-2 text-sm">
+                              {vote.proposition && (
+                                <div>
+                                  <span className="font-semibold text-[#1a1d1f]">
+                                    {vote.proposition.typeAcronym}{" "}
+                                    {vote.proposition.number}/
+                                    {vote.proposition.year}
+                                  </span>
+                                  {vote.proposition.description && (
+                                    <span className="text-gray-600">
+                                      {" "}
+                                      - {vote.proposition.description}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                              {vote.description && (
+                                <div>
+                                  <span className="font-semibold text-gray-700">
+                                    Resultado:{" "}
+                                  </span>
+                                  <span className="text-gray-600">
+                                    {vote.description}
+                                  </span>
+                                </div>
+                              )}
+                              <div className="pt-2 text-xs text-gray-400">
+                                Última atualização:{" "}
+                                {moment(vote.date).format("DD/MM/YYYY HH:mm")}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Vote Statistics */}
+                          <div className="mb-6 rounded-lg border border-gray-200 bg-white p-6">
+                            <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                              {/* Positive Votes Bar */}
+                              <div className="space-y-3">
+                                <div className="flex items-center gap-2">
+                                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-600">
+                                    <Check size={14} className="text-white" />
+                                  </div>
+                                  <h4 className="text-lg font-bold">
+                                    Votos SIM
+                                  </h4>
+                                </div>
+                                <div className="h-3 w-full overflow-hidden rounded-full bg-gray-200">
+                                  <div
+                                    className="h-full bg-green-600 transition-all duration-500"
+                                    style={{
+                                      width: `${(vote.positiveVotes / vote.totalVotes) * 100}%`,
+                                    }}
+                                  />
+                                </div>
+                                <div className="flex items-baseline justify-between">
+                                  <span className="text-3xl font-bold text-green-600">
+                                    {vote.positiveVotes}
+                                  </span>
+                                  <span className="text-sm text-gray-500">
+                                    de {vote.totalVotes} votos
+                                  </span>
+                                </div>
+                              </div>
+
+                              {/* Negative Votes Bar */}
+                              <div className="space-y-3">
+                                <div className="flex items-center gap-2">
+                                  <div className="flex h-6 w-6 items-center justify-center rounded-full bg-red-600">
+                                    <X size={14} className="text-white" />
+                                  </div>
+                                  <h4 className="text-lg font-bold">
+                                    Votos NÃO
+                                  </h4>
+                                </div>
+                                <div className="h-3 w-full overflow-hidden rounded-full bg-gray-200">
+                                  <div
+                                    className="ml-auto h-full bg-red-600 transition-all duration-500"
+                                    style={{
+                                      width: `${(vote.negativeVotes / vote.totalVotes) * 100}%`,
+                                    }}
+                                  />
+                                </div>
+                                <div className="flex items-baseline justify-between">
+                                  <span className="text-3xl font-bold text-red-600">
+                                    {vote.negativeVotes}
+                                  </span>
+                                  <span className="text-sm text-gray-500">
+                                    de {vote.totalVotes} votos
+                                  </span>
+                                </div>
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Lists of Voters */}
+                          <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
+                            {/* Positive Voters */}
+                            <div className="space-y-4">
+                              <div className="flex items-center justify-between">
+                                <h4 className="font-bold text-green-700">
+                                  Votaram SIM
+                                </h4>
+                                <div className="relative">
+                                  <Search
+                                    className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400"
+                                    size={14}
+                                  />
+                                  <input
+                                    type="text"
+                                    placeholder="Buscar..."
+                                    value={positiveVotesSearch}
+                                    onChange={(e) => {
+                                      setPositiveVotesSearch(e.target.value);
+                                      setPositiveVotesPage(1);
+                                    }}
+                                    className="w-48 rounded-lg border border-green-200 bg-white py-1 pr-3 pl-8 text-xs focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none"
+                                  />
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-1 gap-2 xl:grid-cols-2">
+                                {loadingPositiveVotes ? (
+                                  Array.from({ length: 6 }).map((_, i) => (
+                                    <div
+                                      key={i}
+                                      className="h-16 animate-pulse rounded-lg bg-gray-200"
+                                    />
+                                  ))
+                                ) : positiveVotesList.length === 0 ? (
+                                  <div className="col-span-full py-8 text-center text-sm text-gray-500">
+                                    Nenhum voto encontrado
+                                  </div>
+                                ) : (
+                                  positiveVotesList.map((voteDetail) => (
+                                    <div
+                                      key={voteDetail.id}
+                                      className="flex items-center justify-between rounded-lg border border-green-200 bg-white p-3"
+                                    >
+                                      <div className="flex-1">
+                                        <p className="text-sm font-bold text-[#1a1d1f]">
+                                          {voteDetail.politician.name}
+                                        </p>
+                                        <p className="text-xs text-gray-500">
+                                          {voteDetail.politician.politicalParty}
+                                        </p>
+                                      </div>
+                                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-green-600">
+                                        <Check
+                                          size={14}
+                                          className="text-white"
+                                        />
+                                      </div>
+                                    </div>
+                                  ))
+                                )}
+                              </div>
+                              {positiveVotesPages > 1 && (
+                                <div className="flex items-center justify-center gap-2 pt-2">
+                                  <button
+                                    onClick={() => setPositiveVotesPage(1)}
+                                    disabled={positiveVotesPage === 1}
+                                    className="rounded border px-2 py-1 text-xs disabled:opacity-50"
+                                  >
+                                    <ChevronsLeft size={14} />
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      setPositiveVotesPage((p) =>
+                                        Math.max(1, p - 1),
+                                      )
+                                    }
+                                    disabled={positiveVotesPage === 1}
+                                    className="rounded border px-2 py-1 text-xs disabled:opacity-50"
+                                  >
+                                    <ChevronLeft size={14} />
+                                  </button>
+                                  <span className="text-xs text-gray-600">
+                                    {positiveVotesPage} / {positiveVotesPages}
+                                  </span>
+                                  <button
+                                    onClick={() =>
+                                      setPositiveVotesPage((p) =>
+                                        Math.min(positiveVotesPages, p + 1),
+                                      )
+                                    }
+                                    disabled={
+                                      positiveVotesPage === positiveVotesPages
+                                    }
+                                    className="rounded border px-2 py-1 text-xs disabled:opacity-50"
+                                  >
+                                    <ChevronRight size={14} />
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      setPositiveVotesPage(positiveVotesPages)
+                                    }
+                                    disabled={
+                                      positiveVotesPage === positiveVotesPages
+                                    }
+                                    className="rounded border px-2 py-1 text-xs disabled:opacity-50"
+                                  >
+                                    <ChevronsRight size={14} />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+
+                            {/* Negative Voters */}
+                            <div className="space-y-4">
+                              <div className="flex items-center justify-between">
+                                <h4 className="font-bold text-red-700">
+                                  Votaram NÃO
+                                </h4>
+                                <div className="relative">
+                                  <Search
+                                    className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400"
+                                    size={14}
+                                  />
+                                  <input
+                                    type="text"
+                                    placeholder="Buscar..."
+                                    value={negativeVotesSearch}
+                                    onChange={(e) => {
+                                      setNegativeVotesSearch(e.target.value);
+                                      setNegativeVotesPage(1);
+                                    }}
+                                    className="w-48 rounded-lg border border-red-200 bg-white py-1 pr-3 pl-8 text-xs focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none"
+                                  />
+                                </div>
+                              </div>
+                              <div className="grid grid-cols-1 gap-2 xl:grid-cols-2">
+                                {loadingNegativeVotes ? (
+                                  Array.from({ length: 6 }).map((_, i) => (
+                                    <div
+                                      key={i}
+                                      className="h-16 animate-pulse rounded-lg bg-gray-200"
+                                    />
+                                  ))
+                                ) : negativeVotesList.length === 0 ? (
+                                  <div className="col-span-full py-8 text-center text-sm text-gray-500">
+                                    Nenhum voto encontrado
+                                  </div>
+                                ) : (
+                                  negativeVotesList.map((voteDetail) => (
+                                    <div
+                                      key={voteDetail.id}
+                                      className="flex items-center justify-between rounded-lg border border-red-200 bg-white p-3"
+                                    >
+                                      <div className="flex-1">
+                                        <p className="text-sm font-bold text-[#1a1d1f]">
+                                          {voteDetail.politician.name}
+                                        </p>
+                                        <p className="text-xs text-gray-500">
+                                          {voteDetail.politician.politicalParty}
+                                        </p>
+                                      </div>
+                                      <div className="flex h-6 w-6 items-center justify-center rounded-full bg-red-600">
+                                        <X size={14} className="text-white" />
+                                      </div>
+                                    </div>
+                                  ))
+                                )}
+                              </div>
+                              {negativeVotesPages > 1 && (
+                                <div className="flex items-center justify-center gap-2 pt-2">
+                                  <button
+                                    onClick={() => setNegativeVotesPage(1)}
+                                    disabled={negativeVotesPage === 1}
+                                    className="rounded border px-2 py-1 text-xs disabled:opacity-50"
+                                  >
+                                    <ChevronsLeft size={14} />
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      setNegativeVotesPage((p) =>
+                                        Math.max(1, p - 1),
+                                      )
+                                    }
+                                    disabled={negativeVotesPage === 1}
+                                    className="rounded border px-2 py-1 text-xs disabled:opacity-50"
+                                  >
+                                    <ChevronLeft size={14} />
+                                  </button>
+                                  <span className="text-xs text-gray-600">
+                                    {negativeVotesPage} / {negativeVotesPages}
+                                  </span>
+                                  <button
+                                    onClick={() =>
+                                      setNegativeVotesPage((p) =>
+                                        Math.min(negativeVotesPages, p + 1),
+                                      )
+                                    }
+                                    disabled={
+                                      negativeVotesPage === negativeVotesPages
+                                    }
+                                    className="rounded border px-2 py-1 text-xs disabled:opacity-50"
+                                  >
+                                    <ChevronRight size={14} />
+                                  </button>
+                                  <button
+                                    onClick={() =>
+                                      setNegativeVotesPage(negativeVotesPages)
+                                    }
+                                    disabled={
+                                      negativeVotesPage === negativeVotesPages
+                                    }
+                                    className="rounded border px-2 py-1 text-xs disabled:opacity-50"
+                                  >
+                                    <ChevronsRight size={14} />
+                                  </button>
+                                </div>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Message for symbolic votes */}
+                      {isExpanded && isSymbolic && (
+                        <div className="border-t border-gray-100 bg-gray-50 p-6">
+                          {/* Detalhes da Votação */}
+                          <div className="mb-4 rounded-lg border border-[#749c5b] bg-white p-4">
+                            <h4 className="mb-3 font-bold text-[#749c5b]">
+                              Detalhes da Votação
+                            </h4>
+                            <div className="space-y-2 text-sm">
+                              {vote.proposition && (
+                                <div>
+                                  <span className="font-semibold text-[#1a1d1f]">
+                                    {vote.proposition.typeAcronym}{" "}
+                                    {vote.proposition.number}/
+                                    {vote.proposition.year}
+                                  </span>
+                                  {vote.proposition.description && (
+                                    <span className="text-gray-600">
+                                      {" "}
+                                      - {vote.proposition.description}
+                                    </span>
+                                  )}
+                                </div>
+                              )}
+                              {vote.description && (
+                                <div>
+                                  <span className="font-semibold text-gray-700">
+                                    Resultado:{" "}
+                                  </span>
+                                  <span className="text-gray-600">
+                                    {vote.description}
+                                  </span>
+                                </div>
+                              )}
+                              <div className="pt-2 text-xs text-gray-400">
+                                Última atualização:{" "}
+                                {moment(vote.date).format("DD/MM/YYYY HH:mm")}
+                              </div>
+                            </div>
+                          </div>
+
+                          {/* Aviso de votação simbólica */}
+                          <div className="rounded-lg bg-blue-50 p-4 text-center">
+                            <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
+                              <Info size={20} className="text-blue-600" />
+                            </div>
+                            <h4 className="font-bold text-blue-900">
+                              Votação Simbólica
+                            </h4>
+                            <p className="mt-1 text-sm text-blue-700">
+                              Esta votação foi aprovada simbolicamente, sem
+                              registro individual de votos.
+                            </p>
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             )}
           </Tabs.Content>
 
@@ -593,12 +1103,31 @@ export default function DeliberativeSessionScreen() {
             className="animate-in fade-in slide-in-from-bottom-2 space-y-6 duration-500"
           >
             <div className="rounded-xl border border-gray-100 bg-white shadow-sm">
-              <div className="flex items-center justify-between border-b border-gray-100 p-6">
-                <h2 className="text-xl font-bold text-[#1a1d1f]">
-                  Registro de Presença
-                </h2>
-                <div className="text-sm text-gray-500">
-                  Página {presencePage} de {presencePages}
+              <div className="border-b border-gray-100 p-6">
+                <div className="mb-4 flex items-center justify-between">
+                  <h2 className="text-xl font-bold text-[#1a1d1f]">
+                    Registro de Presença
+                  </h2>
+                  <div className="text-sm text-gray-500">
+                    {presenceTotal} parlamentares • Página {presencePage} de{" "}
+                    {presencePages}
+                  </div>
+                </div>
+                <div className="relative">
+                  <Search
+                    className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400"
+                    size={18}
+                  />
+                  <input
+                    type="text"
+                    placeholder="Buscar por nome, partido ou estado..."
+                    value={presenceSearch}
+                    onChange={(e) => {
+                      setPresenceSearch(e.target.value);
+                      setPresencePage(1); // Reset to first page on search
+                    }}
+                    className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pr-4 pl-10 text-sm transition-colors focus:border-[#749c5b] focus:bg-white focus:ring-2 focus:ring-[#749c5b]/20 focus:outline-none"
+                  />
                 </div>
               </div>
 
@@ -609,52 +1138,169 @@ export default function DeliberativeSessionScreen() {
                   </span>
                 </div>
               ) : (
-                <div className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                  {presenceList.map((p) => (
-                    <div
-                      key={p.id}
-                      className="flex items-center gap-3 rounded-lg border border-gray-100 p-3 shadow-sm"
-                    >
-                      <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-gray-200">
-                        {/* Placeholder avatar if no image */}
-                        <div className="flex h-full w-full items-center justify-center text-gray-400">
-                          <Users size={20} />
+                (() => {
+                  const filteredList = presenceList.filter((p) => {
+                    if (!presenceSearch) return true;
+                    const searchLower = presenceSearch.toLowerCase();
+                    return (
+                      p.politician.name.toLowerCase().includes(searchLower) ||
+                      p.politician.politicalParty
+                        ?.toLowerCase()
+                        .includes(searchLower) ||
+                      p.politician.state?.toLowerCase().includes(searchLower) ||
+                      p.politician.uf?.toLowerCase().includes(searchLower)
+                    );
+                  });
+
+                  // Empty state: no data at all
+                  if (presenceList.length === 0) {
+                    return (
+                      <div className="flex flex-col items-center justify-center py-16 text-center">
+                        <div className="mb-4 rounded-full bg-gray-100 p-4 text-gray-400">
+                          <Users size={32} />
                         </div>
-                      </div>
-                      <div className="overflow-hidden">
-                        <p className="truncate text-sm font-bold text-[#1a1d1f]">
-                          {p.politician.name}
-                        </p>
-                        <p className="text-xs text-gray-500">
-                          {p.politician.politicalParty} - {p.politician.state}
+                        <h3 className="text-lg font-semibold text-gray-700">
+                          Nenhuma presença registrada
+                        </h3>
+                        <p className="mt-2 text-sm text-gray-500">
+                          Não há registros de presença para este evento.
                         </p>
                       </div>
+                    );
+                  }
+
+                  // Empty state: search with no results
+                  if (filteredList.length === 0) {
+                    return (
+                      <div className="flex flex-col items-center justify-center py-16 text-center">
+                        <div className="mb-4 rounded-full bg-gray-100 p-4 text-gray-400">
+                          <Search size={32} />
+                        </div>
+                        <h3 className="text-lg font-semibold text-gray-700">
+                          Nenhum resultado encontrado
+                        </h3>
+                        <p className="mt-2 text-sm text-gray-500">
+                          Não encontramos parlamentares com o termo "
+                          {presenceSearch}".
+                        </p>
+                        <button
+                          onClick={() => setPresenceSearch("")}
+                          className="mt-4 rounded-lg bg-[#749c5b] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#658a4e]"
+                        >
+                          Limpar busca
+                        </button>
+                      </div>
+                    );
+                  }
+
+                  // Normal state: show results
+                  return (
+                    <div className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                      {filteredList
+                        .slice((presencePage - 1) * 20, presencePage * 20)
+                        .map((p) => (
+                          <div
+                            key={p.id}
+                            className="flex items-center gap-3 rounded-lg border border-gray-100 p-3 shadow-sm transition-shadow hover:shadow-md"
+                          >
+                            <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-gray-200">
+                              <div className="flex h-full w-full items-center justify-center text-gray-400">
+                                <Users size={20} />
+                              </div>
+                            </div>
+                            <div className="overflow-hidden">
+                              <p className="truncate text-sm font-bold text-[#1a1d1f]">
+                                {p.politician.name}
+                              </p>
+                              <p className="text-xs text-gray-500">
+                                {p.politician.politicalParty} -{" "}
+                                {p.politician.state}
+                              </p>
+                            </div>
+                          </div>
+                        ))}
                     </div>
-                  ))}
-                </div>
+                  );
+                })()
               )}
 
               {/* Pagination Controls */}
-              <div className="flex justify-center gap-2 border-t border-gray-100 p-4">
-                <button
-                  onClick={() =>
-                    setPresencePage((prev) => Math.max(1, prev - 1))
-                  }
-                  disabled={presencePage === 1}
-                  className="rounded border border-gray-200 px-3 py-1 text-sm disabled:opacity-50"
-                >
-                  Anterior
-                </button>
-                <button
-                  onClick={() =>
-                    setPresencePage((prev) => Math.min(presencePages, prev + 1))
-                  }
-                  disabled={presencePage === presencePages}
-                  className="rounded border border-gray-200 px-3 py-1 text-sm disabled:opacity-50"
-                >
-                  Próxima
-                </button>
-              </div>
+              {presenceList.length > 0 &&
+                presenceList.filter((p) => {
+                  if (!presenceSearch) return true;
+                  const searchLower = presenceSearch.toLowerCase();
+                  return (
+                    p.politician.name.toLowerCase().includes(searchLower) ||
+                    p.politician.politicalParty
+                      ?.toLowerCase()
+                      .includes(searchLower) ||
+                    p.politician.state?.toLowerCase().includes(searchLower) ||
+                    p.politician.uf?.toLowerCase().includes(searchLower)
+                  );
+                }).length > 0 && (
+                  <div className="flex items-center justify-between border-t border-gray-100 p-4">
+                    {/* Left side: First and Previous buttons */}
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() => setPresencePage(1)}
+                        disabled={presencePage === 1}
+                        className="flex items-center gap-1 rounded border border-gray-200 px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent"
+                        title="Primeira página"
+                      >
+                        <ChevronsLeft size={16} />
+                        <span className="hidden sm:inline">Início</span>
+                      </button>
+                      <button
+                        onClick={() =>
+                          setPresencePage((prev) => Math.max(1, prev - 1))
+                        }
+                        disabled={presencePage === 1}
+                        className="flex items-center gap-1 rounded border border-gray-200 px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent"
+                        title="Página anterior"
+                      >
+                        <ChevronLeft size={16} />
+                        <span className="hidden sm:inline">Anterior</span>
+                      </button>
+                    </div>
+
+                    {/* Center: Page indicator */}
+                    <div className="flex items-center gap-2">
+                      <span className="text-sm text-gray-600">Página</span>
+                      <span className="rounded-lg bg-[#749c5b] px-3 py-1 text-sm font-bold text-white">
+                        {presencePage}
+                      </span>
+                      <span className="text-sm text-gray-600">
+                        de {presencePages}
+                      </span>
+                    </div>
+
+                    {/* Right side: Next and Last buttons */}
+                    <div className="flex items-center gap-2">
+                      <button
+                        onClick={() =>
+                          setPresencePage((prev) =>
+                            Math.min(presencePages, prev + 1),
+                          )
+                        }
+                        disabled={presencePage === presencePages}
+                        className="flex items-center gap-1 rounded border border-gray-200 px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent"
+                        title="Próxima página"
+                      >
+                        <span className="hidden sm:inline">Próxima</span>
+                        <ChevronRight size={16} />
+                      </button>
+                      <button
+                        onClick={() => setPresencePage(presencePages)}
+                        disabled={presencePage === presencePages}
+                        className="flex items-center gap-1 rounded border border-gray-200 px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent"
+                        title="Última página"
+                      >
+                        <span className="hidden sm:inline">Fim</span>
+                        <ChevronsRight size={16} />
+                      </button>
+                    </div>
+                  </div>
+                )}
             </div>
           </Tabs.Content>
         </Tabs.Root>
