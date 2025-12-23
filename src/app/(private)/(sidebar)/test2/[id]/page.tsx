@@ -72,24 +72,24 @@ interface SessionData {
 }
 
 interface EventProposition {
-   id: string;
-   sequence: number;
-   title: string;
-   topic?: string;
-   proposition?: PropositionDetailsProps; 
-   // Note: The API might return nested proposition details if configured or just basic info
-   // Based on our implementation, we link existing propositions.
+  id: string;
+  sequence: number;
+  title: string;
+  topic?: string;
+  proposition?: PropositionDetailsProps;
+  // Note: The API might return nested proposition details if configured or just basic info
+  // Based on our implementation, we link existing propositions.
 }
 
 interface EventPolitician {
+  id: string;
+  politician: {
     id: string;
-    politician: {
-        id: string;
-        name: string;
-        politicalPartyAcronym: string;
-        state: string;
-        url: string;
-    }
+    name: string;
+    politicalPartyAcronym: string;
+    state: string;
+    url: string;
+  };
 }
 
 // API Event Details Interface
@@ -199,7 +199,7 @@ export default function SessionDetailScreen() {
     null,
   );
   const [sessionData, setSessionData] = useState<SessionData>(mockSession);
-  
+
   // Real Data State
   const [propositions, setPropositions] = useState<EventProposition[]>([]);
   const [speakers, setSpeakers] = useState<Speaker[]>([]);
@@ -212,10 +212,9 @@ export default function SessionDetailScreen() {
 
       setLoading(true);
       const response = await GetAPI(`/event/details/${eventId}`, true);
-      console.log("response get event details",response);
       if (response.status === 200) {
-        const apiEvent: EventDetailsAPI = response.body; 
-        // Note: Check if backend returns { event: ... } or just ... 
+        const apiEvent: EventDetailsAPI = response.body;
+        // Note: Check if backend returns { event: ... } or just ...
         // Based on our implementation, the controller returns the object directly.
         // So `response.body` is the event object.
 
@@ -226,17 +225,22 @@ export default function SessionDetailScreen() {
         const endDate = apiEvent.endDate ? new Date(apiEvent.endDate) : null;
 
         setSessionData({
-          organ: apiEvent.local || apiEvent.department?.name || "Câmara dos Deputados",
+          organ:
+            apiEvent.local ||
+            apiEvent.department?.name ||
+            "Câmara dos Deputados",
           date: apiEvent.startDate,
-          scheduledTime: moment(startDate).format("HH:mm"),
-          realTime: moment(startDate).format("HH:mm"), // Na API da camara, schedule e real costumam ser o mesmo campo no inicio
-          endTime: endDate ? moment(endDate).format("HH:mm") : undefined,
+          scheduledTime: moment(startDate).utc().format("HH:mm"),
+          realTime: moment(startDate).utc().format("HH:mm"), // Na API da camara, schedule e real costumam ser o mesmo campo no inicio
+          endTime: endDate ? moment(endDate).utc().format("HH:mm") : undefined,
           title: apiEvent.eventType?.name,
           subtitle: apiEvent.description,
           authors: [], // Info difícil de extrair diretamente do evento sem parsear description
-          status: apiEvent.situation?.toLowerCase().includes("realizada") || apiEvent.situation?.toLowerCase().includes("encerrada")
-            ? "realizada"
-            : "agendada",
+          status:
+            apiEvent.situation?.toLowerCase().includes("realizada") ||
+            apiEvent.situation?.toLowerCase().includes("encerrada")
+              ? "realizada"
+              : "agendada",
           mediaLink: apiEvent.videoUrl || undefined,
           updatedBy: apiEvent.department?.name || "Secretaria Geral da Mesa",
         });
@@ -247,15 +251,17 @@ export default function SessionDetailScreen() {
         // Set Speakers
         // Map from politicians array to Speaker interface
         if (apiEvent.politicians) {
-            const mappedSpeakers: Speaker[] = apiEvent.politicians.map((ep: EventPolitician, index: number) => ({
-                id: ep.politician.id,
-                position: index + 1,
-                name: ep.politician.name,
-                party: ep.politician.politicalPartyAcronym,
-                state: ep.politician.state,
-                status: 'falou' // Assume everyone linked here spoke or was present
-            }));
-            setSpeakers(mappedSpeakers);
+          const mappedSpeakers: Speaker[] = apiEvent.politicians.map(
+            (ep: EventPolitician, index: number) => ({
+              id: ep.politician.id,
+              position: index + 1,
+              name: ep.politician.name,
+              party: ep.politician.politicalPartyAcronym,
+              state: ep.politician.state,
+              status: "falou", // Assume everyone linked here spoke or was present
+            }),
+          );
+          setSpeakers(mappedSpeakers);
         }
       }
       setLoading(false);
@@ -271,18 +277,18 @@ export default function SessionDetailScreen() {
       : mockSpeeches.filter((s) => s.speakerId === selectedSpeakerId);
 
   if (loading) {
-     return (
-       <div className="min-h-screen bg-[#f4f4f4] p-6 font-sans text-[#1a1d1f]">
-         <div className="mx-auto space-y-8">
-           <div className="h-64 w-full animate-pulse rounded-xl bg-gray-200" />
-           <div className="h-48 w-full animate-pulse rounded-xl bg-gray-200" />
-           <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-             <div className="h-96 w-full animate-pulse rounded-xl bg-gray-200 lg:col-span-1" />
-             <div className="h-96 w-full animate-pulse rounded-xl bg-gray-200 lg:col-span-2" />
-           </div>
-         </div>
-       </div>
-     );
+    return (
+      <div className="min-h-screen bg-[#f4f4f4] p-6 font-sans text-[#1a1d1f]">
+        <div className="mx-auto space-y-8">
+          <div className="h-64 w-full animate-pulse rounded-xl bg-gray-200" />
+          <div className="h-48 w-full animate-pulse rounded-xl bg-gray-200" />
+          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+            <div className="h-96 w-full animate-pulse rounded-xl bg-gray-200 lg:col-span-1" />
+            <div className="h-96 w-full animate-pulse rounded-xl bg-gray-200 lg:col-span-2" />
+          </div>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -343,7 +349,7 @@ export default function SessionDetailScreen() {
                   <User size={14} /> Autoria
                 </span>
                 <span className="truncate font-medium">
-                   {/* Autoria é complexa de extrair, mantendo placeholder se vazio */}
+                  {/* Autoria é complexa de extrair, mantendo placeholder se vazio */}
                   {sessionData.authors.length > 0
                     ? sessionData.authors.join(", ")
                     : "Ver requerimentos"}
@@ -365,41 +371,45 @@ export default function SessionDetailScreen() {
         {/* --- 1.2 BLOCO DE REQUERIMENTOS --- */}
         <section className="relative rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
           {/* REMOVED PLACEHOLDER BANNER */}
-          
+
           <h2 className="mb-4 flex items-center gap-2 text-xl font-bold text-[#1a1d1f]">
             <FileText className="text-[#749c5b]" />
             Requerimentos de Origem
           </h2>
 
           <div className="grid gap-4">
-            {propositions.length > 0 ? propositions.map((prop) => (
-              <div
-                key={prop.id}
-                className="rounded-r-md border-l-4 border-[#749c5b] bg-gray-50 py-2 pl-4"
-              >
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="text-lg font-bold text-[#1a1d1f]">
-                       {prop.title}
-                    </h3>
-                    <p className="mt-1 text-sm text-[#6f767e]">
-                       {prop.topic}
-                    </p>
-                  </div>
-                  {prop.proposition && (
+            {propositions.length > 0 ? (
+              propositions.map((prop) => (
+                <div
+                  key={prop.id}
+                  className="rounded-r-md border-l-4 border-[#749c5b] bg-gray-50 py-2 pl-4"
+                >
+                  <div className="flex items-start justify-between">
+                    <div>
+                      <h3 className="text-lg font-bold text-[#1a1d1f]">
+                        {prop.title}
+                      </h3>
+                      <p className="mt-1 text-sm text-[#6f767e]">
+                        {prop.topic}
+                      </p>
+                    </div>
+                    {prop.proposition && (
                       <a
-                        href={prop.proposition.fullPropositionUrl || '#'}
+                        href={prop.proposition.fullPropositionUrl || "#"}
                         className="flex items-center gap-1 text-sm font-medium text-[#749c5b] hover:underline"
                         target="_blank"
                         rel="noopener noreferrer"
                       >
                         Inteiro Teor <ExternalLink size={14} />
                       </a>
-                  )}
+                    )}
+                  </div>
                 </div>
-              </div>
-            )) : (
-                <p className="text-sm text-gray-500">Nenhum requerimento vinculado a esta sessão.</p>
+              ))
+            ) : (
+              <p className="text-sm text-gray-500">
+                Nenhum requerimento vinculado a esta sessão.
+              </p>
             )}
           </div>
         </section>
@@ -408,7 +418,7 @@ export default function SessionDetailScreen() {
           {/* --- 1.3 ORADORES INSCRITOS --- */}
           <section className="relative h-fit rounded-xl border border-gray-100 bg-white p-6 shadow-sm lg:col-span-1">
             {/* REMOVED PLACEHOLDER BANNER */}
-            
+
             <div className="mb-4 flex items-center justify-between">
               <h2 className="flex items-center gap-2 text-lg font-bold text-[#1a1d1f]">
                 <Users className="text-[#749c5b]" />
@@ -426,29 +436,35 @@ export default function SessionDetailScreen() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {speakers.length > 0 ? speakers.map((speaker, idx) => (
-                    <tr key={speaker.id} className="hover:bg-gray-50">
-                      <td className="p-3 font-medium text-[#6f767e]">
-                        {idx + 1}º
-                      </td>
-                      <td className="p-3">
-                        <div className="font-medium text-[#1a1d1f]">
-                          {speaker.name}
-                        </div>
-                        <div className="text-xs text-[#6f767e]">
-                          {speaker.party}/{speaker.state}
-                        </div>
-                      </td>
-                      <td className="p-3 text-right">
-                        <span
-                          className={`rounded px-2 py-0.5 text-xs font-bold ${speaker.status === "falou" ? "bg-green-100 text-green-700" : ""} ${speaker.status === "inscrito" ? "bg-blue-100 text-blue-700" : ""} ${speaker.status === "desistiu" ? "bg-gray-100 text-gray-500 line-through" : ""} `}
-                        >
-                          {speaker.status}
-                        </span>
+                  {speakers.length > 0 ? (
+                    speakers.map((speaker, idx) => (
+                      <tr key={speaker.id} className="hover:bg-gray-50">
+                        <td className="p-3 font-medium text-[#6f767e]">
+                          {idx + 1}º
+                        </td>
+                        <td className="p-3">
+                          <div className="font-medium text-[#1a1d1f]">
+                            {speaker.name}
+                          </div>
+                          <div className="text-xs text-[#6f767e]">
+                            {speaker.party}/{speaker.state}
+                          </div>
+                        </td>
+                        <td className="p-3 text-right">
+                          <span
+                            className={`rounded px-2 py-0.5 text-xs font-bold ${speaker.status === "falou" ? "bg-green-100 text-green-700" : ""} ${speaker.status === "inscrito" ? "bg-blue-100 text-blue-700" : ""} ${speaker.status === "desistiu" ? "bg-gray-100 text-gray-500 line-through" : ""} `}
+                          >
+                            {speaker.status}
+                          </span>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={3} className="p-4 text-center text-gray-500">
+                        Não foi possível carregar os oradores.
                       </td>
                     </tr>
-                  )) : (
-                      <tr><td colSpan={3} className="p-4 text-center text-gray-500">Nenhum orador registrado.</td></tr>
                   )}
                 </tbody>
               </table>
@@ -460,16 +476,13 @@ export default function SessionDetailScreen() {
           </section>
 
           {/* --- 1.4 TRECHOS POR ORADOR (MOCK COM RADIX) --- */}
-          <section className="relative rounded-xl border border-gray-100 bg-white p-6 shadow-sm lg:col-span-2">
-            
-            {/* PLACEHOLDER BANNER - MANTIDO POIS NÃO FOI IMPLEMENTADO AINDA */}
-            <div className="absolute top-4 right-4 z-10 flex items-center gap-2 rounded-lg border-2 border-orange-300 bg-orange-50 px-3 py-1.5">
-               <Info size={16} className="text-orange-600" />
-               <span className="text-xs font-bold text-orange-800 uppercase">
-                 PLACEHOLDER - API Não Disponível
-               </span>
+          <section className="relative overflow-hidden rounded-xl border border-gray-100 bg-white p-6 shadow-sm lg:col-span-2">
+            <div className="absolute top-0 left-0 flex h-full w-full items-center justify-center gap-2 bg-white/50 backdrop-blur-xs">
+              <Info size={16} className="text-orange-600" />
+              <span className="text-xs font-bold text-orange-800 uppercase">
+                Em Breve - API Não Disponível
+              </span>
             </div>
-
             <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
               <h2 className="flex items-center gap-2 text-lg font-bold text-[#1a1d1f]">
                 <Mic2 className="text-[#749c5b]" />
@@ -506,19 +519,18 @@ export default function SessionDetailScreen() {
 
                       <Select.Separator className="m-[5px] h-[1px] bg-gray-100" />
 
-                      {speakers
-                        .map((speaker) => (
-                          <Select.Item
-                            key={speaker.id}
-                            value={speaker.id}
-                            className="relative flex h-[25px] cursor-pointer items-center rounded-[3px] pr-[35px] pl-[25px] text-[13px] leading-none text-[#1a1d1f] outline-none select-none data-[highlighted]:bg-[#749c5b] data-[highlighted]:text-white"
-                          >
-                            <Select.ItemText>{speaker.name}</Select.ItemText>
-                            <Select.ItemIndicator className="absolute left-0 inline-flex w-[25px] items-center justify-center">
-                              <Check size={14} />
-                            </Select.ItemIndicator>
-                          </Select.Item>
-                        ))}
+                      {speakers.map((speaker) => (
+                        <Select.Item
+                          key={speaker.id}
+                          value={speaker.id}
+                          className="relative flex h-[25px] cursor-pointer items-center rounded-[3px] pr-[35px] pl-[25px] text-[13px] leading-none text-[#1a1d1f] outline-none select-none data-[highlighted]:bg-[#749c5b] data-[highlighted]:text-white"
+                        >
+                          <Select.ItemText>{speaker.name}</Select.ItemText>
+                          <Select.ItemIndicator className="absolute left-0 inline-flex w-[25px] items-center justify-center">
+                            <Check size={14} />
+                          </Select.ItemIndicator>
+                        </Select.Item>
+                      ))}
                     </Select.Viewport>
                   </Select.Content>
                 </Select.Portal>
