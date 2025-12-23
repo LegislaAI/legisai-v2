@@ -274,7 +274,6 @@ export default function SessionDetailScreen() {
 
       setLoading(true);
       const response = await GetAPI(`/event/details/${eventId}`, true);
-      console.log("response123321", response);
       if (response.status === 200) {
         const event: EventDetailsAPI = response.body;
         setEventDetails(event);

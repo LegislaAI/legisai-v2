@@ -155,8 +155,7 @@ export default function DeliberativeSessionScreen() {
 
       setLoading(true);
       const response = await GetAPI(`/event/details/${eventId}`, true);
-      console.log("response 123",response);
-
+      console.log("response: ", response);
       if (response.status === 200) {
         const event: EventDetailsAPI = response.body; // Adjusted based on backend response structure (body.event)
         setEventDetails(event);
@@ -229,7 +228,7 @@ export default function DeliberativeSessionScreen() {
     }
   }, [activeTab, presencePage, pathname]);
 
-  if (loading ) {
+  if (loading) {
     return (
       <div className="min-h-screen bg-[#f4f4f4] p-6 font-sans text-[#1a1d1f]">
         <div className="mx-auto space-y-8">
@@ -261,7 +260,7 @@ export default function DeliberativeSessionScreen() {
                     <MapPin size={16} />
                     {eventDetails?.local || "Local não informado"}
                   </div>
-                  <StatusBadge status={eventDetails?.situation || ""}  />
+                  <StatusBadge status={eventDetails?.situation || ""} />
                 </div>
                 <h1 className="text-2xl leading-tight font-bold md:text-4xl">
                   {eventDetails?.description || eventDetails?.eventType.name}
@@ -318,9 +317,9 @@ export default function DeliberativeSessionScreen() {
                 </span>
                 <span className="flex items-center gap-2 font-semibold">
                   <Clock size={16} className="text-[#749c5b]" />
-                  {moment(eventDetails?.startDate).format("HH:mm")}
+                  {moment(eventDetails?.startDate).utc().format("HH:mm")}
                   {eventDetails?.endDate &&
-                    ` - ${moment(eventDetails?.endDate).format("HH:mm")}`}
+                    ` - ${moment(eventDetails?.endDate).utc().format("HH:mm")}`}
                 </span>
               </div>
               <div>
@@ -388,8 +387,8 @@ export default function DeliberativeSessionScreen() {
                 <p className="mb-4 text-sm leading-relaxed text-[#6f767e]">
                   {/* Fallback description generated from event type */}
                   Sessão do tipo {eventDetails?.eventType.name} realizada no{" "}
-                  {eventDetails?.local}. Consulte a aba &quot;Ordem do Dia&quot; para ver
-                  os itens em pauta.
+                  {eventDetails?.local}. Consulte a aba &quot;Ordem do Dia&quot;
+                  para ver os itens em pauta.
                 </p>
                 <div className="rounded-lg border border-gray-100 bg-gray-50 p-4">
                   <div className="flex items-center justify-between text-sm font-medium">
@@ -580,7 +579,7 @@ export default function DeliberativeSessionScreen() {
                           key={item.id}
                           className="transition-colors hover:bg-gray-50"
                         >
-                          <td className="whitespace-nowrap px-6 py-4 font-bold text-[#749c5b]">
+                          <td className="px-6 py-4 font-bold whitespace-nowrap text-[#749c5b]">
                             {item.title}
                           </td>
                           <td className="px-6 py-4 text-[#1a1d1f]">

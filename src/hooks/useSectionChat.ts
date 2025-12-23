@@ -54,9 +54,9 @@ export interface UseSectionChatParams {
 
   /* flag function-calling */
   shouldUseFunctions?: boolean;
-  
+
   /* Current Screen Type */
-  type?: string; 
+  type?: string;
 }
 
 export function useSectionChat({
@@ -106,9 +106,12 @@ export function useSectionChat({
       aiInstanceRef.current = new GoogleGenAI({ apiKey: API_KEY });
     chatSessionRef.current = null;
     if (aiInstanceRef.current) {
-        // Use prompt from selectedPrompt if available, otherwise fallback
-        const systemInstruction = (selectedPrompt && selectedPrompt.prompt) || selectedPrompt?.description || PromptFunctionTest;
-        
+      // Use prompt from selectedPrompt if available, otherwise fallback
+      const systemInstruction =
+        (selectedPrompt && selectedPrompt.prompt) ||
+        selectedPrompt?.description ||
+        PromptFunctionTest;
+
       chatSessionRef.current = aiInstanceRef.current.chats.create({
         model: "gemini-2.5-flash", // Updated model name if needed, keeping 2.5-flash as per oldfiles if valid, or defaulting to standard
         history: initialHistory,
@@ -123,7 +126,7 @@ export function useSectionChat({
   }, [initialHistory, selectedPrompt, shouldUseFunctions]);
 
   useEffect(() => {
-      setScreenType(type);
+    setScreenType(type);
   }, [type]);
 
   async function handleCreateChat(first: string): Promise<string | null> {
@@ -134,7 +137,6 @@ export function useSectionChat({
         promptId: selectedPrompt?.id,
         type: screenType,
       };
-      console.log("Chamando rota /chat com dados:", payload);
 
       const r = await PostAPI(
         "/chat", // Ensure leading slash
@@ -142,7 +144,6 @@ export function useSectionChat({
         true,
       );
 
-      console.log("Resultado da chamada /chat:", r);
       if (r.status === 200 || r.status === 201) {
         setLoadHistory?.(true);
         const id = r.body.chat.id;
@@ -165,11 +166,8 @@ export function useSectionChat({
         message: msg.text,
         ...msg,
       };
-      console.log(`Chamando rota /message/${id} com dados:`, payload);
 
       await PostAPI(`/message/${id}`, payload, true);
-
-      console.log(`Resultado da chamada /message/${id}: sucesso`);
     } catch (e) {
       console.error("postMessage:", e);
     }
@@ -179,11 +177,9 @@ export function useSectionChat({
     if (!shouldSaveFile) return;
     const form = new FormData();
     form.append("file", f);
-    console.log(`Chamando rota /message/${id}/file com arquivo:`, f.name);
 
     try {
       await PostAPI(`/message/${id}/file`, form, true);
-      console.log(`Resultado da chamada /message/${id}/file: sucesso`);
     } catch (e) {
       console.error("uploadBackend:", e);
     }
@@ -208,9 +204,7 @@ export function useSectionChat({
     setMessages([]);
     setInitialHistory([]);
     try {
-      console.log(`Chamando rota /message/${id} para buscar histórico`);
       const r = await GetAPI(`/message/${id}`, true);
-      console.log(`Resultado da chamada /message/${id}:`, r);
       if (r.status === 200) {
         const histMsgs = r.body.messages.map((m: MessagesFromBackend) => ({
           content: m.text,
@@ -368,8 +362,10 @@ export function useSectionChat({
         const newId = await handleCreateChat(
           inputMessages2 || `Chat com arquivo ${file?.name || ""}`,
         );
-        console.log("newId", newId);
-        if (!newId) throw new Error("Não foi possível criar o chat. Verifique se há um assistente selecionado.");
+        if (!newId)
+          throw new Error(
+            "Não foi possível criar o chat. Verifique se há um assistente selecionado.",
+          );
         curChatId = newId;
       }
 
@@ -385,7 +381,7 @@ export function useSectionChat({
 
       /* TEXT */
       if (inputMessages2.trim()) parts.push({ text: inputMessages2 });
-      
+
       // Save user message to backend
       if (inputMessages2.trim() && curChatId) {
         await handlePostMessage(curChatId, {
@@ -422,7 +418,7 @@ export function useSectionChat({
           .map(({ functionCall }) => ({
             name: functionCall.name ?? "unknown",
             args: functionCall.args ?? {},
-            toolCallId: getCallId(functionCall), 
+            toolCallId: getCallId(functionCall),
           }));
 
         collectedCalls.push(...newCalls);
@@ -455,7 +451,7 @@ export function useSectionChat({
       const reply = streamBufRef.current;
       // Don't clear streamBufRef yet; might need it? No, safe to clear logic-wise, but we just set it.
       // streamBufRef.current = ""; // Don't clear here if we want to inspect it later, but generally OK.
-      
+
       if (!cancelStreamRef.current && curChatId) {
         await handlePostMessage(curChatId, {
           text: reply,
@@ -464,11 +460,16 @@ export function useSectionChat({
         });
       }
     } catch (err) {
-      console.log(err);
+      console.error(err);
       setMessages((prev) =>
         prev.map((m, i) =>
           i === placeholderIndexRef.current
-            ? { ...m, content: "Desculpe, ocorreu um erro. " + (err instanceof Error ? err.message : "") }
+            ? {
+                ...m,
+                content:
+                  "Desculpe, ocorreu um erro. " +
+                  (err instanceof Error ? err.message : ""),
+              }
             : m,
         ),
       );

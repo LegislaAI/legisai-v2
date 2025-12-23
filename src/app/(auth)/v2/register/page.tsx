@@ -1,7 +1,15 @@
 "use client";
 
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Briefcase, Calendar, CreditCard, Lock, Mail, Phone, User } from "lucide-react";
+import {
+  Briefcase,
+  Calendar,
+  CreditCard,
+  Lock,
+  Mail,
+  Phone,
+  User,
+} from "lucide-react";
 import moment from "moment";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
@@ -44,7 +52,7 @@ export default function Register2Page() {
   const onSubmit = async (data: RegisterFormData) => {
     try {
       const birthDate = moment(data.birthDate, "DD/MM/YYYY").toDate();
-      
+
       const payload: RegisterPayload = {
         name: data.name,
         email: data.email,
@@ -54,9 +62,7 @@ export default function Register2Page() {
         profession: data.profession,
         password: data.password,
       };
-      console.log("payload", payload);
       const response = await PostAPI("/user/signup", payload, false);
-      console.log("response", response);
 
       if (response.status === 200 || response.status === 201) {
         toast.success("Conta criada com sucesso! Faça login.");
@@ -71,9 +77,9 @@ export default function Register2Page() {
   };
 
   return (
-    <Card className="w-full max-w-lg animate-fade-in">
+    <Card className="animate-fade-in w-full max-w-lg">
       <div className="mb-6 text-center">
-        <h2 className="text-2xl font-bold text-dark">Crie sua conta</h2>
+        <h2 className="text-dark text-2xl font-bold">Crie sua conta</h2>
         <p className="mt-2 text-sm text-gray-500">
           Preencha os dados abaixo para começar.
         </p>
@@ -88,44 +94,44 @@ export default function Register2Page() {
           {...register("name")}
         />
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
           <Input
             label="Telefone"
             placeholder="(00) 00000-0000"
             icon={<Phone className="h-4 w-4" />}
             error={errors.phone}
             {...register("phone", {
-              onChange: (e) => setValue("phone", maskPhone(e.target.value))
+              onChange: (e) => setValue("phone", maskPhone(e.target.value)),
             })}
           />
-           <Input
+          <Input
             label="Data de Nascimento"
             placeholder="DD/MM/AAAA"
             icon={<Calendar className="h-4 w-4" />}
             error={errors.birthDate}
             {...register("birthDate", {
-              onChange: (e) => setValue("birthDate", maskDate(e.target.value))
+              onChange: (e) => setValue("birthDate", maskDate(e.target.value)),
             })}
           />
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-            <Input
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
+          <Input
             label="CPF / CNPJ"
             placeholder="000.000.000-00"
             icon={<CreditCard className="h-4 w-4" />}
             error={errors.cpfCnpj}
             {...register("cpfCnpj", {
-                onChange: (e) => setValue("cpfCnpj", maskCpfCnpj(e.target.value))
+              onChange: (e) => setValue("cpfCnpj", maskCpfCnpj(e.target.value)),
             })}
-            />
-            <Input
+          />
+          <Input
             label="Profissão"
             placeholder="Ex: Advogado"
             icon={<Briefcase className="h-4 w-4" />}
             error={errors.profession}
             {...register("profession")}
-            />
+          />
         </div>
 
         <Input
@@ -146,11 +152,7 @@ export default function Register2Page() {
           {...register("password")}
         />
 
-        <Button
-          type="submit"
-          className="w-full mt-2"
-          isLoading={isSubmitting}
-        >
+        <Button type="submit" className="mt-2 w-full" isLoading={isSubmitting}>
           Cadastrar
         </Button>
       </form>
@@ -159,7 +161,7 @@ export default function Register2Page() {
         <span className="text-gray-500">Já tem uma conta? </span>
         <Link
           href="/v2/login"
-          className="font-medium text-secondary hover:underline"
+          className="text-secondary font-medium hover:underline"
         >
           Entrar
         </Link>

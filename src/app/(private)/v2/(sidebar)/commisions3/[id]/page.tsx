@@ -216,7 +216,6 @@ export default function DeliberativeSessionScreen() {
 
       setLoading(true);
       const response = await GetAPI(`/event/details/${eventId}`, true);
-      console.log("response123", response);
       if (response.status === 200) {
         const event: EventDetailsAPI = response.body.event;
         setEventDetails(event);

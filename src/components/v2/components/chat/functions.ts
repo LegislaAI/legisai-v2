@@ -6,11 +6,11 @@
 
 import type { ApiContextProps } from "@/context/ApiContext";
 import {
-    Chat,
-    Part,
-    Type,
-    type FunctionDeclaration,
-    type Schema,
+  Chat,
+  Part,
+  Type,
+  type FunctionDeclaration,
+  type Schema,
 } from "@google/genai";
 
 type ApiMethods = Pick<ApiContextProps, "GetAPI" | "PostAPI">;
@@ -62,7 +62,6 @@ export async function handleFunctionCalls(
   const toolResponses: Part[] = [];
 
   for (const { name, args, toolCallId } of functionCalls) {
-    console.log(`Executing tool: ${name}`, args);
     const def = toolRegistry[name];
     try {
       if (!def) throw new Error(`Unknown function: ${name}`);
@@ -168,7 +167,8 @@ registerTool({
     if (number) query += `&number=${number}`;
     if (regime) query += `&regime=${regime}`;
     if (situation) query += `&situation=${situation}`;
-    if (lastMovementDescription) query += `&lastMovementDescription=${lastMovementDescription}`;
+    if (lastMovementDescription)
+      query += `&lastMovementDescription=${lastMovementDescription}`;
     if (authorId) query += `&authorId=${authorId}`;
 
     try {
@@ -176,7 +176,6 @@ registerTool({
         `/proposition/vetorial?searchParams=${searchParam}&page=${page}${query}`,
         false,
       );
-      console.log("vectorSearch result:", result);
       return result.body;
     } catch (error) {
       console.error(error);

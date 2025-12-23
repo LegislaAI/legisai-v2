@@ -102,7 +102,6 @@ export default function SessionListScreen() {
     }
 
     const response = await GetAPI(`/event${queryParams}&type=ALL`, true);
-    console.log("response", response);
     if (response.status === 200) {
       setEvents(response.body.events || []);
       setTotalPages(response.body.pages || 0);
@@ -157,7 +156,7 @@ export default function SessionListScreen() {
   const handleNavigation = (session: SessionSummary) => {
     // Route to test2 for solene, test3 for deliberativa/geral
     if (session.type === "solene") {
-    router.push(`/v2/commisions2/${session.id}`);
+      router.push(`/v2/commisions2/${session.id}`);
     } else {
       router.push(`/v2/commisions3/${session.id}`);
     }
