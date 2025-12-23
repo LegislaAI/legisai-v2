@@ -71,6 +71,27 @@ interface SessionData {
   updatedBy: string; // Responsável pela lista de oradores
 }
 
+interface EventProposition {
+   id: string;
+   sequence: number;
+   title: string;
+   topic?: string;
+   proposition?: PropositionDetailsProps; 
+   // Note: The API might return nested proposition details if configured or just basic info
+   // Based on our implementation, we link existing propositions.
+}
+
+interface EventPolitician {
+    id: string;
+    politician: {
+        id: string;
+        name: string;
+        politicalPartyAcronym: string;
+        state: string;
+        url: string;
+    }
+}
+
 // API Event Details Interface
 interface EventDetailsAPI {
   createdAt: string;
@@ -96,6 +117,8 @@ interface EventDetailsAPI {
   updatedAt: string;
   uri: string;
   videoUrl: string | null;
+  EventProposition: EventProposition[];
+  politicians: EventPolitician[];
 }
 
 interface Speaker {
@@ -122,112 +145,23 @@ interface SpeechSegment {
 // --- MOCK DATA GENERATOR ---
 
 const mockSession: SessionData = {
-  organ: "Plenário Ulysses Guimarães",
-  date: "2023-10-25",
-  scheduledTime: "10:00",
-  realTime: "10:15",
-  endTime: "12:30",
-  title: "Sessão Solene em Homenagem ao Empreendedorismo",
-  subtitle: "Destinada a comemorar o Dia Nacional da Micro e Pequena Empresa.",
-  authors: ["Dep. João Silva", "Dep. Maria Souza"],
-  status: "realizada",
-  mediaLink: "https://camara.leg.br/sessao/video",
+  organ: "Plenário",
+  date: "",
+  scheduledTime: "",
+  realTime: "",
+  endTime: "",
+  title: "",
+  subtitle: "",
+  authors: [],
+  status: "agendada",
+  mediaLink: "",
   updatedBy: "Secretaria Geral da Mesa",
 };
 
-// Mock dos Requerimentos (baseado na interface PropositionDetailsProps)
-const mockPropositions: PropositionDetailsProps[] = [
-  {
-    id: "req-001",
-    number: 452,
-    year: 2023,
-    description:
-      "Requer a realização de Sessão Solene para homenagear os 20 anos da Lei Geral da Micro e Pequena Empresa.",
-    keywords: "Homenagem, Empreendedorismo",
-    createdAt: "2023-09-01",
-    presentationDate: "2023-09-02",
-    lastMovementDate: "2023-09-10",
-    lastProcess: null,
-    fullPropositionUrl: "#",
-    url: "#",
-    updatedAt: "2023-09-10",
-    typeAcronym: "REQ",
-    typeId: {
-      acronym: "REQ",
-      description: "Requerimento",
-      id: "1",
-      name: "Requerimento",
-    },
-    situationId: {
-      acronym: "APR",
-      description: "Aprovada",
-      id: "2",
-      name: "Aprovada",
-    },
-  },
-];
-
-const mockSpeakers: Speaker[] = [
-  {
-    id: "spk-1",
-    position: 1,
-    name: "Dep. João Silva",
-    party: "PL",
-    state: "SP",
-    status: "falou",
-  },
-  {
-    id: "spk-2",
-    position: 2,
-    name: "Dep. Maria Souza",
-    party: "PT",
-    state: "BA",
-    status: "falou",
-  },
-  {
-    id: "spk-3",
-    position: 3,
-    name: "Dep. Carlos Lima",
-    party: "MDB",
-    state: "RJ",
-    status: "desistiu",
-  },
-  {
-    id: "spk-4",
-    position: 4,
-    name: "Dep. Ana Pereira",
-    party: "PP",
-    state: "MG",
-    status: "inscrito",
-  },
-];
-
-// MOCK Section 1.4 (Dados inexistentes na API)
+// MOCK Section 1.4 (Dados inexistentes na API) - Mantido conforme solicitação
 const mockSpeeches: SpeechSegment[] = [
-  {
-    id: "seg-1",
-    speakerId: "spk-1",
-    speakerName: "Dep. João Silva",
-    timeStart: "00:15:30",
-    timeEnd: "00:25:45",
-    videoUrl: "#link-trecho-1",
-    transcription:
-      "Senhor Presidente, nobres colegas. É com grande honra que subo a esta tribuna para celebrar a força motriz da nossa economia: o pequeno empreendedor...",
-    summary:
-      "O deputado destaca a importância econômica das PMEs e agradece a presença das autoridades.",
-  },
-  {
-    id: "seg-2",
-    speakerId: "spk-2",
-    speakerName: "Dep. Maria Souza",
-    timeStart: "00:28:10",
-    timeEnd: "00:40:00",
-    videoUrl: "#link-trecho-2",
-    transcription:
-      "Agradeço a oportunidade. Precisamos olhar para o crédito facilitado. O PRONAMPE foi um avanço, mas precisamos de mais...",
-    summary:
-      "A deputada foca na necessidade de políticas de crédito mais acessíveis para microempresários.",
-  },
+  // ... Deixar vazio ou exemplificar se necessário, mas o usuário disse para não implementar discursos agora.
+  // Vou manter vazio para não mostrar placeholders falsos de discurso.
 ];
 
 // --- COMPONENTES ---
@@ -265,6 +199,10 @@ export default function SessionDetailScreen() {
     null,
   );
   const [sessionData, setSessionData] = useState<SessionData>(mockSession);
+  
+  // Real Data State
+  const [propositions, setPropositions] = useState<EventProposition[]>([]);
+  const [speakers, setSpeakers] = useState<Speaker[]>([]);
 
   // Fetch event details from API
   useEffect(() => {
@@ -274,56 +212,77 @@ export default function SessionDetailScreen() {
 
       setLoading(true);
       const response = await GetAPI(`/event/details/${eventId}`, true);
-
+      console.log("response get event details",response);
       if (response.status === 200) {
-        const event: EventDetailsAPI = response.body.event;
-        setEventDetails(event);
+        const apiEvent: EventDetailsAPI = response.body; 
+        // Note: Check if backend returns { event: ... } or just ... 
+        // Based on our implementation, the controller returns the object directly.
+        // So `response.body` is the event object.
+
+        setEventDetails(apiEvent);
 
         // Map API data to SessionData format
-        const startDate = new Date(event.startDate);
-        const endDate = event.endDate ? new Date(event.endDate) : null;
+        const startDate = new Date(apiEvent.startDate);
+        const endDate = apiEvent.endDate ? new Date(apiEvent.endDate) : null;
 
         setSessionData({
-          organ: event.local,
-          date: event.startDate,
+          organ: apiEvent.local || apiEvent.department?.name || "Câmara dos Deputados",
+          date: apiEvent.startDate,
           scheduledTime: moment(startDate).format("HH:mm"),
-          realTime: moment(startDate).format("HH:mm"),
+          realTime: moment(startDate).format("HH:mm"), // Na API da camara, schedule e real costumam ser o mesmo campo no inicio
           endTime: endDate ? moment(endDate).format("HH:mm") : undefined,
-          title: event.eventType.name,
-          subtitle: event.description,
-          authors: [], // Not available in API - keep empty for now
-          status: event.situation.toLowerCase().includes("realizada")
+          title: apiEvent.eventType?.name,
+          subtitle: apiEvent.description,
+          authors: [], // Info difícil de extrair diretamente do evento sem parsear description
+          status: apiEvent.situation?.toLowerCase().includes("realizada") || apiEvent.situation?.toLowerCase().includes("encerrada")
             ? "realizada"
             : "agendada",
-          mediaLink: event.videoUrl || undefined,
-          updatedBy: event.department.name || "Secretaria Geral da Mesa",
+          mediaLink: apiEvent.videoUrl || undefined,
+          updatedBy: apiEvent.department?.name || "Secretaria Geral da Mesa",
         });
+
+        // Set Propositions
+        setPropositions(apiEvent.EventProposition || []);
+
+        // Set Speakers
+        // Map from politicians array to Speaker interface
+        if (apiEvent.politicians) {
+            const mappedSpeakers: Speaker[] = apiEvent.politicians.map((ep: EventPolitician, index: number) => ({
+                id: ep.politician.id,
+                position: index + 1,
+                name: ep.politician.name,
+                party: ep.politician.politicalPartyAcronym,
+                state: ep.politician.state,
+                status: 'falou' // Assume everyone linked here spoke or was present
+            }));
+            setSpeakers(mappedSpeakers);
+        }
       }
       setLoading(false);
     }
 
     fetchEventDetails();
-  }, [pathname]);
+  }, [pathname, GetAPI]);
 
-  // Filtragem do Mock da seção 1.4
+  // Filtragem do Mock da seção 1.4 (Mantendo vazio/mock por enquanto)
   const filteredSpeeches =
     selectedSpeakerId === "all"
       ? mockSpeeches
       : mockSpeeches.filter((s) => s.speakerId === selectedSpeakerId);
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-[#f4f4f4] p-6 font-sans text-[#1a1d1f]">
-        <div className="mx-auto space-y-8">
-          <div className="h-64 w-full animate-pulse rounded-xl bg-gray-200" />
-          <div className="h-48 w-full animate-pulse rounded-xl bg-gray-200" />
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-            <div className="h-96 w-full animate-pulse rounded-xl bg-gray-200 lg:col-span-1" />
-            <div className="h-96 w-full animate-pulse rounded-xl bg-gray-200 lg:col-span-2" />
-          </div>
-        </div>
-      </div>
-    );
+     return (
+       <div className="min-h-screen bg-[#f4f4f4] p-6 font-sans text-[#1a1d1f]">
+         <div className="mx-auto space-y-8">
+           <div className="h-64 w-full animate-pulse rounded-xl bg-gray-200" />
+           <div className="h-48 w-full animate-pulse rounded-xl bg-gray-200" />
+           <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
+             <div className="h-96 w-full animate-pulse rounded-xl bg-gray-200 lg:col-span-1" />
+             <div className="h-96 w-full animate-pulse rounded-xl bg-gray-200 lg:col-span-2" />
+           </div>
+         </div>
+       </div>
+     );
   }
 
   return (
@@ -384,9 +343,10 @@ export default function SessionDetailScreen() {
                   <User size={14} /> Autoria
                 </span>
                 <span className="truncate font-medium">
+                   {/* Autoria é complexa de extrair, mantendo placeholder se vazio */}
                   {sessionData.authors.length > 0
                     ? sessionData.authors.join(", ")
-                    : "Informação indisponível"}
+                    : "Ver requerimentos"}
                 </span>
               </div>
             </div>
@@ -404,20 +364,15 @@ export default function SessionDetailScreen() {
 
         {/* --- 1.2 BLOCO DE REQUERIMENTOS --- */}
         <section className="relative rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
-          {/* PLACEHOLDER BANNER */}
-          <div className="absolute top-4 right-4 z-10 flex items-center gap-2 rounded-lg border-2 border-orange-300 bg-orange-50 px-3 py-1.5">
-            <Info size={16} className="text-orange-600" />
-            <span className="text-xs font-bold text-orange-800 uppercase">
-              PLACEHOLDER - API Não Disponível
-            </span>
-          </div>
+          {/* REMOVED PLACEHOLDER BANNER */}
+          
           <h2 className="mb-4 flex items-center gap-2 text-xl font-bold text-[#1a1d1f]">
             <FileText className="text-[#749c5b]" />
             Requerimentos de Origem
           </h2>
 
           <div className="grid gap-4">
-            {mockPropositions.map((prop) => (
+            {propositions.length > 0 ? propositions.map((prop) => (
               <div
                 key={prop.id}
                 className="rounded-r-md border-l-4 border-[#749c5b] bg-gray-50 py-2 pl-4"
@@ -425,38 +380,39 @@ export default function SessionDetailScreen() {
                 <div className="flex items-start justify-between">
                   <div>
                     <h3 className="text-lg font-bold text-[#1a1d1f]">
-                      {prop.typeAcronym} {prop.number}/{prop.year}
+                       {prop.title}
                     </h3>
                     <p className="mt-1 text-sm text-[#6f767e]">
-                      {prop.description}
+                       {prop.topic}
                     </p>
                   </div>
-                  <a
-                    href={prop.fullPropositionUrl}
-                    className="flex items-center gap-1 text-sm font-medium text-[#749c5b] hover:underline"
-                  >
-                    Inteiro Teor <ExternalLink size={14} />
-                  </a>
+                  {prop.proposition && (
+                      <a
+                        href={prop.proposition.fullPropositionUrl || '#'}
+                        className="flex items-center gap-1 text-sm font-medium text-[#749c5b] hover:underline"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                      >
+                        Inteiro Teor <ExternalLink size={14} />
+                      </a>
+                  )}
                 </div>
               </div>
-            ))}
+            )) : (
+                <p className="text-sm text-gray-500">Nenhum requerimento vinculado a esta sessão.</p>
+            )}
           </div>
         </section>
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           {/* --- 1.3 ORADORES INSCRITOS --- */}
           <section className="relative h-fit rounded-xl border border-gray-100 bg-white p-6 shadow-sm lg:col-span-1">
-            {/* PLACEHOLDER BANNER */}
-            <div className="absolute top-4 right-4 z-10 flex items-center gap-2 rounded-lg border-2 border-orange-300 bg-orange-50 px-3 py-1.5">
-              <Info size={16} className="text-orange-600" />
-              <span className="text-xs font-bold text-orange-800 uppercase">
-                PLACEHOLDER - API Não Disponível
-              </span>
-            </div>
+            {/* REMOVED PLACEHOLDER BANNER */}
+            
             <div className="mb-4 flex items-center justify-between">
               <h2 className="flex items-center gap-2 text-lg font-bold text-[#1a1d1f]">
                 <Users className="text-[#749c5b]" />
-                Oradores ({mockSpeakers.length})
+                Oradores ({speakers.length})
               </h2>
             </div>
 
@@ -470,10 +426,10 @@ export default function SessionDetailScreen() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {mockSpeakers.map((speaker) => (
+                  {speakers.length > 0 ? speakers.map((speaker, idx) => (
                     <tr key={speaker.id} className="hover:bg-gray-50">
                       <td className="p-3 font-medium text-[#6f767e]">
-                        {speaker.position}º
+                        {idx + 1}º
                       </td>
                       <td className="p-3">
                         <div className="font-medium text-[#1a1d1f]">
@@ -491,7 +447,9 @@ export default function SessionDetailScreen() {
                         </span>
                       </td>
                     </tr>
-                  ))}
+                  )) : (
+                      <tr><td colSpan={3} className="p-4 text-center text-gray-500">Nenhum orador registrado.</td></tr>
+                  )}
                 </tbody>
               </table>
             </div>
@@ -503,13 +461,15 @@ export default function SessionDetailScreen() {
 
           {/* --- 1.4 TRECHOS POR ORADOR (MOCK COM RADIX) --- */}
           <section className="relative rounded-xl border border-gray-100 bg-white p-6 shadow-sm lg:col-span-2">
-            {/* PLACEHOLDER BANNER */}
+            
+            {/* PLACEHOLDER BANNER - MANTIDO POIS NÃO FOI IMPLEMENTADO AINDA */}
             <div className="absolute top-4 right-4 z-10 flex items-center gap-2 rounded-lg border-2 border-orange-300 bg-orange-50 px-3 py-1.5">
-              <Info size={16} className="text-orange-600" />
-              <span className="text-xs font-bold text-orange-800 uppercase">
-                PLACEHOLDER - API Não Disponível
-              </span>
+               <Info size={16} className="text-orange-600" />
+               <span className="text-xs font-bold text-orange-800 uppercase">
+                 PLACEHOLDER - API Não Disponível
+               </span>
             </div>
+
             <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
               <h2 className="flex items-center gap-2 text-lg font-bold text-[#1a1d1f]">
                 <Mic2 className="text-[#749c5b]" />
@@ -546,8 +506,7 @@ export default function SessionDetailScreen() {
 
                       <Select.Separator className="m-[5px] h-[1px] bg-gray-100" />
 
-                      {mockSpeakers
-                        .filter((s) => s.status === "falou")
+                      {speakers
                         .map((speaker) => (
                           <Select.Item
                             key={speaker.id}

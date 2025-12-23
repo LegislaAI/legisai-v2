@@ -82,7 +82,7 @@ export default function ProceduresPage() {
                                 activeChatId={activeChatId}
                                 selectedPrompt={selectedPrompt}
                                 onChatCreated={fetchChats}
-                                type="proposition" 
+                                type="ai" 
                             />
                         </div>
                     </div>

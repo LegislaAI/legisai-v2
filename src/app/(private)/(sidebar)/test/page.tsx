@@ -101,7 +101,7 @@ export default function SessionListScreen() {
       queryParams += `&date=${moment(dateRange.from).format("YYYY-MM-DD")}`;
     }
 
-    const response = await GetAPI(`/event${queryParams}&type=PLENARY`, true);
+    const response = await GetAPI(`/event${queryParams}&type=ALL`, true);
 
     if (response.status === 200) {
       setEvents(response.body.events || []);
