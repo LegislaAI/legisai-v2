@@ -18,6 +18,8 @@
     }
   }
 
+
+
   @keyframes fade-out {
     from {
       opacity: 1;
@@ -154,6 +156,15 @@
     cursor: pointer;
     transition: all 300ms;
   }
+}
+  html {
+  scroll-snap-type: y proximity;
+  scroll-padding-top: 80px;
+}
+
+.section {
+  scroll-snap-align: start;
+
 }
 .swiper-slide {
   max-width: fit-content;

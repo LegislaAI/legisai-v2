@@ -1,7 +1,7 @@
 "use client";
 
 import { useSectionChat } from "@/hooks/useSectionChat";
-import { Bot, ChevronLeft, File, History, Menu, Mic, Paperclip, Plus, Send, StopCircle, X } from "lucide-react";
+import { Bot, File, Menu, Mic, Paperclip, Send, StopCircle, X } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
  
@@ -9,9 +9,7 @@ import { Avatar, AvatarFallback } from "@/components/v2/components/ui/avatar";
 import { Button } from "@/components/v2/components/ui/Button";
 import { ScrollArea } from "@/components/v2/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/v2/components/ui/tooltip";
-import { useApiContext } from "@/context/ApiContext";
 import { cn } from "@/lib/utils";
-import moment from "moment";
 import remarkGfm from "remark-gfm";
 import { Prompt } from "./types";
 
@@ -22,22 +20,21 @@ const MOCK_HISTORY_FALLBACK = [
 
 interface SectionGeminiProps {
   activeChatId?: string | null;
-  selectedPrompt?: Prompt | null;
+  selectedPrompt?: Prompt | null; 
   onChatCreated?: () => void;
-  type?: string; 
 }
 
-export function SectionGemini({ activeChatId, selectedPrompt, onChatCreated, type = "ai" }: SectionGeminiProps) {
-    const { GetAPI } = useApiContext();
-    const [historyList, setHistoryList] = useState<{ id: string, name: string, createdAt: string }[]>([]);
+export function SectionAi({ activeChatId, selectedPrompt, onChatCreated}: SectionGeminiProps) {
     
     // Internal state to trigger hook reloads
     const [loadNewChat, setLoadNewChat] = useState(false);
     const [loadOldChat, setLoadOldChat] = useState<string | null>(null);
     const [loadHistory, setLoadHistory] = useState(false);
-
+    console.log("activeChatId", activeChatId)
+    console.log("selectedPrompt", selectedPrompt)
     const isInputDisabled = !activeChatId && !selectedPrompt; // Disable if new chat but no prompt selected
-
+    console.log("activeChatId", activeChatId) 
+    console.log("selectedPrompt", selectedPrompt)
     // Initial load sync
     useEffect(() => {
         if (activeChatId) {
@@ -46,7 +43,11 @@ export function SectionGemini({ activeChatId, selectedPrompt, onChatCreated, typ
             setLoadNewChat(true);
         }
     }, [activeChatId]);
-
+    useEffect(() => {
+        if (selectedPrompt) {
+            setLoadNewChat(true);
+        }
+    }, [selectedPrompt]);
     const {
         messages,
         loading,
@@ -60,6 +61,7 @@ export function SectionGemini({ activeChatId, selectedPrompt, onChatCreated, typ
         startRecording,
         stopRecording,
         handleSendMessage,
+        handleNewChat,
         chatId
     } = useSectionChat({
         loadNewChat,
@@ -72,7 +74,7 @@ export function SectionGemini({ activeChatId, selectedPrompt, onChatCreated, typ
         shouldSaveMessage: true,
         shouldSaveFile: true,
         shouldUseFunctions: true,
-        type: type,
+        type: "ai",
     });
 
     // Notify parent if chat created (checking if chatId changed from empty to something)
@@ -87,11 +89,10 @@ export function SectionGemini({ activeChatId, selectedPrompt, onChatCreated, typ
   const fileInputRef = useRef<HTMLInputElement>(null);
 
   // Auto-scroll
-  useEffect(() => {
-     if(scrollRef.current) scrollRef.current.scrollIntoView({ behavior: "smooth" });
-  }, [messages, loading]);
+//   useEffect(() => {
+//      if(scrollRef.current) scrollRef.current.scrollIntoView({ behavior: "smooth" });
+//   }, [messages, loading]);
 
-  // Handle Resize for History Sidebar
   useEffect(() => {
     const handleResize = () => {
         if (window.innerWidth < 768) {
@@ -105,20 +106,7 @@ export function SectionGemini({ activeChatId, selectedPrompt, onChatCreated, typ
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const fetchSidebarHistory = async () => {
-      try {
-          const res = await GetAPI(`/chat?page=1&type=${type}`, true);
-          if (res.status === 200) {
-              setHistoryList(res.body.chats || []);
-          }
-      } catch (e) {
-          console.error(e);
-      }
-  };
 
-  useEffect(() => {
-      fetchSidebarHistory();
-  }, [loadHistory, type]);
 
 
   // Preserving the exact UI structure from the previous file
@@ -132,55 +120,7 @@ export function SectionGemini({ activeChatId, selectedPrompt, onChatCreated, typ
       )}
 
       {/* Internal Sidebar for Chat History */}
-      <div 
-        className={cn(
-            "bg-white md:bg-gray-50/50 border-gray-100 transition-all duration-300 absolute md:relative inset-y-0 left-0 z-30 flex flex-col overflow-hidden shrink-0 shadow-xl md:shadow-none",
-            showHistory ? 'w-[85%] md:w-64 border-r translate-x-0' : 'w-0 -translate-x-full md:translate-x-0 md:w-0'
-        )}
-      >
-          <div className="p-4 flex flex-col gap-3 min-w-[240px]">
-             <div className="flex items-center justify-between">
-                 <h3 className=" font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                     <History size={14} /> Histórico
-                 </h3>
-                 <Button variant="ghost"  className="h-6 w-6" onClick={() => setShowHistory(false)}>
-                     <ChevronLeft size={14} />
-                 </Button>
-             </div>
-             
-             <Button 
-                onClick={() => { setLoadNewChat(true); if(window.innerWidth < 768) setShowHistory(false); }}
-                className="w-full bg-secondary text-white hover:bg-secondary/90 shadow-sm border border-transparent"
-             >
-                 <Plus className="h-4 w-4 mr-2" /> Novo Chat
-             </Button>
-          </div>
 
-          <ScrollArea className="flex-1 px-3 min-w-[240px]">
-              <div className="space-y-1 pb-4">
-                  {(historyList.length > 0 ? historyList : MOCK_HISTORY_FALLBACK).map(chat => (
-                      <button
-                         key={chat.id}
-                         onClick={() => { 
-                             setLoadOldChat(chat.id); 
-                             if(window.innerWidth < 768) setShowHistory(false);
-                         }}
-                         className={cn(
-                             "w-full text-left p-3 rounded-lg  transition-all border",
-                            loadOldChat === chat.id 
-                                ? "bg-white border-gray-200 shadow-sm ring-1 ring-secondary/20" 
-                                : "border-transparent hover:bg-white hover:shadow-sm"
-                         )}
-                      >
-                          <div className="font-medium text-gray-700 truncate">{chat?.name}</div>
-                          <div className="flex items-center justify-between mt-1">
-                              <span className=" text-gray-400">{moment(chat?.createdAt).format("DD/MM HH:mm")}</span>
-                          </div>
-                      </button>
-                  ))}
-              </div>
-          </ScrollArea>
-      </div>
 
       {/* 2. MAIN CHAT AREA */}
       <div className="flex-1 flex flex-col min-w-0 bg-white relative">
@@ -196,21 +136,10 @@ export function SectionGemini({ activeChatId, selectedPrompt, onChatCreated, typ
         )}
 
         {/* HEADER */}
-        <div className="flex items-center justify-between p-4 border-b border-gray-100 bg-white/80 backdrop-blur-md z-10">
-             {/* Left: Avatar + Title */}
-             <div className={cn("flex items-center gap-3 transition-all", !showHistory ? 'ml-12 md:ml-0' : '')}>
-                 <Avatar className="h-10 w-10 ring-2 ring-white shadow-md bg-gradient-to-br from-secondary to-green-700">
-                     <AvatarFallback className="bg-transparent text-white"><Bot size={20} /></AvatarFallback>
-                 </Avatar>
-                 <div className="">
-                     <h2 className="font-bold text-dark leading-tight text-lg">Legis AI</h2>
-                     <p className=" text-gray-500">{selectedPrompt?.name || "Assistente Inteligente"}</p>
-                 </div>
-             </div>
-        </div>
+        
 
         {/* MESSAGES */}
-        <ScrollArea className="flex-1 p-4 bg-[#fcfcfc]">
+        <ScrollArea onScroll={(e) => e.preventDefault()} className="flex-1 p-4 bg-[#fcfcfc]">
             <div className=" space-y-6 pb-4">
                 {messages.length === 0 && !loading && (
                     <div className="flex flex-col items-center justify-center min-h-[300px] text-center space-y-6 animate-in fade-in zoom-in duration-500">

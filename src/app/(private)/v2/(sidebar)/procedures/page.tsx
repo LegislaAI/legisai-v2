@@ -1,7 +1,7 @@
 "use client";
 
 import { useChatPage } from "@/components/v2/components/chat/chat-history-handler";
-import { SectionGemini } from "@/components/v2/components/chat/SectionGemini";
+import { SectionProposition } from "@/components/v2/components/chat/SectionProposition";
 import { cn } from "@/lib/utils";
 import { Bot } from "lucide-react";
 import { useEffect, useState } from "react";
@@ -9,10 +9,8 @@ import { useEffect, useState } from "react";
 export default function ProceduresPage() {
     // Initialize hook with "proposition" type
     const { 
-        chats, 
         prompts, 
         activeChatId, 
-        handleSelectChat, 
         handleSelectPrompt,
         setActiveChatId,
         fetchChats,
@@ -43,11 +41,6 @@ export default function ProceduresPage() {
         return () => window.removeEventListener("resize", handleResize);
     }, []);
 
-    const handleNewChat = () => {
-        setActiveChatId(null);
-        if (prompts.length > 0) handleSelectPrompt(prompts[0]);
-        if (window.innerWidth < 768) setSidebarOpen(false);
-    };
 
     return (
         <div className="flex h-[calc(100vh-120px)] overflow-hidden bg-[#f4f4f4] rounded-tl-2xl relative">
@@ -69,20 +62,21 @@ export default function ProceduresPage() {
                                 <div className={cn("transition-all")}>
                                      <h3 className="font-bold text-dark flex items-center gap-2">
                                         <Bot size={40} className="text-secondary" />
+                                        
                                         Inteligência artificial treinada com dados da Câmara legislativa
                                      </h3>
-                                    
+                                     
                                 </div>
                             </div>
                         </div>
 
                         {/* Chat Section */}
                         <div className="flex-1 overflow-hidden">
-                            <SectionGemini 
+                            <SectionProposition 
                                 activeChatId={activeChatId}
                                 selectedPrompt={selectedPrompt}
                                 onChatCreated={fetchChats}
-                                type="ai" 
+                                type="proposition" 
                             />
                         </div>
                     </div>

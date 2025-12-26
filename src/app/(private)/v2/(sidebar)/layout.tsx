@@ -19,7 +19,7 @@ function LayoutContent({
             <Header />
             <main 
                 className={cn(
-                    "min-h-screen   p-4 md:p-8 pt-20 md:pt-20 transition-all duration-300",
+                    "min-h-screen   p-4 md:p-8 pt-20 md:pt-20 md:pb-0 pb-0 transition-all duration-300",
                     isDesktopExpanded ? "md:ml-64" : "md:ml-20"
                 )}
             >

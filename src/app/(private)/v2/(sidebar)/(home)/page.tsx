@@ -17,16 +17,18 @@ export default function HomePage() {
       </div>
 
       {/* Section 1: Politician Dashboard */}
-      <section>
+      <section className="">
         <Section1 />
       </section>
-
-      {/* Section 2: AI Chat & Tutorials */}
-      <div className="grid grid-cols-1  lg:grid-cols-3 w-full p-0  gap-6">
-        <div className=" col-span-2 lg:col-span-3 w-full flex">
+      <div className="section"/>
+ <div className="">
                 <AiChat />
         </div>
+<div className="section"/>
 
+      {/* Section 2: AI Chat & Tutorials */}
+      <div className="grid grid-cols-1 section  lg:grid-cols-3 w-full p-0  gap-6">
+       
         {/* Tutorials - Takes 1 col */}
         <div className="col-span-2 lg:col-span-3 space-y-6">
            <Tutorials />

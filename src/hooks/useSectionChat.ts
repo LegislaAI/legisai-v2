@@ -99,7 +99,7 @@ export function useSectionChat({
   const chatSessionRef = useRef<ReturnType<
     GoogleGenAI["chats"]["create"]
   > | null>(null);
-
+console.log("selectedPrompt aqui   ", selectedPrompt)
   /* ─────────────────────────────── INIT GEMINI ─────────────────────────────── */
   useEffect(() => {
     if (!aiInstanceRef.current)
@@ -113,7 +113,7 @@ export function useSectionChat({
         PromptFunctionTest;
 
       chatSessionRef.current = aiInstanceRef.current.chats.create({
-        model: "gemini-2.5-flash", // Updated model name if needed, keeping 2.5-flash as per oldfiles if valid, or defaulting to standard
+        model: "gemini-2.5-flash", 
         history: initialHistory,
         config: {
           systemInstruction: systemInstruction,

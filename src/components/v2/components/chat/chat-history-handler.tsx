@@ -31,7 +31,13 @@ export function useChatPage(type: string = "ai") {
   const fetchChats = async () => {
     setLoadingChats(true);
     try {
-      const response = await GetAPI(`/chat?page=1&type=${type}`, true);
+       let endpoint = "";
+    if (type === "ai") endpoint = "/chat/ai?page=1";
+    if (type === "proposition") endpoint = "/chat/proposition?page=1";
+    if (type === "prediction") endpoint = "/chat/prediction?page=1";
+    console.log("endpoint", endpoint)
+      const response = await GetAPI(endpoint, true);
+      console.log("response", response)
       if (response.status === 200) {
         setChats(response.body.chats || []);
       }
@@ -46,7 +52,13 @@ export function useChatPage(type: string = "ai") {
   const fetchPrompts = async () => {
     setLoadingPrompts(true);
     try {
-      const response = await GetAPI(`/prompt?&types=${type}`, true); 
+      let endpoint = "";
+      if (type === "ai") endpoint = "/prompt?types=ai";
+      if (type === "proposition") endpoint = "/prompt?&types=proposition";
+      if (type === "prediction") endpoint = "/prompt?&types=prediction";
+      const response = await GetAPI(endpoint, true); 
+      console.log("endpoint", endpoint)
+      console.log("response get prompts", response)
       if (response.status === 200) {
          setPrompts(response.body.prompts || []);
       }

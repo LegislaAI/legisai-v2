@@ -700,7 +700,7 @@ export default function DeliberativeSessionScreen() {
                     {/* Coluna 2: Transcrição e Destaques */}
                     <div className="space-y-4 lg:col-span-2">
                       <div>
-                        <span className="mb-2 block flex items-center gap-2 text-xs font-bold tracking-wider text-[#1a1d1f] uppercase">
+                        <span className="mb-2  flex items-center gap-2 text-xs font-bold tracking-wider text-[#1a1d1f] uppercase">
                           <Quote size={12} /> Frases em Destaque
                         </span>
                         <div className="grid gap-2">
