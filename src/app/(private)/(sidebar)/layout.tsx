@@ -1,23 +1,44 @@
-import { Header } from "@/components/Header";
-import { MobileSidebar } from "@/components/MobileSidebar";
-import { PoliticianContextProvider } from "@/context/PoliticianContext";
-import { Sidebar } from "../../../components/Sidebar";
+"use client";
 
-export default function RootLayout({
+import { Header } from "@/components/v2/components/Header";
+import { Sidebar } from "@/components/v2/components/Sidebar";
+import { PoliticianContextProvider } from "@/context/PoliticianContext";
+import { SidebarContextProvider, useSidebarContext } from "@/context/SidebarContext2";
+import { cn } from "@/lib/utils";
+
+function LayoutContent({
   children,
-}: Readonly<{
+}: {
   children: React.ReactNode;
-}>) {
-  return (
-    <div className="flex">
-      <PoliticianContextProvider>
-        <Sidebar />
-        <MobileSidebar />
-        <div className="flex w-full flex-col p-2 pt-0 xl:p-8">
-          <Header />
-          {children}
+}) {
+    const { isDesktopExpanded } = useSidebarContext();
+
+    return (
+        <div className="min-h-screen bg-[#f4f4f4]">
+            <Sidebar />
+            <Header />
+            <main 
+                className={cn(
+                    "min-h-screen   p-4 md:p-8 pt-20 md:pt-20 md:pb-0 pb-0 transition-all duration-300",
+                    isDesktopExpanded ? "md:ml-64" : "md:ml-20"
+                )}
+            >
+                {children}
+            </main>
         </div>
-      </PoliticianContextProvider>
-    </div>
+    );
+}
+
+export default function SidebarLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  return (
+    <PoliticianContextProvider>
+        <SidebarContextProvider>
+            <LayoutContent>{children}</LayoutContent>
+        </SidebarContextProvider>
+    </PoliticianContextProvider>
   );
 }

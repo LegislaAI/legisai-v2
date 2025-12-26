@@ -1,7 +1,7 @@
 "use client";
 
 import { useSectionChat } from "@/hooks/useSectionChat";
-import { Bot, ChevronLeft, File, History, Menu, Mic, Paperclip, Plus, Send, StopCircle, X } from "lucide-react";
+import { Bot, ChevronLeft, History, Menu, Mic, Paperclip, Plus, Send, StopCircle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
  
@@ -13,7 +13,9 @@ import { useApiContext } from "@/context/ApiContext";
 import { cn } from "@/lib/utils";
 import moment from "moment";
 import remarkGfm from "remark-gfm";
-import { Prompt } from "./types";
+import { Prompt } from "./chat-history-handler";
+import { FileViewer } from "./FileViewer";
+
 
 // Mock data strictly for the sidebar list if the API fails, though we will try to use real data via props
 const MOCK_HISTORY_FALLBACK = [
@@ -30,6 +32,9 @@ interface SectionGeminiProps {
 export function SectionProposition({ activeChatId, selectedPrompt, onChatCreated, type}: SectionGeminiProps) {
     const { GetAPI } = useApiContext();
     const [historyList, setHistoryList] = useState<{ id: string, name: string, createdAt: string }[]>([]);
+    const [chatTotalPages, setChatTotalPages] = useState(1);
+    const [currentLastPage, setCurrentLastPage] = useState(1);
+    const [isLoadingHistory, setIsLoadingHistory] = useState(false);
     
     // Internal state to trigger hook reloads
     const [loadNewChat, setLoadNewChat] = useState(false);
@@ -37,8 +42,6 @@ export function SectionProposition({ activeChatId, selectedPrompt, onChatCreated
     const [loadHistory, setLoadHistory] = useState(false);
 
     const isInputDisabled = !activeChatId && !selectedPrompt; // Disable if new chat but no prompt selected
-    console.log("activeChatId", activeChatId) 
-    console.log("selectedPrompt", selectedPrompt)
     // Initial load sync
     useEffect(() => {
         if (activeChatId) {
@@ -106,23 +109,33 @@ export function SectionProposition({ activeChatId, selectedPrompt, onChatCreated
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const fetchSidebarHistory = async () => {
+  const fetchSidebarHistory = async (page: number = 1) => {
     let endpoint = "";
-    if (type === "ai") endpoint = "/chat/ai?page=1";
-    if (type === "proposition") endpoint = "/chat/proposition?page=1";
-    if (type === "prediction") endpoint = "/chat/prediction?page=1";
+    if (type === "ai") endpoint = `/chat/ai?page=${page}`;
+    if (type === "proposition") endpoint = `/chat/proposition?page=${page}`;
+    if (type === "prediction") endpoint = `/chat/prediction?page=${page}`;
+    
+    setIsLoadingHistory(true);
       try {
           const res = await GetAPI(endpoint, true);
           if (res.status === 200) {
-              setHistoryList(res.body.chats || []);
+              if (page === 1) {
+                  setHistoryList(res.body.chats || []);
+              } else {
+                  setHistoryList(prev => [...prev, ...res.body.chats]);
+              }
+              setChatTotalPages(res.body.pages || 1);
+              setCurrentLastPage(page);
           }
       } catch (e) {
           console.error(e);
+      } finally {
+          setIsLoadingHistory(false);
       }
   };
 
   useEffect(() => {
-      fetchSidebarHistory();
+      fetchSidebarHistory(1);
   }, [loadHistory, type]);
 
 
@@ -139,30 +152,38 @@ export function SectionProposition({ activeChatId, selectedPrompt, onChatCreated
       {/* Internal Sidebar for Chat History */}
       <div 
         className={cn(
-            "bg-white md:bg-gray-50/50  border-gray-100 transition-all duration-300 absolute md:relative inset-y-0 left-0 z-30 flex flex-col overflow-hidden shrink-0 shadow-xl md:shadow-none",
-            showHistory ? 'w-[85%] md:w-64 border-r translate-x-0' : 'w-0 -translate-x-full md:translate-x-0 md:w-0'
+            "bg-white border-r border-gray-200 transition-all duration-300 absolute md:relative inset-y-0 left-0 z-30 flex flex-col overflow-hidden shrink-0 shadow-xl md:shadow-none",
+            showHistory ? 'w-[85%] md:w-80 translate-x-0' : 'w-0 -translate-x-full md:translate-x-0 md:w-0'
         )}
       >
-          <div className="p-4 flex flex-col gap-3 min-w-[240px]">
+        <div className="px-6 py-2" >
+
+         <Button 
+                onClick={() => { setLoadNewChat(true); if(window.innerWidth < 768) setShowHistory(false); }}
+                className="w-full bg-secondary text-white hover:bg-secondary/90 shadow-sm border border-transparent"
+                >
+                 <Plus className="h-4 w-4 mr-2" /> Novo Chat
+             </Button>
+                 </div>
+          <div className="px-6 py-4 pb-0 border-t border-gray-100 flex flex-col gap-3">
+                        
              <div className="flex items-center justify-between">
-                 <h3 className=" font-bold text-gray-400 uppercase tracking-wider flex items-center gap-2">
-                     <History size={14} /> Histórico
-                 </h3>
-                 <Button variant="ghost"  className="h-6 w-6" onClick={() => setShowHistory(false)}>
-                     <ChevronLeft size={14} />
+                 <div className="flex items-center gap-2">
+                    <div className="p-1.5 bg-gradient-to-br from-secondary/20 to-green-100 rounded-lg">
+                        <History size={16} className="text-secondary" />
+                    </div>
+                    <h3 className="font-bold text-gray-700">Histórico</h3>
+                 </div>
+                 <Button variant="ghost" className="h-8 w-8 text-gray-400 hover:text-dark md:hidden" onClick={() => setShowHistory(false)}>
+                     <ChevronLeft size={18} />
                  </Button>
              </div>
              
-             <Button 
-                onClick={() => { setLoadNewChat(true); if(window.innerWidth < 768) setShowHistory(false); }}
-                className="w-full bg-secondary text-white hover:bg-secondary/90 shadow-sm border border-transparent"
-             >
-                 <Plus className="h-4 w-4 mr-2" /> Novo Chat
-             </Button>
+
           </div>
 
-          <ScrollArea className="flex-1 px-3 min-w-[240px]">
-              <div className="space-y-1 pb-4">
+          <ScrollArea className="flex-1 px-4 py-4 min-w-[240px]">
+              <div className="space-y-2 pb-4 p-1">
                   {(historyList.length > 0 ? historyList : MOCK_HISTORY_FALLBACK).map(chat => (
                       <button
                          key={chat.id}
@@ -171,18 +192,57 @@ export function SectionProposition({ activeChatId, selectedPrompt, onChatCreated
                              if(window.innerWidth < 768) setShowHistory(false);
                          }}
                          className={cn(
-                             "w-full text-left p-3 rounded-lg  transition-all border",
+                            "w-full max-w-[280px] text-left p-3 rounded-xl transition-all duration-200 group relative overflow-hidden box-border",
                             loadOldChat === chat.id 
-                                ? "bg-white border-gray-200 shadow-sm ring-1 ring-secondary/20" 
-                                : "border-transparent hover:bg-white hover:shadow-sm"
+                                ? "bg-gradient-to-r from-secondary/10 to-green-50 border-2 border-secondary/40 shadow-md" 
+                                : "bg-white border border-gray-100 hover:border-gray-200 hover:shadow-sm hover:scale-[1.01]"
                          )}
                       >
-                          <div className="font-medium text-gray-700 truncate">{chat?.name}</div>
-                          <div className="flex items-center justify-between mt-1">
-                              <span className=" text-gray-400">{moment(chat?.createdAt).format("DD/MM HH:mm")}</span>
+                          {loadOldChat === chat.id && (
+                              <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-secondary to-green-500 rounded-l-xl" />
+                          )}
+
+                          <div className="flex items-start gap-3 overflow-hidden">
+                              <div className={cn(
+                                  "p-2 rounded-lg shrink-0 transition-all",
+                                  loadOldChat === chat.id 
+                                      ? "bg-secondary text-white shadow-sm" 
+                                      : "bg-gray-100 text-gray-500 group-hover:bg-secondary/10 group-hover:text-secondary"
+                              )}>
+                                  <Bot size={16} />
+                              </div>
+
+                              <div className="flex-1 min-w-0 w-full max-w-full overflow-hidden">
+                                  <div className={cn(
+                                      "font-semibold text-sm truncate mb-0.5",
+                                      loadOldChat === chat.id ? "text-secondary" : "text-gray-700"
+                                  )}>
+                                      {chat?.name}
+                                  </div>
+                                  
+                                  <div className="flex items-center gap-2 text-[11px] text-gray-400">
+                                      <span className="shrink-0">{moment(chat?.createdAt).format("DD/MM")}</span>
+                                      <span className="shrink-0">{moment(chat?.createdAt).format("HH:mm")}</span>
+                                  </div>
+                              </div>
                           </div>
                       </button>
                   ))}
+
+                  {currentLastPage < chatTotalPages && (
+                        <Button 
+                        variant="ghost" 
+                        className="w-full text-xs text-gray-400 hover:text-secondary mt-2"
+                        onClick={() => fetchSidebarHistory(currentLastPage + 1)}
+                        disabled={isLoadingHistory}
+                        >
+                            {isLoadingHistory ? (
+                                <div className="flex justify-center p-2">
+                                <div className="h-4 w-4 border-2 border-secondary border-t-transparent rounded-full animate-spin" />
+                            </div>
+                            ) : "Carregar mais"}
+                        </Button>
+                )}
               </div>
           </ScrollArea>
       </div>
@@ -259,8 +319,8 @@ export function SectionProposition({ activeChatId, selectedPrompt, onChatCreated
                          )}>
                             
                              {msg.file && (
-                                 <div className="mb-2 p-2 bg-black/10 rounded flex items-center gap-2 text-xs">
-                                     <Paperclip size={12}/> {typeof msg.file === 'string' ? "Arquivo anexado" : msg.file.name}
+                                 <div className="mb-3 max-w-[280px]">
+                                     <FileViewer file={msg.file} mimeType={msg.type} fileName={msg.name} className={msg.role === "user" ? "bg-white border-white/20 text-white" : ""} />
                                  </div>
                              )}
                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -282,12 +342,8 @@ export function SectionProposition({ activeChatId, selectedPrompt, onChatCreated
              <div className="max-w-3xl mx-auto">
                  {/* Files */}
                  {file && (
-                     <div className="flex gap-2 mb-2">
-                             <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-lg  font-medium text-gray-700 animate-in zoom-in">
-                                 <File size={12} className="text-secondary" />
-                                 <span className="truncate max-w-[120px]">{file.name}</span>
-                                 <button onClick={() => setFile(null)} className="text-gray-400 hover:text-red-500"><X size={12} /></button>
-                             </div>
+                     <div className="flex gap-2 mb-2 animate-in slide-in-from-bottom-2 fade-in">
+                        <FileViewer file={file} onRemove={() => setFile(null)} isInput />
                      </div>
                  )}
 
@@ -300,7 +356,7 @@ export function SectionProposition({ activeChatId, selectedPrompt, onChatCreated
                      </div>
                  )}
                  
-                 <div className="flex items-end gap-2 bg-gray-50 p-2 rounded-2xl border border-gray-200 focus-within:ring-1 focus-within:ring-secondary/30 focus-within:border-secondary transition-all shadow-inner">
+                 <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-2xl border border-gray-200 focus-within:ring-0 focus-within:border-secondary transition-all shadow-inner">
                      <div className="flex gap-1">
                          <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
                          <TooltipProvider>
@@ -318,7 +374,7 @@ export function SectionProposition({ activeChatId, selectedPrompt, onChatCreated
                         onChange={(e) => setInputMessage(e.target.value)}
                         onKeyDown={(e) => { if(e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendMessage(); }}}
                         placeholder={isInputDisabled ? "Nenhum assistente disponível para este contexto." : (isRecording ? "Gravando..." : `Mensagem para ${selectedPrompt?.name || "LegisAI"}...`)}
-                        className="flex-1 bg-transparent border-none focus:ring-0  text-dark placeholder:text-gray-400 resize-none min-h-[44px] py-3 max-h-32"
+                        className="flex-1 bg-transparent border-none focus:ring-0 outline-none  text-dark placeholder:text-gray-400 resize-none min-h-[44px] py-3 max-h-32"
                         rows={1}
                         disabled={isRecording || isInputDisabled}
                      />

@@ -1,6 +1,6 @@
 "use client";
 
-import AiPage from "@/app/(private)/v2/(sidebar)/ai/page";
+import AiPage from "@/app/(private)/(sidebar)/ai/page";
 
 export function AiChat() {
  

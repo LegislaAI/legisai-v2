@@ -1,11 +1,11 @@
 "use client";
 
 import {
-  Dialog,
-  DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
 } from "@/components/ui/dialog";
 import { Card } from "@/components/v2/components/ui/Card";
 import { PlayCircle } from "lucide-react";
@@ -44,7 +44,7 @@ export function Tutorials() {
     <div className="w-full">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold text-dark">Tutoriais em Vídeo</h2>
-        <Link href="/v2/tutorials" className="text-sm text-secondary hover:underline">
+        <Link href="/tutorials" className="text-sm text-secondary hover:underline">
             Ver todos
         </Link>
       </div>

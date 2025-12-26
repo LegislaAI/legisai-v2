@@ -32,32 +32,32 @@ interface MenuItem {
 }
 
 const menuItems: MenuItem[] = [
-  { label: "Home", href: "/v2/", icon: Home },
-  { label: "Plenários / Sessões", href: "/v2/plenary", icon: Wallet },
-  //   { label: "Comissões / Reuniões", href: "/v2/commissions", icon: UsersRound, disabled: false },
+  { label: "Home", href: "/", icon: Home },
+  { label: "Plenários / Sessões", href: "/plenary", icon: Wallet },
+  //   { label: "Comissões / Reuniões", href: "/commissions", icon: UsersRound, disabled: false },
   {
     label: "Novidades e Notícias",
-    href: "/v2/news",
+    href: "/news",
     icon: BellDot,
     disabled: false,
   },
-  { label: "Tramitação e Informações", href: "/v2/procedures", icon: Cog },
+  { label: "Tramitação e Informações", href: "/procedures", icon: Cog },
   {
     label: "Inteligência Artificial",
-    href: "/v2/ai",
+    href: "/ai",
     icon: Sparkles,
     disabled: false,
   },
-  //   { label: "IA Preditiva", href: "/v2/prediction-ai", icon: Sparkles, disabled: true },
+  //   { label: "IA Preditiva", href: "/prediction-ai", icon: Sparkles, disabled: true },
   {
     label: "Tutoriais",
-    href: "/v2/tutorials",
+    href: "/tutorials",
     icon: PlayCircle,
     disabled: false,
   },
   {
     label: "Configurações",
-    href: "/v2/profile",
+    href: "/profile",
     icon: Settings2,
     disabled: false,
   },
@@ -72,7 +72,7 @@ export function Sidebar() {
 
   const handleLogout = () => {
     clearToken();
-    handleNavigation("/v2/login");
+    handleNavigation("/login");
   };
 
   const SidebarContent = () => (
@@ -84,7 +84,7 @@ export function Sidebar() {
         )}
       >
         <Link
-          href="/v2/"
+          href="/"
           className="text-secondary flex items-center gap-2 text-xl font-bold"
         >
           {isDesktopExpanded ? (

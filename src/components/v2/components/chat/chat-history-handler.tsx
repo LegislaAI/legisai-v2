@@ -11,7 +11,7 @@ export interface Chat {
 
 export interface Prompt {
   id: string;
-  name: string;
+  name: string; 
   description: string;
   type: string;
   icon?: string;

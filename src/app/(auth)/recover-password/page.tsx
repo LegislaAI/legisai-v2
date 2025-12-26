@@ -1,353 +1,191 @@
 "use client";
-import { AuthFooter } from "@/components/ui/AuthFooter";
-import { AuthHeader } from "@/components/ui/AuthHeader";
-import { useApiContext } from "@/context/ApiContext";
+
 import { zodResolver } from "@hookform/resolvers/zod";
-import { Eye, EyeOff } from "lucide-react";
-import Image from "next/image";
+import { ArrowLeft, CheckCircle2, Key, Lock, Mail } from "lucide-react";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useState } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
-import { z } from "zod";
+import * as z from "zod";
 
-const schemaRecover = z.object({
-  email: z.string().email({ message: "Email inválido" }),
+import { Button } from "@/components/v2/components/ui/Button";
+import { Card } from "@/components/v2/components/ui/Card";
+import { Input } from "@/components/v2/components/ui/Input";
+import { useApiContext } from "@/context/ApiContext";
+
+// Schemas
+const emailSchema = z.object({
+  email: z.string().email("E-mail inválido"),
 });
 
-const schemaCode = z.object({
-  code: z.string().min(6, "Código inválido"),
+const codeSchema = z.object({
+  code: z.string().min(4, "Código inválido"),
 });
 
-const schemaEdit = z
-  .object({
-    code: z.string(),
-    password: z.string().min(6, "A senha deve ter pelo menos 6 caracteres"),
-    confirmPassword: z.string().min(6, "Confirmação de senha inválida"),
-  })
-  .refine((data) => data.password === data.confirmPassword, {
-    message: "As senhas devem corresponder",
-    path: ["confirmPassword"],
-  });
+const passwordSchema = z.object({
+  password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres"),
+  confirmPassword: z.string(),
+}).refine((data) => data.password === data.confirmPassword, {
+  message: "As senhas não coincidem",
+  path: ["confirmPassword"],
+});
 
-interface RecoverFormData {
-  email: string;
-}
-
-interface ValidateCodeFormData {
-  code: string;
-}
-
-interface EditPasswordFormData {
-  code: string;
-  password: string;
-  confirmPassword: string;
-}
-
-export default function RecoverPassword() {
-  const router = useRouter();
+export default function RecoverPassword2Page() {
   const { PostAPI, GetAPI } = useApiContext();
-  const [currentStep, setCurrentStep] = useState(1);
-  const [isShowingPassword, setIsShowingPassword] = useState(false);
-  const [isShowingConfirmPassword, setIsShowingConfirmPassword] =
-    useState(false);
-  const [recoverError, setRecoverError] = useState("");
-  const [isLogging, setIsLogging] = useState(false);
-  const [timer, setTimer] = useState(10);
+  const router = useRouter();
+  
+  const [step, setStep] = useState(1);
   const [email, setEmail] = useState("");
+  const [code, setCode] = useState("");
 
-  useEffect(() => {
-    if (currentStep === 2 && timer > 0) {
-      const countdown = setTimeout(() => setTimer(timer - 1), 1000);
-      return () => clearTimeout(countdown);
+  // Forms
+  const emailForm = useForm<z.infer<typeof emailSchema>>({ resolver: zodResolver(emailSchema) });
+  const codeForm = useForm<z.infer<typeof codeSchema>>({ resolver: zodResolver(codeSchema) });
+  const passwordForm = useForm<z.infer<typeof passwordSchema>>({ resolver: zodResolver(passwordSchema) });
+
+  // Handlers
+  const onEmailSubmit = async (data: z.infer<typeof emailSchema>) => {
+    try {
+      const response = await PostAPI("/password-code", { email: data.email }, false);
+      if (response.status === 200 || response.status === 201) {
+        setEmail(data.email);
+        setStep(2);
+        toast.success("Código enviado para seu e-mail!");
+      } else {
+        toast.error(response.body.message || "Erro ao enviar código");
+      }
+    } catch (error) {
+      toast.error("Erro inesperado");
     }
-  }, [currentStep, timer]);
+  };
 
-  const {
-    register: registerRecover,
-    handleSubmit: handleSubmitRecover,
-    formState: { errors: errorsRecover },
-  } = useForm<RecoverFormData>({
-    resolver: zodResolver(schemaRecover),
-  });
-
-  const {
-    register: registerCode,
-    handleSubmit: handleSubmitCode,
-    formState: { errors: errorsCode },
-  } = useForm<ValidateCodeFormData>({
-    resolver: zodResolver(schemaCode),
-  });
-
-  const {
-    register: registerEdit,
-    handleSubmit: handleSubmitEdit,
-    formState: { errors: errorsEdit },
-  } = useForm<EditPasswordFormData>({
-    resolver: zodResolver(schemaEdit),
-  });
-
-  async function HandleSendRecover(data: RecoverFormData) {
-    setIsLogging(true);
-    const response = await PostAPI(
-      "/password-code",
-      {
-        email: data.email,
-      },
-      false,
-    );
-    setIsLogging(false);
-    if (response.status === 200) {
-      setEmail(data.email);
-      setCurrentStep(2);
-    } else {
-      setRecoverError(response.body.message);
+  const onCodeSubmit = async (data: z.infer<typeof codeSchema>) => {
+    try {
+        // Validate code first via GET as per specs
+        const response = await GetAPI(`/password-code/${data.code}`, false);
+        
+        if (response.status === 200) {
+            setCode(data.code);
+            setStep(3);
+            toast.success("Código validado!");
+        } else {
+             toast.error(response.body.message || "Código inválido");
+        }
+    } catch (error) {
+      toast.error("Erro ao validar código");
     }
-  }
+  };
 
-  async function HandleValidateCode(data: ValidateCodeFormData) {
-    setIsLogging(true);
-    const response = await GetAPI(`/password-code/${data.code}`, false);
-    setIsLogging(false);
-    if (response.status === 200) {
-      setCurrentStep(3);
-    }
-    if (response.status === 201) {
-      setCurrentStep(3);
-    } else {
-      toast.error("Código inválido ou expirado. Tente novamente.");
-      setRecoverError("Código inválido ou expirado. Tente novamente.");
-    }
-  }
-
-  async function handleResendCode() {
-    setIsLogging(true);
-    const response = await PostAPI("/password-code", { email }, false);
-    setIsLogging(false);
-    if (response.status === 200) {
-      setTimer(120);
-    } else {
-      setRecoverError("Erro ao reenviar o código. Tente novamente.");
-    }
-  }
-
-  async function HandleEditPassword(data: EditPasswordFormData) {
-    setIsLogging(true);
-    const response = await PostAPI(
-      "/influencer/password",
-      {
-        code: data.code,
+  const onPasswordSubmit = async (data: z.infer<typeof passwordSchema>) => {
+    try {
+      const response = await PostAPI("/influencer/password", {
+        code: code,
         password: data.password,
-      },
-      false,
-    );
-    setIsLogging(false);
+      }, false);
 
-    if (response.status === 200) {
-      router.push("/login");
-    } else {
-      setRecoverError(response.body.message);
+      if (response.status === 200 || response.status === 201) {
+        toast.success("Senha alterada com sucesso!");
+        router.push("/login");
+      } else {
+        toast.error(response.body.message || "Erro ao alterar senha");
+      }
+    } catch (error) {
+      toast.error("Erro inesperado");
     }
-  }
+  };
 
   return (
-    <main className="relative flex min-h-screen w-full flex-col items-center justify-center overflow-hidden bg-white">
-      <Image
-        src={"/static/register2.png"}
-        className="absolute top-0 right-0 z-10 hidden h-[95%] w-[40%] rounded-bl-lg object-cover md:block"
-        alt=""
-        width={1000}
-        height={2500}
-      />
-      <div className="relative z-10 flex min-h-[100vh] w-full flex-col overflow-hidden px-8 xl:px-20">
-        <AuthHeader />
-        <div className="z-20 mt-32 flex w-full flex-col gap-2 pb-12 md:mt-20 md:w-[45%] xl:ml-[10%] xl:w-[40%] xl:gap-4">
-          <h1 className="text-xl font-bold md:text-3xl">
-            {currentStep === 1
-              ? "Recuperar Senha"
-              : currentStep === 2
-                ? "Validação de Código"
-                : "Redefinir Senha"}
-          </h1>
-          <h2 className="text-lg text-[#8392AB]">
-            {currentStep === 1
-              ? "Digite seu e-mail para enviarmos um código de recuperação"
-              : currentStep === 2
-                ? "Insira o código de recuperação enviado para seu e-mail"
-                : "Digite uma nova senha para sua conta"}
-          </h2>
-
-          {currentStep === 1 && (
-            <form
-              onSubmit={handleSubmitRecover(HandleSendRecover)}
-              className="flex flex-col gap-2"
-            >
-              <label className="text-sm font-semibold text-[#252F40]">
-                Email
-              </label>
-              <input
-                placeholder="Digite seu email"
-                {...registerRecover("email")}
-                className="outline-secondary/50 focus:border-secondary/50 h-8 rounded-md border border-zinc-400 p-2 text-black"
-                type="email"
-                disabled={isLogging}
-              />
-              <div className="h-4">
-                {errorsRecover.email && (
-                  <span className="text-red-500">
-                    {errorsRecover.email.message}
-                  </span>
-                )}
-              </div>
-              <div className="h-4 text-sm" />
-              <span className="mt-2 h-6 text-red-500">
-                {recoverError ? recoverError : ""}
-              </span>
-
-              <button
-                type="submit"
-                disabled={isLogging}
-                className="bg-secondary mt-6 rounded-md border p-2 font-bold text-white"
-              >
-                {isLogging ? "Carregando..." : "Enviar Código"}
-              </button>
-            </form>
-          )}
-
-          {currentStep === 2 && (
-            <form
-              onSubmit={handleSubmitCode(HandleValidateCode)}
-              className="flex flex-col gap-2"
-            >
-              <label className="text-sm font-semibold text-[#252F40]">
-                Código de Recuperação
-              </label>
-              <input
-                placeholder="Digite o código enviado para seu email"
-                {...registerCode("code")}
-                className="outline-secondary/50 focus:border-secondary/50 h-8 rounded-md border border-zinc-400 p-2 text-black"
-                type="text"
-                disabled={isLogging}
-              />
-              <div className="h-4">
-                {errorsCode.code && (
-                  <span className="text-red-500">
-                    {errorsCode.code.message}
-                  </span>
-                )}
-              </div>
-              <div className="h-4 text-sm">
-                {timer !== 0 ? (
-                  <div className="text-sm text-gray-600">
-                    Código expira em {Math.floor(timer / 60)}:
-                    {timer % 60 < 10 ? `0${timer % 60}` : timer % 60}
-                  </div>
-                ) : (
-                  <button
-                    onClick={handleResendCode}
-                    className="text-sm text-blue-500 hover:underline"
-                    disabled={isLogging}
-                  >
-                    Reenviar código
-                  </button>
-                )}
-              </div>
-              <span className="mt-2 h-6 text-red-500">
-                {recoverError ? recoverError : ""}
-              </span>
-              <button
-                type="submit"
-                disabled={isLogging}
-                className="bg-secondary mt-6 rounded-md border p-2 font-bold text-white"
-              >
-                {isLogging ? "Carregando..." : "Validar Código"}
-              </button>
-            </form>
-          )}
-
-          {currentStep === 3 && (
-            <form
-              onSubmit={handleSubmitEdit(HandleEditPassword)}
-              className="flex flex-col gap-2"
-            >
-              <label className="text-md font-semibold text-[#252F40]">
-                Nova Senha
-              </label>
-              <div className="outline-secondary/50 focus:border-secondary/50 flex flex-row items-center overflow-hidden rounded-md border border-zinc-400">
-                <input
-                  {...registerEdit("password")}
-                  placeholder="Digite sua nova senha"
-                  className="h-8 w-[90%] p-2 text-black outline-none"
-                  type={isShowingPassword ? "text" : "password"}
-                />
-                <button
-                  type="button"
-                  onClick={() => setIsShowingPassword(!isShowingPassword)}
-                  className="flex w-[10%] items-center justify-center"
-                >
-                  {isShowingPassword ? (
-                    <EyeOff className="h-4 w-4 text-black" />
-                  ) : (
-                    <Eye className="h-4 w-4 text-black" />
-                  )}
-                </button>
-              </div>
-              {errorsEdit.password && (
-                <span className="text-red-500">
-                  {errorsEdit.password.message}
-                </span>
-              )}
-
-              <label className="text-md font-semibold text-[#252F40]">
-                Confirmar Nova Senha
-              </label>
-              <div className="outline-secondary/50 focus:border-secondary/50 flex flex-row items-center overflow-hidden rounded-md border border-zinc-400">
-                <input
-                  {...registerEdit("confirmPassword")}
-                  placeholder="Confirme sua nova senha"
-                  className="h-8 w-[90%] p-2 text-black outline-none"
-                  type={isShowingConfirmPassword ? "text" : "password"}
-                />
-                <button
-                  type="button"
-                  onClick={() =>
-                    setIsShowingConfirmPassword(!isShowingConfirmPassword)
-                  }
-                  className="flex w-[10%] items-center justify-center"
-                >
-                  {isShowingConfirmPassword ? (
-                    <EyeOff className="h-4 w-4 text-black" />
-                  ) : (
-                    <Eye className="h-4 w-4 text-black" />
-                  )}
-                </button>
-              </div>
-              {errorsEdit.confirmPassword && (
-                <span className="text-red-500">
-                  {errorsEdit.confirmPassword.message}
-                </span>
-              )}
-              {recoverError && (
-                <span className="mt-2 text-red-500">{recoverError}</span>
-              )}
-              <button
-                type="submit"
-                disabled={isLogging}
-                className="bg-secondary mt-6 rounded-md border p-2 font-bold text-white"
-              >
-                {isLogging ? "Carregando..." : "Redefinir Senha"}
-              </button>
-            </form>
-          )}
-          <button
-            onClick={() => router.push("/login")}
-            className="bg-secondary ml-1 cursor-pointer bg-clip-text text-sm font-bold text-transparent"
-          >
-            Voltar ao Login
-          </button>
-        </div>
-        <AuthFooter />
+    <Card className="w-full max-w-md animate-fade-in relative">
+      <div className="absolute top-6 left-6">
+        {step > 1 && (
+            <button onClick={() => setStep(step - 1)} className="text-gray-400 hover:text-dark">
+                <ArrowLeft className="h-5 w-5" />
+            </button>
+        )}
       </div>
-    </main>
+
+      <div className="mb-6 text-center pt-2">
+        <h2 className="text-2xl font-bold text-dark">Recuperar Senha</h2>
+        <p className="mt-2 text-sm text-gray-500">
+            {step === 1 && "Informe seu e-mail para receber o código."}
+            {step === 2 && "Informe o código enviado para seu e-mail."}
+            {step === 3 && "Crie sua nova senha."}
+        </p>
+      </div>
+
+      {step === 1 && (
+        <form onSubmit={emailForm.handleSubmit(onEmailSubmit)} className="space-y-4">
+          <Input
+            label="E-mail"
+            type="email"
+            placeholder="seu@email.com"
+            icon={<Mail className="h-4 w-4" />}
+            error={emailForm.formState.errors.email}
+            {...emailForm.register("email")}
+          />
+          <Button type="submit" className="w-full" isLoading={emailForm.formState.isSubmitting}>
+            Enviar Código
+          </Button>
+        </form>
+      )}
+
+      {step === 2 && (
+        <form onSubmit={codeForm.handleSubmit(onCodeSubmit)} className="space-y-4">
+          <Input
+            label="Código de Verificação"
+            placeholder="Digite o código"
+            icon={<Key className="h-4 w-4" />}
+            error={codeForm.formState.errors.code}
+            {...codeForm.register("code")}
+          />
+          <Button type="submit" className="w-full" isLoading={codeForm.formState.isSubmitting}>
+            Validar Código
+          </Button>
+           <div className="text-center mt-2">
+            <button 
+                type="button" 
+                onClick={() => setStep(1)}
+                className="text-xs text-secondary hover:underline"
+            >
+                Reenviar código?
+            </button>
+          </div>
+        </form>
+      )}
+
+      {step === 3 && (
+        <form onSubmit={passwordForm.handleSubmit(onPasswordSubmit)} className="space-y-4">
+          <Input
+            label="Nova Senha"
+            type="password"
+            placeholder="********"
+            icon={<Lock className="h-4 w-4" />}
+            error={passwordForm.formState.errors.password}
+            {...passwordForm.register("password")}
+          />
+          <Input
+            label="Confirmar Senha"
+            type="password"
+            placeholder="********"
+            icon={<CheckCircle2 className="h-4 w-4" />}
+            error={passwordForm.formState.errors.confirmPassword}
+            {...passwordForm.register("confirmPassword")}
+          />
+          <Button type="submit" className="w-full" isLoading={passwordForm.formState.isSubmitting}>
+            Redefinir Senha
+          </Button>
+        </form>
+      )}
+
+      <div className="mt-6 text-center text-sm">
+        <Link
+          href="/login"
+          className="font-medium text-secondary hover:underline"
+        >
+          Voltar para Login
+        </Link>
+      </div>
+    </Card>
   );
 }

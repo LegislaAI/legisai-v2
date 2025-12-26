@@ -1,27 +1,28 @@
 /* --------------------------------------------------------------------
  *  src/hooks/useSectionChat.ts
  *  -------------------------------------------------------------------
- *  Hook de chat Gemini com:
+ *  Hook de chat usando OpenRouter API via backend route.
  *    • Flags: shouldCreateChat, shouldSaveMessage, shouldSaveFile,
  *             shouldUseFunctions
  *    • Upload de arquivos, gravação de áudio, histórico, streaming.
- *    • Detecção de “functionCall” em cada chunk
+ *    • Detecção de tool_calls e execução local
  * ------------------------------------------------------------------*/
 
 "use client";
 
 import {
-  getFunctionDeclarations,
-  handleFunctionCalls,
+  executeToolCalls,
+  getOpenRouterTools,
 } from "@/components/v2/components/chat/functions";
 import {
-  ChatHistoryItem,
-  FunctionCallWithId,
+  FileToSend,
   Message,
   MessagesFromBackend,
+  OpenRouterMessage,
+  OpenRouterStreamChunk,
+  OpenRouterToolCall,
   Prompt,
 } from "@/components/v2/components/chat/types";
-import { GoogleGenAI, Part } from "@google/genai";
 import {
   ChangeEvent,
   startTransition,
@@ -78,14 +79,14 @@ export function useSectionChat({
   const [chatId, setChatId] = useState("");
   const [loading, setLoading] = useState(false);
   const [screenType, setScreenType] = useState(type);
-  const [initialHistory, setInitialHistory] = useState<ChatHistoryItem[]>([]);
   const [inputMessage, setInputMessage] = useState("");
+
+  // Histórico de conversação no formato OpenRouter
+  const conversationHistoryRef = useRef<OpenRouterMessage[]>([]);
 
   /* gravação */
   const [isRecording, setIsRecording] = useState(false);
-  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
-    null,
-  );
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const [recordStartTime, setRecordStartTime] = useState<number | null>(null);
   const [elapsedTime, setElapsedTime] = useState("00:00");
@@ -93,56 +94,53 @@ export function useSectionChat({
   /* arquivo */
   const [file, setFile] = useState<File | null>(null);
 
-  /* Gemini */
-  const API_KEY = process.env.NEXT_PUBLIC_GEMINI_API_KEY;
-  const aiInstanceRef = useRef<GoogleGenAI | null>(null);
-  const chatSessionRef = useRef<ReturnType<
-    GoogleGenAI["chats"]["create"]
-  > | null>(null);
-console.log("selectedPrompt aqui   ", selectedPrompt)
-  /* ─────────────────────────────── INIT GEMINI ─────────────────────────────── */
-  useEffect(() => {
-    if (!aiInstanceRef.current)
-      aiInstanceRef.current = new GoogleGenAI({ apiKey: API_KEY });
-    chatSessionRef.current = null;
-    if (aiInstanceRef.current) {
-      // Use prompt from selectedPrompt if available, otherwise fallback
-      const systemInstruction =
-        (selectedPrompt && selectedPrompt.prompt) ||
-        selectedPrompt?.description ||
-        PromptFunctionTest;
 
-      chatSessionRef.current = aiInstanceRef.current.chats.create({
-        model: "gemini-2.5-flash", 
-        history: initialHistory,
-        config: {
-          systemInstruction: systemInstruction,
-          ...(shouldUseFunctions && {
-            tools: [{ functionDeclarations: getFunctionDeclarations() }],
-          }),
-        },
-      });
-    }
-  }, [initialHistory, selectedPrompt, shouldUseFunctions]);
+  /* ─────────────────────────────── RESET ON PROMPT CHANGE ─────────────────────────────── */
+  useEffect(() => {
+    // Reset conversation history when prompt changes
+    conversationHistoryRef.current = [];
+  }, [selectedPrompt]);
 
   useEffect(() => {
     setScreenType(type);
   }, [type]);
 
+  /* ─────────────────────────────── HELPERS ─────────────────────────────── */
+  async function fileToBase64(f: File): Promise<string> {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(reader.result as string);
+      reader.onerror = reject;
+      reader.readAsDataURL(f);
+    });
+  }
+
   async function handleCreateChat(first: string): Promise<string | null> {
     if (!shouldCreateChat) return null;
     try {
+      // 1. Generate Title via AI
+      let generatedTitle = first.split(" ").slice(0, 5).join(" ") || "Novo Chat";
+      try {
+         const titleRes = await fetch("/api/chat/title", {
+             method: "POST",
+             headers: { "Content-Type": "application/json" },
+             body: JSON.stringify({ messages: [{ role: "user", content: first }] })
+         });
+         if(titleRes.ok) {
+             const data = await titleRes.json();
+             if(data.title) generatedTitle = data.title;
+         }
+      } catch(err) {
+          console.error("Title gen errored, using fallback", err);
+      }
+
       const payload = {
-        name: first.split(" ").slice(0, 5).join(" ") || "Novo Chat",
+        name: generatedTitle,
         promptId: selectedPrompt?.id,
         type: screenType,
       };
 
-      const r = await PostAPI(
-        "/chat", // Ensure leading slash
-        payload,
-        true,
-      );
+      const r = await PostAPI("/chat", payload, true);
 
       if (r.status === 200 || r.status === 201) {
         setLoadHistory?.(true);
@@ -158,7 +156,7 @@ console.log("selectedPrompt aqui   ", selectedPrompt)
 
   async function handlePostMessage(
     id: string,
-    msg: { text: string; entity: string; mimeType: string; fileUrl?: string },
+    msg: { text: string; entity: string; mimeType: string; fileUrl?: string }
   ) {
     if (!shouldSaveMessage) return;
     try {
@@ -185,16 +183,16 @@ console.log("selectedPrompt aqui   ", selectedPrompt)
     }
   }
 
-  /* new / old chat helpers … */
+  /* new / old chat helpers */
   function handleNewChat() {
-    chatSessionRef.current = null;
     setMessages([]);
-    setInitialHistory([]);
+    conversationHistoryRef.current = [];
     setChatId("");
     setFile(null);
     setInputMessage("");
     setLoadNewChat?.(false);
   }
+
   useEffect(() => {
     if (loadNewChat) handleNewChat();
   }, [loadNewChat]);
@@ -202,7 +200,7 @@ console.log("selectedPrompt aqui   ", selectedPrompt)
   async function handleGetOldChat(id: string) {
     setLoading(true);
     setMessages([]);
-    setInitialHistory([]);
+    conversationHistoryRef.current = [];
     try {
       const r = await GetAPI(`/message/${id}`, true);
       if (r.status === 200) {
@@ -212,12 +210,17 @@ console.log("selectedPrompt aqui   ", selectedPrompt)
           type: m.mimeType,
           file: m.fileUrl,
         }));
-        const histAI = r.body.messages.map((m: MessagesFromBackend) => ({
-          parts: [{ text: m.text }],
-          role: m.entity === "user" ? "user" : "model",
-        }));
+        
+        // Rebuild conversation history for OpenRouter
+        const histOpenRouter: OpenRouterMessage[] = r.body.messages.map(
+          (m: MessagesFromBackend) => ({
+            role: m.entity === "user" ? "user" : "assistant",
+            content: m.text,
+          })
+        );
+        
         setMessages(histMsgs);
-        setInitialHistory(histAI);
+        conversationHistoryRef.current = histOpenRouter;
       }
     } catch (e) {
       console.error("getOldChat:", e);
@@ -227,6 +230,7 @@ console.log("selectedPrompt aqui   ", selectedPrompt)
       setLoading(false);
     }
   }
+
   useEffect(() => {
     if (loadOldChat) {
       setChatId(loadOldChat);
@@ -235,22 +239,6 @@ console.log("selectedPrompt aqui   ", selectedPrompt)
   }, [loadOldChat]);
 
   /* ─────────────────────────────── FILE / AUDIO ─────────────────────────────── */
-  async function uploadToGemini(f: File) {
-    if (!aiInstanceRef.current) return null;
-    let gfile = await aiInstanceRef.current.files.upload({ file: f });
-    const delay = (ms: number) => new Promise((r) => setTimeout(r, ms));
-    for (let i = 0; i < 30 && gfile.state !== "ACTIVE"; i++) {
-      if (gfile.state === "FAILED")
-        throw new Error("Gemini upload falhou (FAILED)");
-      if (!gfile.name) throw new Error("Gemini sem name");
-      await delay(2000);
-      gfile = await aiInstanceRef.current.files.get({ name: gfile.name });
-    }
-    if (gfile.state !== "ACTIVE")
-      throw new Error("Timeout: arquivo não ficou ACTIVE");
-    return gfile;
-  }
-
   function handleFileUpload(e: ChangeEvent<HTMLInputElement>) {
     const f = e.target.files?.[0];
     if (f) {
@@ -279,12 +267,14 @@ console.log("selectedPrompt aqui   ", selectedPrompt)
     setMediaRecorder(rec);
     setRecordStartTime(Date.now());
   };
+
   const stopRecording = () => {
     mediaRecorder?.stop();
     setIsRecording(false);
     setRecordStartTime(null);
     setElapsedTime("00:00");
   };
+
   useEffect(() => {
     let id: ReturnType<typeof setInterval> | undefined;
     if (recordStartTime && isRecording) {
@@ -295,7 +285,7 @@ console.log("selectedPrompt aqui   ", selectedPrompt)
             .toString()
             .padStart(2, "0")}:${Math.floor(el % 60)
             .toString()
-            .padStart(2, "0")}`,
+            .padStart(2, "0")}`
         );
       }, 1000);
     }
@@ -312,38 +302,152 @@ console.log("selectedPrompt aqui   ", selectedPrompt)
       const txt = streamBufRef.current;
       setMessages((prev) =>
         prev.map((m, i) =>
-          i === placeholderIndexRef.current ? { ...m, content: txt } : m,
-        ),
+          i === placeholderIndexRef.current ? { ...m, content: txt } : m
+        )
       );
     });
-  function getCallId(fc: FunctionCallWithId): string {
-    return fc.toolCallId ?? fc.id ?? crypto.randomUUID();
+
+  async function callOpenRouterAPI(
+    conversationMessages: OpenRouterMessage[],
+    filesToSend: FileToSend[]
+  ): Promise<Response> {
+    const systemPrompt =
+      selectedPrompt?.prompt ||
+      selectedPrompt?.description ||
+      PromptFunctionTest;
+
+    const response = await fetch("/api/chat", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        messages: conversationMessages,
+        model: "google/gemini-2.5-flash",
+        files: filesToSend.length > 0 ? filesToSend : undefined,
+        systemPrompt,
+        tools: shouldUseFunctions ? getOpenRouterTools() : undefined,
+      }),
+    });
+    console.log("response", response)
+    console.log("response body", response.body)
+    if (!response.ok) {
+      const errorText = await response.text();
+      throw new Error(`API Error: ${errorText}`);
+    }
+
+    return response;
   }
+
+  async function processStream(response: Response): Promise<{
+    text: string;
+    toolCalls: OpenRouterToolCall[];
+  }> {
+    const reader = response.body?.getReader();
+    if (!reader) throw new Error("No response body");
+
+    const decoder = new TextDecoder();
+    let buffer = "";
+    let fullText = "";
+    const toolCalls: OpenRouterToolCall[] = [];
+    const toolCallsInProgress: Record<number, OpenRouterToolCall> = {};
+
+    while (true) {
+      const { done, value } = await reader.read();
+      if (done || cancelStreamRef.current) break;
+
+      buffer += decoder.decode(value, { stream: true });
+      const lines = buffer.split("\n");
+      buffer = lines.pop() || "";
+
+      for (const line of lines) {
+        if (line.startsWith("data: ")) {
+          const data = line.slice(6).trim();
+          if (data === "[DONE]") break;
+          if (!data) continue;
+
+          try {
+            const parsed: OpenRouterStreamChunk = JSON.parse(data);
+            const delta = parsed.choices?.[0]?.delta;
+
+            // Handle text content
+            if (delta?.content) {
+              fullText += delta.content;
+              streamBufRef.current = fullText;
+              flushUI();
+            }
+
+            // Handle tool calls (may come in chunks)
+            if (delta?.tool_calls) {
+              for (const tc of delta.tool_calls) {
+                const idx = tc.index ?? 0;
+                
+                if (!toolCallsInProgress[idx]) {
+                  toolCallsInProgress[idx] = {
+                    id: tc.id || "",
+                    type: "function",
+                    index: idx,
+                    function: {
+                      name: tc.function?.name || "",
+                      arguments: tc.function?.arguments || "",
+                    },
+                  };
+                } else {
+                  // Append to existing
+                  if (tc.id) toolCallsInProgress[idx].id = tc.id;
+                  if (tc.function?.name) {
+                    toolCallsInProgress[idx].function.name = tc.function.name;
+                  }
+                  if (tc.function?.arguments) {
+                    toolCallsInProgress[idx].function.arguments += tc.function.arguments;
+                  }
+                }
+              }
+            }
+
+            // Check finish reason
+            const finishReason = parsed.choices?.[0]?.finish_reason;
+            if (finishReason === "tool_calls") {
+              // Collect all tool calls
+              Object.values(toolCallsInProgress).forEach((tc) => {
+                if (tc.id && tc.function.name) {
+                  toolCalls.push(tc);
+                }
+              });
+            }
+          } catch (e) {
+            // Ignore parse errors for malformed chunks
+            console.debug("Parse error:", e);
+          }
+        }
+      }
+    }
+
+    return { text: fullText, toolCalls };
+  }
+
   async function handleSendMessage(message?: string) {
     const inputMessages2 = message ?? inputMessage;
 
     if (loading || (!inputMessages2.trim() && !file)) return;
     cancelStreamRef.current = false;
     setLoading(true);
+
     /* push user message + placeholder */
     const outgoing: Message[] = [];
-    if (file)
+    if (file) {
       outgoing.push({
         role: "user",
         content: "",
-        file: URL.createObjectURL(file), // Display only
+        file: URL.createObjectURL(file),
         type: file.type,
         name: file.name,
       });
-    if (inputMessages2.trim())
+    }
+    if (inputMessages2.trim()) {
       outgoing.push({ role: "user", content: inputMessages2 });
-    const AI_ROLE = "ai";
+    }
+
     setMessages((prev) => {
-      const list = [
-        ...prev,
-        ...outgoing,
-        { role: AI_ROLE as "ai", content: "..." },
-      ];
+      const list = [...prev, ...outgoing, { role: "ai" as const, content: "..." }];
       placeholderIndexRef.current = list.length - 1;
       return list;
     });
@@ -354,111 +458,137 @@ console.log("selectedPrompt aqui   ", selectedPrompt)
     setFile(null);
 
     let curChatId = chatId;
-    const parts: Part[] = [];
+    const filesToSend: FileToSend[] = [];
 
     try {
-      /* chatId */
-      if (!curChatId && shouldCreateChat) {
-        const newId = await handleCreateChat(
-          inputMessages2 || `Chat com arquivo ${file?.name || ""}`,
-        );
-        if (!newId)
-          throw new Error(
-            "Não foi possível criar o chat. Verifique se há um assistente selecionado.",
-          );
-        curChatId = newId;
-      }
-
-      /* FILE */
+      /* Process file but don't upload yet */
       if (fileToSend) {
-        if (curChatId) await uploadFileBackend(curChatId, fileToSend);
-        const gfile = await uploadToGemini(fileToSend);
-        if (gfile)
-          parts.push({
-            fileData: { mimeType: gfile.mimeType, fileUri: gfile.uri },
-          });
-      }
-
-      /* TEXT */
-      if (inputMessages2.trim()) parts.push({ text: inputMessages2 });
-
-      // Save user message to backend
-      if (inputMessages2.trim() && curChatId) {
-        await handlePostMessage(curChatId, {
-          text: inputMessages2,
-          entity: "user",
-          mimeType: "text",
+        const base64 = await fileToBase64(fileToSend);
+        filesToSend.push({
+          base64,
+          type: fileToSend.type,
+          name: fileToSend.name,
         });
       }
 
-      if (!chatSessionRef.current)
-        throw new Error("Sessão Gemini não iniciada");
+      /* Add user message to conversation history */
+      const userMessage: OpenRouterMessage = {
+        role: "user",
+        content: inputMessages2.trim() || "Analise o arquivo enviado.",
+      };
+      conversationHistoryRef.current.push(userMessage);
 
-      /* STREAM */
-      const stream = await chatSessionRef.current.sendMessageStream({
-        message: parts,
-      });
+      /* POST MESSAGE (User) logic deferred... */
 
+      /* Initial API call */
       streamBufRef.current = "";
-      const collectedCalls: {
-        name: string;
-        args: Record<string, unknown>;
-        toolCallId: string;
-      }[] = [];
+      let response = await callOpenRouterAPI(
+        conversationHistoryRef.current,
+        filesToSend
+      );
+      let result = await processStream(response);
 
-      for await (const chunk of stream) {
-        if (cancelStreamRef.current) break;
+      /* Handle tool calls if any */
+      if (shouldUseFunctions && result.toolCalls.length > 0) {
+        // Show processing message
+        streamBufRef.current = "🔍 Executando funções...";
+        flushUI();
 
-        /* ── extrai todas as functionCalls deste chunk ─────────────────── */
-        const newCalls = (chunk.candidates?.[0]?.content?.parts as Part[])
-          .filter(
-            (p): p is Part & { functionCall: FunctionCallWithId } =>
-              p.functionCall !== undefined,
-          )
-          .map(({ functionCall }) => ({
-            name: functionCall.name ?? "unknown",
-            args: functionCall.args ?? {},
-            toolCallId: getCallId(functionCall),
-          }));
+        // Execute tool calls locally
+        const toolResults = await executeToolCalls(result.toolCalls, {
+          GetAPI,
+          PostAPI,
+        });
 
-        collectedCalls.push(...newCalls);
+        // Add assistant message with tool_calls to history
+        conversationHistoryRef.current.push({
+          role: "assistant",
+          content: null,
+          tool_calls: result.toolCalls,
+        });
 
-        /* se não houve functionCall, processa texto incremental */
-        if (newCalls.length === 0) {
-          const piece =
-            (chunk.candidates?.[0]?.content?.parts as Part[])
-              .map((p) => p.text ?? "")
-              .join("") ?? "";
-          if (piece) {
-            streamBufRef.current += piece;
-            flushUI();
-          }
+        // Add tool results to history
+        for (const result of toolResults) {
+          conversationHistoryRef.current.push({
+            role: "tool",
+            tool_call_id: result.id,
+            content: JSON.stringify(result.output),
+            name: result.name,
+          });
         }
+
+        // Make follow-up call to get final response
+        streamBufRef.current = "";
+        response = await callOpenRouterAPI(conversationHistoryRef.current, []);
+        result = await processStream(response);
       }
 
-      /* ==== executa TODAS as chamadas, se houver ======================== */
-      if (shouldUseFunctions && collectedCalls.length) {
-        streamBufRef.current = await handleFunctionCalls(
-          collectedCalls,
-          chatSessionRef.current!,
-          { GetAPI, PostAPI }, // Pass context methods
-        );
-        flushUI(); // exibe a resposta final
-      }
       flushUI();
 
-      /* salva resposta final */
-      const reply = streamBufRef.current;
-      // Don't clear streamBufRef yet; might need it? No, safe to clear logic-wise, but we just set it.
-      // streamBufRef.current = ""; // Don't clear here if we want to inspect it later, but generally OK.
+      /* Add assistant response to history */
+      const assistantMessage: OpenRouterMessage = {
+        role: "assistant",
+        content: result.text,
+      };
+      conversationHistoryRef.current.push(assistantMessage);
 
-      if (!cancelStreamRef.current && curChatId) {
-        await handlePostMessage(curChatId, {
-          text: reply,
-          entity: "model",
-          mimeType: "text",
-        });
+      /* --- NOW CREATE CHAT AND SAVE --- */
+      const reply = result.text;
+      
+      if(!curChatId && shouldCreateChat) {
+          // Use a combination of User Input + AI Reply to generate the title
+          // This ensures that even if user sent audio (no text), the Title AI can use the AI's reply (which contains the answer)
+          // to guess the topic.
+          let titleContext = "";
+          if (inputMessages2 && inputMessages2.trim().length > 0) {
+              titleContext = "Usuário: " + inputMessages2;
+          } else {
+              // If only file/audio, rely on what the AI answered
+              titleContext = "AI (Resumo): " + reply.substring(0, 300);
+          }
+          
+          const newId = await handleCreateChat(titleContext);
+          
+          if (!newId) {
+             console.error("Failed to create chat at the end.");
+             // We still displayed the response, but failed to save.
+          } else {
+             curChatId = newId;
+          }
       }
+
+      if (curChatId) {
+          // 1. Upload file if needed
+          if (fileToSend) {
+              await uploadFileBackend(curChatId, fileToSend);
+          }
+          
+          // 2. Save User Message
+          if (inputMessages2.trim()) {
+            await handlePostMessage(curChatId, {
+              text: inputMessages2,
+              entity: "user",
+              mimeType: "text",
+            });
+          } else if (fileToSend) {
+             // ensure we save at least a marker if text was empty
+             await handlePostMessage(curChatId, {
+              text: "Arquivo enviado: " + fileToSend.name,
+              entity: "user",
+              mimeType: "text",
+            });
+          }
+
+          // 3. Save AI Message
+          if (!cancelStreamRef.current) {
+            await handlePostMessage(curChatId, {
+              text: reply,
+              entity: "model",
+              mimeType: "text",
+            });
+          }
+      }
+
     } catch (err) {
       console.error(err);
       setMessages((prev) =>
@@ -470,8 +600,8 @@ console.log("selectedPrompt aqui   ", selectedPrompt)
                   "Desculpe, ocorreu um erro. " +
                   (err instanceof Error ? err.message : ""),
               }
-            : m,
-        ),
+            : m
+        )
       );
     } finally {
       setLoading(false);

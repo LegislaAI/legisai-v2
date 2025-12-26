@@ -1,7 +1,7 @@
 "use client";
 
 import { useSectionChat } from "@/hooks/useSectionChat";
-import { Bot, File, Menu, Mic, Paperclip, Send, StopCircle, X } from "lucide-react";
+import { Bot, Mic, Paperclip, Send, StopCircle } from "lucide-react";
 import { useEffect, useRef, useState } from "react";
 import ReactMarkdown from "react-markdown";
  
@@ -11,6 +11,7 @@ import { ScrollArea } from "@/components/v2/components/ui/scroll-area";
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/v2/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import remarkGfm from "remark-gfm";
+import { FileViewer } from "./FileViewer";
 import { Prompt } from "./types";
 
 // Mock data strictly for the sidebar list if the API fails, though we will try to use real data via props
@@ -30,11 +31,7 @@ export function SectionAi({ activeChatId, selectedPrompt, onChatCreated}: Sectio
     const [loadNewChat, setLoadNewChat] = useState(false);
     const [loadOldChat, setLoadOldChat] = useState<string | null>(null);
     const [loadHistory, setLoadHistory] = useState(false);
-    console.log("activeChatId", activeChatId)
-    console.log("selectedPrompt", selectedPrompt)
     const isInputDisabled = !activeChatId && !selectedPrompt; // Disable if new chat but no prompt selected
-    console.log("activeChatId", activeChatId) 
-    console.log("selectedPrompt", selectedPrompt)
     // Initial load sync
     useEffect(() => {
         if (activeChatId) {
@@ -125,15 +122,7 @@ export function SectionAi({ activeChatId, selectedPrompt, onChatCreated}: Sectio
       {/* 2. MAIN CHAT AREA */}
       <div className="flex-1 flex flex-col min-w-0 bg-white relative">
         
-        {/* Toggle Sidebar Button (Floating) */}
-        {!showHistory && (
-            <button 
-                onClick={() => setShowHistory(true)}
-                className="absolute left-4 top-4 z-20 p-2 bg-white border border-gray-200 shadow-md rounded-lg text-gray-500 hover:text-secondary transition-all md:hidden"
-            >
-                <Menu size={18} />
-            </button>
-        )}
+
 
         {/* HEADER */}
         
@@ -185,8 +174,8 @@ export function SectionAi({ activeChatId, selectedPrompt, onChatCreated}: Sectio
                          )}>
                             
                              {msg.file && (
-                                 <div className="mb-2 p-2 bg-black/10 rounded flex items-center gap-2 text-xs">
-                                     <Paperclip size={12}/> {typeof msg.file === 'string' ? "Arquivo anexado" : msg.file.name}
+                                 <div className="mb-3 max-w-[280px]">
+                                     <FileViewer file={msg.file} mimeType={msg.type} fileName={msg.name} className={msg.role === "user" ? "bg-white border-white/20 text-white" : ""} />
                                  </div>
                              )}
                              <ReactMarkdown remarkPlugins={[remarkGfm]}>
@@ -208,12 +197,8 @@ export function SectionAi({ activeChatId, selectedPrompt, onChatCreated}: Sectio
              <div className="max-w-3xl mx-auto">
                  {/* Files */}
                  {file && (
-                     <div className="flex gap-2 mb-2">
-                             <div className="flex items-center gap-2 bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-lg  font-medium text-gray-700 animate-in zoom-in">
-                                 <File size={12} className="text-secondary" />
-                                 <span className="truncate max-w-[120px]">{file.name}</span>
-                                 <button onClick={() => setFile(null)} className="text-gray-400 hover:text-red-500"><X size={12} /></button>
-                             </div>
+                     <div className="flex gap-2 mb-2 animate-in slide-in-from-bottom-2 fade-in">
+                        <FileViewer file={file} onRemove={() => setFile(null)} isInput />
                      </div>
                  )}
 
@@ -226,7 +211,7 @@ export function SectionAi({ activeChatId, selectedPrompt, onChatCreated}: Sectio
                      </div>
                  )}
                  
-                 <div className="flex items-end gap-2 bg-gray-50 p-2 rounded-2xl border border-gray-200 focus-within:ring-1 focus-within:ring-secondary/30 focus-within:border-secondary transition-all shadow-inner">
+                 <div className="flex items-center gap-2 bg-gray-50 p-2 rounded-2xl border border-gray-200 focus-within:ring-0 focus-within:border-secondary transition-all shadow-inner">
                      <div className="flex gap-1">
                          <input type="file" ref={fileInputRef} className="hidden" onChange={handleFileUpload} />
                          <TooltipProvider>
@@ -244,7 +229,7 @@ export function SectionAi({ activeChatId, selectedPrompt, onChatCreated}: Sectio
                         onChange={(e) => setInputMessage(e.target.value)}
                         onKeyDown={(e) => { if(e.key === "Enter" && !e.shiftKey) { e.preventDefault(); handleSendMessage(); }}}
                         placeholder={isInputDisabled ? "Nenhum assistente disponível para este contexto." : (isRecording ? "Gravando..." : `Mensagem para ${selectedPrompt?.name || "LegisAI"}...`)}
-                        className="flex-1 bg-transparent border-none focus:ring-0  text-dark placeholder:text-gray-400 resize-none min-h-[44px] py-3 max-h-32"
+                        className="flex-1 bg-transparent border-none focus:ring-0 outline-none  text-dark placeholder:text-gray-400 resize-none min-h-[44px] py-3 max-h-32"
                         rows={1}
                         disabled={isRecording || isInputDisabled}
                      />

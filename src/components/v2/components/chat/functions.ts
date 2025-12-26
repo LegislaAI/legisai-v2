@@ -1,26 +1,26 @@
 /* --------------------------------------------------------------------
  * File: src/components/chat/functions.ts
  * --------------------------------------------------------------------
- *  Function-Calling Toolkit for Gemini
+ *  Function-Calling Toolkit for OpenRouter
+ *  Compatível com a API OpenRouter que segue o padrão OpenAI
  * ------------------------------------------------------------------*/
 
 import type { ApiContextProps } from "@/context/ApiContext";
-import {
-  Chat,
-  Part,
-  Type,
-  type FunctionDeclaration,
-  type Schema,
-} from "@google/genai";
+import type { OpenRouterTool, OpenRouterToolCall } from "./types";
 
 type ApiMethods = Pick<ApiContextProps, "GetAPI" | "PostAPI">;
 
 /* ------------------------------------------------------------------
  * 1. REGISTRY
  * ----------------------------------------------------------------*/
-export interface ToolDefinition
-  extends Omit<FunctionDeclaration, "parameters"> {
-  parameters: Schema;
+export interface ToolDefinition {
+  name: string;
+  description?: string;
+  parameters: {
+    type: "object";
+    properties: Record<string, { type: string; description?: string; enum?: string[] }>;
+    required?: string[];
+  };
   implementation: (
     args: Record<string, unknown>,
     api: ApiMethods,
@@ -34,130 +34,114 @@ export function registerTool(def: ToolDefinition): void {
   toolRegistry[def.name] = def;
 }
 
-export function getFunctionDeclarations(): FunctionDeclaration[] {
-  return Object.values(toolRegistry).map(
-    ({
-      /* eslint-disable @typescript-eslint/no-unused-vars */
-      implementation: _implementation,
-      /* eslint-enable */
-      ...decl
-    }) => decl,
-  );
+/** Retorna as tools no formato OpenRouter/OpenAI */
+export function getOpenRouterTools(): OpenRouterTool[] {
+  return Object.values(toolRegistry).map(({ name, description, parameters }) => ({
+    type: "function" as const,
+    function: {
+      name,
+      description,
+      parameters,
+    },
+  }));
 }
 
 /* ------------------------------------------------------------------
- * 2. EXECUTOR
+ * 2. EXECUTOR - Executa tool calls localmente
  * ----------------------------------------------------------------*/
-export interface ToolCall {
+export interface ToolCallResult {
+  id: string;
   name: string;
-  args: Record<string, unknown>;
-  toolCallId: string;
+  output: unknown;
+  error?: string;
 }
 
-export async function handleFunctionCalls(
-  functionCalls: ToolCall[],
-  chatSession: Chat,
+export async function executeToolCalls(
+  toolCalls: OpenRouterToolCall[],
   api: ApiMethods,
-): Promise<string> {
-  const toolResponses: Part[] = [];
+): Promise<ToolCallResult[]> {
+  const results: ToolCallResult[] = [];
 
-  for (const { name, args, toolCallId } of functionCalls) {
-    const def = toolRegistry[name];
+  for (const call of toolCalls) {
+    const funcName = call.function.name;
+    const def = toolRegistry[funcName];
+    
     try {
-      if (!def) throw new Error(`Unknown function: ${name}`);
-
+      if (!def) throw new Error(`Unknown function: ${funcName}`);
+      
+      const args = JSON.parse(call.function.arguments || "{}");
       const output = await def.implementation(args, api);
 
-      toolResponses.push({
-        functionResponse: {
-          id: toolCallId,
-          name,
-          response: { output: JSON.stringify(output) },
-        },
+      results.push({
+        id: call.id,
+        name: funcName,
+        output,
       });
     } catch (err) {
-      const message =
-        err instanceof Error ? err.message : "unknown error during call";
-      toolResponses.push({
-        functionResponse: {
-          id: toolCallId,
-          name,
-          response: {
-            // toolCode: 1, // field 'toolCode' might not be standard in all SDK versions, check if needed
-            output: JSON.stringify({ error: true, message }),
-          },
-        },
+      const message = err instanceof Error ? err.message : "unknown error during call";
+      results.push({
+        id: call.id,
+        name: funcName,
+        output: null,
+        error: message,
       });
     }
   }
 
-  const res = await chatSession.sendMessage({ message: toolResponses });
-  return res.text ?? "";
+  return results;
 }
 
 /* ------------------------------------------------------------------
- * 3. EXAMPLE TOOLS
+ * 3. REGISTERED TOOLS
  * ----------------------------------------------------------------*/
 
 registerTool({
   name: "vectorSearch",
   description: "search laws in vector database",
   parameters: {
-    type: Type.OBJECT,
+    type: "object",
     properties: {
       searchParam: {
-        type: Type.STRING,
-        description:
-          "keywords based on the user request to maximize the search results",
+        type: "string",
+        description: "keywords based on the user request to maximize the search results",
       },
       type: {
-        type: Type.STRING,
-        description:
-          "type of the proposition to search, example: PL, REQ, PEC, etc",
+        type: "string",
+        description: "type of the proposition to search, example: PL, REQ, PEC, etc",
       },
       year: {
-        type: Type.STRING,
+        type: "string",
         description: "year of the proposition to search",
       },
       number: {
-        type: Type.STRING,
+        type: "string",
         description: "number of the proposition to search",
       },
       regime: {
-        type: Type.STRING,
+        type: "string",
         description: "regime of the proposition to search",
       },
       page: {
-        type: Type.NUMBER,
+        type: "number",
         description: "page of the search result",
       },
       authorId: {
-        type: Type.STRING,
+        type: "string",
         description: "id of the author of the proposition",
       },
       situation: {
-        type: Type.STRING,
+        type: "string",
         description: "situation of the proposition to search",
       },
       lastMovementDescription: {
-        type: Type.STRING,
+        type: "string",
         description: "last movement description of the proposition to search",
       },
     },
     required: ["searchParam"],
-  } as Schema,
+  },
   implementation: async (
-    {
-      searchParam,
-      type,
-      year,
-      number,
-      regime,
-      page,
-      situation,
-      lastMovementDescription,
-      authorId,
-    },
+    { searchParam, type, year, number, regime, page, situation, lastMovementDescription, authorId },
     { GetAPI },
   ) => {
     let query = "";
@@ -167,13 +151,12 @@ registerTool({
     if (number) query += `&number=${number}`;
     if (regime) query += `&regime=${regime}`;
     if (situation) query += `&situation=${situation}`;
-    if (lastMovementDescription)
-      query += `&lastMovementDescription=${lastMovementDescription}`;
+    if (lastMovementDescription) query += `&lastMovementDescription=${lastMovementDescription}`;
     if (authorId) query += `&authorId=${authorId}`;
 
     try {
       const result = await GetAPI(
-        `/proposition/vetorial?searchParams=${searchParam}&page=${page}${query}`,
+        `/proposition/vetorial?searchParams=${searchParam}&page=${page || 1}${query}`,
         false,
       );
       return result.body;
@@ -188,15 +171,15 @@ registerTool({
   name: "propositionDetails",
   description: "search proposition details",
   parameters: {
-    type: Type.OBJECT,
+    type: "object",
     properties: {
       propositionId: {
-        type: Type.STRING,
+        type: "string",
         description: "id of the proposition to be searched",
       },
     },
     required: ["propositionId"],
-  } as Schema,
+  },
   implementation: async ({ propositionId }, { GetAPI }) => {
     const result = await GetAPI(`/proposition-process/${propositionId}`, false);
     return result.body;
@@ -207,19 +190,19 @@ registerTool({
   name: "fetchAuthors",
   description: "search author list",
   parameters: {
-    type: Type.OBJECT,
+    type: "object",
     properties: {
       name: {
-        type: Type.STRING,
+        type: "string",
         description: "First name of the authors",
       },
       page: {
-        type: Type.NUMBER,
+        type: "number",
         description: "Page of the search result",
       },
     },
     required: ["name", "page"],
-  } as Schema,
+  },
   implementation: async ({ name, page }, { GetAPI }) => {
     const result = await GetAPI(`/politician?query=${name}&page=${page}`, true);
     return result.body;
