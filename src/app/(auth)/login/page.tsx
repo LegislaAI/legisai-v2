@@ -38,19 +38,20 @@ export default function Login2Page() {
   const onSubmit = async (data: LoginFormData) => {
     try {
       const payload: LoginPayload = {
-        email: data.email, 
+        email: data.email,
         password: data.password,
       };
 
       const response = await PostAPI("/user/signin", payload, false);
-
+      console.log("response: ", response);
       if (response.status === 200) {
         const token = response.body.accessToken;
-        const cookieName = process.env.NEXT_PUBLIC_USER_TOKEN || "legisai-token";
-        
+        const cookieName =
+          process.env.NEXT_PUBLIC_USER_TOKEN || "legisai-token";
+
         cookies.set(cookieName, token);
         setToken(token);
-        
+
         toast.success("Login realizado com sucesso!");
         handleNavigation("/"); // Assuming dashboard is the target
       } else {
@@ -63,9 +64,9 @@ export default function Login2Page() {
   };
 
   return (
-    <Card className="w-full max-w-md animate-fade-in">
+    <Card className="animate-fade-in w-full max-w-md">
       <div className="mb-6 text-center">
-        <h2 className="text-2xl font-bold text-dark">Bem-vindo de volta!</h2>
+        <h2 className="text-dark text-2xl font-bold">Bem-vindo de volta!</h2>
         <p className="mt-2 text-sm text-gray-500">
           Insira suas credenciais para acessar sua conta.
         </p>
@@ -93,18 +94,14 @@ export default function Login2Page() {
           <div className="flex justify-end">
             <Link
               href="/recover-password"
-              className="text-xs text-secondary hover:underline"
+              className="text-secondary text-xs hover:underline"
             >
               Esqueceu a senha?
             </Link>
           </div>
         </div>
 
-        <Button
-          type="submit"
-          className="w-full"
-          isLoading={isSubmitting}
-        >
+        <Button type="submit" className="w-full" isLoading={isSubmitting}>
           Entrar
         </Button>
       </form>
@@ -113,7 +110,7 @@ export default function Login2Page() {
         <span className="text-gray-500">Não tem uma conta? </span>
         <Link
           href="/register"
-          className="font-medium text-secondary hover:underline"
+          className="text-secondary font-medium hover:underline"
         >
           Cadastre-se
         </Link>
