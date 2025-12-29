@@ -136,6 +136,15 @@ interface EventDetailsAPI {
   updatedAt: string;
 }
 
+// 8. Breves Comunicações Response
+interface BrevesComunicacoesResponse {
+  exists: boolean;
+  speakers: Array<{ name: string; time: string; party?: string }>;
+  summary: string | null;
+  error: string | null;
+  processing?: boolean; // True when data is still being collected
+}
+
 // --- MOCK DATA FOR "ORDEM DO DIA" CLASSIC VIEW UX ---
 const MOCK_ORDER_INDEX = Array.from({ length: 8 }, (_, i) => ({
   id: i + 1,
@@ -233,6 +242,11 @@ export default function DeliberativeSessionScreen() {
     "asc",
   );
 
+  // Breves Comunicações state
+  const [brevesComunicacoes, setBrevesComunicacoes] =
+    useState<BrevesComunicacoesResponse | null>(null);
+  const [loadingBreves, setLoadingBreves] = useState(false);
+
   // Fetch event details from API
   useEffect(() => {
     async function fetchEventDetails() {
@@ -281,6 +295,30 @@ export default function DeliberativeSessionScreen() {
     presenceStateFilter,
     presenceSortOrder,
   ]);
+
+  // Fetch Breves Comunicações when tab is active
+  useEffect(() => {
+    async function fetchBrevesComunicacoes() {
+      const eventId = pathname.split("/").pop();
+      if (!eventId || activeTab !== "brief_comm" || brevesComunicacoes) return;
+
+      setLoadingBreves(true);
+      try {
+        const response = await GetAPI(
+          `/event/${eventId}/breves-comunicacoes`,
+          true,
+        );
+        if (response.status === 200) {
+          setBrevesComunicacoes(response.body);
+        }
+      } catch (error) {
+        console.error("Error fetching breves comunicações:", error);
+      }
+      setLoadingBreves(false);
+    }
+
+    fetchBrevesComunicacoes();
+  }, [pathname, activeTab]);
 
   function getCategoriaPorCodigo(codigo?: string): string {
     // Lista de códigos para situações iniciais ou burocráticas
@@ -651,23 +689,88 @@ export default function DeliberativeSessionScreen() {
             </div>
           </Tabs.Content>
 
-          {/* --- CONTEÚDO: BREVES COMUNICAÇÕES (DATA UNAVAILABLE) --- */}
+          {/* --- CONTEÚDO: BREVES COMUNICAÇÕES --- */}
           <Tabs.Content
             value="brief_comm"
             className="animate-in fade-in slide-in-from-bottom-2 duration-500"
           >
-            <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-50 py-16 text-center">
-              <div className="mb-4 rounded-full bg-gray-100 p-4 text-gray-400">
-                <Mic2 size={32} />
+            {loadingBreves ? (
+              // Loading state
+              <div className="flex flex-col items-center justify-center rounded-xl border border-gray-100 bg-white py-16 text-center">
+                <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#749c5b] border-t-transparent"></div>
+                <p className="mt-4 text-sm text-gray-500">
+                  Carregando breves comunicações...
+                </p>
               </div>
-              <h3 className="text-lg font-semibold text-gray-700">
-                Dados não disponíveis
-              </h3>
-              <p className="mt-2 text-sm text-gray-500">
-                As informações detalhadas sobre os oradores de Pequeno e Grande
-                Expediente não estão disponíveis na API para esta sessão.
-              </p>
-            </div>
+            ) : brevesComunicacoes?.exists ? (
+              // Success state - show speakers
+              <div className="space-y-6">
+                {/* Summary card */}
+                {brevesComunicacoes.summary && (
+                  <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+                    <h3 className="mb-3 flex items-center gap-2 text-lg font-bold text-[#1a1d1f]">
+                      <Info className="text-[#749c5b]" size={20} />
+                      Resumo
+                    </h3>
+                    <p className="text-sm leading-relaxed text-gray-600">
+                      {brevesComunicacoes.summary}
+                    </p>
+                  </div>
+                )}
+
+                {/* Speakers list */}
+                <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+                  <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-[#1a1d1f]">
+                    <Mic2 className="text-[#749c5b]" size={20} />
+                    Oradores ({brevesComunicacoes.speakers.length})
+                  </h3>
+                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                    {brevesComunicacoes.speakers.map((speaker, index) => (
+                      <div
+                        key={index}
+                        className="flex items-center gap-3 rounded-lg border border-gray-100 bg-gray-50 p-3 transition-colors hover:bg-gray-100"
+                      >
+                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#749c5b]/10 text-[#749c5b]">
+                          <Mic2 size={18} />
+                        </div>
+                        <div className="min-w-0 flex-1">
+                          <p className="truncate font-medium text-[#1a1d1f]">
+                            {speaker.name}
+                          </p>
+                          <div className="flex items-center gap-2 text-xs text-gray-500">
+                            <Clock size={12} />
+                            <span>{speaker.time}</span>
+                            {speaker.party && (
+                              <>
+                                <span>•</span>
+                                <span className="font-semibold text-[#749c5b]">
+                                  {speaker.party}
+                                </span>
+                              </>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            ) : (
+              // Not available state
+              <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-gray-300 bg-gray-50 py-16 text-center">
+                <div className="mb-4 rounded-full bg-gray-100 p-4 text-gray-400">
+                  <Mic2 size={32} />
+                </div>
+                <h3 className="text-lg font-semibold text-gray-700">
+                  {brevesComunicacoes?.error || "Dados não disponíveis"}
+                </h3>
+                <p className="mt-2 max-w-md text-sm text-gray-500">
+                  {brevesComunicacoes?.error
+                    ? "Não foi possível carregar as informações de Breves Comunicações para esta sessão."
+                    : "Esta sessão não possui a seção de Breves Comunicações ou a transcrição ainda não está disponível."}
+                </p>
+              </div>
+            )}
           </Tabs.Content>
 
           {/* --- CONTEÚDO: ORDEM DO DIA (NEW CLASSIC VIEW + TABLE) --- */}
