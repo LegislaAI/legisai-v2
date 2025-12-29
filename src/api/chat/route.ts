@@ -6,7 +6,7 @@ export const runtime = "edge";
 // Isso economiza dinheiro e tempo comparado ao Whisper ou GPT-4o
 async function transcribeAudio(
   audioBase64: string,
-  apiKey: string
+  apiKey: string,
 ): Promise<string> {
   try {
     const response = await fetch(
@@ -33,7 +33,7 @@ async function transcribeAudio(
             },
           ],
         }),
-      }
+      },
     );
 
     if (!response.ok) return "";
@@ -61,14 +61,14 @@ export async function POST(req: Request) {
     if (!apiKey) {
       return NextResponse.json({ error: "API Key ausente" }, { status: 500 });
     }
-    
-    
+
     console.error("--------------- DEBUG REQUEST (FORCE) ---------------");
     console.error("Model:", model);
     console.error("Files received:", files ? files.length : 0);
-    if(files) files.forEach((f: any) => console.error(`File: ${f.name} (${f.type}) size:${f.base64?.length}`));
-
-
+    if (files)
+      files.forEach((f: any) =>
+        console.error(`File: ${f.name} (${f.type}) size:${f.base64?.length}`),
+      );
 
     const modelId = model || "google/gemini-2.5-flash";
 
@@ -98,7 +98,7 @@ export async function POST(req: Request) {
     });
 
     // Build system message with custom prompt if provided
-    const systemContent = systemPrompt 
+    const systemContent = systemPrompt
       ? `${systemPrompt}\n\nData e Hora atual (Brasília): ${now}. Use essa data como referência absoluta para responder perguntas sobre "hoje", "ontem", "amanhã" ou prazos.\nSEMPRE RESPONDA EM PORTUGUÊS DO BRASIL!`
       : `Data e Hora atual (Brasília): ${now}. Use essa data como referência absoluta para responder perguntas sobre "hoje", "ontem", "amanhã" ou prazos.\nSEMPRE RESPONDA EM PORTUGUÊS DO BRASIL!`;
 
@@ -128,9 +128,6 @@ export async function POST(req: Request) {
         const isImage = type.startsWith("image");
         const isPdf = type === "application/pdf";
         const isAudio = type.startsWith("audio");
-        
-        console.log(`Processing file: ${name} | Type: ${type} | isAudio: ${isAudio} | Model: ${modelId} | SupportsNative: ${supportsNativeAudioPdf}`);
-
 
         // 1. CENÁRIO: GEMINI (Aceita Tudo)
         if (supportsNativeAudioPdf) {
@@ -142,19 +139,18 @@ export async function POST(req: Request) {
           }
           // Para áudio, mesmo no Gemini, vamos FORÇAR a transcrição para garantir que ele entenda
           else if (isAudio) {
-             const transcription = await transcribeAudio(base64, apiKey);
-             console.log("Transcription result:", transcription ? transcription.substring(0, 50) + "..." : "FAILED");
-             if (transcription) {
-               contentArray.push({
-                 type: "text",
-                 text: `\n\n[TRANSCRIÇÃO DO ÁUDIO ANEXADO (${name})]:\n"${transcription}"\n`,
-               });
-             }
-             // Opcional: Mandar o áudio junto se quiser que ele "ouça" o tom, mas a transcrição é o fallback de ouro
-             contentArray.push({
-               type: "image_url", 
-               image_url: { url: base64 },
-             });
+            const transcription = await transcribeAudio(base64, apiKey);
+            if (transcription) {
+              contentArray.push({
+                type: "text",
+                text: `\n\n[TRANSCRIÇÃO DO ÁUDIO ANEXADO (${name})]:\n"${transcription}"\n`,
+              });
+            }
+            // Opcional: Mandar o áudio junto se quiser que ele "ouça" o tom, mas a transcrição é o fallback de ouro
+            contentArray.push({
+              type: "image_url",
+              image_url: { url: base64 },
+            });
           }
         }
 
@@ -228,10 +224,6 @@ export async function POST(req: Request) {
       requestBody.tools = tools;
       requestBody.tool_choice = "auto";
     }
-    console.log("requestBody", requestBody  
-      
-    )
-    console.log("apiKey", apiKey)
     const response = await fetch(
       "https://openrouter.ai/api/v1/chat/completions",
       {
@@ -243,15 +235,13 @@ export async function POST(req: Request) {
           "X-Title": "LegisAI",
         },
         body: JSON.stringify(requestBody),
-      }
+      },
     );
-    console.log("response", response)
-    console.log("response body", response.body)
     if (!response.ok) {
       const err = await response.text();
       return NextResponse.json(
         { error: `Erro OpenRouter: ${err}` },
-        { status: response.status }
+        { status: response.status },
       );
     }
 

@@ -223,7 +223,6 @@ export default function DeliberativeSessionScreen() {
 
       setLoading(true);
       const response = await GetAPI(`/event/details/${eventId}`, true);
-      console.log("response: ", response);
       if (response.status === 200) {
         setEventDetails(response.body);
         setOrderPropositions(response.body.EventProposition || []);
@@ -238,8 +237,6 @@ export default function DeliberativeSessionScreen() {
 
     fetchEventDetails();
   }, [pathname]);
-
-  console.log("selectedVote: ", selectedVote);
 
   function getCategoriaPorCodigo(codigo?: string): string {
     // Lista de códigos para situações iniciais ou burocráticas
@@ -387,8 +384,6 @@ export default function DeliberativeSessionScreen() {
             true,
           ),
         ]);
-        console.log("positiveRes: ", positiveRes);
-        console.log("negativeRes: ", negativeRes);
         if (positiveRes.status === 200) {
           setPositiveVotesList(positiveRes.body.votes || []);
           setPositiveVotesPages(positiveRes.body.pages || 1);

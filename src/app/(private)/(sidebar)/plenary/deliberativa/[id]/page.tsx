@@ -5,6 +5,7 @@ import { cn } from "@/lib/utils";
 import * as Progress from "@radix-ui/react-progress";
 import * as Tabs from "@radix-ui/react-tabs";
 import {
+  ArrowUpDown,
   BarChart3,
   Calendar,
   Check,
@@ -207,6 +208,17 @@ export default function DeliberativeSessionScreen() {
   const [negativeVotesPages, setNegativeVotesPages] = useState(1);
   const [positiveVotesSearch, setPositiveVotesSearch] = useState("");
   const [negativeVotesSearch, setNegativeVotesSearch] = useState("");
+  // Voting section filters
+  const [positivePartyFilter, setPositivePartyFilter] = useState("");
+  const [positiveStateFilter, setPositiveStateFilter] = useState("");
+  const [positiveSortOrder, setPositiveSortOrder] = useState<"asc" | "desc">(
+    "asc",
+  );
+  const [negativePartyFilter, setNegativePartyFilter] = useState("");
+  const [negativeStateFilter, setNegativeStateFilter] = useState("");
+  const [negativeSortOrder, setNegativeSortOrder] = useState<"asc" | "desc">(
+    "asc",
+  );
 
   const [presenceList, setPresenceList] = useState<EventPolitician[]>([]);
   const [loadingPresence, setLoadingPresence] = useState(false);
@@ -214,6 +226,12 @@ export default function DeliberativeSessionScreen() {
   const [presencePages, setPresencePages] = useState(1);
   const [presenceSearch, setPresenceSearch] = useState("");
   const [presenceTotal, setPresenceTotal] = useState(0);
+  // Presence section filters
+  const [presencePartyFilter, setPresencePartyFilter] = useState("");
+  const [presenceStateFilter, setPresenceStateFilter] = useState("");
+  const [presenceSortOrder, setPresenceSortOrder] = useState<"asc" | "desc">(
+    "asc",
+  );
 
   // Fetch event details from API
   useEffect(() => {
@@ -223,15 +241,10 @@ export default function DeliberativeSessionScreen() {
 
       setLoading(true);
       const response = await GetAPI(`/event/details/${eventId}`, true);
-      console.log("response: ", response);
       if (response.status === 200) {
         setEventDetails(response.body);
         setOrderPropositions(response.body.EventProposition || []);
         setVotesList(response.body.voting || []);
-        const politicians = response.body.politicians || [];
-        setPresenceList(politicians);
-        setPresenceTotal(politicians.length);
-        setPresencePages(Math.ceil(politicians.length / 20)); // 20 items per page
       }
       setLoading(false);
     }
@@ -239,7 +252,35 @@ export default function DeliberativeSessionScreen() {
     fetchEventDetails();
   }, [pathname]);
 
-  console.log("selectedVote: ", selectedVote);
+  // Fetch presence with server-side filtering
+  useEffect(() => {
+    async function fetchPresence() {
+      const eventId = pathname.split("/").pop();
+      if (!eventId) return;
+
+      setLoadingPresence(true);
+      const response = await GetAPI(
+        `/event-politician/${eventId}/paginated?page=${presencePage}&query=${presenceSearch}&party=${presencePartyFilter}&state=${presenceStateFilter}&sortOrder=${presenceSortOrder}`,
+        true,
+      );
+
+      if (response.status === 200) {
+        setPresenceList(response.body.politicians || []);
+        setPresencePages(response.body.pages || 1);
+        setPresenceTotal(response.body.total || 0);
+      }
+      setLoadingPresence(false);
+    }
+
+    fetchPresence();
+  }, [
+    pathname,
+    presencePage,
+    presenceSearch,
+    presencePartyFilter,
+    presenceStateFilter,
+    presenceSortOrder,
+  ]);
 
   function getCategoriaPorCodigo(codigo?: string): string {
     // Lista de códigos para situações iniciais ou burocráticas
@@ -379,16 +420,14 @@ export default function DeliberativeSessionScreen() {
       try {
         const [positiveRes, negativeRes] = await Promise.all([
           GetAPI(
-            `/voting-politician/positive/${selectedVote.id}?page=${positiveVotesPage}&query=${positiveVotesSearch}`,
+            `/voting-politician/positive/${selectedVote.id}?page=${positiveVotesPage}&query=${positiveVotesSearch}&party=${positivePartyFilter}&state=${positiveStateFilter}&sortOrder=${positiveSortOrder}`,
             true,
           ),
           GetAPI(
-            `/voting-politician/negative/${selectedVote.id}?page=${negativeVotesPage}&query=${negativeVotesSearch}`,
+            `/voting-politician/negative/${selectedVote.id}?page=${negativeVotesPage}&query=${negativeVotesSearch}&party=${negativePartyFilter}&state=${negativeStateFilter}&sortOrder=${negativeSortOrder}`,
             true,
           ),
         ]);
-        console.log("positiveRes: ", positiveRes);
-        console.log("negativeRes: ", negativeRes);
         if (positiveRes.status === 200) {
           setPositiveVotesList(positiveRes.body.votes || []);
           setPositiveVotesPages(positiveRes.body.pages || 1);
@@ -411,6 +450,12 @@ export default function DeliberativeSessionScreen() {
     negativeVotesPage,
     positiveVotesSearch,
     negativeVotesSearch,
+    positivePartyFilter,
+    positiveStateFilter,
+    positiveSortOrder,
+    negativePartyFilter,
+    negativeStateFilter,
+    negativeSortOrder,
   ]);
 
   if (loading) {
@@ -1074,25 +1119,120 @@ export default function DeliberativeSessionScreen() {
                           <div className="grid grid-cols-1 gap-6 md:grid-cols-2">
                             {/* Positive Voters */}
                             <div className="space-y-4">
-                              <div className="flex items-center justify-between">
-                                <h4 className="font-bold text-green-700">
-                                  Votaram SIM
-                                </h4>
-                                <div className="relative">
-                                  <Search
-                                    className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400"
-                                    size={14}
-                                  />
-                                  <input
-                                    type="text"
-                                    placeholder="Buscar..."
-                                    value={positiveVotesSearch}
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <h4 className="font-bold text-green-700">
+                                    Votaram SIM
+                                  </h4>
+                                  <button
+                                    onClick={() =>
+                                      setPositiveSortOrder(
+                                        positiveSortOrder === "asc"
+                                          ? "desc"
+                                          : "asc",
+                                      )
+                                    }
+                                    className="flex items-center gap-1 rounded-lg border border-green-200 px-2 py-1 text-xs text-green-700 hover:bg-green-50"
+                                    title={
+                                      positiveSortOrder === "asc"
+                                        ? "Ordenar Z-A"
+                                        : "Ordenar A-Z"
+                                    }
+                                  >
+                                    <ArrowUpDown size={12} />
+                                    {positiveSortOrder === "asc"
+                                      ? "A-Z"
+                                      : "Z-A"}
+                                  </button>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                  <div className="relative min-w-[120px] flex-1">
+                                    <Search
+                                      className="absolute top-1/2 left-2 -translate-y-1/2 text-gray-400"
+                                      size={12}
+                                    />
+                                    <input
+                                      type="text"
+                                      placeholder="Nome..."
+                                      value={positiveVotesSearch}
+                                      onChange={(e) => {
+                                        setPositiveVotesSearch(e.target.value);
+                                        setPositiveVotesPage(1);
+                                      }}
+                                      className="w-full rounded-lg border border-green-200 bg-white py-1 pr-2 pl-7 text-xs focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none"
+                                    />
+                                  </div>
+                                  <select
+                                    value={positivePartyFilter}
                                     onChange={(e) => {
-                                      setPositiveVotesSearch(e.target.value);
+                                      setPositivePartyFilter(e.target.value);
                                       setPositiveVotesPage(1);
                                     }}
-                                    className="w-48 rounded-lg border border-green-200 bg-white py-1 pr-3 pl-8 text-xs focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none"
-                                  />
+                                    className="rounded-lg border border-green-200 bg-white px-2 py-1 text-xs focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none"
+                                  >
+                                    <option value="">Partido</option>
+                                    <option value="PT">PT</option>
+                                    <option value="PL">PL</option>
+                                    <option value="UNIÃO">UNIÃO</option>
+                                    <option value="PP">PP</option>
+                                    <option value="MDB">MDB</option>
+                                    <option value="PSD">PSD</option>
+                                    <option value="REPUBLICANOS">
+                                      REPUBLICANOS
+                                    </option>
+                                    <option value="PSDB">PSDB</option>
+                                    <option value="PDT">PDT</option>
+                                    <option value="PSB">PSB</option>
+                                    <option value="PODE">PODE</option>
+                                    <option value="PSOL">PSOL</option>
+                                    <option value="PV">PV</option>
+                                    <option value="NOVO">NOVO</option>
+                                    <option value="PCdoB">PCdoB</option>
+                                    <option value="CIDADANIA">CIDADANIA</option>
+                                    <option value="SOLIDARIEDADE">
+                                      SOLID.
+                                    </option>
+                                    <option value="AVANTE">AVANTE</option>
+                                    <option value="PRD">PRD</option>
+                                    <option value="REDE">REDE</option>
+                                  </select>
+                                  <select
+                                    value={positiveStateFilter}
+                                    onChange={(e) => {
+                                      setPositiveStateFilter(e.target.value);
+                                      setPositiveVotesPage(1);
+                                    }}
+                                    className="rounded-lg border border-green-200 bg-white px-2 py-1 text-xs focus:border-green-500 focus:ring-1 focus:ring-green-500 focus:outline-none"
+                                  >
+                                    <option value="">UF</option>
+                                    <option value="AC">AC</option>
+                                    <option value="AL">AL</option>
+                                    <option value="AP">AP</option>
+                                    <option value="AM">AM</option>
+                                    <option value="BA">BA</option>
+                                    <option value="CE">CE</option>
+                                    <option value="DF">DF</option>
+                                    <option value="ES">ES</option>
+                                    <option value="GO">GO</option>
+                                    <option value="MA">MA</option>
+                                    <option value="MT">MT</option>
+                                    <option value="MS">MS</option>
+                                    <option value="MG">MG</option>
+                                    <option value="PA">PA</option>
+                                    <option value="PB">PB</option>
+                                    <option value="PR">PR</option>
+                                    <option value="PE">PE</option>
+                                    <option value="PI">PI</option>
+                                    <option value="RJ">RJ</option>
+                                    <option value="RN">RN</option>
+                                    <option value="RS">RS</option>
+                                    <option value="RO">RO</option>
+                                    <option value="RR">RR</option>
+                                    <option value="SC">SC</option>
+                                    <option value="SP">SP</option>
+                                    <option value="SE">SE</option>
+                                    <option value="TO">TO</option>
+                                  </select>
                                 </div>
                               </div>
                               <div className="grid grid-cols-1 gap-2 xl:grid-cols-2">
@@ -1184,25 +1324,120 @@ export default function DeliberativeSessionScreen() {
 
                             {/* Negative Voters */}
                             <div className="space-y-4">
-                              <div className="flex items-center justify-between">
-                                <h4 className="font-bold text-red-700">
-                                  Votaram NÃO
-                                </h4>
-                                <div className="relative">
-                                  <Search
-                                    className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400"
-                                    size={14}
-                                  />
-                                  <input
-                                    type="text"
-                                    placeholder="Buscar..."
-                                    value={negativeVotesSearch}
+                              <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                  <h4 className="font-bold text-red-700">
+                                    Votaram NÃO
+                                  </h4>
+                                  <button
+                                    onClick={() =>
+                                      setNegativeSortOrder(
+                                        negativeSortOrder === "asc"
+                                          ? "desc"
+                                          : "asc",
+                                      )
+                                    }
+                                    className="flex items-center gap-1 rounded-lg border border-red-200 px-2 py-1 text-xs text-red-700 hover:bg-red-50"
+                                    title={
+                                      negativeSortOrder === "asc"
+                                        ? "Ordenar Z-A"
+                                        : "Ordenar A-Z"
+                                    }
+                                  >
+                                    <ArrowUpDown size={12} />
+                                    {negativeSortOrder === "asc"
+                                      ? "A-Z"
+                                      : "Z-A"}
+                                  </button>
+                                </div>
+                                <div className="flex flex-wrap gap-2">
+                                  <div className="relative min-w-[120px] flex-1">
+                                    <Search
+                                      className="absolute top-1/2 left-2 -translate-y-1/2 text-gray-400"
+                                      size={12}
+                                    />
+                                    <input
+                                      type="text"
+                                      placeholder="Nome..."
+                                      value={negativeVotesSearch}
+                                      onChange={(e) => {
+                                        setNegativeVotesSearch(e.target.value);
+                                        setNegativeVotesPage(1);
+                                      }}
+                                      className="w-full rounded-lg border border-red-200 bg-white py-1 pr-2 pl-7 text-xs focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none"
+                                    />
+                                  </div>
+                                  <select
+                                    value={negativePartyFilter}
                                     onChange={(e) => {
-                                      setNegativeVotesSearch(e.target.value);
+                                      setNegativePartyFilter(e.target.value);
                                       setNegativeVotesPage(1);
                                     }}
-                                    className="w-48 rounded-lg border border-red-200 bg-white py-1 pr-3 pl-8 text-xs focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none"
-                                  />
+                                    className="rounded-lg border border-red-200 bg-white px-2 py-1 text-xs focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none"
+                                  >
+                                    <option value="">Partido</option>
+                                    <option value="PT">PT</option>
+                                    <option value="PL">PL</option>
+                                    <option value="UNIÃO">UNIÃO</option>
+                                    <option value="PP">PP</option>
+                                    <option value="MDB">MDB</option>
+                                    <option value="PSD">PSD</option>
+                                    <option value="REPUBLICANOS">
+                                      REPUBLICANOS
+                                    </option>
+                                    <option value="PSDB">PSDB</option>
+                                    <option value="PDT">PDT</option>
+                                    <option value="PSB">PSB</option>
+                                    <option value="PODE">PODE</option>
+                                    <option value="PSOL">PSOL</option>
+                                    <option value="PV">PV</option>
+                                    <option value="NOVO">NOVO</option>
+                                    <option value="PCdoB">PCdoB</option>
+                                    <option value="CIDADANIA">CIDADANIA</option>
+                                    <option value="SOLIDARIEDADE">
+                                      SOLID.
+                                    </option>
+                                    <option value="AVANTE">AVANTE</option>
+                                    <option value="PRD">PRD</option>
+                                    <option value="REDE">REDE</option>
+                                  </select>
+                                  <select
+                                    value={negativeStateFilter}
+                                    onChange={(e) => {
+                                      setNegativeStateFilter(e.target.value);
+                                      setNegativeVotesPage(1);
+                                    }}
+                                    className="rounded-lg border border-red-200 bg-white px-2 py-1 text-xs focus:border-red-500 focus:ring-1 focus:ring-red-500 focus:outline-none"
+                                  >
+                                    <option value="">UF</option>
+                                    <option value="AC">AC</option>
+                                    <option value="AL">AL</option>
+                                    <option value="AP">AP</option>
+                                    <option value="AM">AM</option>
+                                    <option value="BA">BA</option>
+                                    <option value="CE">CE</option>
+                                    <option value="DF">DF</option>
+                                    <option value="ES">ES</option>
+                                    <option value="GO">GO</option>
+                                    <option value="MA">MA</option>
+                                    <option value="MT">MT</option>
+                                    <option value="MS">MS</option>
+                                    <option value="MG">MG</option>
+                                    <option value="PA">PA</option>
+                                    <option value="PB">PB</option>
+                                    <option value="PR">PR</option>
+                                    <option value="PE">PE</option>
+                                    <option value="PI">PI</option>
+                                    <option value="RJ">RJ</option>
+                                    <option value="RN">RN</option>
+                                    <option value="RS">RS</option>
+                                    <option value="RO">RO</option>
+                                    <option value="RR">RR</option>
+                                    <option value="SC">SC</option>
+                                    <option value="SP">SP</option>
+                                    <option value="SE">SE</option>
+                                    <option value="TO">TO</option>
+                                  </select>
                                 </div>
                               </div>
                               <div className="grid grid-cols-1 gap-2 xl:grid-cols-2">
@@ -1366,26 +1601,113 @@ export default function DeliberativeSessionScreen() {
                   <h2 className="text-xl font-bold text-[#1a1d1f]">
                     Registro de Presença
                   </h2>
-                  <div className="text-sm text-gray-500">
-                    {presenceTotal} parlamentares • Página {presencePage} de{" "}
-                    {presencePages}
+                  <div className="flex items-center gap-3">
+                    <div className="text-sm text-gray-500">
+                      {presenceTotal} parlamentares • Página {presencePage} de{" "}
+                      {presencePages}
+                    </div>
+                    <button
+                      onClick={() =>
+                        setPresenceSortOrder(
+                          presenceSortOrder === "asc" ? "desc" : "asc",
+                        )
+                      }
+                      className="flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-2 text-sm text-gray-700 hover:bg-gray-50"
+                      title={
+                        presenceSortOrder === "asc"
+                          ? "Ordenar Z-A"
+                          : "Ordenar A-Z"
+                      }
+                    >
+                      <ArrowUpDown size={14} />
+                      {presenceSortOrder === "asc" ? "A-Z" : "Z-A"}
+                    </button>
                   </div>
                 </div>
-                <div className="relative">
-                  <Search
-                    className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400"
-                    size={18}
-                  />
-                  <input
-                    type="text"
-                    placeholder="Buscar por nome, partido ou estado..."
-                    value={presenceSearch}
+                <div className="flex flex-wrap gap-3">
+                  <div className="relative min-w-[200px] flex-1">
+                    <Search
+                      className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400"
+                      size={16}
+                    />
+                    <input
+                      type="text"
+                      placeholder="Buscar por nome..."
+                      value={presenceSearch}
+                      onChange={(e) => {
+                        setPresenceSearch(e.target.value);
+                        setPresencePage(1);
+                      }}
+                      className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pr-4 pl-10 text-sm transition-colors focus:border-[#749c5b] focus:bg-white focus:ring-2 focus:ring-[#749c5b]/20 focus:outline-none"
+                    />
+                  </div>
+                  <select
+                    value={presencePartyFilter}
                     onChange={(e) => {
-                      setPresenceSearch(e.target.value);
-                      setPresencePage(1); // Reset to first page on search
+                      setPresencePartyFilter(e.target.value);
+                      setPresencePage(1);
                     }}
-                    className="w-full rounded-lg border border-gray-200 bg-gray-50 py-2 pr-4 pl-10 text-sm transition-colors focus:border-[#749c5b] focus:bg-white focus:ring-2 focus:ring-[#749c5b]/20 focus:outline-none"
-                  />
+                    className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-[#749c5b] focus:ring-2 focus:ring-[#749c5b]/20 focus:outline-none"
+                  >
+                    <option value="">Todos os Partidos</option>
+                    <option value="PT">PT</option>
+                    <option value="PL">PL</option>
+                    <option value="UNIÃO">UNIÃO</option>
+                    <option value="PP">PP</option>
+                    <option value="MDB">MDB</option>
+                    <option value="PSD">PSD</option>
+                    <option value="REPUBLICANOS">REPUBLICANOS</option>
+                    <option value="PSDB">PSDB</option>
+                    <option value="PDT">PDT</option>
+                    <option value="PSB">PSB</option>
+                    <option value="PODE">PODE</option>
+                    <option value="PSOL">PSOL</option>
+                    <option value="PV">PV</option>
+                    <option value="NOVO">NOVO</option>
+                    <option value="PCdoB">PCdoB</option>
+                    <option value="CIDADANIA">CIDADANIA</option>
+                    <option value="SOLIDARIEDADE">SOLIDARIEDADE</option>
+                    <option value="AVANTE">AVANTE</option>
+                    <option value="PRD">PRD</option>
+                    <option value="REDE">REDE</option>
+                  </select>
+                  <select
+                    value={presenceStateFilter}
+                    onChange={(e) => {
+                      setPresenceStateFilter(e.target.value);
+                      setPresencePage(1);
+                    }}
+                    className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-[#749c5b] focus:ring-2 focus:ring-[#749c5b]/20 focus:outline-none"
+                  >
+                    <option value="">Todos os Estados</option>
+                    <option value="AC">AC</option>
+                    <option value="AL">AL</option>
+                    <option value="AP">AP</option>
+                    <option value="AM">AM</option>
+                    <option value="BA">BA</option>
+                    <option value="CE">CE</option>
+                    <option value="DF">DF</option>
+                    <option value="ES">ES</option>
+                    <option value="GO">GO</option>
+                    <option value="MA">MA</option>
+                    <option value="MT">MT</option>
+                    <option value="MS">MS</option>
+                    <option value="MG">MG</option>
+                    <option value="PA">PA</option>
+                    <option value="PB">PB</option>
+                    <option value="PR">PR</option>
+                    <option value="PE">PE</option>
+                    <option value="PI">PI</option>
+                    <option value="RJ">RJ</option>
+                    <option value="RN">RN</option>
+                    <option value="RS">RS</option>
+                    <option value="RO">RO</option>
+                    <option value="RR">RR</option>
+                    <option value="SC">SC</option>
+                    <option value="SP">SP</option>
+                    <option value="SE">SE</option>
+                    <option value="TO">TO</option>
+                  </select>
                 </div>
               </div>
 
@@ -1395,170 +1717,131 @@ export default function DeliberativeSessionScreen() {
                     Carregando lista de presença...
                   </span>
                 </div>
+              ) : presenceList.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <div className="mb-4 rounded-full bg-gray-100 p-4 text-gray-400">
+                    <Users size={32} />
+                  </div>
+                  <h3 className="text-lg font-semibold text-gray-700">
+                    {presenceSearch ||
+                    presencePartyFilter ||
+                    presenceStateFilter
+                      ? "Nenhum resultado encontrado"
+                      : "Nenhuma presença registrada"}
+                  </h3>
+                  <p className="mt-2 text-sm text-gray-500">
+                    {presenceSearch ||
+                    presencePartyFilter ||
+                    presenceStateFilter
+                      ? "Tente ajustar os filtros para encontrar parlamentares."
+                      : "Não há registros de presença para este evento."}
+                  </p>
+                  {(presenceSearch ||
+                    presencePartyFilter ||
+                    presenceStateFilter) && (
+                    <button
+                      onClick={() => {
+                        setPresenceSearch("");
+                        setPresencePartyFilter("");
+                        setPresenceStateFilter("");
+                        setPresencePage(1);
+                      }}
+                      className="mt-4 rounded-lg bg-[#749c5b] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#658a4e]"
+                    >
+                      Limpar filtros
+                    </button>
+                  )}
+                </div>
               ) : (
-                (() => {
-                  const filteredList = presenceList.filter((p) => {
-                    if (!presenceSearch) return true;
-                    const searchLower = presenceSearch.toLowerCase();
-                    return (
-                      p.politician.name.toLowerCase().includes(searchLower) ||
-                      p.politician.politicalParty
-                        ?.toLowerCase()
-                        .includes(searchLower) ||
-                      p.politician.state?.toLowerCase().includes(searchLower) ||
-                      p.politician.uf?.toLowerCase().includes(searchLower)
-                    );
-                  });
-
-                  // Empty state: no data at all
-                  if (presenceList.length === 0) {
-                    return (
-                      <div className="flex flex-col items-center justify-center py-16 text-center">
-                        <div className="mb-4 rounded-full bg-gray-100 p-4 text-gray-400">
-                          <Users size={32} />
+                <div className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
+                  {presenceList.map((p) => (
+                    <div
+                      key={p.id}
+                      className="flex items-center gap-3 rounded-lg border border-gray-100 p-3 shadow-sm transition-shadow hover:shadow-md"
+                    >
+                      <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-gray-200">
+                        <div className="flex h-full w-full items-center justify-center text-gray-400">
+                          <Users size={20} />
                         </div>
-                        <h3 className="text-lg font-semibold text-gray-700">
-                          Nenhuma presença registrada
-                        </h3>
-                        <p className="mt-2 text-sm text-gray-500">
-                          Não há registros de presença para este evento.
+                      </div>
+                      <div className="overflow-hidden">
+                        <p className="truncate text-sm font-bold text-[#1a1d1f]">
+                          {p.politician.name}
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {p.politician.politicalParty} - {p.politician.state}
                         </p>
                       </div>
-                    );
-                  }
-
-                  // Empty state: search with no results
-                  if (filteredList.length === 0) {
-                    return (
-                      <div className="flex flex-col items-center justify-center py-16 text-center">
-                        <div className="mb-4 rounded-full bg-gray-100 p-4 text-gray-400">
-                          <Search size={32} />
-                        </div>
-                        <h3 className="text-lg font-semibold text-gray-700">
-                          Nenhum resultado encontrado
-                        </h3>
-                        <p className="mt-2 text-sm text-gray-500">
-                          Não encontramos parlamentares com o termo "
-                          {presenceSearch}".
-                        </p>
-                        <button
-                          onClick={() => setPresenceSearch("")}
-                          className="mt-4 rounded-lg bg-[#749c5b] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#658a4e]"
-                        >
-                          Limpar busca
-                        </button>
-                      </div>
-                    );
-                  }
-
-                  // Normal state: show results
-                  return (
-                    <div className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">
-                      {filteredList
-                        .slice((presencePage - 1) * 20, presencePage * 20)
-                        .map((p) => (
-                          <div
-                            key={p.id}
-                            className="flex items-center gap-3 rounded-lg border border-gray-100 p-3 shadow-sm transition-shadow hover:shadow-md"
-                          >
-                            <div className="h-10 w-10 flex-shrink-0 overflow-hidden rounded-full bg-gray-200">
-                              <div className="flex h-full w-full items-center justify-center text-gray-400">
-                                <Users size={20} />
-                              </div>
-                            </div>
-                            <div className="overflow-hidden">
-                              <p className="truncate text-sm font-bold text-[#1a1d1f]">
-                                {p.politician.name}
-                              </p>
-                              <p className="text-xs text-gray-500">
-                                {p.politician.politicalParty} -{" "}
-                                {p.politician.state}
-                              </p>
-                            </div>
-                          </div>
-                        ))}
                     </div>
-                  );
-                })()
+                  ))}
+                </div>
               )}
 
               {/* Pagination Controls */}
-              {presenceList.length > 0 &&
-                presenceList.filter((p) => {
-                  if (!presenceSearch) return true;
-                  const searchLower = presenceSearch.toLowerCase();
-                  return (
-                    p.politician.name.toLowerCase().includes(searchLower) ||
-                    p.politician.politicalParty
-                      ?.toLowerCase()
-                      .includes(searchLower) ||
-                    p.politician.state?.toLowerCase().includes(searchLower) ||
-                    p.politician.uf?.toLowerCase().includes(searchLower)
-                  );
-                }).length > 0 && (
-                  <div className="flex items-center justify-between border-t border-gray-100 p-4">
-                    {/* Left side: First and Previous buttons */}
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() => setPresencePage(1)}
-                        disabled={presencePage === 1}
-                        className="flex items-center gap-1 rounded border border-gray-200 px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent"
-                        title="Primeira página"
-                      >
-                        <ChevronsLeft size={16} />
-                        <span className="hidden sm:inline">Início</span>
-                      </button>
-                      <button
-                        onClick={() =>
-                          setPresencePage((prev) => Math.max(1, prev - 1))
-                        }
-                        disabled={presencePage === 1}
-                        className="flex items-center gap-1 rounded border border-gray-200 px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent"
-                        title="Página anterior"
-                      >
-                        <ChevronLeft size={16} />
-                        <span className="hidden sm:inline">Anterior</span>
-                      </button>
-                    </div>
-
-                    {/* Center: Page indicator */}
-                    <div className="flex items-center gap-2">
-                      <span className="text-sm text-gray-600">Página</span>
-                      <span className="rounded-lg bg-[#749c5b] px-3 py-1 text-sm font-bold text-white">
-                        {presencePage}
-                      </span>
-                      <span className="text-sm text-gray-600">
-                        de {presencePages}
-                      </span>
-                    </div>
-
-                    {/* Right side: Next and Last buttons */}
-                    <div className="flex items-center gap-2">
-                      <button
-                        onClick={() =>
-                          setPresencePage((prev) =>
-                            Math.min(presencePages, prev + 1),
-                          )
-                        }
-                        disabled={presencePage === presencePages}
-                        className="flex items-center gap-1 rounded border border-gray-200 px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent"
-                        title="Próxima página"
-                      >
-                        <span className="hidden sm:inline">Próxima</span>
-                        <ChevronRight size={16} />
-                      </button>
-                      <button
-                        onClick={() => setPresencePage(presencePages)}
-                        disabled={presencePage === presencePages}
-                        className="flex items-center gap-1 rounded border border-gray-200 px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent"
-                        title="Última página"
-                      >
-                        <span className="hidden sm:inline">Fim</span>
-                        <ChevronsRight size={16} />
-                      </button>
-                    </div>
+              {presenceList.length > 0 && presencePages > 1 && (
+                <div className="flex items-center justify-between border-t border-gray-100 p-4">
+                  {/* Left side: First and Previous buttons */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setPresencePage(1)}
+                      disabled={presencePage === 1}
+                      className="flex items-center gap-1 rounded border border-gray-200 px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent"
+                      title="Primeira página"
+                    >
+                      <ChevronsLeft size={16} />
+                      <span className="hidden sm:inline">Início</span>
+                    </button>
+                    <button
+                      onClick={() =>
+                        setPresencePage((prev) => Math.max(1, prev - 1))
+                      }
+                      disabled={presencePage === 1}
+                      className="flex items-center gap-1 rounded border border-gray-200 px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent"
+                      title="Página anterior"
+                    >
+                      <ChevronLeft size={16} />
+                      <span className="hidden sm:inline">Anterior</span>
+                    </button>
                   </div>
-                )}
+
+                  {/* Center: Page indicator */}
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm text-gray-600">Página</span>
+                    <span className="rounded-lg bg-[#749c5b] px-3 py-1 text-sm font-bold text-white">
+                      {presencePage}
+                    </span>
+                    <span className="text-sm text-gray-600">
+                      de {presencePages}
+                    </span>
+                  </div>
+
+                  {/* Right side: Next and Last buttons */}
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() =>
+                        setPresencePage((prev) =>
+                          Math.min(presencePages, prev + 1),
+                        )
+                      }
+                      disabled={presencePage === presencePages}
+                      className="flex items-center gap-1 rounded border border-gray-200 px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent"
+                      title="Próxima página"
+                    >
+                      <span className="hidden sm:inline">Próxima</span>
+                      <ChevronRight size={16} />
+                    </button>
+                    <button
+                      onClick={() => setPresencePage(presencePages)}
+                      disabled={presencePage === presencePages}
+                      className="flex items-center gap-1 rounded border border-gray-200 px-3 py-2 text-sm font-medium transition-colors hover:bg-gray-100 disabled:cursor-not-allowed disabled:opacity-50 disabled:hover:bg-transparent"
+                      title="Última página"
+                    >
+                      <span className="hidden sm:inline">Fim</span>
+                      <ChevronsRight size={16} />
+                    </button>
+                  </div>
+                </div>
+              )}
             </div>
           </Tabs.Content>
         </Tabs.Root>

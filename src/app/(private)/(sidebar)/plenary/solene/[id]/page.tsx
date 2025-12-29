@@ -261,7 +261,6 @@ export default function SessionDetailScreen() {
               status: "falou", // Assume everyone linked here spoke or was present
             }),
           );
-          console.log(mappedSpeakers);
           // setSpeakers(mappedSpeakers);
         }
       }
@@ -417,7 +416,13 @@ export default function SessionDetailScreen() {
 
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           {/* --- 1.3 ORADORES INSCRITOS --- */}
-          <section className="relative h-fit rounded-xl border border-gray-100 bg-white p-6 shadow-sm lg:col-span-1">
+          <section className="relative h-fit overflow-hidden rounded-xl border border-gray-100 bg-white p-6 shadow-sm lg:col-span-1">
+            <div className="absolute top-0 left-0 flex h-full w-full items-center justify-center gap-2 bg-white/50 backdrop-blur-xs">
+              <Info size={16} className="text-orange-600" />
+              <span className="text-xs font-bold text-orange-800 uppercase">
+                Em Breve - API Não Disponível
+              </span>
+            </div>
             {/* REMOVED PLACEHOLDER BANNER */}
 
             <div className="mb-4 flex items-center justify-between">

@@ -11,7 +11,7 @@ export interface Chat {
 
 export interface Prompt {
   id: string;
-  name: string; 
+  name: string;
   description: string;
   type: string;
   icon?: string;
@@ -19,7 +19,7 @@ export interface Prompt {
 
 export function useChatPage(type: string = "ai") {
   const { GetAPI } = useApiContext();
-  
+
   const [chats, setChats] = useState<Chat[]>([]);
   const [prompts, setPrompts] = useState<Prompt[]>([]);
   const [selectedPrompt, setSelectedPrompt] = useState<Prompt | null>(null);
@@ -31,13 +31,11 @@ export function useChatPage(type: string = "ai") {
   const fetchChats = async () => {
     setLoadingChats(true);
     try {
-       let endpoint = "";
-    if (type === "ai") endpoint = "/chat/ai?page=1";
-    if (type === "proposition") endpoint = "/chat/proposition?page=1";
-    if (type === "prediction") endpoint = "/chat/prediction?page=1";
-    console.log("endpoint", endpoint)
+      let endpoint = "";
+      if (type === "ai") endpoint = "/chat/ai?page=1";
+      if (type === "proposition") endpoint = "/chat/proposition?page=1";
+      if (type === "prediction") endpoint = "/chat/prediction?page=1";
       const response = await GetAPI(endpoint, true);
-      console.log("response", response)
       if (response.status === 200) {
         setChats(response.body.chats || []);
       }
@@ -56,14 +54,12 @@ export function useChatPage(type: string = "ai") {
       if (type === "ai") endpoint = "/prompt?types=ai";
       if (type === "proposition") endpoint = "/prompt?&types=proposition";
       if (type === "prediction") endpoint = "/prompt?&types=prediction";
-      const response = await GetAPI(endpoint, true); 
-      console.log("endpoint", endpoint)
-      console.log("response get prompts", response)
+      const response = await GetAPI(endpoint, true);
       if (response.status === 200) {
-         setPrompts(response.body.prompts || []);
+        setPrompts(response.body.prompts || []);
       }
     } catch (error) {
-       console.error("Error fetching prompts:", error);
+      console.error("Error fetching prompts:", error);
     } finally {
       setLoadingPrompts(false);
     }

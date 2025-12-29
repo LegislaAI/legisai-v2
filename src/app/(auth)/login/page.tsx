@@ -43,7 +43,6 @@ export default function Login2Page() {
       };
 
       const response = await PostAPI("/user/signin", payload, false);
-      console.log("response: ", response);
       if (response.status === 200) {
         const token = response.body.accessToken;
         const cookieName =

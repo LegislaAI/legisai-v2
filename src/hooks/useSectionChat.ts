@@ -86,14 +86,15 @@ export function useSectionChat({
 
   /* gravação */
   const [isRecording, setIsRecording] = useState(false);
-  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(null);
+  const [mediaRecorder, setMediaRecorder] = useState<MediaRecorder | null>(
+    null,
+  );
   const chunksRef = useRef<Blob[]>([]);
   const [recordStartTime, setRecordStartTime] = useState<number | null>(null);
   const [elapsedTime, setElapsedTime] = useState("00:00");
 
   /* arquivo */
   const [file, setFile] = useState<File | null>(null);
-
 
   /* ─────────────────────────────── RESET ON PROMPT CHANGE ─────────────────────────────── */
   useEffect(() => {
@@ -119,19 +120,22 @@ export function useSectionChat({
     if (!shouldCreateChat) return null;
     try {
       // 1. Generate Title via AI
-      let generatedTitle = first.split(" ").slice(0, 5).join(" ") || "Novo Chat";
+      let generatedTitle =
+        first.split(" ").slice(0, 5).join(" ") || "Novo Chat";
       try {
-         const titleRes = await fetch("/api/chat/title", {
-             method: "POST",
-             headers: { "Content-Type": "application/json" },
-             body: JSON.stringify({ messages: [{ role: "user", content: first }] })
-         });
-         if(titleRes.ok) {
-             const data = await titleRes.json();
-             if(data.title) generatedTitle = data.title;
-         }
-      } catch(err) {
-          console.error("Title gen errored, using fallback", err);
+        const titleRes = await fetch("/api/chat/title", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            messages: [{ role: "user", content: first }],
+          }),
+        });
+        if (titleRes.ok) {
+          const data = await titleRes.json();
+          if (data.title) generatedTitle = data.title;
+        }
+      } catch (err) {
+        console.error("Title gen errored, using fallback", err);
       }
 
       const payload = {
@@ -156,7 +160,7 @@ export function useSectionChat({
 
   async function handlePostMessage(
     id: string,
-    msg: { text: string; entity: string; mimeType: string; fileUrl?: string }
+    msg: { text: string; entity: string; mimeType: string; fileUrl?: string },
   ) {
     if (!shouldSaveMessage) return;
     try {
@@ -210,15 +214,15 @@ export function useSectionChat({
           type: m.mimeType,
           file: m.fileUrl,
         }));
-        
+
         // Rebuild conversation history for OpenRouter
         const histOpenRouter: OpenRouterMessage[] = r.body.messages.map(
           (m: MessagesFromBackend) => ({
             role: m.entity === "user" ? "user" : "assistant",
             content: m.text,
-          })
+          }),
         );
-        
+
         setMessages(histMsgs);
         conversationHistoryRef.current = histOpenRouter;
       }
@@ -285,7 +289,7 @@ export function useSectionChat({
             .toString()
             .padStart(2, "0")}:${Math.floor(el % 60)
             .toString()
-            .padStart(2, "0")}`
+            .padStart(2, "0")}`,
         );
       }, 1000);
     }
@@ -302,14 +306,14 @@ export function useSectionChat({
       const txt = streamBufRef.current;
       setMessages((prev) =>
         prev.map((m, i) =>
-          i === placeholderIndexRef.current ? { ...m, content: txt } : m
-        )
+          i === placeholderIndexRef.current ? { ...m, content: txt } : m,
+        ),
       );
     });
 
   async function callOpenRouterAPI(
     conversationMessages: OpenRouterMessage[],
-    filesToSend: FileToSend[]
+    filesToSend: FileToSend[],
   ): Promise<Response> {
     const systemPrompt =
       selectedPrompt?.prompt ||
@@ -327,8 +331,6 @@ export function useSectionChat({
         tools: shouldUseFunctions ? getOpenRouterTools() : undefined,
       }),
     });
-    console.log("response", response)
-    console.log("response body", response.body)
     if (!response.ok) {
       const errorText = await response.text();
       throw new Error(`API Error: ${errorText}`);
@@ -379,7 +381,7 @@ export function useSectionChat({
             if (delta?.tool_calls) {
               for (const tc of delta.tool_calls) {
                 const idx = tc.index ?? 0;
-                
+
                 if (!toolCallsInProgress[idx]) {
                   toolCallsInProgress[idx] = {
                     id: tc.id || "",
@@ -397,7 +399,8 @@ export function useSectionChat({
                     toolCallsInProgress[idx].function.name = tc.function.name;
                   }
                   if (tc.function?.arguments) {
-                    toolCallsInProgress[idx].function.arguments += tc.function.arguments;
+                    toolCallsInProgress[idx].function.arguments +=
+                      tc.function.arguments;
                   }
                 }
               }
@@ -447,7 +450,11 @@ export function useSectionChat({
     }
 
     setMessages((prev) => {
-      const list = [...prev, ...outgoing, { role: "ai" as const, content: "..." }];
+      const list = [
+        ...prev,
+        ...outgoing,
+        { role: "ai" as const, content: "..." },
+      ];
       placeholderIndexRef.current = list.length - 1;
       return list;
     });
@@ -484,7 +491,7 @@ export function useSectionChat({
       streamBufRef.current = "";
       let response = await callOpenRouterAPI(
         conversationHistoryRef.current,
-        filesToSend
+        filesToSend,
       );
       let result = await processStream(response);
 
@@ -534,61 +541,60 @@ export function useSectionChat({
 
       /* --- NOW CREATE CHAT AND SAVE --- */
       const reply = result.text;
-      
-      if(!curChatId && shouldCreateChat) {
-          // Use a combination of User Input + AI Reply to generate the title
-          // This ensures that even if user sent audio (no text), the Title AI can use the AI's reply (which contains the answer)
-          // to guess the topic.
-          let titleContext = "";
-          if (inputMessages2 && inputMessages2.trim().length > 0) {
-              titleContext = "Usuário: " + inputMessages2;
-          } else {
-              // If only file/audio, rely on what the AI answered
-              titleContext = "AI (Resumo): " + reply.substring(0, 300);
-          }
-          
-          const newId = await handleCreateChat(titleContext);
-          
-          if (!newId) {
-             console.error("Failed to create chat at the end.");
-             // We still displayed the response, but failed to save.
-          } else {
-             curChatId = newId;
-          }
+
+      if (!curChatId && shouldCreateChat) {
+        // Use a combination of User Input + AI Reply to generate the title
+        // This ensures that even if user sent audio (no text), the Title AI can use the AI's reply (which contains the answer)
+        // to guess the topic.
+        let titleContext = "";
+        if (inputMessages2 && inputMessages2.trim().length > 0) {
+          titleContext = "Usuário: " + inputMessages2;
+        } else {
+          // If only file/audio, rely on what the AI answered
+          titleContext = "AI (Resumo): " + reply.substring(0, 300);
+        }
+
+        const newId = await handleCreateChat(titleContext);
+
+        if (!newId) {
+          console.error("Failed to create chat at the end.");
+          // We still displayed the response, but failed to save.
+        } else {
+          curChatId = newId;
+        }
       }
 
       if (curChatId) {
-          // 1. Upload file if needed
-          if (fileToSend) {
-              await uploadFileBackend(curChatId, fileToSend);
-          }
-          
-          // 2. Save User Message
-          if (inputMessages2.trim()) {
-            await handlePostMessage(curChatId, {
-              text: inputMessages2,
-              entity: "user",
-              mimeType: "text",
-            });
-          } else if (fileToSend) {
-             // ensure we save at least a marker if text was empty
-             await handlePostMessage(curChatId, {
-              text: "Arquivo enviado: " + fileToSend.name,
-              entity: "user",
-              mimeType: "text",
-            });
-          }
+        // 1. Upload file if needed
+        if (fileToSend) {
+          await uploadFileBackend(curChatId, fileToSend);
+        }
 
-          // 3. Save AI Message
-          if (!cancelStreamRef.current) {
-            await handlePostMessage(curChatId, {
-              text: reply,
-              entity: "model",
-              mimeType: "text",
-            });
-          }
+        // 2. Save User Message
+        if (inputMessages2.trim()) {
+          await handlePostMessage(curChatId, {
+            text: inputMessages2,
+            entity: "user",
+            mimeType: "text",
+          });
+        } else if (fileToSend) {
+          // ensure we save at least a marker if text was empty
+          await handlePostMessage(curChatId, {
+            text: "Arquivo enviado: " + fileToSend.name,
+            entity: "user",
+            mimeType: "text",
+          });
+        }
+
+        // 3. Save AI Message
+        if (!cancelStreamRef.current) {
+          await handlePostMessage(curChatId, {
+            text: reply,
+            entity: "model",
+            mimeType: "text",
+          });
+        }
       }
-
     } catch (err) {
       console.error(err);
       setMessages((prev) =>
@@ -600,8 +606,8 @@ export function useSectionChat({
                   "Desculpe, ocorreu um erro. " +
                   (err instanceof Error ? err.message : ""),
               }
-            : m
-        )
+            : m,
+        ),
       );
     } finally {
       setLoading(false);

@@ -21,8 +21,8 @@ import { useApiContext } from "@/context/ApiContext";
 import { useRouter } from "next/navigation";
 
 // --- TIPOS ---
-type SessionType = "solene" | "deliberativa" | "geral";
-type ApiEventType = "SOLEMN" | "DELIBERATIVE" | "COMMISSION";
+type SessionType = "solene" | "deliberativa";
+type ApiEventType = "SOLEMN" | "DELIBERATIVE";
 
 interface SessionSummary {
   id: string;
@@ -81,8 +81,8 @@ export default function SessionListScreen() {
         return "SOLEMN";
       case "deliberativa":
         return "DELIBERATIVE";
-      case "geral":
-        return "COMMISSION";
+      // case "geral":
+      //   return "COMMISSION";
     }
   };
 
@@ -91,7 +91,8 @@ export default function SessionListScreen() {
     const name = eventTypeName.toLowerCase();
     if (name.includes("solene")) return "solene";
     if (name.includes("deliberativa")) return "deliberativa";
-    return "geral";
+    return "deliberativa";
+    // return "geral";
   };
 
   // Helper function to map situation to status
@@ -200,21 +201,19 @@ export default function SessionListScreen() {
             busca.
           </p>
           <div className="mt-4 flex w-fit flex-col gap-2 rounded-lg border border-gray-300 bg-white p-1 sm:flex-row">
-            {(["solene", "deliberativa", "geral"] as SessionType[]).map(
-              (type) => (
-                <button
-                  key={type}
-                  onClick={() => handleTabChange(type)}
-                  className={`rounded-md px-6 py-2 text-sm font-medium capitalize transition-all duration-200 ${
-                    activeTab === type
-                      ? "bg-[#749c5b] text-white shadow-sm"
-                      : "text-[#6f767e] hover:bg-gray-50 hover:text-[#749c5b]"
-                  }`}
-                >
-                  {type === "geral" ? "Comissões Gerais" : `Sessões ${type}s`}
-                </button>
-              ),
-            )}
+            {(["solene", "deliberativa"] as SessionType[]).map((type) => (
+              <button
+                key={type}
+                onClick={() => handleTabChange(type)}
+                className={`rounded-md px-6 py-2 text-sm font-medium transition-all duration-200 ${
+                  activeTab === type
+                    ? "bg-[#749c5b] text-white shadow-sm"
+                    : "text-[#6f767e] hover:bg-gray-50 hover:text-[#749c5b]"
+                }`}
+              >
+                Sessões <span className="capitalize">{type}</span>s
+              </button>
+            ))}
           </div>
         </div>
 

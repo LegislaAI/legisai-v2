@@ -160,7 +160,6 @@ const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
     setIsLoadingHistory(true);
     try {
         const res = await GetAPI(endpoint, true);
-        console.log("fetchSidebarHistory", res)
            if (res.status === 200) {
                if(page === 1) {
                    setHistoryList(res.body.chats || []);
