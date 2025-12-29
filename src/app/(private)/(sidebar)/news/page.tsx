@@ -1,20 +1,14 @@
 "use client";
 
-import { PoliticianProps } from "@/@types/politician";
 import { CustomPagination } from "@/components/ui/CustomPagination";
 import { NewsCard, NewsItem } from "@/components/v2/components/news/NewsCard";
-import { PoliticianSelect } from "@/components/v2/components/news/PoliticianSelect";
 import { useApiContext } from "@/context/ApiContext";
 import { useDebounce } from "@/hooks/useDebounce";
-import { BellDot, Search } from "lucide-react";
+import { Newspaper, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export default function NewsPage() {
-  const [activeTab, setActiveTab] = useState<
-    "ALL" | "PARLIAMENT" | "POLITICIAN"
-  >("ALL");
-  const [selectedPolitician, setSelectedPolitician] =
-    useState<PoliticianProps | null>(null);
+  const [activeTab, setActiveTab] = useState<"ALL" | "PARLIAMENT">("ALL");
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [news, setNews] = useState<NewsItem[]>([]);
@@ -27,27 +21,14 @@ export default function NewsPage() {
   async function fetchNews() {
     setIsLoading(true);
     try {
-      let endpoint = "";
-
-      if (activeTab === "POLITICIAN") {
-        if (!selectedPolitician) {
-          setNews([]);
-          setTotalPages(1);
-          setIsLoading(false);
-          return;
-        }
-        endpoint = `/news/${selectedPolitician.id}?page=${currentPage}`;
-      } else {
-        const typeFilter =
-          activeTab === "PARLIAMENT" ? "&type=PARLIAMENT" : "&type=WEBSITE";
-        const searchFilter = debouncedSearch ? `&query=${debouncedSearch}` : "";
-        endpoint = `/news?page=${currentPage}${typeFilter}${searchFilter}`;
-      }
+      const typeFilter =
+        activeTab === "PARLIAMENT" ? "&type=PARLIAMENT" : "&type=WEBSITE";
+      const searchFilter = debouncedSearch ? `&query=${debouncedSearch}` : "";
+      const endpoint = `/news?page=${currentPage}${typeFilter}${searchFilter}`;
 
       const response = await GetAPI(endpoint, false);
 
       if (response.status === 200 && response.body) {
-        // Flexible handler for different API response structures
         const data =
           response.body.news ||
           response.body.data ||
@@ -76,15 +57,9 @@ export default function NewsPage() {
   }
 
   useEffect(() => {
-    // Determine if we should fetch immediately
-    if (activeTab !== "POLITICIAN") {
-      fetchNews();
-    } else if (activeTab === "POLITICIAN" && selectedPolitician) {
-      fetchNews();
-    }
-  }, [currentPage, debouncedSearch, activeTab, selectedPolitician]);
+    fetchNews();
+  }, [currentPage, debouncedSearch, activeTab]);
 
-  // Reset page when search or tab changes
   useEffect(() => {
     setCurrentPage(1);
   }, [debouncedSearch, activeTab]);
@@ -97,48 +72,32 @@ export default function NewsPage() {
           <div>
             <h1 className="flex items-center gap-3 text-3xl font-bold text-[#1a1d1f]">
               <div className="rounded-xl bg-[#749c5b] p-2 text-white shadow-lg shadow-[#749c5b]/20">
-                <BellDot size={24} />
+                <Newspaper size={24} />
               </div>
-              Novidades e Notícias
+              Notícias
             </h1>
             <p className="mt-2 max-w-2xl text-gray-600">
-              Fique por dentro das atualizações legislativas, pautas importantes
-              e novidades da plataforma.
+              Fique por dentro das últimas notícias da Câmara dos Deputados.
             </p>
           </div>
 
-          {/* Search - Hide when Politician tab is active as it has its own search in dropdown, or keep global search if backend supports searching within politician news */}
-          {activeTab !== "POLITICIAN" && (
-            <div className="relative w-full min-w-[300px] md:w-auto">
-              <Search
-                className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400"
-                size={18}
-              />
-              <input
-                type="text"
-                placeholder="Buscar notícias..."
-                className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pr-4 pl-10 text-sm shadow-sm transition-all focus:border-[#749c5b] focus:ring-2 focus:ring-[#749c5b]/20 focus:outline-none"
-                value={searchTerm}
-                onChange={(e) => setSearchTerm(e.target.value)}
-              />
-            </div>
-          )}
-
-          {/* Politician Select - Only visible on Politician Tab */}
-          {activeTab === "POLITICIAN" && (
-            <div className="w-full md:w-auto">
-              <PoliticianSelect
-                selectedPolitician={selectedPolitician}
-                onSelect={(pol) => {
-                  setSelectedPolitician(pol);
-                  setCurrentPage(1);
-                }}
-              />
-            </div>
-          )}
+          {/* Search */}
+          <div className="relative w-full min-w-[300px] md:w-auto">
+            <Search
+              className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400"
+              size={18}
+            />
+            <input
+              type="text"
+              placeholder="Buscar notícias..."
+              className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pr-4 pl-10 text-sm shadow-sm transition-all focus:border-[#749c5b] focus:ring-2 focus:ring-[#749c5b]/20 focus:outline-none"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+          </div>
         </div>
 
-        {/* TABS & FILTERS */}
+        {/* TABS */}
         <div className="flex items-center gap-2 border-b border-gray-200 pb-1">
           <button
             onClick={() => setActiveTab("ALL")}
@@ -152,12 +111,6 @@ export default function NewsPage() {
           >
             Câmara Legislativa
           </button>
-          <button
-            onClick={() => setActiveTab("POLITICIAN")}
-            className={`border-b-2 px-4 py-2 text-sm font-medium transition-all ${activeTab === "POLITICIAN" ? "border-[#749c5b] text-[#749c5b]" : "border-transparent text-gray-500 hover:text-gray-700"}`}
-          >
-            Político
-          </button>
         </div>
 
         {/* LIST */}
@@ -166,25 +119,13 @@ export default function NewsPage() {
             <div className="py-20 text-center text-gray-400">
               <p>Carregando notícias...</p>
             </div>
-          ) : activeTab === "POLITICIAN" && !selectedPolitician ? (
-            <div className="rounded-xl border border-dashed border-gray-100 bg-white py-20 text-center text-gray-400">
-              <BellDot size={48} className="mx-auto mb-4 opacity-20" />
-              <p>Selecione um político para ver as notícias.</p>
-              <PoliticianSelect
-                selectedPolitician={selectedPolitician}
-                onSelect={(pol) => {
-                  setSelectedPolitician(pol);
-                  setCurrentPage(1);
-                }}
-              />
-            </div>
           ) : news.length > 0 ? (
             news.map((newsItem) => (
               <NewsCard key={newsItem.id} news={newsItem} />
             ))
           ) : (
             <div className="rounded-xl border border-dashed border-gray-100 bg-white py-20 text-center text-gray-400">
-              <BellDot size={48} className="mx-auto mb-4 opacity-20" />
+              <Newspaper size={48} className="mx-auto mb-4 opacity-20" />
               <p>Nenhuma notícia encontrada para os filtros selecionados.</p>
             </div>
           )}

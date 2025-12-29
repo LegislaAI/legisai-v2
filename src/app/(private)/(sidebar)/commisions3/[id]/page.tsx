@@ -1,5 +1,6 @@
 "use client";
 import { EventPropositionProps, VotesProps } from "@/@types/proposition";
+import { BackButton } from "@/components/v2/components/ui/BackButton";
 import { useApiContext } from "@/context/ApiContext";
 import { cn } from "@/lib/utils";
 import * as Progress from "@radix-ui/react-progress";
@@ -324,6 +325,7 @@ export default function DeliberativeSessionScreen() {
   return (
     <div className="min-h-screen bg-[#f4f4f4] p-6 font-sans text-[#1a1d1f]">
       <div className="mx-auto space-y-8">
+        <BackButton />
         {/* --- 1. CABEÇALHO DA SESSÃO --- */}
         <header className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
           <div className="p-6 text-[#1a1d1f]">
@@ -700,7 +702,7 @@ export default function DeliberativeSessionScreen() {
                     {/* Coluna 2: Transcrição e Destaques */}
                     <div className="space-y-4 lg:col-span-2">
                       <div>
-                        <span className="mb-2  flex items-center gap-2 text-xs font-bold tracking-wider text-[#1a1d1f] uppercase">
+                        <span className="mb-2 flex items-center gap-2 text-xs font-bold tracking-wider text-[#1a1d1f] uppercase">
                           <Quote size={12} /> Frases em Destaque
                         </span>
                         <div className="grid gap-2">

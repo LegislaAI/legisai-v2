@@ -1,4 +1,5 @@
 "use client";
+import { BackButton } from "@/components/v2/components/ui/BackButton";
 import { useApiContext } from "@/context/ApiContext";
 import * as Select from "@radix-ui/react-select";
 import {
@@ -328,6 +329,7 @@ export default function SessionDetailScreen() {
   return (
     <div className="min-h-screen bg-[#f4f4f4] p-6 font-sans text-[#1a1d1f]">
       <div className="mx-auto space-y-8">
+        <BackButton />
         {/* --- 1.1 CABEÇALHO DA SESSÃO --- */}
         <header className="overflow-hidden rounded-xl border border-gray-100 bg-white shadow-sm">
           <div className="p-6 text-[#1a1d1f]">

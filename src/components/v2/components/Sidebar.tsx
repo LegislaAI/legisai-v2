@@ -21,6 +21,7 @@ import {
   Sparkles,
   Wallet,
 } from "lucide-react";
+import Image from "next/image";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 
@@ -88,16 +89,21 @@ export function Sidebar() {
           className="text-secondary flex items-center gap-2 text-xl font-bold"
         >
           {isDesktopExpanded ? (
-            <>
-              <span className="bg-secondary flex h-8 w-8 items-center justify-center rounded-lg text-white">
-                LA
-              </span>
-              <span className="text-dark">LegisAi</span>
-            </>
+            <Image
+              src="/logos/logo.png"
+              alt=""
+              width={1000}
+              height={250}
+              className="h-32 w-max object-contain"
+            />
           ) : (
-            <span className="bg-secondary flex h-8 w-8 items-center justify-center rounded-lg text-white">
-              LA
-            </span>
+            <Image
+              src="/logos/small-logo.png"
+              alt=""
+              width={1000}
+              height={1000}
+              className="h-full w-full object-contain"
+            />
           )}
         </Link>
       </div>

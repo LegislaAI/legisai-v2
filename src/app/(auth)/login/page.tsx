@@ -13,7 +13,6 @@ import { Button } from "@/components/v2/components/ui/Button";
 import { Card } from "@/components/v2/components/ui/Card";
 import { Input } from "@/components/v2/components/ui/Input";
 import { useApiContext } from "@/context/ApiContext";
-import { useLoadingContext } from "@/context/LoadingContext";
 
 const loginSchema = z.object({
   email: z.string().email("E-mail inválido"),
@@ -24,7 +23,6 @@ type LoginFormData = z.infer<typeof loginSchema>;
 
 export default function Login2Page() {
   const { PostAPI, setToken } = useApiContext();
-  const { handleNavigation } = useLoadingContext();
   const cookies = useCookies();
 
   const {
@@ -52,7 +50,8 @@ export default function Login2Page() {
         setToken(token);
 
         toast.success("Login realizado com sucesso!");
-        handleNavigation("/"); // Assuming dashboard is the target
+        // Use full page navigation to ensure the cookie is sent to middleware
+        window.location.href = "/";
       } else {
         toast.error(response.body.message || "Falha ao realizar login");
       }
