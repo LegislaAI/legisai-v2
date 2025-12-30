@@ -9,6 +9,7 @@ import {
   BarChart3,
   Calendar,
   Check,
+  ChevronDown,
   ChevronLeft,
   ChevronRight,
   ChevronsLeft,
@@ -28,8 +29,6 @@ import moment from "moment";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
-// --- INTERFACES MATCHING API ---
-
 interface Department {
   id: string;
   name: string;
@@ -39,16 +38,14 @@ interface Department {
   uri: string;
 }
 
-// 2. Tipo de Evento
 interface EventType {
   id: string;
   name: string;
   acronym: string;
   description: string;
-  code: string; // Adicionado conforme o log
+  code: string;
 }
 
-// 3. Político dentro do evento (Quorum/Presença)
 interface Politician {
   id: string;
   name: string;
@@ -57,9 +54,9 @@ interface Politician {
   imageUrl: string;
   siglaPartido?: string;
   siglaUf?: string;
-  politicalParty?: string; // For VoteDetailsProps compatibility
-  state?: string; // For presence list filtering
-  uf?: string; // Alternative state field
+  politicalParty?: string;
+  state?: string;
+  uf?: string;
 }
 
 interface EventPolitician {
@@ -69,7 +66,6 @@ interface EventPolitician {
   politician: Politician;
 }
 
-// 4. Detalhes da Proposição (Objeto interno)
 interface PropositionDetails {
   id: string;
   number: number;
@@ -83,7 +79,6 @@ interface PropositionDetails {
   keywords: string;
 }
 
-// 5. Item da Pauta/Evento
 interface EventProposition {
   id: string;
   eventId: string;
@@ -95,10 +90,9 @@ interface EventProposition {
   situation: string;
   situationId: string;
   reporterId: string;
-  proposition: PropositionDetails | null; // Objeto com detalhes completos
+  proposition: PropositionDetails | null;
 }
 
-// 6. Votações (Compatível com VotesProps)
 interface EventVoting {
   id: string;
   uri: string;
@@ -107,7 +101,6 @@ interface EventVoting {
   date: string;
   result: boolean;
   propositionId: string;
-  // Additional fields for voting details
   proposition?: PropositionDetails | null;
   positiveVotes: number;
   negativeVotes: number;
@@ -115,7 +108,6 @@ interface EventVoting {
   otherVotes?: number;
 }
 
-// 7. Interface Principal (EventDetailsAPI)
 interface EventDetailsAPI {
   id: string;
   uri: string;
@@ -130,22 +122,25 @@ interface EventDetailsAPI {
   politicians: EventPolitician[];
   reporterId: string;
 
-  EventProposition: EventProposition[]; // Note o 'E' maiúsculo conforme seu log
-  voting: EventVoting[]; // Adicionado campo de votações
+  EventProposition: EventProposition[];
+  voting: EventVoting[];
   createdAt: string;
   updatedAt: string;
 }
 
-// 8. Breves Comunicações Response
 interface BrevesComunicacoesResponse {
   exists: boolean;
-  speakers: Array<{ name: string; time: string; party?: string }>;
+  speakers: Array<{
+    name: string;
+    time: string;
+    party?: string;
+    speechSummary?: string;
+  }>;
   summary: string | null;
   error: string | null;
   processing?: boolean; // True when data is still being collected
 }
 
-// --- MOCK DATA FOR "ORDEM DO DIA" CLASSIC VIEW UX ---
 const MOCK_ORDER_INDEX = Array.from({ length: 8 }, (_, i) => ({
   id: i + 1,
   status: i < 3 ? "ja_apreciado" : i === 3 ? "em_apreciacao" : "nao_apreciado",
@@ -162,8 +157,6 @@ const MOCK_PROPOSITION_CARDS = [
   { label: "REQ 4635/2025", status: "nao_apreciado" },
   { label: "REQ 5097/2025", status: "ja_apreciado" },
 ];
-
-// --- COMPONENTES AUXILIARES ---
 
 const StatusBadge = ({ status }: { status: string }) => {
   const styles =
@@ -246,6 +239,18 @@ export default function DeliberativeSessionScreen() {
   const [brevesComunicacoes, setBrevesComunicacoes] =
     useState<BrevesComunicacoesResponse | null>(null);
   const [loadingBreves, setLoadingBreves] = useState(false);
+  const [expandedSpeakers, setExpandedSpeakers] = useState<Set<number>>(
+    new Set(),
+  );
+
+  const toggleSpeaker = (index: number) => {
+    setExpandedSpeakers((prev) => {
+      const next = new Set(prev);
+      if (next.has(index)) next.delete(index);
+      else next.add(index);
+      return next;
+    });
+  };
 
   // Fetch event details from API
   useEffect(() => {
@@ -312,7 +317,7 @@ export default function DeliberativeSessionScreen() {
           setBrevesComunicacoes(response.body);
         }
       } catch (error) {
-        console.error("Error fetching breves comunicações:", error);
+        // Error fetching breves comunicações
       }
       setLoadingBreves(false);
     }
@@ -953,34 +958,77 @@ export default function DeliberativeSessionScreen() {
                     <Mic2 className="text-[#749c5b]" size={20} />
                     Oradores ({brevesComunicacoes.speakers.length})
                   </h3>
-                  <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                    {brevesComunicacoes.speakers.map((speaker, index) => (
-                      <div
-                        key={index}
-                        className="flex items-center gap-3 rounded-lg border border-gray-100 bg-gray-50 p-3 transition-colors hover:bg-gray-100"
-                      >
-                        <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#749c5b]/10 text-[#749c5b]">
-                          <Mic2 size={18} />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <p className="truncate font-medium text-[#1a1d1f]">
-                            {speaker.name}
-                          </p>
-                          <div className="flex items-center gap-2 text-xs text-gray-500">
-                            <Clock size={12} />
-                            <span>{speaker.time}</span>
-                            {speaker.party && (
-                              <>
-                                <span>•</span>
-                                <span className="font-semibold text-[#749c5b]">
-                                  {speaker.party}
-                                </span>
-                              </>
+                  <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
+                    {brevesComunicacoes.speakers.map((speaker, index) => {
+                      const isExpanded = expandedSpeakers.has(index);
+                      const hasSummary =
+                        speaker.speechSummary &&
+                        speaker.speechSummary.trim().length > 0;
+
+                      return (
+                        <div
+                          key={index}
+                          className={cn(
+                            "h-min rounded-lg border border-gray-100 bg-gray-50 transition-all",
+                            hasSummary
+                              ? "cursor-pointer hover:border-[#749c5b]/30 hover:bg-gray-100"
+                              : "",
+                          )}
+                          onClick={() => hasSummary && toggleSpeaker(index)}
+                        >
+                          {/* Header row */}
+                          <div className="flex items-center gap-3 p-3">
+                            <div className="flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-full bg-[#749c5b]/10 text-[#749c5b]">
+                              <Mic2 size={18} />
+                            </div>
+                            <div className="min-w-0 flex-1">
+                              <p className="font-medium text-[#1a1d1f]">
+                                {speaker.name}
+                              </p>
+                              <div className="flex items-center gap-2 text-xs text-gray-500">
+                                <Clock size={12} />
+                                <span>{speaker.time}</span>
+                                {speaker.party && (
+                                  <>
+                                    <span>•</span>
+                                    <span className="font-semibold text-[#749c5b]">
+                                      {speaker.party}
+                                    </span>
+                                  </>
+                                )}
+                              </div>
+                            </div>
+                            {hasSummary && (
+                              <ChevronDown
+                                size={20}
+                                className={cn(
+                                  "flex-shrink-0 text-gray-400 transition-transform duration-200",
+                                  isExpanded && "rotate-180",
+                                )}
+                              />
                             )}
                           </div>
+
+                          {/* Expandable summary */}
+                          {hasSummary && (
+                            <div
+                              className={cn(
+                                "overflow-hidden transition-all duration-200 ease-in-out",
+                                isExpanded
+                                  ? "max-h-96 opacity-100"
+                                  : "max-h-0 opacity-0",
+                              )}
+                            >
+                              <div className="border-t border-gray-200 bg-white/50 px-4 py-3">
+                                <p className="text-sm leading-relaxed text-gray-600">
+                                  {speaker.speechSummary}
+                                </p>
+                              </div>
+                            </div>
+                          )}
                         </div>
-                      </div>
-                    ))}
+                      );
+                    })}
                   </div>
                 </div>
               </div>
@@ -1014,7 +1062,7 @@ export default function DeliberativeSessionScreen() {
                 <div className="rounded-xl border border-gray-100 bg-[#fefcf8] p-6 shadow-sm">
                   {/* Header with Toggle Buttons */}
                   <div className="mb-4 flex items-center justify-between border-b border-gray-200 pb-4">
-                    <h3 className="font-serif text-lg font-bold text-[#1a1d1f]">
+                    <h3 className="text-lg font-bold text-[#1a1d1f]">
                       Índice das Proposições
                     </h3>
                     <div className="flex gap-2">
@@ -1050,7 +1098,13 @@ export default function DeliberativeSessionScreen() {
                       {orderPropositions.map((item, index) => (
                         <button
                           key={index}
-                          onClick={() => setSelectedProposition(item)}
+                          onClick={() => {
+                            if (item.id === selectedProposition?.id) {
+                              setSelectedProposition(null);
+                            } else {
+                              setSelectedProposition(item);
+                            }
+                          }}
                           className={cn(
                             "group relative flex h-12 w-12 flex-shrink-0 cursor-pointer flex-col items-center justify-center rounded-lg border font-bold transition-all",
                             selectedProposition?.id === item.id
@@ -1082,7 +1136,13 @@ export default function DeliberativeSessionScreen() {
                     <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
                       {orderPropositions.map((prop, idx) => (
                         <button
-                          onClick={() => setSelectedProposition(prop)}
+                          onClick={() => {
+                            if (prop.id === selectedProposition?.id) {
+                              setSelectedProposition(null);
+                            } else {
+                              setSelectedProposition(prop);
+                            }
+                          }}
                           key={idx}
                           className={cn(
                             "relative cursor-pointer rounded-md border px-3 py-2 text-center text-sm font-bold shadow-sm transition-all",
