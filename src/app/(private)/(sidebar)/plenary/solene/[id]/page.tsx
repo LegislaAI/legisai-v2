@@ -1,12 +1,15 @@
 "use client";
 import { BackButton } from "@/components/v2/components/ui/BackButton";
+import { LegislativeSyncLoader } from "@/components/v2/components/ui/LegislativeSyncLoader";
 import { useApiContext } from "@/context/ApiContext";
+import { generateSessionReport } from "@/utils/pdfGenerator";
 import * as Select from "@radix-ui/react-select";
 import {
   Calendar,
   Check,
   ChevronDown,
   Clock,
+  Download,
   ExternalLink,
   FileText,
   Info,
@@ -131,7 +134,23 @@ interface Speaker {
   status: "falou" | "inscrito" | "desistiu";
 }
 
-// 3. Interface para o MOCK (Section 1.4)
+// 3. Interface para dados da API de sessões solenes
+interface SoleneSpeakerResponse {
+  exists: boolean;
+  speakers: Array<{
+    name: string;
+    time: string;
+    timeEnd?: string;
+    party?: string;
+    speechSummary?: string;
+    transcription?: string;
+    duration?: string;
+  }>;
+  summary: string | null;
+  error: string | null;
+}
+
+// 4. Interface para discursos (Section 1.4)
 interface SpeechSegment {
   id: string;
   speakerId: string;
@@ -159,11 +178,6 @@ const mockSession: SessionData = {
   updatedBy: "Secretaria Geral da Mesa",
 };
 
-// MOCK Section 1.4 (Dados inexistentes na API) - Mantido conforme solicitação
-const mockSpeeches: SpeechSegment[] = [
-  // ... Deixar vazio ou exemplificar se necessário, mas o usuário disse para não implementar discursos agora.
-  // Vou manter vazio para não mostrar placeholders falsos de discurso.
-];
 
 // --- COMPONENTES ---
 
@@ -201,9 +215,80 @@ export default function SessionDetailScreen() {
   );
   const [sessionData, setSessionData] = useState<SessionData>(mockSession);
 
+  const handleExportPDF = () => {
+    if (!eventDetails) return;
+
+    generateSessionReport({
+      title: sessionData.title || "Sessão Solene",
+      date: sessionData.date,
+      time: sessionData.scheduledTime,
+      endTime: sessionData.endTime,
+      local: sessionData.organ,
+      status: sessionData.status,
+      description: sessionData.subtitle,
+      presences: eventDetails.presences || 0,
+      propositionsCount: eventDetails.propositions || 0,
+      votingCount: 0,
+      votings: [],
+      orderOfDay: propositions.map((p) => ({
+        title: p.title,
+        topic: p.topic || "-",
+        status: p.proposition?.situationId?.description || "Não informado",
+      })),
+      presenceList: [], // Solemn usually doesn't show full presence list in the same way or it's empty in this view
+      speakers: speakers.map((s) => ({
+        name: s.name,
+        party: s.party,
+        state: s.state,
+        status: s.status,
+      })),
+      hideStats: true,
+    });
+  };
+
   // Real Data State
   const [propositions, setPropositions] = useState<EventProposition[]>([]);
   const [speakers, setSpeakers] = useState<Speaker[]>([]);
+  const [speeches, setSpeeches] = useState<SpeechSegment[]>([]);
+  const [loadingSpeakers, setLoadingSpeakers] = useState(false);
+  const [expandedTranscriptions, setExpandedTranscriptions] = useState<Set<string>>(
+    new Set(),
+  );
+  const [timeLeft, setTimeLeft] = useState<number>(0);
+
+  const toggleTranscription = (speechId: string) => {
+    setExpandedTranscriptions((prev) => {
+      const next = new Set(prev);
+      if (next.has(speechId)) next.delete(speechId);
+      else next.add(speechId);
+      return next;
+    });
+  };
+
+  // Helper function to truncate text to approximately 3 lines (around 200 characters)
+  const truncateText = (text: string, maxLength: number = 200): string => {
+    if (text.length <= maxLength) return text;
+    return text.substring(0, maxLength).trim() + "...";
+  };
+
+  // Format countdown time
+  const formatCountdown = (milliseconds: number): string => {
+    if (milliseconds <= 0) return "";
+    
+    const totalSeconds = Math.floor(milliseconds / 1000);
+    const days = Math.floor(totalSeconds / 86400);
+    const hours = Math.floor((totalSeconds % 86400) / 3600);
+    const minutes = Math.floor((totalSeconds % 3600) / 60);
+    const seconds = totalSeconds % 60;
+
+    if (days > 0) {
+      // More than 24h: show days, hours, minutes
+      return `${days}d ${hours}h ${minutes}m`;
+    } else {
+      // Less than 24h: show hours, minutes, seconds
+      return `${hours}h ${minutes}m ${seconds}s`;
+    }
+  };
 
   // Fetch event details from API
   useEffect(() => {
@@ -220,6 +305,19 @@ export default function SessionDetailScreen() {
         // So `response.body` is the event object.
 
         setEventDetails(apiEvent);
+
+        // Calculate countdown if event is in the future
+        // Treat dates from database as local time (ignore UTC indicator)
+        // If date comes as ISO string with Z, parse as local time
+        const startDateStr = typeof apiEvent.startDate === 'string' 
+          ? apiEvent.startDate.replace('Z', '') 
+          : apiEvent.startDate;
+        const timeDiff = moment(startDateStr).diff(moment(), "milliseconds");
+        if (timeDiff > 0) {
+          setTimeLeft(timeDiff);
+        } else {
+          setTimeLeft(0);
+        }
 
         // Map API data to SessionData format
         const startDate = new Date(apiEvent.startDate);
@@ -271,25 +369,89 @@ export default function SessionDetailScreen() {
     fetchEventDetails();
   }, [pathname, GetAPI]);
 
-  // Filtragem do Mock da seção 1.4 (Mantendo vazio/mock por enquanto)
+  // Update countdown every second
+  useEffect(() => {
+    if (!eventDetails || timeLeft <= 0) return;
+
+    const interval = setInterval(() => {
+      setTimeLeft((prevTime) => {
+        if (prevTime <= 1000) {
+          return 0;
+        }
+        return prevTime - 1000;
+      });
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [eventDetails, timeLeft]);
+
+  // Fetch Solene Speakers
+  useEffect(() => {
+    async function fetchSoleneSpeakers() {
+      const eventId = pathname.split("/").pop();
+      if (!eventId) return;
+
+      setLoadingSpeakers(true);
+      try {
+        const response = await GetAPI(`/event/${eventId}/solene-speakers`, true);
+        if (response.status === 200) {
+          const data: SoleneSpeakerResponse = response.body;
+
+          if (data.exists && data.speakers.length > 0) {
+            // Map speakers to Speaker interface
+            const mappedSpeakers: Speaker[] = data.speakers.map(
+              (s, index) => ({
+                id: `speaker-${index}`,
+                position: index + 1,
+                name: s.name,
+                party: s.party || "N/A",
+                state: "", // API doesn't return state for solene speakers
+                status: "falou" as const,
+              })
+            );
+            setSpeakers(mappedSpeakers);
+
+            // Map speakers to SpeechSegment interface
+            const mappedSpeeches: SpeechSegment[] = data.speakers.map(
+              (s, index) => ({
+                id: `speech-${index}`,
+                speakerId: `speaker-${index}`,
+                speakerName: s.name,
+                timeStart: s.time,
+                timeEnd: s.timeEnd || s.time,
+                videoUrl: eventDetails?.videoUrl || "#",
+                transcription: s.transcription || "",
+                summary: s.speechSummary || "",
+              })
+            );
+            setSpeeches(mappedSpeeches);
+          } else {
+            setSpeakers([]);
+            setSpeeches([]);
+          }
+        }
+      } catch (error) {
+        console.error("Error fetching solene speakers:", error);
+        setSpeakers([]);
+        setSpeeches([]);
+      } finally {
+        setLoadingSpeakers(false);
+      }
+    }
+
+    if (eventDetails) {
+      fetchSoleneSpeakers();
+    }
+  }, [pathname, GetAPI, eventDetails]);
+
+  // Filtragem dos discursos
   const filteredSpeeches =
     selectedSpeakerId === "all"
-      ? mockSpeeches
-      : mockSpeeches.filter((s) => s.speakerId === selectedSpeakerId);
+      ? speeches
+      : speeches.filter((s) => s.speakerId === selectedSpeakerId);
 
   if (loading) {
-    return (
-      <div className="min-h-screen bg-[#f4f4f4] p-6 font-sans text-[#1a1d1f]">
-        <div className="mx-auto space-y-8">
-          <div className="h-64 w-full animate-pulse rounded-xl bg-gray-200" />
-          <div className="h-48 w-full animate-pulse rounded-xl bg-gray-200" />
-          <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
-            <div className="h-96 w-full animate-pulse rounded-xl bg-gray-200 lg:col-span-1" />
-            <div className="h-96 w-full animate-pulse rounded-xl bg-gray-200 lg:col-span-2" />
-          </div>
-        </div>
-      </div>
-    );
+    return <LegislativeSyncLoader />;
   }
 
   return (
@@ -306,10 +468,25 @@ export default function SessionDetailScreen() {
                   {sessionData.organ}
                 </span>
               </div>
-              <StatusBadge status={sessionData.status} />
+              <div className="flex items-center gap-2">
+                <StatusBadge status={sessionData.status} />
+                <button
+                  onClick={handleExportPDF}
+                  className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:bg-gray-50"
+                  title="Exportar Relatório em PDF"
+                >
+                  <Download size={14} />
+                  Exportar
+                </button>
+              </div>
             </div>
 
-            <h1 className="mb-2 text-3xl font-bold">{sessionData.title}</h1>
+            <h1
+              className="mb-2 line-clamp-2 overflow-hidden text-3xl font-bold"
+              title={sessionData.title}
+            >
+              {sessionData.title}
+            </h1>
             <p className="mb-6 text-lg text-gray-700 italic">
               {"'"}
               {sessionData.subtitle}
@@ -331,9 +508,17 @@ export default function SessionDetailScreen() {
                   <Clock size={14} /> Horário (Prev/Real)
                 </span>
                 <span className="font-medium">
-                  {sessionData.scheduledTime}h{" "}
-                  <span className="text-gray-500">/</span>{" "}
-                  {sessionData.realTime || "--"}h
+                  {timeLeft > 0 && eventDetails ? (
+                    <span className="text-[#749c5b]">
+                      {formatCountdown(timeLeft)}
+                    </span>
+                  ) : (
+                    <>
+                      {sessionData.scheduledTime}h{" "}
+                      <span className="text-gray-500">/</span>{" "}
+                      {sessionData.realTime || "--"}h
+                    </>
+                  )}
                 </span>
               </div>
 
@@ -419,13 +604,6 @@ export default function SessionDetailScreen() {
         <div className="grid grid-cols-1 gap-8 lg:grid-cols-3">
           {/* --- 1.3 ORADORES INSCRITOS --- */}
           <section className="relative h-fit overflow-hidden rounded-xl border border-gray-100 bg-white p-6 shadow-sm lg:col-span-1">
-            <div className="absolute top-0 left-0 flex h-full w-full items-center justify-center gap-2 bg-white/50 backdrop-blur-xs">
-              <Info size={16} className="text-orange-600" />
-              <span className="text-xs font-bold text-orange-800 uppercase">
-                Em Breve - API Não Disponível
-              </span>
-            </div>
-            {/* REMOVED PLACEHOLDER BANNER */}
 
             <div className="mb-4 flex items-center justify-between">
               <h2 className="flex items-center gap-2 text-lg font-bold text-[#1a1d1f]">
@@ -444,7 +622,13 @@ export default function SessionDetailScreen() {
                   </tr>
                 </thead>
                 <tbody className="divide-y divide-gray-100">
-                  {speakers.length > 0 ? (
+                  {loadingSpeakers ? (
+                    <tr>
+                      <td colSpan={3} className="p-4 text-center text-gray-500">
+                        Carregando oradores...
+                      </td>
+                    </tr>
+                  ) : speakers.length > 0 ? (
                     speakers.map((speaker, idx) => (
                       <tr key={speaker.id} className="hover:bg-gray-50">
                         <td className="p-3 font-medium text-[#6f767e]">
@@ -454,9 +638,11 @@ export default function SessionDetailScreen() {
                           <div className="font-medium text-[#1a1d1f]">
                             {speaker.name}
                           </div>
-                          <div className="text-xs text-[#6f767e]">
-                            {speaker.party}/{speaker.state}
-                          </div>
+                          {speaker.party !== "N/A" && (
+                            <div className="text-xs text-[#6f767e]">
+                              {speaker.party}
+                            </div>
+                          )}
                         </td>
                         <td className="p-3 text-right">
                           <span
@@ -470,7 +656,9 @@ export default function SessionDetailScreen() {
                   ) : (
                     <tr>
                       <td colSpan={3} className="p-4 text-center text-gray-500">
-                        Não foi possível carregar os oradores.
+                        {loadingSpeakers
+                          ? "Carregando oradores..."
+                          : "Não foi possível carregar os oradores ou esta sessão não possui transcrição disponível."}
                       </td>
                     </tr>
                   )}
@@ -485,12 +673,6 @@ export default function SessionDetailScreen() {
 
           {/* --- 1.4 TRECHOS POR ORADOR (MOCK COM RADIX) --- */}
           <section className="relative overflow-hidden rounded-xl border border-gray-100 bg-white p-6 shadow-sm lg:col-span-2">
-            <div className="absolute top-0 left-0 flex h-full w-full items-center justify-center gap-2 bg-white/50 backdrop-blur-xs">
-              <Info size={16} className="text-orange-600" />
-              <span className="text-xs font-bold text-orange-800 uppercase">
-                Em Breve - API Não Disponível
-              </span>
-            </div>
             <div className="mb-6 flex flex-col items-start justify-between gap-4 sm:flex-row sm:items-center">
               <h2 className="flex items-center gap-2 text-lg font-bold text-[#1a1d1f]">
                 <Mic2 className="text-[#749c5b]" />
@@ -546,7 +728,11 @@ export default function SessionDetailScreen() {
             </div>
 
             <div className="space-y-6">
-              {filteredSpeeches.length > 0 ? (
+              {loadingSpeakers ? (
+                <div className="py-10 text-center text-[#6f767e]">
+                  Carregando discursos...
+                </div>
+              ) : filteredSpeeches.length > 0 ? (
                 filteredSpeeches.map((speech) => (
                   <div
                     key={speech.id}
@@ -562,42 +748,74 @@ export default function SessionDetailScreen() {
                         <Clock size={12} />
                         {speech.timeStart} - {speech.timeEnd}
                       </div>
-                      <a
-                        href={speech.videoUrl}
-                        className="mt-auto flex w-full items-center justify-center gap-2 rounded bg-[#1a1d1f] px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-black"
-                      >
-                        <PlayCircle size={14} />
-                        Ver Trecho
-                      </a>
+                      {speech.videoUrl !== "#" && (
+                        <a
+                          href={speech.videoUrl}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="mt-auto flex w-full items-center justify-center gap-2 rounded bg-[#1a1d1f] px-4 py-2 text-xs font-bold text-white transition-colors hover:bg-black"
+                        >
+                          <PlayCircle size={14} />
+                          Ver Íntegra
+                        </a>
+                      )}
                     </div>
 
                     {/* Coluna Transcrição */}
                     <div className="w-full md:w-2/3">
-                      <div className="mb-3">
-                        <span className="text-xs font-bold tracking-wider text-[#749c5b] uppercase">
-                          Resumo IA
-                        </span>
-                        <p className="mt-1 rounded bg-[#f4f4f4] p-2 text-sm text-[#6f767e] italic">
-                          {"'"}
-                          {speech.summary}
-                          {"'"}
-                        </p>
-                      </div>
+                      {speech.summary && (
+                        <div className="mb-3">
+                          <span className="text-xs font-bold tracking-wider text-[#749c5b] uppercase">
+                            Resumo IA
+                          </span>
+                          <p className="mt-1 rounded bg-[#f4f4f4] p-2 text-sm text-[#6f767e] italic">
+                            {"'"}
+                            {speech.summary}
+                            {"'"}
+                          </p>
+                        </div>
+                      )}
 
-                      <div>
-                        <span className="text-xs font-bold tracking-wider text-[#1a1d1f] uppercase">
-                          Transcrição
-                        </span>
-                        <p className="mt-2 text-sm leading-relaxed text-[#1a1d1f]">
-                          {speech.transcription}
-                        </p>
-                      </div>
+                      {speech.transcription && (
+                        <div>
+                          <span className="text-xs font-bold tracking-wider text-[#1a1d1f] uppercase">
+                            Transcrição
+                          </span>
+                          <div className="mt-2">
+                            <p className="text-sm leading-relaxed text-[#1a1d1f]">
+                              {expandedTranscriptions.has(speech.id)
+                                ? speech.transcription
+                                : truncateText(speech.transcription)}
+                            </p>
+                            {speech.transcription.length > 200 && (
+                              <button
+                                onClick={() => toggleTranscription(speech.id)}
+                                className="mt-2 flex items-center gap-1 text-xs font-semibold text-[#749c5b] hover:text-[#658a4e] transition-colors"
+                              >
+                                {expandedTranscriptions.has(speech.id)
+                                  ? "Ver menos"
+                                  : "Ver mais"}
+                                <ChevronDown
+                                  size={14}
+                                  className={`transition-transform duration-200 ${
+                                    expandedTranscriptions.has(speech.id)
+                                      ? "rotate-180"
+                                      : ""
+                                  }`}
+                                />
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      )}
                     </div>
                   </div>
                 ))
               ) : (
                 <div className="py-10 text-center text-[#6f767e]">
-                  Nenhum discurso encontrado para este filtro.
+                  {loadingSpeakers
+                    ? "Carregando discursos..."
+                    : "Nenhum discurso encontrado para esta sessão ou transcrição não disponível."}
                 </div>
               )}
             </div>

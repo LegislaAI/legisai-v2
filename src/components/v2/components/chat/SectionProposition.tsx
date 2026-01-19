@@ -16,12 +16,6 @@ import remarkGfm from "remark-gfm";
 import { Prompt } from "./chat-history-handler";
 import { FileViewer } from "./FileViewer";
 
-
-// Mock data strictly for the sidebar list if the API fails, though we will try to use real data via props
-const MOCK_HISTORY_FALLBACK = [
-    { id: "1", name: "Exemplo: Resumo PL 2630", createdAt: new Date().toISOString() },
-];
-
 interface SectionGeminiProps {
   activeChatId?: string | null;
   selectedPrompt?: Prompt | null;
@@ -184,50 +178,61 @@ export function SectionProposition({ activeChatId, selectedPrompt, onChatCreated
 
           <ScrollArea className="flex-1 px-4 py-4 min-w-[240px]">
               <div className="space-y-2 pb-4 p-1">
-                  {(historyList.length > 0 ? historyList : MOCK_HISTORY_FALLBACK).map(chat => (
-                      <button
-                         key={chat.id}
-                         onClick={() => { 
-                             setLoadOldChat(chat.id); 
-                             if(window.innerWidth < 768) setShowHistory(false);
-                         }}
-                         className={cn(
-                            "w-full max-w-[280px] text-left p-3 rounded-xl transition-all duration-200 group relative overflow-hidden box-border",
-                            loadOldChat === chat.id 
-                                ? "bg-gradient-to-r from-secondary/10 to-green-50 border-2 border-secondary/40 shadow-md" 
-                                : "bg-white border border-gray-100 hover:border-gray-200 hover:shadow-sm hover:scale-[1.01]"
-                         )}
-                      >
-                          {loadOldChat === chat.id && (
-                              <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-secondary to-green-500 rounded-l-xl" />
-                          )}
-
-                          <div className="flex items-start gap-3 overflow-hidden">
-                              <div className={cn(
-                                  "p-2 rounded-lg shrink-0 transition-all",
-                                  loadOldChat === chat.id 
-                                      ? "bg-secondary text-white shadow-sm" 
-                                      : "bg-gray-100 text-gray-500 group-hover:bg-secondary/10 group-hover:text-secondary"
-                              )}>
-                                  <Bot size={16} />
-                              </div>
-
-                              <div className="flex-1 min-w-0 w-full max-w-full overflow-hidden">
-                                  <div className={cn(
-                                      "font-semibold text-sm truncate mb-0.5",
-                                      loadOldChat === chat.id ? "text-secondary" : "text-gray-700"
-                                  )}>
-                                      {chat?.name}
-                                  </div>
-                                  
-                                  <div className="flex items-center gap-2 text-[11px] text-gray-400">
-                                      <span className="shrink-0">{moment(chat?.createdAt).format("DD/MM")}</span>
-                                      <span className="shrink-0">{moment(chat?.createdAt).format("HH:mm")}</span>
-                                  </div>
-                              </div>
+                  {historyList.length === 0 && !isLoadingHistory ? (
+                      <div className="flex flex-col items-center justify-center py-8 text-center text-gray-400">
+                          <div className="p-3 bg-gray-50 rounded-lg mb-3">
+                              <History size={24} className="opacity-20" />
                           </div>
-                      </button>
-                  ))}
+                          <p className="text-xs max-w-[200px]">
+                              Nenhum histórico de conversas encontrado
+                          </p>
+                      </div>
+                  ) : (
+                      historyList.map(chat => (
+                          <button
+                             key={chat.id}
+                             onClick={() => { 
+                                 setLoadOldChat(chat.id); 
+                                 if(window.innerWidth < 768) setShowHistory(false);
+                             }}
+                             className={cn(
+                                "w-full max-w-[280px] text-left p-3 rounded-xl transition-all duration-200 group relative overflow-hidden box-border",
+                                loadOldChat === chat.id 
+                                    ? "bg-gradient-to-r from-secondary/10 to-green-50 border-2 border-secondary/40 shadow-md" 
+                                    : "bg-white border border-gray-100 hover:border-gray-200 hover:shadow-sm hover:scale-[1.01]"
+                             )}
+                          >
+                              {loadOldChat === chat.id && (
+                                  <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-secondary to-green-500 rounded-l-xl" />
+                              )}
+
+                              <div className="flex items-start gap-3 overflow-hidden">
+                                  <div className={cn(
+                                      "p-2 rounded-lg shrink-0 transition-all",
+                                      loadOldChat === chat.id 
+                                          ? "bg-secondary text-white shadow-sm" 
+                                          : "bg-gray-100 text-gray-500 group-hover:bg-secondary/10 group-hover:text-secondary"
+                                  )}>
+                                      <Bot size={16} />
+                                  </div>
+
+                                  <div className="flex-1 min-w-0 w-full max-w-full overflow-hidden">
+                                      <div className={cn(
+                                          "font-semibold text-sm truncate mb-0.5",
+                                          loadOldChat === chat.id ? "text-secondary" : "text-gray-700"
+                                      )}>
+                                          {chat?.name}
+                                      </div>
+                                      
+                                      <div className="flex items-center gap-2 text-[11px] text-gray-400">
+                                          <span className="shrink-0">{moment(chat?.createdAt).format("DD/MM")}</span>
+                                          <span className="shrink-0">{moment(chat?.createdAt).format("HH:mm")}</span>
+                                      </div>
+                                  </div>
+                              </div>
+                          </button>
+                      ))
+                  )}
 
                   {currentLastPage < chatTotalPages && (
                         <Button 

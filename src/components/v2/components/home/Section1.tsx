@@ -1,8 +1,16 @@
 "use client";
 
-import { ChevronDown, Info, Search } from "lucide-react";
+import {
+  BarChart3,
+  ChevronDown,
+  Download,
+  FileText,
+  Info,
+  Loader2,
+  Search,
+} from "lucide-react";
 import { useCookies } from "next-client-cookies";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 // Dynamically import ReactApexChart to avoid window not defined error in SSR
 import { ApexOptions } from "apexcharts";
 import dynamic from "next/dynamic";
@@ -10,7 +18,10 @@ const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
 });
 
-import { PoliticianDetailsProps } from "@/@types/v2/politician";
+import {
+  PoliticianDetailsProps,
+  PoliticianProps,
+} from "@/@types/v2/politician";
 import {
   Avatar,
   AvatarFallback,
@@ -31,9 +42,13 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/v2/components/ui/select";
+import { useApiContext } from "@/context/ApiContext";
 import { usePoliticianContext } from "@/context/PoliticianContext";
+import { generatePoliticianReport } from "@/utils/pdfGenerator";
 import Link from "next/link";
+import { Label } from "../ui/label";
 import { ScrollArea } from "../ui/scroll-area";
+import { Switch } from "../ui/switch";
 
 // Basic Skeleton component since it wasn't created yet but useful here
 const SkeletonLoader = ({ className }: { className?: string }) => (
@@ -49,19 +64,156 @@ export function Section1() {
     selectedYear,
     setSelectedYear,
     loading,
+    // Legislature
+    selectedLegislature,
+    setSelectedLegislature,
+    availableLegislatures,
+    currentLegislature,
   } = usePoliticianContext();
 
   const cookies = useCookies();
+  const { GetAPI } = useApiContext();
+
+  // Dropdown state - local pagination for infinite scroll
   const [searchTerm, setSearchTerm] = useState("");
+  const [dropdownOpen, setDropdownOpen] = useState(false);
+  const [localPoliticians, setLocalPoliticians] = useState<PoliticianProps[]>(
+    [],
+  );
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const [showCurrentLegislatureOnly, setShowCurrentLegislatureOnly] =
+    useState(true);
+  const observerTarget = useRef<HTMLDivElement>(null);
 
-  // Debounce search
+  // Generate years dynamically from current year to 2019
+  const START_YEAR = 2019;
+  const availableYears = useMemo(() => {
+    const currentYear = new Date().getFullYear();
+    const years: string[] = [];
+    for (let year = currentYear; year >= START_YEAR; year--) {
+      years.push(year.toString());
+    }
+    return years;
+  }, []);
+
+  // Initialize year from cookie or default to current year
   useEffect(() => {
-    const delayDebounceFn = setTimeout(() => {
-      GetPoliticians({ page: "1", query: searchTerm });
-    }, 500);
+    const savedYear = cookies.get("selectedYear");
+    if (savedYear && availableYears.includes(savedYear)) {
+      setSelectedYear(savedYear);
+    } else if (!selectedYear || !availableYears.includes(selectedYear)) {
+      const currentYear = new Date().getFullYear().toString();
+      setSelectedYear(currentYear);
+      cookies.set("selectedYear", currentYear);
+    }
+  }, []);
 
-    return () => clearTimeout(delayDebounceFn);
-  }, [searchTerm]);
+  // Handle year change with cookie persistence
+  const handleYearChange = (year: string) => {
+    setSelectedYear(year);
+    cookies.set("selectedYear", year);
+  };
+
+  // Ref to track loading state without causing re-renders
+  const isLoadingRef = useRef(false);
+
+  // Fetch politicians for dropdown with pagination
+  const fetchPoliticians = useCallback(
+    async (currentPage: number, search: string, isNewSearch: boolean) => {
+      // Use ref to prevent race conditions
+      if (isLoadingRef.current && !isNewSearch) return;
+
+      isLoadingRef.current = true;
+      setIsLoadingMore(true);
+      try {
+        let params = `?page=${currentPage}`;
+        if (search) params += `&query=${search}`;
+        if (showCurrentLegislatureOnly && currentLegislature) {
+          params += `&legislature=${currentLegislature}`;
+        }
+
+        const response = await GetAPI(`/politician${params}`, true);
+
+        if (response.status === 200 && response.body) {
+          const newPoliticians = response.body.politicians || [];
+          const totalPages = response.body.pages || 1;
+
+          setLocalPoliticians((prev) => {
+            if (isNewSearch) {
+              return newPoliticians;
+            }
+            // Filter out duplicates by ID before appending
+            const existingIds = new Set(prev.map((p) => p.id));
+            const uniqueNewPoliticians = newPoliticians.filter(
+              (p: PoliticianProps) => !existingIds.has(p.id),
+            );
+            return [...prev, ...uniqueNewPoliticians];
+          });
+          setHasMore(currentPage < totalPages);
+        } else {
+          setHasMore(false);
+        }
+      } catch (error) {
+        console.error("Failed to fetch politicians", error);
+      } finally {
+        isLoadingRef.current = false;
+        setIsLoadingMore(false);
+      }
+    },
+    [GetAPI, showCurrentLegislatureOnly, currentLegislature],
+  );
+
+  // Reset and fetch when search or filter changes
+  useEffect(() => {
+    if (dropdownOpen) {
+      const delayDebounceFn = setTimeout(() => {
+        setLocalPoliticians([]);
+        setPage(1);
+        setHasMore(true);
+        fetchPoliticians(1, searchTerm, true);
+      }, 300);
+
+      return () => clearTimeout(delayDebounceFn);
+    }
+  }, [searchTerm, showCurrentLegislatureOnly, dropdownOpen]);
+
+  // Infinite scroll observer
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (
+          entries[0].isIntersecting &&
+          hasMore &&
+          !isLoadingMore &&
+          dropdownOpen
+        ) {
+          setPage((prev) => {
+            const nextPage = prev + 1;
+            fetchPoliticians(nextPage, searchTerm, false);
+            return nextPage;
+          });
+        }
+      },
+      { threshold: 0.5 },
+    );
+
+    if (observerTarget.current) {
+      observer.observe(observerTarget.current);
+    }
+
+    return () => {
+      if (observerTarget.current) {
+        observer.unobserve(observerTarget.current);
+      }
+    };
+  }, [hasMore, isLoadingMore, searchTerm, dropdownOpen, fetchPoliticians]);
+
+  // Handle legislature change
+  const handleLegislatureChange = (value: string) => {
+    setSelectedLegislature(Number(value));
+  };
 
   const [displayPolitician, setDisplayPolitician] =
     useState<PoliticianDetailsProps | null>(null);
@@ -76,6 +228,12 @@ export function Section1() {
     setTimeout(() => {
       GetSelectedPoliticianDetails();
     }, 1000);
+  };
+
+  const handleExportPDF = () => {
+    if (displayPolitician) {
+      generatePoliticianReport(displayPolitician, selectedYear);
+    }
   };
 
   // Chart Config
@@ -144,13 +302,82 @@ export function Section1() {
       data: gabinete,
     },
   ];
+
+  // Helper functions to check if there's data
+  const hasChartData = useMemo(() => {
+    if (!displayPolitician?.finance?.monthlyCosts) return false;
+    const monthlyCosts = displayPolitician.finance.monthlyCosts;
+    const hasCotaData = monthlyCosts.some(
+      (item) =>
+        item.parliamentaryQuota !== null &&
+        item.parliamentaryQuota !== undefined,
+    );
+    const hasGabineteData = monthlyCosts.some(
+      (item) => item.cabinetQuota !== null && item.cabinetQuota !== undefined,
+    );
+    return hasCotaData || hasGabineteData;
+  }, [displayPolitician]);
+
+  const hasFinanceData = useMemo(() => {
+    if (!displayPolitician?.finance) return false;
+    const finance = displayPolitician.finance;
+    return (
+      finance.contractedPeople ||
+      finance.grossSalary ||
+      finance.functionalPropertyUsage ||
+      finance.trips ||
+      finance.diplomaticPassport ||
+      finance.housingAssistant
+    );
+  }, [displayPolitician]);
   return (
     <div className="mb-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
       {/* Politician Profile Card */}
       <Card className="relative col-span-1 flex flex-col items-center overflow-hidden border-gray-100 p-6 text-center shadow-sm transition-shadow hover:shadow-md">
         {/* Search & Select */}
-        <div className="mb-6 w-full">
-          <DropdownMenu>
+        <div className="mb-6 w-full space-y-3">
+          {/* Legislature Toggle + Year Selector */}
+          <div className="flex items-center gap-2">
+            <div className="flex flex-1 items-center justify-between rounded-lg bg-gray-50 p-2">
+              <Label
+                htmlFor="legislature-toggle"
+                className="text-xs text-gray-600"
+              >
+                {showCurrentLegislatureOnly
+                  ? "Legislatura atual"
+                  : "Todas as legislaturas"}
+              </Label>
+              <Switch
+                id="legislature-toggle"
+                checked={showCurrentLegislatureOnly}
+                onCheckedChange={setShowCurrentLegislatureOnly}
+              />
+            </div>
+            {/* Year Selector */}
+            <Select value={selectedYear} onValueChange={handleYearChange}>
+              <SelectTrigger className="w-[80px] border-gray-200 bg-gray-50">
+                <SelectValue placeholder="Ano" />
+              </SelectTrigger>
+              <SelectContent>
+                {availableYears.map((year) => (
+                  <SelectItem key={year} value={year}>
+                    {year}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+            <Button
+              variant="outline"
+              className="border-gray-200 bg-gray-50"
+              onClick={handleExportPDF}
+              disabled={!displayPolitician || loading}
+              title="Exportar Relatório PDF"
+            >
+              <Download className="h-4 w-4 text-gray-600" />
+            </Button>
+          </div>
+
+          <DropdownMenu open={dropdownOpen} onOpenChange={setDropdownOpen}>
             <DropdownMenuTrigger asChild>
               <Button
                 variant="outline"
@@ -163,36 +390,66 @@ export function Section1() {
               </Button>
             </DropdownMenuTrigger>
             <DropdownMenuContent className="w-[300px] p-2">
-              <div className="mb-2 flex items-center rounded-md border border-gray-200 px-2">
+              <div className="mb-2 flex items-center rounded-md border border-gray-200 bg-gray-50 px-2">
                 <Search className="mr-2 h-4 w-4 text-gray-400" />
                 <input
                   className="flex-1 bg-transparent py-2 text-sm outline-none"
-                  placeholder="Buscar político1..."
+                  placeholder="Buscar político..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
+                  autoFocus
                 />
               </div>
-              <div className="max-h-[200px] w-full overflow-y-auto">
-                {politicians.map((pol: any) => (
+              <div className="max-h-[300px] w-full space-y-1 overflow-y-auto">
+                {localPoliticians.map((pol) => (
                   <DropdownMenuItem
                     key={pol.id}
-                    onClick={() => handleSelectPolitician(pol.id)}
-                    className="flex w-full cursor-pointer flex-row items-center"
+                    onClick={() => {
+                      handleSelectPolitician(pol.id);
+                      setDropdownOpen(false);
+                    }}
+                    className="flex w-full cursor-pointer flex-row items-center rounded-lg p-2 transition-colors hover:bg-gray-100"
                   >
-                    <div className="flex w-full flex-row items-center">
-                      <Avatar className="mr-2 h-6 w-6">
-                        <AvatarImage src={pol?.urlFoto} />
-                        <AvatarFallback>{pol?.name?.charAt(0)}</AvatarFallback>
-                      </Avatar>
-                      <div className="flex w-full flex-1 flex-col">
-                        <div className="truncate font-medium text-black">
-                          {pol?.name}
-                        </div>
-                        <div className="text-sm text-black">{pol?.partido}</div>
-                      </div>
+                    <Avatar className="mr-3 h-8 w-8 border border-gray-100">
+                      <AvatarImage src={pol?.imageUrl} />
+                      <AvatarFallback className="bg-secondary text-xs text-white">
+                        {pol?.name?.substring(0, 2).toUpperCase()}
+                      </AvatarFallback>
+                    </Avatar>
+                    <div className="flex flex-col overflow-hidden">
+                      <span className="truncate text-sm font-medium text-gray-900">
+                        {pol?.name}
+                      </span>
+                      <span className="truncate text-xs text-gray-500">
+                        {pol?.politicalPartyAcronym} - {pol?.state}
+                      </span>
                     </div>
                   </DropdownMenuItem>
                 ))}
+
+                {/* Loading indicator */}
+                {isLoadingMore && (
+                  <div className="text-secondary flex justify-center py-2">
+                    <Loader2 className="h-5 w-5 animate-spin" />
+                  </div>
+                )}
+
+                {/* End of list indicator */}
+                {!hasMore && localPoliticians.length > 0 && (
+                  <div className="py-2 text-center text-xs text-gray-400">
+                    Fim da lista
+                  </div>
+                )}
+
+                {/* No results */}
+                {!isLoadingMore && localPoliticians.length === 0 && (
+                  <div className="py-4 text-center text-sm text-gray-500">
+                    Nenhum político encontrado
+                  </div>
+                )}
+
+                {/* Observer target for infinite scroll */}
+                <div ref={observerTarget} className="h-2 w-full" />
               </div>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -299,17 +556,24 @@ export function Section1() {
               </p>
             </div>
 
-            <Select value={selectedYear} onValueChange={setSelectedYear}>
-              <SelectTrigger className="w-[120px] border-gray-200 bg-gray-50/50">
-                <SelectValue placeholder="Ano" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="2025">2025</SelectItem>
-                <SelectItem value="2024">2024</SelectItem>
-                <SelectItem value="2023">2023</SelectItem>
-                <SelectItem value="2022">2022</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="flex gap-2">
+              {/* Legislature Selector - Commented out for now */}
+              {/* <Select
+                value={selectedLegislature?.toString() || ""}
+                onValueChange={handleLegislatureChange}
+              >
+                <SelectTrigger className="w-[140px] border-gray-200 bg-gray-50/50">
+                  <SelectValue placeholder="Legislatura" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableLegislatures.map((leg) => (
+                    <SelectItem key={leg} value={leg.toString()}>
+                      {leg}ª {leg === currentLegislature ? "(Atual)" : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select> */}
+            </div>
           </div>
 
           <div className="grid grid-cols-1 lg:grid-cols-3">
@@ -318,6 +582,22 @@ export function Section1() {
               {loading ? (
                 <div className="flex h-full w-full items-center justify-center">
                   <SkeletonLoader className="h-[300px] w-full" />
+                </div>
+              ) : !displayPolitician ? (
+                <div className="flex h-full w-full flex-col items-center justify-center gap-3 text-gray-400">
+                  <BarChart3 className="h-12 w-12 opacity-20" />
+                  <p className="text-center text-sm">
+                    Selecione um político para visualizar o gráfico de execução
+                    financeira
+                  </p>
+                </div>
+              ) : !hasChartData ? (
+                <div className="flex h-full w-full flex-col items-center justify-center gap-3 text-gray-400">
+                  <BarChart3 className="h-12 w-12 opacity-20" />
+                  <p className="text-center text-sm">
+                    Não há dados financeiros disponíveis para este político no
+                    ano selecionado
+                  </p>
                 </div>
               ) : (
                 <ReactApexChart
@@ -339,56 +619,77 @@ export function Section1() {
             {/* Detailed Costs Column (1/3) - styled as a side panel */}
             <div className="flex flex-col gap-3 border-t border-gray-100 bg-gray-50/50 p-5 lg:col-span-1 lg:border-t-0 lg:border-l">
               <h4 className="mb-2 text-xs font-bold tracking-wider text-gray-400 uppercase">
-                Detalhamento Mensal
+                Detalhamento
               </h4>
               <ScrollArea className="h-[280px] pr-3">
-                <div className="space-y-3">
-                  {[
-                    {
-                      label: displayPolitician?.finance?.contractedPeople,
-                      icon: "👥",
-                    },
-                    {
-                      label: displayPolitician?.finance?.grossSalary,
-                      icon: "💰",
-                    },
-                    {
-                      label:
-                        displayPolitician?.finance?.functionalPropertyUsage,
-                      icon: "🏠",
-                    },
-                    { label: displayPolitician?.finance?.trips, icon: "✈️" },
-                    {
-                      label: displayPolitician?.finance?.diplomaticPassport,
-                      icon: "🛂",
-                    },
-                    {
-                      label: displayPolitician?.finance?.housingAssistant,
-                      icon: "🛏️",
-                    },
-                  ].map((item, idx) => (
-                    <div
-                      key={idx}
-                      className="hover:border-secondary/30 flex items-center justify-between rounded-lg border border-gray-100 bg-white p-3 shadow-sm transition-colors"
-                    >
-                      <div className="flex items-center gap-3">
-                        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-sm">
-                          {item.icon === "bed" ? (
-                            <div className="h-4 w-4 rounded-sm bg-gray-300" />
-                          ) : (
-                            item.icon
-                          )}
-                        </div>
-                        <div className="flex flex-col">
-                          <span className="text-xs font-medium text-gray-500">
-                            {item.label}
-                          </span>
-                          {/* <span className="text-sm font-bold text-dark">{item.value} {item.sub && <span className="text-xs font-normal text-gray-400">{item.sub}</span>}</span> */}
+                {!displayPolitician ? (
+                  <div className="flex h-full flex-col items-center justify-center gap-3 text-gray-400">
+                    <FileText className="h-10 w-10 opacity-20" />
+                    <p className="text-center text-xs">
+                      Selecione um político para visualizar os detalhes
+                      financeiros
+                    </p>
+                  </div>
+                ) : !hasFinanceData ? (
+                  <div className="flex h-full flex-col items-center justify-center gap-3 text-gray-400">
+                    <FileText className="h-10 w-10 opacity-20" />
+                    <p className="text-center text-xs">
+                      Não há dados de detalhamento financeiro disponíveis para
+                      este político no ano selecionado
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-3">
+                    {[
+                      {
+                        label: displayPolitician?.finance?.contractedPeople,
+                        icon: "👥",
+                      },
+                      {
+                        label: displayPolitician?.finance?.grossSalary,
+                        icon: "💰",
+                      },
+                      {
+                        label:
+                          displayPolitician?.finance?.functionalPropertyUsage,
+                        icon: "🏠",
+                      },
+                      {
+                        label: displayPolitician?.finance?.trips,
+                        icon: "✈️",
+                      },
+                      {
+                        label: displayPolitician?.finance?.diplomaticPassport,
+                        icon: "🛂",
+                      },
+                      {
+                        label: displayPolitician?.finance?.housingAssistant,
+                        icon: "🛏️",
+                      },
+                    ].map((item, idx) => (
+                      <div
+                        key={idx}
+                        className="hover:border-secondary/30 flex items-center justify-between rounded-lg border border-gray-100 bg-white p-3 shadow-sm transition-colors"
+                      >
+                        <div className="flex items-center gap-3">
+                          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gray-100 text-sm">
+                            {item.icon === "bed" ? (
+                              <div className="h-4 w-4 rounded-sm bg-gray-300" />
+                            ) : (
+                              item.icon
+                            )}
+                          </div>
+                          <div className="flex flex-col">
+                            <span className="text-xs font-medium text-gray-500">
+                              {item.label}
+                            </span>
+                            {/* <span className="text-sm font-bold text-dark">{item.value} {item.sub && <span className="text-xs font-normal text-gray-400">{item.sub}</span>}</span> */}
+                          </div>
                         </div>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                    ))}
+                  </div>
+                )}
               </ScrollArea>
             </div>
           </div>

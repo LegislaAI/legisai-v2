@@ -8,7 +8,6 @@ import { Newspaper, Search } from "lucide-react";
 import { useEffect, useState } from "react";
 
 export default function NewsPage() {
-  const [activeTab, setActiveTab] = useState<"ALL" | "PARLIAMENT">("ALL");
   const [currentPage, setCurrentPage] = useState(1);
   const [searchTerm, setSearchTerm] = useState("");
   const [news, setNews] = useState<NewsItem[]>([]);
@@ -21,10 +20,8 @@ export default function NewsPage() {
   async function fetchNews() {
     setIsLoading(true);
     try {
-      const typeFilter =
-        activeTab === "PARLIAMENT" ? "&type=PARLIAMENT" : "&type=WEBSITE";
       const searchFilter = debouncedSearch ? `&query=${debouncedSearch}` : "";
-      const endpoint = `/news?page=${currentPage}${typeFilter}${searchFilter}`;
+      const endpoint = `/news?page=${currentPage}${searchFilter}`;
 
       const response = await GetAPI(endpoint, false);
 
@@ -58,11 +55,11 @@ export default function NewsPage() {
 
   useEffect(() => {
     fetchNews();
-  }, [currentPage, debouncedSearch, activeTab]);
+  }, [currentPage, debouncedSearch]);
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearch, activeTab]);
+  }, [debouncedSearch]);
 
   return (
     <div className="min-h-screen w-full bg-[#f4f4f4] font-sans text-[#1a1d1f]">
@@ -95,22 +92,6 @@ export default function NewsPage() {
               onChange={(e) => setSearchTerm(e.target.value)}
             />
           </div>
-        </div>
-
-        {/* TABS */}
-        <div className="flex items-center gap-2 border-b border-gray-200 pb-1">
-          <button
-            onClick={() => setActiveTab("ALL")}
-            className={`border-b-2 px-4 py-2 text-sm font-medium transition-all ${activeTab === "ALL" ? "border-[#749c5b] text-[#749c5b]" : "border-transparent text-gray-500 hover:text-gray-700"}`}
-          >
-            Todas
-          </button>
-          <button
-            onClick={() => setActiveTab("PARLIAMENT")}
-            className={`border-b-2 px-4 py-2 text-sm font-medium transition-all ${activeTab === "PARLIAMENT" ? "border-[#749c5b] text-[#749c5b]" : "border-transparent text-gray-500 hover:text-gray-700"}`}
-          >
-            Câmara Legislativa
-          </button>
         </div>
 
         {/* LIST */}

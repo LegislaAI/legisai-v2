@@ -12,6 +12,7 @@ import { useApiContext } from "./ApiContext";
 interface GetPoliticiansProps {
   page: string;
   query?: string;
+  legislature?: number;
 }
 
 interface PoliticianContextProps {
@@ -27,6 +28,12 @@ interface PoliticianContextProps {
   loading: boolean;
   setLoading?: React.Dispatch<React.SetStateAction<boolean>>;
   setSelectedYear: React.Dispatch<React.SetStateAction<string>>;
+  // Legislature
+  selectedLegislature: number | null;
+  setSelectedLegislature: React.Dispatch<React.SetStateAction<number | null>>;
+  availableLegislatures: number[];
+  currentLegislature: number | null;
+  // News
   politicianNews: PoliticianNewsProps[];
   setPoliticianNews: React.Dispatch<
     React.SetStateAction<PoliticianNewsProps[]>
@@ -36,7 +43,11 @@ interface PoliticianContextProps {
   isLoadingPoliticianNews: boolean;
   setIsLoadingPoliticianNews: React.Dispatch<React.SetStateAction<boolean>>;
   GetPoliticianNews: () => Promise<void>;
-  GetPoliticians: ({ page, query }: GetPoliticiansProps) => Promise<void>;
+  GetPoliticians: ({
+    page,
+    query,
+    legislature,
+  }: GetPoliticiansProps) => Promise<void>;
   GetSelectedPoliticianDetails: () => Promise<void>;
 }
 
@@ -67,7 +78,43 @@ export const PoliticianContextProvider = ({ children }: ProviderProps) => {
   const [isLoadingPoliticianNews, setIsLoadingPoliticianNews] =
     useState<boolean>(false);
 
-  async function GetPoliticians({ page, query }: GetPoliticiansProps) {
+  // Legislature state
+  const [selectedLegislature, setSelectedLegislature] = useState<number | null>(
+    null,
+  );
+  const [availableLegislatures, setAvailableLegislatures] = useState<number[]>(
+    [],
+  );
+  const [currentLegislature, setCurrentLegislature] = useState<number | null>(
+    null,
+  );
+
+  // Fetch available legislatures on mount
+  async function GetLegislatures() {
+    const response = await GetAPI("/politician/legislatures", true);
+    if (response.status === 200) {
+      setAvailableLegislatures(response.body.available);
+      setCurrentLegislature(response.body.current);
+
+      // Set selected legislature from cookie or default to current
+      const savedLegislature = cookies.get("selectedLegislature");
+      if (
+        savedLegislature &&
+        response.body.available.includes(Number(savedLegislature))
+      ) {
+        setSelectedLegislature(Number(savedLegislature));
+      } else {
+        setSelectedLegislature(response.body.current);
+        cookies.set("selectedLegislature", String(response.body.current));
+      }
+    }
+  }
+
+  async function GetPoliticians({
+    page,
+    query,
+    legislature,
+  }: GetPoliticiansProps) {
     let params = "";
     if (page) {
       params += `?page=${page}`;
@@ -75,7 +122,11 @@ export const PoliticianContextProvider = ({ children }: ProviderProps) => {
     if (query) {
       params += `&query=${query}`;
     }
+    if (legislature) {
+      params += `&legislature=${legislature}`;
+    }
     const politicians = await GetAPI(`/politician${params}`, true);
+    console.log("politicians", politicians);
     if (politicians.status === 200) {
       setPoliticians(politicians.body.politicians);
       setPoliticianPages(politicians.body.pages);
@@ -91,11 +142,15 @@ export const PoliticianContextProvider = ({ children }: ProviderProps) => {
     } else {
       id = selectedPoliticianId;
     }
-    if (!id) return;
+    if (!id) {
+      setLoading(false);
+      return;
+    }
     let params = "";
     params += id;
     params += `?year=${selectedYear}`;
     const details = await GetAPI(`/politician/details/${params}`, true);
+    console.log("details", details);
     if (details.status === 200) {
       setLoading(false);
       return setSelectedPolitician(details.body);
@@ -115,9 +170,19 @@ export const PoliticianContextProvider = ({ children }: ProviderProps) => {
     }
   }
 
+  // Fetch legislatures on mount
   useEffect(() => {
-    GetPoliticians({ page: "1" });
+    GetLegislatures();
   }, []);
+
+  // Fetch politicians when legislature changes
+  useEffect(() => {
+    if (selectedLegislature) {
+      GetPoliticians({ page: "1", legislature: selectedLegislature });
+      // Save to cookie
+      cookies.set("selectedLegislature", String(selectedLegislature));
+    }
+  }, [selectedLegislature]);
 
   useEffect(() => {
     if (selectedPoliticianId || cookies.get("selectedPoliticianId")) {
@@ -144,6 +209,12 @@ export const PoliticianContextProvider = ({ children }: ProviderProps) => {
         setSelectedPoliticianId,
         selectedYear,
         setSelectedYear,
+        // Legislature
+        selectedLegislature,
+        setSelectedLegislature,
+        availableLegislatures,
+        currentLegislature,
+        // News
         politicianNews,
         setPoliticianNews,
         politicianNewsPages,

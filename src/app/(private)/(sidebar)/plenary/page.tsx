@@ -21,8 +21,8 @@ import { useApiContext } from "@/context/ApiContext";
 import { useRouter } from "next/navigation";
 
 // --- TIPOS ---
-type SessionType = "solene" | "deliberativa";
-type ApiEventType = "SOLEMN" | "DELIBERATIVE";
+type SessionType = "solene" | "deliberativa" | "comissoes";
+type ApiEventType = "SOLEMN" | "DELIBERATIVE" | "COMMISSION";
 
 interface SessionSummary {
   id: string;
@@ -56,7 +56,7 @@ interface EventProps {
 export default function SessionListScreen() {
   const router = useRouter();
   const { GetAPI } = useApiContext();
-  const [activeTab, setActiveTab] = useState<SessionType>("solene");
+  const [activeTab, setActiveTab] = useState<SessionType>("deliberativa");
   const [dateRange, setDateRange] = useState<DateRange | undefined>();
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
@@ -81,18 +81,9 @@ export default function SessionListScreen() {
         return "SOLEMN";
       case "deliberativa":
         return "DELIBERATIVE";
-      // case "geral":
-      //   return "COMMISSION";
+      case "comissoes":
+        return "COMMISSION";
     }
-  };
-
-  // Helper function to determine session type from event name
-  const getSessionType = (eventTypeName: string): SessionType => {
-    const name = eventTypeName.toLowerCase();
-    if (name.includes("solene")) return "solene";
-    if (name.includes("deliberativa")) return "deliberativa";
-    return "deliberativa";
-    // return "geral";
   };
 
   // Helper function to map situation to status
@@ -144,11 +135,7 @@ export default function SessionListScreen() {
   const filteredSessions = useMemo(() => {
     return events
       .filter((event) => {
-        const eventType = getSessionType(event.eventType.name);
         const eventStatus = getStatus(event.situation);
-
-        // Filter by active tab (session type) - REMOVED since it's server-side now
-        // if (eventType !== activeTab) return false;
 
         // Filter by status checkboxes
         if (!statusFilters[eventStatus]) return false;
@@ -158,7 +145,7 @@ export default function SessionListScreen() {
       .map(
         (event): SessionSummary => ({
           id: event.id,
-          type: getSessionType(event.eventType.name),
+          type: activeTab, // Use the active tab to determine the type
           date: event.startDate,
           title: event.eventType.name,
           subtitle: event.description,
@@ -174,9 +161,12 @@ export default function SessionListScreen() {
 
   const handleNavigation = (session: SessionSummary) => {
     // Route to test2 for solene, test3 for deliberativa/geral
-    if (activeTab === "solene") {
+    if (session.type === "solene") {
       router.push(`/plenary/solene/${session.id}`);
+    } else if (session.type === "comissoes") {
+      router.push(`/plenary/commissions/${session.id}`);
     } else {
+      // Default fallback for deliberativa
       router.push(`/plenary/deliberativa/${session.id}`);
     }
   };
@@ -201,17 +191,21 @@ export default function SessionListScreen() {
             busca.
           </p>
           <div className="mt-4 flex w-fit flex-col gap-2 rounded-lg border border-gray-300 bg-white p-1 sm:flex-row">
-            {(["solene", "deliberativa"] as SessionType[]).map((type) => (
+            {[
+              { id: "deliberativa", label: "Sessões Deliberativas" },
+              { id: "solene", label: "Sessões Solenes" },
+              { id: "comissoes", label: "Comissões" },
+            ].map(({ id, label }) => (
               <button
-                key={type}
-                onClick={() => handleTabChange(type)}
+                key={id}
+                onClick={() => handleTabChange(id as SessionType)}
                 className={`rounded-md px-6 py-2 text-sm font-medium transition-all duration-200 ${
-                  activeTab === type
+                  activeTab === id
                     ? "bg-[#749c5b] text-white shadow-sm"
                     : "text-[#6f767e] hover:bg-gray-50 hover:text-[#749c5b]"
                 }`}
               >
-                Sessões <span className="capitalize">{type}</span>s
+                {label}
               </button>
             ))}
           </div>
