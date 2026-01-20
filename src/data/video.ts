@@ -3,8 +3,8 @@ export interface VideoProps {
   title: string;
   subtitle: string;
   tags: string[];
-  link: string;
-  image: string;
+  link: string; // URL do embed do YouTube
+  image?: string; // Thumbnail (opcional)
 }
 
 export const videos: VideoProps[] = [
@@ -14,25 +14,34 @@ export const videos: VideoProps[] = [
     subtitle:
       "Aprenda a navegar pelas principais funcionalidades e métricas do seu painel inicial.",
     tags: ["Iniciante", "Dashboard"],
-    link: "https://www.youtube.com/embed/uaS75cHC3iU?si=DzOsb3gKdPMmfhud", // Exemplo genérico
-    image: "/thumbnails/dashboard.jpg", // Caminho hipotético
+    link: "https://www.youtube.com/embed/XI0tXO4-nu8?si=4cg_Ff5u14g2VpV5",
+    image: "/static/thumb_dashboard.png",
   },
   {
     id: 2,
-    title: "Como criar uma nova proposição",
+    title: "Como utilizar a nossa IA",
     subtitle:
-      "Passo a passo para cadastrar e acompanhar suas proposições no sistema.",
-    tags: ["Proposições", "Gestão"],
-    link: "https://www.youtube.com/embed/uaS75cHC3iU?si=DzOsb3gKdPMmfhud",
-    image: "/thumbnails/proposicao.jpg",
+      "Passo a passo de como utilizar a nossa IA para analisar e gerar informações.",
+    tags: ["IA", "Intermediário"],
+    link: "https://www.youtube.com/embed/JzqX76GgcLk?si=5UzrvJCXkyzvkmr0",
+    image: "/static/thumb_ia.png",
   },
   {
     id: 3,
-    title: "Utilizando a IA para análise",
+    title: "Conheça a nossa base de eventos",
     subtitle:
-      "Descubra como nossa inteligência artificial pode acelerar suas análises jurídicas.",
-    tags: ["IA", "Avançado"],
-    link: "https://www.youtube.com/embed/uaS75cHC3iU?si=DzOsb3gKdPMmfhud",
-    image: "/thumbnails/ai.jpg",
+      "Entenda como a nossa base de dados apresenta o detalhamento de cada evento parlamentar.",
+    tags: ["Eventos", "Avançado"],
+    link: "https://www.youtube.com/embed/jrOqmBVvgeo?si=bUmMXZ8KPBnFc0WB",
+    image: "/static/thumb_eventos.png",
+  },
+  {
+    id: 4,
+    title: "Aprenda sobre a nossa base de notícias",
+    subtitle:
+      "Descubra o potencial da nossa base de notícias para sua análise jurídica.",
+    tags: ["Notícias", "Iniciante"],
+    link: "https://www.youtube.com/embed/FVKbZUoIFu8?si=T9o-sji87jpzuFwl",
+    image: "/static/thumb_noticias.png",
   },
 ];

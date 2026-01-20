@@ -9,37 +9,13 @@ import {
 } from "@/components/ui/dialog";
 import { Card } from "@/components/v2/components/ui/Card";
 import { PlayCircle } from "lucide-react";
-
-// Mock Tutorials Data
-const tutorials = [
-  {
-    id: 1,
-    title: "Como usar o Dashboard",
-    thumbnail: "https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2670&auto=format&fit=crop",
-    videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ", // Rick Roll standard placeholder
-    duration: "2:30"
-  },
-  {
-      id: 2,
-      title: "Analisando Gastos",
-      thumbnail: "https://images.unsplash.com/photo-1554224155-6726b3ff858f?q=80&w=2626&auto=format&fit=crop",
-      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-      duration: "5:00"
-  },
-  {
-      id: 3,
-      title: "Exportando Relatórios",
-      thumbnail: "https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=2426&auto=format&fit=crop",
-      videoUrl: "https://www.youtube.com/embed/dQw4w9WgXcQ",
-      duration: "3:45"
-  }
-];
-
 import Link from "next/link";
-// ... imports
+import { videos } from "@/data/video";
 
-// ... inside Tutorials component
 export function Tutorials() {
+  // Pegar os 3 primeiros tutoriais
+  const tutorials = videos.slice(0, 3);
+
   return (
     <div className="w-full">
       <div className="flex items-center justify-between mb-4">
@@ -55,18 +31,19 @@ export function Tutorials() {
             <DialogTrigger asChild>
               <Card className="group cursor-pointer overflow-hidden border-0 shadow-sm hover:shadow-md transition-all">
                 <div className="relative aspect-video w-full overflow-hidden bg-gray-100">
-                  <img
-                    src={tutorial.thumbnail}
-                    alt={tutorial.title}
-                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
-                  />
+                  {tutorial.image ? (
+                    <img
+                      src={tutorial.image}
+                      alt={tutorial.title}
+                      className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-105"
+                    />
+                  ) : (
+                    <div className="h-full w-full bg-gray-200"></div>
+                  )}
                   <div className="absolute inset-0 flex items-center justify-center bg-black/20 opacity-0 transition-opacity group-hover:opacity-100">
                     <div className="rounded-full bg-white/20 p-3 backdrop-blur-sm">
                         <PlayCircle className="h-8 w-8 text-white" />
                     </div>
-                  </div>
-                  <div className="absolute bottom-2 right-2 rounded bg-black/60 px-1.5 py-0.5 text-xs font-medium text-white">
-                    {tutorial.duration}
                   </div>
                 </div>
                 <div className="p-3">
@@ -83,7 +60,7 @@ export function Tutorials() {
                 <div className="relative w-full pt-[56.25%]">
                      <iframe 
                         className="absolute top-0 left-0 w-full h-full"
-                        src={tutorial.videoUrl} 
+                        src={tutorial.link} 
                         title={tutorial.title}
                         allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture" 
                         allowFullScreen

@@ -36,8 +36,17 @@ export function TutorialsSection() {
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
             {filteredVideos.map((video) => (
                 <div key={video.id} className="bg-white rounded-xl border border-gray-100 overflow-hidden shadow-sm hover:shadow-md transition-all group">
-                    <div className="relative aspect-video bg-gray-200 flex items-center justify-center overflow-hidden">
-                        {/* Placeholder for thumbnail since we might not have real images */}
+                    <div 
+                        className="relative aspect-video bg-gray-200 flex items-center justify-center overflow-hidden cursor-pointer"
+                        onClick={() => setSelectedVideo(video)}
+                    >
+                        {video.image && (
+                            <img 
+                                src={video.image} 
+                                alt={video.title}
+                                className="absolute inset-0 w-full h-full object-cover"
+                            />
+                        )}
                         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent z-10"></div>
                         <PlayCircle size={48} className="text-white relative z-20 opacity-80 group-hover:opacity-100 group-hover:scale-110 transition-all"/>
                         

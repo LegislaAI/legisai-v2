@@ -6,7 +6,7 @@ import { Toaster } from "react-hot-toast";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Legis AI",
+  title: "LegisDados",
   icons: {
     icon: "/icon.png",
   },
