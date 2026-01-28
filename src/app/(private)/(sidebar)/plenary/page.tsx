@@ -21,8 +21,8 @@ import { useApiContext } from "@/context/ApiContext";
 import { useRouter } from "next/navigation";
 
 // --- TIPOS ---
-type SessionType = "solene" | "deliberativa" | "comissoes";
-type ApiEventType = "SOLEMN" | "DELIBERATIVE" | "COMMISSION";
+type SessionType = "solene" | "deliberativa";
+type ApiEventType = "SOLEMN" | "DELIBERATIVE";
 
 interface SessionSummary {
   id: string;
@@ -81,8 +81,6 @@ export default function SessionListScreen() {
         return "SOLEMN";
       case "deliberativa":
         return "DELIBERATIVE";
-      case "comissoes":
-        return "COMMISSION";
     }
   };
 
@@ -163,8 +161,6 @@ export default function SessionListScreen() {
     // Route to test2 for solene, test3 for deliberativa/geral
     if (session.type === "solene") {
       router.push(`/plenary/solene/${session.id}`);
-    } else if (session.type === "comissoes") {
-      router.push(`/plenary/commissions/${session.id}`);
     } else {
       // Default fallback for deliberativa
       router.push(`/plenary/deliberativa/${session.id}`);
@@ -194,7 +190,6 @@ export default function SessionListScreen() {
             {[
               { id: "deliberativa", label: "Sessões Deliberativas" },
               { id: "solene", label: "Sessões Solenes" },
-              { id: "comissoes", label: "Comissões" },
             ].map(({ id, label }) => (
               <button
                 key={id}

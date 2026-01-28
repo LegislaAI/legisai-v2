@@ -242,6 +242,18 @@ export default function SessionDetailScreen() {
         state: s.state,
         status: s.status,
       })),
+      speeches: speeches.map((speech) => {
+        // Find the corresponding speaker to get party and state
+        const speaker = speakers.find((s) => s.id === speech.speakerId);
+        return {
+          speakerName: speech.speakerName,
+          speakerParty: speaker?.party,
+          speakerState: speaker?.state,
+          transcription: speech.transcription || "",
+          timeStart: speech.timeStart,
+          timeEnd: speech.timeEnd,
+        };
+      }),
       hideStats: true,
     });
   };

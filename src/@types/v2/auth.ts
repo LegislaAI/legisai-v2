@@ -11,6 +11,8 @@ export interface RegisterPayload {
   birthDate: Date;
   profession: string;
   password?: string;
+  postalCode?: string;
+  addressNumber?: string;
 }
 
 export interface RecoverPasswordStep1Payload {

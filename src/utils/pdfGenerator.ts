@@ -15,7 +15,7 @@ export const generatePoliticianReport = (
 
   doc.setFontSize(10);
   doc.setTextColor(100);
-  doc.text(`Gerado em: ${new Date().toLocaleDateString()}`, 14, 26);
+  doc.text(`Gerado em: ${new Date().toLocaleDateString("pt-BR")}`, 14, 26);
 
   // --- Profile Summary ---
   doc.setLineWidth(0.5);
@@ -197,6 +197,14 @@ export interface SessionReportData {
     state: string;
     status: string;
   }[];
+  speeches?: Array<{
+    speakerName: string;
+    speakerParty?: string;
+    speakerState?: string;
+    transcription: string;
+    timeStart?: string;
+    timeEnd?: string;
+  }>;
   brevesComunicacoes?: {
     speakers: Array<{
       name: string;
@@ -224,7 +232,7 @@ export const generateSessionReport = (data: SessionReportData) => {
 
   doc.setFontSize(10);
   doc.setTextColor(100);
-  doc.text(`Gerado em: ${new Date().toLocaleDateString()}`, 14, currentY);
+  doc.text(`Gerado em: ${new Date().toLocaleDateString("pt-BR")}`, 14, currentY);
 
   // Status Badge-like text
   doc.setFontSize(12);
@@ -375,6 +383,90 @@ export const generateSessionReport = (data: SessionReportData) => {
     });
 
     currentY = (doc as any).lastAutoTable.finalY + 15;
+  }
+
+  // --- Speeches with Full Transcriptions (for Solemn Sessions) ---
+  if (data.speeches && data.speeches.length > 0) {
+    if (currentY > 250) {
+      doc.addPage();
+      currentY = 20;
+    }
+
+    doc.setFontSize(16);
+    doc.setTextColor(0);
+    doc.text("Falas dos Oradores - Transcrições Completas", 14, currentY);
+    currentY += 12;
+
+    data.speeches.forEach((speech, index) => {
+      // Check if we need a new page before adding a new speech
+      if (currentY > 250) {
+        doc.addPage();
+        currentY = 20;
+      }
+
+      // Speaker identification header
+      doc.setFontSize(12);
+      doc.setTextColor(116, 156, 91); // Secondary color
+      doc.setFont("helvetica", "bold");
+      const speakerInfo = `${index + 1}. ${speech.speakerName}`;
+      if (speech.speakerParty || speech.speakerState) {
+        const partyState = [speech.speakerParty, speech.speakerState]
+          .filter(Boolean)
+          .join("/");
+        doc.text(`${speakerInfo} (${partyState})`, 14, currentY);
+      } else {
+        doc.text(speakerInfo, 14, currentY);
+      }
+      currentY += 6;
+
+      // Time information if available
+      if (speech.timeStart || speech.timeEnd) {
+        doc.setFontSize(9);
+        doc.setTextColor(100);
+        doc.setFont("helvetica", "normal");
+        const timeInfo = speech.timeEnd
+          ? `${speech.timeStart} - ${speech.timeEnd}`
+          : speech.timeStart || "";
+        doc.text(`Horário: ${timeInfo}`, 14, currentY);
+        currentY += 5;
+      }
+
+      // Transcription text
+      doc.setFontSize(10);
+      doc.setTextColor(0);
+      doc.setFont("helvetica", "normal");
+      
+      // Split text to fit page width (180mm width, 14mm margins on each side = 168mm)
+      const maxWidth = 168;
+      const transcriptionLines = doc.splitTextToSize(
+        speech.transcription || "Transcrição não disponível",
+        maxWidth,
+      );
+
+      // Add some spacing before the text
+      currentY += 3;
+
+      // Add transcription text line by line
+      transcriptionLines.forEach((line: string) => {
+        if (currentY > 270) {
+          doc.addPage();
+          currentY = 20;
+        }
+        doc.text(line, 14, currentY);
+        currentY += 5;
+      });
+
+      // Add spacing between speeches
+      currentY += 10;
+
+      // Add a subtle separator line
+      if (data.speeches && index < data.speeches.length - 1) {
+        doc.setDrawColor(200);
+        doc.setLineWidth(0.3);
+        doc.line(14, currentY, 196, currentY);
+        currentY += 10;
+      }
+    });
   }
 
   // --- Breves Comunicações ---

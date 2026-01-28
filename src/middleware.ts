@@ -7,12 +7,16 @@ export const config = {
     "/",
     "/plenary",
     "/plenary/:path*",
+    "/commissions",
+    "/commissions/:path*",
     "/news",
     "/procedures",
     "/ai",
     "/prediction-ai",
     "/tutorials",
     "/profile",
+    "/plans",
+    "/checkout",
   ],
 };
 

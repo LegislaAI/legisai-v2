@@ -6,6 +6,9 @@ export interface User {
   birthDate: string;
   profession: string;
   password?: string;
+  cpfCnpj?: string | null;
+  postalCode?: string | null;
+  addressNumber?: string | null;
 }
 
 export type ProfileProps = User;

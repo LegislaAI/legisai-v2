@@ -1189,7 +1189,6 @@ export default function DeliberativeSessionScreen() {
                                   {speaker.transcription && (
                                     <button
                                       onClick={(e) => {
-                                        console.log("speaker", speaker);
                                         e.stopPropagation();
                                         setSelectedSpeakerForModal({
                                           name: speaker.name,

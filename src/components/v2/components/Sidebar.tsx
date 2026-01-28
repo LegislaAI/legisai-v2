@@ -19,6 +19,7 @@ import {
   PlayCircle,
   Settings2,
   Sparkles,
+  UsersRound,
   Wallet,
 } from "lucide-react";
 import Image from "next/image";
@@ -35,14 +36,14 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   { label: "Home", href: "/", icon: Home },
   { label: "Plenários / Sessões", href: "/plenary", icon: Wallet },
-  //   { label: "Comissões / Reuniões", href: "/commissions", icon: UsersRound, disabled: false },
+  { label: "Comissões", href: "/commissions", icon: UsersRound, disabled: false },
   {
     label: "Novidades e Notícias",
     href: "/news",
     icon: BellDot,
     disabled: false,
   },
-  { label: "Tramitação e Informações", href: "/procedures", icon: Cog },
+  { label: "Pesquisa Legislativa", href: "/procedures", icon: Cog },
   {
     label: "Inteligência Artificial",
     href: "/ai",

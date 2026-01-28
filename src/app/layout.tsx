@@ -2,6 +2,7 @@ import { ContextProviders } from "@/context/ContextProviders";
 import { GoogleAnalytics } from "@next/third-parties/google";
 import type { Metadata } from "next";
 import Script from "next/script";
+import { Toaster as SonnerToaster } from "sonner";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
 
@@ -34,6 +35,7 @@ export default function RootLayout({
       </head>
       <body className={"bg-surface"}>
         <Toaster position="top-center" />
+        <SonnerToaster position="top-right" richColors />
         <ContextProviders>{children}</ContextProviders>
       </body>
     </html>

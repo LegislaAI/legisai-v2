@@ -23,6 +23,7 @@ import { Card } from "@/components/v2/components/ui/Card";
 import { Input } from "@/components/v2/components/ui/Input";
 import { useApiContext } from "@/context/ApiContext";
 import { maskCpfCnpj, maskDate, maskPhone } from "@/lib/masks";
+import { useCookies } from "next-client-cookies";
 
 const registerSchema = z.object({
   name: z.string().min(3, "Nome deve ter no mínimo 3 caracteres"),
@@ -37,8 +38,9 @@ const registerSchema = z.object({
 type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function Register2Page() {
-  const { PostAPI } = useApiContext();
+  const { PostAPI, setToken } = useApiContext();
   const router = useRouter();
+  const cookies = useCookies();
 
   const {
     register,
@@ -65,8 +67,18 @@ export default function Register2Page() {
       const response = await PostAPI("/user/signup", payload, false);
 
       if (response.status === 200 || response.status === 201) {
-        toast.success("Conta criada com sucesso! Faça login.");
-        router.push("/login");
+        // Get access token from response
+        const token = response.body.accessToken;
+        const cookieName =
+          process.env.NEXT_PUBLIC_USER_TOKEN || "legisai-token";
+
+        // Save token in cookie and context
+        cookies.set(cookieName, token);
+        setToken(token);
+
+        toast.success("Conta criada com sucesso! Você já está logado.");
+        // Use full page navigation to ensure the cookie is sent to middleware
+        window.location.href = "/";
       } else {
         toast.error(response.body.message || "Falha ao criar conta");
       }

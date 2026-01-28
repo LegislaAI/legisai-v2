@@ -123,6 +123,11 @@
   --color-dark: #1a1d1f;
   --color-light-dark: #6f767e;
   --color-surface: #f4f4f4;
+  
+  /* LegisDados Theme Colors */
+  --color-legis-dark: #1B3B2B;
+  --color-legis-light: #4E9F3D;
+  --color-legis-accent: #FFC800;
 }
 @layer utilities {
   .fade-in {

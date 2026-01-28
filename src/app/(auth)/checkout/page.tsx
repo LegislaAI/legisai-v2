@@ -6,6 +6,7 @@ import { Card } from "@/components/v2/components/ui/Card";
 import { Input } from "@/components/v2/components/ui/Input";
 import { useApiContext } from "@/context/ApiContext";
 import { useSignatureContext } from "@/context/SignatureContext";
+import { useUserContext } from "@/context/UserContext";
 import {
   maskCVC,
   maskCard,
@@ -53,8 +54,9 @@ type PaymentMethod = "card" | "pix";
 function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { PostAPI } = useApiContext();
+  const { PostAPI, GetAPI } = useApiContext();
   const { plans, checkSubscription } = useSignatureContext();
+  const { user } = useUserContext();
 
   const planId = searchParams.get("planId");
   const isYearly = searchParams.get("yearly") === "true";
@@ -72,6 +74,22 @@ function CheckoutContent() {
   const holderForm = useForm<z.infer<typeof holderSchema>>({
     resolver: zodResolver(holderSchema),
   });
+
+  // Load user data and pre-fill form
+  useEffect(() => {
+    if (user) {
+      // Pre-fill holder form with user data from context
+      holderForm.reset({
+        name: user.name || "",
+        email: user.email || "",
+        phone: user.phone ? maskPhone(user.phone) : "",
+        cpfCnpj: user.cpfCnpj ? maskCpfCnpj(user.cpfCnpj) : "",
+        postalCode: user.postalCode ? maskCep(user.postalCode) : "",
+        addressNumber: user.addressNumber || "",
+      });
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [user]);
 
   useEffect(() => {
     if (planId && plans.length > 0) {

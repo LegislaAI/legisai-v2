@@ -126,7 +126,6 @@ export const PoliticianContextProvider = ({ children }: ProviderProps) => {
       params += `&legislature=${legislature}`;
     }
     const politicians = await GetAPI(`/politician${params}`, true);
-    console.log("politicians", politicians);
     if (politicians.status === 200) {
       setPoliticians(politicians.body.politicians);
       setPoliticianPages(politicians.body.pages);
@@ -150,7 +149,6 @@ export const PoliticianContextProvider = ({ children }: ProviderProps) => {
     params += id;
     params += `?year=${selectedYear}`;
     const details = await GetAPI(`/politician/details/${params}`, true);
-    console.log("details", details);
     if (details.status === 200) {
       setLoading(false);
       return setSelectedPolitician(details.body);
