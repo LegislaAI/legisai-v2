@@ -517,18 +517,29 @@ export function Section1() {
               </div>
             </div>
 
-            <Link
-              href={`https://www.camara.leg.br/deputados/${displayPolitician.id}`}
-              target="_blank"
-              className="w-full"
-            >
-              <Button
-                className="shadow-secondary/20 w-full font-semibold shadow-md transition-all hover:shadow-lg"
-                variant="primary"
+            <div className="flex w-full flex-col gap-2">
+              <Link href={`/deputados/${displayPolitician.id}`} className="w-full">
+                <Button
+                  className="shadow-secondary/20 w-full font-semibold shadow-md transition-all hover:shadow-lg"
+                  variant="primary"
+                >
+                  Ver detalhes do deputado
+                </Button>
+              </Link>
+              <Link
+                href={`https://www.camara.leg.br/deputados/${displayPolitician.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full"
               >
-                Ver Detalhes na Câmara
-              </Button>
-            </Link>
+                <Button
+                  variant="outline"
+                  className="w-full border-gray-200 bg-gray-50"
+                >
+                  Ver na Câmara
+                </Button>
+              </Link>
+            </div>
           </>
         ) : (
           <div className="flex flex-col items-center gap-2 py-10 text-gray-400">

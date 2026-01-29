@@ -19,6 +19,7 @@ import {
   PlayCircle,
   Settings2,
   Sparkles,
+  UserCircle,
   UsersRound,
   Wallet,
 } from "lucide-react";
@@ -35,6 +36,7 @@ interface MenuItem {
 
 const menuItems: MenuItem[] = [
   { label: "Home", href: "/", icon: Home },
+  { label: "Deputados", href: "/deputados", icon: UserCircle, disabled: false },
   { label: "Plenários / Sessões", href: "/plenary", icon: Wallet },
   { label: "Comissões", href: "/commissions", icon: UsersRound, disabled: false },
   {
@@ -112,7 +114,9 @@ export function Sidebar() {
       <nav className="flex w-full flex-1 flex-col gap-2 overflow-y-auto px-3 py-4">
         <TooltipProvider>
           {menuItems.map((item) => {
-            const isActive = pathname === item.href;
+            const isActive =
+              pathname === item.href ||
+              (item.href === "/deputados" && pathname.startsWith("/deputados/"));
             const Icon = item.icon;
 
             return (
