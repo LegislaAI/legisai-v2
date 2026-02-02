@@ -98,15 +98,15 @@ export function Section1() {
     return years;
   }, []);
 
-  // Initialize year from cookie or default to current year
+  // Initialize year from cookie or default to 2025 (último ano com dados disponíveis)
+  const DEFAULT_YEAR = "2025";
   useEffect(() => {
     const savedYear = cookies.get("selectedYear");
     if (savedYear && availableYears.includes(savedYear)) {
       setSelectedYear(savedYear);
     } else if (!selectedYear || !availableYears.includes(selectedYear)) {
-      const currentYear = new Date().getFullYear().toString();
-      setSelectedYear(currentYear);
-      cookies.set("selectedYear", currentYear);
+      setSelectedYear(DEFAULT_YEAR);
+      cookies.set("selectedYear", DEFAULT_YEAR);
     }
   }, []);
 

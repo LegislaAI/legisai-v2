@@ -265,7 +265,7 @@ export default function SessionListScreen() {
                       <div className="flex items-center sm:self-center">
                         <button
                           onClick={() => handleNavigation(session)}
-                          className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-[#1a1d1f] shadow-sm transition-all hover:bg-[#749c5b] hover:text-white sm:h-auto sm:w-auto sm:rounded-lg sm:border-transparent sm:bg-[#1a1d1f] sm:px-4 sm:py-2 sm:text-white"
+                          className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-[#1a1d1f] shadow-sm transition-all hover:bg-dark hover:text-white sm:h-auto sm:w-auto sm:rounded-lg sm:border-transparent sm:bg-secondary sm:px-4 sm:py-2 sm:text-white"
                         >
                           <ArrowRight size={18} className="sm:mr-2" />
                           <span className="hidden text-sm font-medium sm:inline">

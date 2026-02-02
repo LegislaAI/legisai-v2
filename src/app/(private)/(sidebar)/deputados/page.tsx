@@ -238,7 +238,7 @@ export default function DeputadosListPage() {
                       <button
                         type="button"
                         onClick={() => handleDeputadoClick(dep.id)}
-                        className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-dark shadow-sm transition-all hover:bg-secondary hover:text-white sm:h-auto sm:w-auto sm:rounded-lg sm:border-transparent sm:bg-dark sm:px-4 sm:py-2 sm:text-white"
+                        className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-dark shadow-sm transition-all hover:bg-dark hover:text-white sm:h-auto sm:w-auto sm:rounded-lg sm:border-transparent sm:bg-secondary sm:px-4 sm:py-2 sm:text-white"
                       >
                         <ArrowRight size={18} className="sm:mr-2" />
                         <span className="hidden text-sm font-medium sm:inline">

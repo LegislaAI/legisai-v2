@@ -67,9 +67,8 @@ export const PoliticianContextProvider = ({ children }: ProviderProps) => {
   const [selectedPoliticianId, setSelectedPoliticianId] = useState<string>("");
   const [selectedPolitician, setSelectedPolitician] =
     useState<PoliticianDetailsProps | null>(null);
-  const [selectedYear, setSelectedYear] = useState<string>(
-    new Date().getFullYear().toString(),
-  );
+  // Ano padrão 2025 (último ano com dados disponíveis)
+  const [selectedYear, setSelectedYear] = useState<string>("2025");
   const [politicianPages, setPoliticianPages] = useState<number>(0);
   const [politicianNews, setPoliticianNews] = useState<PoliticianNewsProps[]>(
     [],

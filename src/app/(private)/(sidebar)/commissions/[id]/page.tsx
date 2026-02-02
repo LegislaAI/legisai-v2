@@ -3,22 +3,22 @@ import * as Tabs from "@radix-ui/react-tabs";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import {
-  ArrowLeft,
-  ArrowRight,
-  Calendar as CalendarIcon,
-  CheckSquare,
-  ChevronLeft,
-  ChevronRight,
-  ExternalLink,
-  FileText,
-  Filter,
-  MapPin,
-  Newspaper,
-  Search,
-  SlidersHorizontal,
-  Users,
-  Video,
-  X
+    ArrowLeft,
+    ArrowRight,
+    Calendar as CalendarIcon,
+    CheckSquare,
+    ChevronLeft,
+    ChevronRight,
+    ExternalLink,
+    FileText,
+    Filter,
+    MapPin,
+    Newspaper,
+    Search,
+    SlidersHorizontal,
+    Users,
+    Video,
+    X
 } from "lucide-react";
 import moment from "moment";
 import { useParams, useRouter } from "next/navigation";
@@ -421,7 +421,17 @@ export default function CommissionDetailsPage() {
         {/* --- NAVEGAÇÃO DE ABAS --- */}
         <Tabs.Root
           value={activeTab}
-          onValueChange={setActiveTab}
+          onValueChange={(value) => {
+            if (value === "subcomissoes") {
+              const baseUrl = "https://www2.camara.leg.br/atividade-legislativa/comissoes/comissoes-permanentes";
+              const url = commission?.acronym
+                ? `${baseUrl}/${commission.acronym.toLowerCase()}/subcomissoes`
+                : baseUrl;
+              window.open(url, "_blank", "noopener,noreferrer");
+              return;
+            }
+            setActiveTab(value);
+          }}
           className="w-full"
         >
           <Tabs.List className="scrollbar-hide mb-6 flex flex-nowrap gap-2 overflow-x-auto border-b border-gray-200 pb-1">
@@ -435,6 +445,9 @@ export default function CommissionDetailsPage() {
                 icon: FileText,
               },
               { id: "noticias", label: "Notícias", icon: Newspaper },
+              ...(commission?.type === "Comissão Permanente"
+                ? [{ id: "subcomissoes", label: "Subcomissões", icon: ExternalLink }]
+                : []),
               // { id: "documentos", label: "Documentos", icon: FileText }, // Comentado temporariamente
               // { id: "contatos", label: "Contatos", icon: Phone }, // Comentado temporariamente - API não fornece dados de contato
             ].map((tab) => (
@@ -537,7 +550,7 @@ export default function CommissionDetailsPage() {
                               )}
                               <button
                                 onClick={() => handleEventClick(event)}
-                                className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-[#1a1d1f] shadow-sm transition-all hover:bg-[#749c5b] hover:text-white sm:h-auto sm:w-auto sm:rounded-lg sm:border-transparent sm:bg-[#1a1d1f] sm:px-4 sm:py-2 sm:text-white"
+                                className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-[#1a1d1f] shadow-sm transition-all hover:bg-dark hover:text-white sm:h-auto sm:w-auto sm:rounded-lg sm:border-transparent sm:bg-secondary sm:px-4 sm:py-2 sm:text-white"
                               >
                                 <ArrowRight size={18} className="sm:mr-2" />
                                 <span className="hidden text-sm font-medium sm:inline">

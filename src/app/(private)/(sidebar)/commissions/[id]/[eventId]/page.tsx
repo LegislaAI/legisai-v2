@@ -16,6 +16,7 @@ import {
   ChevronsLeft,
   ChevronsRight,
   Clock,
+  ExternalLink,
   FileText,
   Info,
   MapPin,
@@ -453,23 +454,34 @@ export default function EventDetailsPage() {
           onValueChange={setActiveTab}
           className="w-full"
         >
-          <Tabs.List className="scrollbar-hide mb-6 flex flex-nowrap gap-2 overflow-x-auto border-b border-gray-200 pb-1">
-            {tabs.map((tab) => (
-              <Tabs.Trigger
-                key={tab.id}
-                value={tab.id}
-                className={cn(
-                  "flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium whitespace-nowrap transition-all",
-                  activeTab === tab.id
-                    ? "border-[#749c5b] text-[#749c5b]"
-                    : "border-transparent text-gray-500 hover:border-gray-300 hover:text-[#1a1d1f]",
-                )}
-              >
-                <tab.icon size={16} />
-                {tab.label}
-              </Tabs.Trigger>
-            ))}
-          </Tabs.List>
+          <div className="mb-6 flex flex-wrap items-center justify-between gap-4 border-b border-gray-200 pb-1">
+            <Tabs.List className="scrollbar-hide flex flex-1 flex-nowrap gap-2 overflow-x-auto">
+              {tabs.map((tab) => (
+                <Tabs.Trigger
+                  key={tab.id}
+                  value={tab.id}
+                  className={cn(
+                    "flex items-center gap-2 border-b-2 px-4 py-3 text-sm font-medium whitespace-nowrap transition-all",
+                    activeTab === tab.id
+                      ? "border-[#749c5b] text-[#749c5b]"
+                      : "border-transparent text-gray-500 hover:border-gray-300 hover:text-[#1a1d1f]",
+                  )}
+                >
+                  <tab.icon size={16} />
+                  {tab.label}
+                </Tabs.Trigger>
+              ))}
+            </Tabs.List>
+            <a
+              href={`https://www.camara.leg.br/evento-legislativo/${eventId}`}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex shrink-0 items-center gap-2 rounded-lg border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-[#1a1d1f] transition-colors hover:border-[#749c5b]/50 hover:bg-[#749c5b]/5 hover:text-[#749c5b]"
+            >
+              <ExternalLink size={16} />
+              Ver na Câmara
+            </a>
+          </div>
 
           {/* --- CONTEÚDO: VISÃO GERAL --- */}
           <Tabs.Content

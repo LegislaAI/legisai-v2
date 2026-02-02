@@ -60,9 +60,8 @@ export default function DeputadoDetalhesPage() {
 
   const [politician, setPolitician] = useState<PoliticianDetailsProps | null>(null);
   const [loading, setLoading] = useState(true);
-  const [selectedYear, setSelectedYear] = useState(
-    new Date().getFullYear().toString()
-  );
+  // Ano padrão 2025 (último ano com dados disponíveis)
+  const [selectedYear, setSelectedYear] = useState("2025");
 
   const availableYears = useMemo(() => {
     const currentYear = new Date().getFullYear();
