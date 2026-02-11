@@ -757,12 +757,7 @@ export default function DeputadoDetalhesPage() {
                     </>
                   ) : (
                     <p className="py-8 text-center text-sm text-gray-500">
-                      Nenhuma movimentação registrada para este deputado.
-                      Coloque o CSV em{" "}
-                      <code className="rounded bg-gray-100 px-1">
-                        legis-api/data/deputados-movimentacoes.csv
-                      </code>{" "}
-                      para exibir o histórico.
+                      Não encontramos movimentações para este deputado.
                     </p>
                   )}
                 </div>
