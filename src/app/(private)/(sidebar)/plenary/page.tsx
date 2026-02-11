@@ -57,7 +57,7 @@ export default function SessionListScreen() {
   const router = useRouter();
   const { GetAPI } = useApiContext();
   const [activeTab, setActiveTab] = useState<SessionType>("deliberativa");
-  const [dateRange, setDateRange] = useState<DateRange | undefined>();
+  const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState<EventProps[]>([]);
@@ -95,13 +95,19 @@ export default function SessionListScreen() {
     return "agendada";
   };
 
-  // Fetch events from API
+  // Fetch events from API (com ou sem filtro de data; ordenado por data no backend)
   async function fetchEvents() {
     setLoading(true);
     let queryParams = `?page=${currentPage}`;
 
     if (dateRange?.from) {
-      queryParams += `&date=${moment(dateRange.from).format("YYYY-MM-DD")}`;
+      const fromStr = moment(dateRange.from).format("YYYY-MM-DD");
+      queryParams += `&startDate=${fromStr}`;
+      if (dateRange.to) {
+        queryParams += `&endDate=${moment(dateRange.to).format("YYYY-MM-DD")}`;
+      } else {
+        queryParams += `&endDate=${fromStr}`;
+      }
     }
 
     const apiType = getApiType(activeTab);

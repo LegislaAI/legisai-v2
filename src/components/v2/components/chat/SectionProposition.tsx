@@ -20,10 +20,12 @@ interface SectionGeminiProps {
   activeChatId?: string | null;
   selectedPrompt?: Prompt | null;
   onChatCreated?: () => void;
-  type: string; 
+  type: string;
+  /** Quando vindo da ficha do deputado, ID do autor para contexto da busca */
+  initialAuthorId?: string;
 }
 
-export function SectionProposition({ activeChatId, selectedPrompt, onChatCreated, type}: SectionGeminiProps) {
+export function SectionProposition({ activeChatId, selectedPrompt, onChatCreated, type, initialAuthorId }: SectionGeminiProps) {
     const { GetAPI } = useApiContext();
     const [historyList, setHistoryList] = useState<{ id: string, name: string, createdAt: string }[]>([]);
     const [chatTotalPages, setChatTotalPages] = useState(1);

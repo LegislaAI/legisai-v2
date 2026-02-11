@@ -155,7 +155,7 @@ export default function DeputadosListPage() {
                 <SelectValue placeholder="Estado" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Todos os estados</SelectItem>
+                <SelectItem value="all">UF</SelectItem>
                 {filterStates.map((s) => (
                   <SelectItem key={s} value={s}>
                     {s}

@@ -21,7 +21,7 @@ import {
   Sparkles,
   UserCircle,
   UsersRound,
-  Wallet,
+  Wallet
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -39,6 +39,7 @@ const menuItems: MenuItem[] = [
   { label: "Deputados", href: "/deputados", icon: UserCircle, disabled: false },
   { label: "Plenários / Sessões", href: "/plenary", icon: Wallet },
   { label: "Comissões", href: "/commissions", icon: UsersRound, disabled: false },
+  // { label: "Proposições", href: "/propositions", icon: FileText, disabled: false },
   {
     label: "Novidades e Notícias",
     href: "/news",
@@ -52,7 +53,6 @@ const menuItems: MenuItem[] = [
     icon: Sparkles,
     disabled: false,
   },
-  //   { label: "IA Preditiva", href: "/prediction-ai", icon: Sparkles, disabled: true },
   {
     label: "Tutoriais",
     href: "/tutorials",

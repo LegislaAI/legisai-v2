@@ -17,23 +17,26 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/v2/components/ui/select";
+import { CustomPagination } from "@/components/ui/CustomPagination";
+import { Input } from "@/components/v2/components/ui/Input";
 import { useApiContext } from "@/context/ApiContext";
 import { generatePoliticianReport } from "@/utils/pdfGenerator";
 import {
   BarChart3,
+  Briefcase,
+  Building2,
   Calendar,
   Download,
   ExternalLink,
   FileText,
+  Globe,
+  History,
   Mail,
   MapPin,
+  Mic2,
   Phone,
   User,
   Vote,
-  Mic2,
-  Briefcase,
-  Building2,
-  Globe,
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import Link from "next/link";
@@ -53,6 +56,25 @@ const MONTHS = [
   "Jul", "Ago", "Set", "Out", "Nov", "Dez",
 ];
 
+interface HistoricoMovimentacao {
+  data: string;
+  descricao: string;
+}
+
+interface HistoricoResponse {
+  id: string;
+  nome: string;
+  partido: string;
+  movimentacoes: HistoricoMovimentacao[];
+  total: number;
+  page: number;
+  pageSize: number;
+  totalPages: number;
+}
+
+const HISTORICO_YEARS = [2026, 2025, 2024, 2023];
+const HISTORICO_PAGE_SIZES = [5, 10, 20];
+
 export default function DeputadoDetalhesPage() {
   const params = useParams();
   const id = params?.id as string;
@@ -62,6 +84,14 @@ export default function DeputadoDetalhesPage() {
   const [loading, setLoading] = useState(true);
   // Ano padrão 2025 (último ano com dados disponíveis)
   const [selectedYear, setSelectedYear] = useState("2025");
+
+  const [historico, setHistorico] = useState<HistoricoResponse | null>(null);
+  const [loadingHistorico, setLoadingHistorico] = useState(false);
+  const [historicoPage, setHistoricoPage] = useState(1);
+  const [historicoPageSize, setHistoricoPageSize] = useState(10);
+  const [historicoYear, setHistoricoYear] = useState<string>("");
+  const [historicoSearch, setHistoricoSearch] = useState("");
+  const [historicoSearchApplied, setHistoricoSearchApplied] = useState("");
 
   const availableYears = useMemo(() => {
     const currentYear = new Date().getFullYear();
@@ -90,6 +120,53 @@ export default function DeputadoDetalhesPage() {
   useEffect(() => {
     fetchDetails();
   }, [fetchDetails]);
+
+  const fetchHistorico = useCallback(async () => {
+    if (!id) return;
+    setLoadingHistorico(true);
+    try {
+      const params = new URLSearchParams();
+      params.set("page", String(historicoPage));
+      params.set("pageSize", String(historicoPageSize));
+      if (historicoYear) params.set("year", historicoYear);
+      if (historicoSearchApplied.trim()) params.set("search", historicoSearchApplied.trim());
+      const res = await GetAPI(
+        `/politician/${id}/historico?${params.toString()}`,
+        true,
+      );
+      if (res.status === 200 && res.body) {
+        setHistorico(res.body);
+      } else {
+        setHistorico(null);
+      }
+    } catch {
+      setHistorico(null);
+    } finally {
+      setLoadingHistorico(false);
+    }
+  }, [
+    id,
+    historicoPage,
+    historicoPageSize,
+    historicoYear,
+    historicoSearchApplied,
+    GetAPI,
+  ]);
+
+  useEffect(() => {
+    if (!id) return;
+    fetchHistorico();
+  }, [id, fetchHistorico]);
+
+  const handleHistoricoYearChange = (value: string) => {
+    setHistoricoYear(value);
+    setHistoricoPage(1);
+  };
+
+  const handleHistoricoSearchApply = () => {
+    setHistoricoSearchApplied(historicoSearch);
+    setHistoricoPage(1);
+  };
 
   const handleExportPDF = () => {
     if (politician) generatePoliticianReport(politician, selectedYear);
@@ -445,30 +522,34 @@ export default function DeputadoDetalhesPage() {
                       <p className="text-dark text-sm font-medium">
                         Criadas: {profile.createdProposals ?? "—"} • Relacionadas: {profile.relatedProposals ?? "—"}
                       </p>
-                      {(profile.createdProposalsUrl || profile.relatedProposalsUrl) && (
-                        <div className="mt-2 flex gap-2">
-                          {profile.createdProposalsUrl && (
-                            <a
-                              href={profile.createdProposalsUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-secondary hover:text-secondary/80 inline-flex items-center gap-1 text-xs font-medium"
-                            >
-                              Criadas <ExternalLink className="h-3 w-3" />
-                            </a>
-                          )}
-                          {profile.relatedProposalsUrl && (
-                            <a
-                              href={profile.relatedProposalsUrl}
-                              target="_blank"
-                              rel="noopener noreferrer"
-                              className="text-secondary hover:text-secondary/80 inline-flex items-center gap-1 text-xs font-medium"
-                            >
-                              Relacionadas <ExternalLink className="h-3 w-3" />
-                            </a>
-                          )}
-                        </div>
-                      )}
+                      <div className="mt-2 flex flex-wrap gap-2">
+                        <Link
+                          href={`/procedures?authorId=${politician.id}`}
+                          className="text-secondary hover:text-secondary/80 inline-flex items-center gap-1 text-xs font-medium"
+                        >
+                          Buscar proposições na LegisAI
+                        </Link>
+                        {profile.createdProposalsUrl && (
+                          <a
+                            href={profile.createdProposalsUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-secondary hover:text-secondary/80 inline-flex items-center gap-1 text-xs font-medium"
+                          >
+                            Criadas (Câmara) <ExternalLink className="h-3 w-3" />
+                          </a>
+                        )}
+                        {profile.relatedProposalsUrl && (
+                          <a
+                            href={profile.relatedProposalsUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="text-secondary hover:text-secondary/80 inline-flex items-center gap-1 text-xs font-medium"
+                          >
+                            Relacionadas (Câmara) <ExternalLink className="h-3 w-3" />
+                          </a>
+                        )}
+                      </div>
                     </div>
                     <div className="rounded-lg border border-gray-100 bg-gray-50/50 p-4">
                       <p className="mb-1 flex items-center gap-2 text-xs uppercase tracking-wider text-gray-400">
@@ -550,6 +631,142 @@ export default function DeputadoDetalhesPage() {
                   </ul>
                 </Card>
               )}
+
+              {/* Histórico de movimentações */}
+              <Card className="border-gray-100 shadow-sm">
+                <div className="border-b border-gray-100/50 p-6 pb-2">
+                  <h3 className="text-dark flex items-center gap-2 text-lg font-bold">
+                    <History className="text-secondary h-5 w-5" />
+                    Histórico de movimentações
+                  </h3>
+                  <p className="text-sm text-gray-500">
+                    Comissões, cargos e posse nos últimos anos (fonte: CSV Câmara)
+                  </p>
+                </div>
+                <div className="p-6 space-y-4">
+                  <div className="flex flex-wrap items-end gap-3">
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-medium text-gray-500">
+                        Ano
+                      </label>
+                      <Select
+                        value={historicoYear || "todos"}
+                        onValueChange={(v) =>
+                          handleHistoricoYearChange(v === "todos" ? "" : v)
+                        }
+                      >
+                        <SelectTrigger className="w-[120px] border-gray-200 bg-gray-50">
+                          <SelectValue placeholder="Todos" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="todos">Todos</SelectItem>
+                          {HISTORICO_YEARS.map((y) => (
+                            <SelectItem key={y} value={String(y)}>
+                              {y}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-medium text-gray-500">
+                        Buscar na descrição
+                      </label>
+                      <div className="flex gap-2">
+                        <Input
+                          className="w-[200px] border-gray-200 bg-gray-50"
+                          placeholder="Ex.: comissão, CPI..."
+                          value={historicoSearch}
+                          onChange={(e) => setHistoricoSearch(e.target.value)}
+                          onKeyDown={(e) =>
+                            e.key === "Enter" && handleHistoricoSearchApply()
+                          }
+                        />
+                        <Button
+                          variant="outline"
+                          className="border-gray-200 bg-gray-50"
+                          onClick={handleHistoricoSearchApply}
+                        >
+                          Filtrar
+                        </Button>
+                      </div>
+                    </div>
+                    <div className="flex flex-col gap-1">
+                      <label className="text-xs font-medium text-gray-500">
+                        Itens por página
+                      </label>
+                      <Select
+                        value={String(historicoPageSize)}
+                        onValueChange={(v) => {
+                          setHistoricoPageSize(Number(v));
+                          setHistoricoPage(1);
+                        }}
+                      >
+                        <SelectTrigger className="w-[90px] border-gray-200 bg-gray-50">
+                          <SelectValue />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {HISTORICO_PAGE_SIZES.map((s) => (
+                            <SelectItem key={s} value={String(s)}>
+                              {s}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+                  </div>
+
+                  {loadingHistorico ? (
+                    <div className="space-y-2 py-8">
+                      <SkeletonLoader className="h-4 w-full" />
+                      <SkeletonLoader className="h-4 w-full" />
+                      <SkeletonLoader className="h-4 w-3/4" />
+                    </div>
+                  ) : historico && historico.movimentacoes.length > 0 ? (
+                    <>
+                      <p className="text-sm text-gray-500">
+                        {historico.total} movimentação(ões)
+                      </p>
+                      <ul
+                        className="max-h-[420px] overflow-y-auto divide-y divide-gray-100 space-y-0"
+                        role="list"
+                      >
+                        {historico.movimentacoes.map((mov, idx) => (
+                          <li
+                            key={`${mov.data}-${idx}`}
+                            className="py-3 first:pt-0"
+                          >
+                            <span className="text-xs text-gray-500 font-medium">
+                              {mov.data}
+                            </span>
+                            <p className="text-dark mt-0.5 text-sm">
+                              {mov.descricao}
+                            </p>
+                          </li>
+                        ))}
+                      </ul>
+                      {historico.totalPages > 1 && (
+                        <div className="pt-2">
+                          <CustomPagination
+                            pages={historico.totalPages}
+                            currentPage={historicoPage}
+                            setCurrentPage={setHistoricoPage}
+                          />
+                        </div>
+                      )}
+                    </>
+                  ) : (
+                    <p className="py-8 text-center text-sm text-gray-500">
+                      Nenhuma movimentação registrada para este deputado.
+                      Coloque o CSV em{" "}
+                      <code className="rounded bg-gray-100 px-1">
+                        legis-api/data/deputados-movimentacoes.csv
+                      </code>{" "}
+                      para exibir o histórico.
+                    </p>
+                  )}
+                </div>
+              </Card>
             </div>
           </div>
         </>

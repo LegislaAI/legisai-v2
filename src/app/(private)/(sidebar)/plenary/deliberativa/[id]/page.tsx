@@ -2266,7 +2266,7 @@ export default function DeliberativeSessionScreen() {
                       }}
                       className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm focus:border-[#749c5b] focus:ring-2 focus:ring-[#749c5b]/20 focus:outline-none"
                     >
-                      <option value="">Todos os Estados</option>
+                      <option value="">UF</option>
                       <option value="AC">AC</option>
                       <option value="AL">AL</option>
                       <option value="AP">AP</option>

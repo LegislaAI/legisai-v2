@@ -4,9 +4,13 @@ import { useChatPage } from "@/components/v2/components/chat/chat-history-handle
 import { SectionProposition } from "@/components/v2/components/chat/SectionProposition";
 import { cn } from "@/lib/utils";
 import { Bot } from "lucide-react";
+import { useSearchParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 export default function ProceduresPage() {
+    const searchParams = useSearchParams();
+    const authorId = searchParams.get("authorId") ?? undefined;
+
     // Initialize hook with "proposition" type
     const { 
         prompts, 
@@ -71,12 +75,18 @@ export default function ProceduresPage() {
                         </div>
 
                         {/* Chat Section */}
-                        <div className="flex-1 overflow-hidden">
+                        <div className="flex-1 overflow-hidden flex flex-col">
+                            {authorId && (
+                                <p className="px-4 py-2 text-sm text-gray-600 bg-secondary/5 border-b border-gray-100">
+                                    Proposições do deputado (ID: {authorId}). Use o chat e filtre por autor para listar.
+                                </p>
+                            )}
                             <SectionProposition 
                                 activeChatId={activeChatId}
                                 selectedPrompt={selectedPrompt}
                                 onChatCreated={fetchChats}
-                                type="proposition" 
+                                type="proposition"
+                                initialAuthorId={authorId}
                             />
                         </div>
                     </div>
