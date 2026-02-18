@@ -2,7 +2,11 @@
 
 import { PoliticianProps } from "@/@types/v2/politician";
 import { CustomPagination } from "@/components/ui/CustomPagination";
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/v2/components/ui/avatar";
+import {
+  Avatar,
+  AvatarFallback,
+  AvatarImage,
+} from "@/components/v2/components/ui/avatar";
 import { Card } from "@/components/v2/components/ui/Card";
 import { Label } from "@/components/v2/components/ui/label";
 import {
@@ -29,7 +33,9 @@ export default function DeputadosListPage() {
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [showActiveOnly, setShowActiveOnly] = useState(true);
-  const [currentLegislature, setCurrentLegislature] = useState<number | null>(null);
+  const [currentLegislature, setCurrentLegislature] = useState<number | null>(
+    null,
+  );
   const [filterParty, setFilterParty] = useState<string>("");
   const [filterState, setFilterState] = useState<string>("");
   const [filterStates, setFilterStates] = useState<string[]>([]);
@@ -83,7 +89,15 @@ export default function DeputadosListPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [currentPage, debouncedSearch, filterParty, filterState, showActiveOnly, currentLegislature, GetAPI]);
+  }, [
+    currentPage,
+    debouncedSearch,
+    filterParty,
+    filterState,
+    showActiveOnly,
+    currentLegislature,
+    GetAPI,
+  ]);
 
   useEffect(() => {
     fetchLegislatures();
@@ -112,7 +126,7 @@ export default function DeputadosListPage() {
         <div className="flex w-full flex-col justify-between gap-4 md:flex-row md:items-center">
           <div>
             <h1 className="text-dark flex items-center gap-3 text-3xl font-bold">
-              <div className="rounded-xl bg-secondary p-2 text-white shadow-lg shadow-secondary/20">
+              <div className="bg-secondary shadow-secondary/20 rounded-xl p-2 text-white shadow-lg">
                 <UserCircle size={24} />
               </div>
               Deputados
@@ -127,9 +141,11 @@ export default function DeputadosListPage() {
             <div className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-2">
               <Label
                 htmlFor="active-filter"
-                className="text-xs text-gray-600 whitespace-nowrap"
+                className="text-xs whitespace-nowrap text-gray-600"
               >
-                {showActiveOnly ? "Apenas ativos" : "Todos (incl. ex-deputados)"}
+                {showActiveOnly
+                  ? "Apenas ativos"
+                  : "Todos (incl. ex-deputados)"}
               </Label>
               <Switch
                 id="active-filter"
@@ -137,7 +153,10 @@ export default function DeputadosListPage() {
                 onCheckedChange={setShowActiveOnly}
               />
             </div>
-            <Select value={filterParty || "all"} onValueChange={(v) => setFilterParty(v === "all" ? "" : v)}>
+            <Select
+              value={filterParty || "all"}
+              onValueChange={(v) => setFilterParty(v === "all" ? "" : v)}
+            >
               <SelectTrigger className="w-full min-w-[140px] border-gray-200 bg-white sm:w-[180px]">
                 <SelectValue placeholder="Partido" />
               </SelectTrigger>
@@ -150,7 +169,10 @@ export default function DeputadosListPage() {
                 ))}
               </SelectContent>
             </Select>
-            <Select value={filterState || "all"} onValueChange={(v) => setFilterState(v === "all" ? "" : v)}>
+            <Select
+              value={filterState || "all"}
+              onValueChange={(v) => setFilterState(v === "all" ? "" : v)}
+            >
               <SelectTrigger className="w-full min-w-[120px] border-gray-200 bg-white sm:w-[140px]">
                 <SelectValue placeholder="Estado" />
               </SelectTrigger>
@@ -171,7 +193,7 @@ export default function DeputadosListPage() {
               <input
                 type="text"
                 placeholder="Buscar por nome..."
-                className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pr-4 pl-10 text-sm shadow-sm transition-all focus:border-secondary focus:ring-2 focus:ring-secondary/20 focus:outline-none"
+                className="focus:border-secondary focus:ring-secondary/20 w-full rounded-xl border border-gray-200 bg-white py-2.5 pr-4 pl-10 text-sm shadow-sm transition-all focus:ring-2 focus:outline-none"
                 value={searchTerm}
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
@@ -195,12 +217,12 @@ export default function DeputadosListPage() {
               {politicians.map((dep) => (
                 <Card
                   key={dep.id}
-                  className="group relative overflow-hidden border-gray-100 shadow-sm transition-all hover:border-secondary/30 hover:shadow-md"
+                  className="group hover:border-secondary/30 relative overflow-hidden border-gray-100 shadow-sm transition-all hover:shadow-md"
                 >
-                  <div className="absolute top-0 bottom-0 left-0 w-1 bg-secondary opacity-0 transition-opacity group-hover:opacity-100" />
+                  <div className="bg-secondary absolute top-0 bottom-0 left-0 w-1 opacity-0 transition-opacity group-hover:opacity-100" />
                   <div className="flex flex-col gap-4 pl-2 sm:flex-row sm:items-center sm:justify-between">
                     <div className="flex flex-1 items-center gap-4">
-                      <Avatar className="h-14 w-14 border-2 border-gray-100 shrink-0">
+                      <Avatar className="h-14 w-14 shrink-0 border-2 border-gray-100">
                         <AvatarImage
                           src={dep.imageUrl}
                           alt={dep.name}
@@ -211,7 +233,10 @@ export default function DeputadosListPage() {
                         </AvatarFallback>
                       </Avatar>
                       <div className="min-w-0 flex-1">
-                        <h3 className="text-dark truncate text-lg font-bold">
+                        <h3
+                          className="text-dark truncate text-lg font-bold"
+                          title="Nome parlamentar"
+                        >
                           {dep.name || "—"}
                         </h3>
                         {(dep.politicalPartyAcronym?.trim() ||
@@ -226,7 +251,10 @@ export default function DeputadosListPage() {
                               </span>
                             )}
                             {dep.state?.trim() && (
-                              <span className="inline-flex shrink-0 rounded-md border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs font-medium text-gray-600">
+                              <span
+                                className="inline-flex shrink-0 rounded-md border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs font-medium text-gray-600"
+                                title="UF"
+                              >
                                 {dep.state.trim()}
                               </span>
                             )}
@@ -238,7 +266,7 @@ export default function DeputadosListPage() {
                       <button
                         type="button"
                         onClick={() => handleDeputadoClick(dep.id)}
-                        className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-dark shadow-sm transition-all hover:bg-dark hover:text-white sm:h-auto sm:w-auto sm:rounded-lg sm:border-transparent sm:bg-secondary sm:px-4 sm:py-2 sm:text-white"
+                        className="text-dark hover:bg-dark sm:bg-secondary flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white shadow-sm transition-all hover:text-white sm:h-auto sm:w-auto sm:rounded-lg sm:border-transparent sm:px-4 sm:py-2 sm:text-white"
                       >
                         <ArrowRight size={18} className="sm:mr-2" />
                         <span className="hidden text-sm font-medium sm:inline">

@@ -7,14 +7,22 @@ export interface PoliticianProps {
   imageUrl: string;
   instagram: string | null;
   name: string;
+  fullName?: string;
   phone: string;
   placeOfBirth: string;
   politicalParty: string;
   politicalPartyAcronym: string;
   state: string;
-  tiktok: string | null;
+  tiktok?: string | null;
+  tikTok?: string | null;
   url: string;
-  youtube: string | null;
+  youtube?: string | null;
+  youTube?: string | null;
+  gabinetePredio?: string | null;
+  gabineteAndar?: string | null;
+  gabineteSala?: string | null;
+  situacaoExercicio?: string | null;
+  mandatoDataInicio?: string | null;
 }
 
 export interface PoliticianDetailsProps extends PoliticianProps {

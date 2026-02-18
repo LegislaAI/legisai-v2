@@ -76,6 +76,7 @@ export default function Login2Page() {
       };
 
       const response = await PostAPI("/user/signin", payload, false);
+      console.log(response);
       if (response.status === 200) {
         const token = response.body.accessToken;
         const cookieName =
@@ -97,7 +98,7 @@ export default function Login2Page() {
   };
 
   return (
-    <div className="fixed inset-0 min-h-screen bg-white flex overflow-hidden z-50">
+    <div className="fixed inset-0 z-50 flex min-h-screen overflow-hidden bg-white">
       <RegisterModal
         isOpen={registerOpen}
         onClose={() => setRegisterOpen(false)}
@@ -106,9 +107,9 @@ export default function Login2Page() {
       />
 
       {/* Left Side: Login Form */}
-      <div className="w-full lg:w-1/2 flex flex-col justify-center p-8 md:p-12 lg:p-20 relative z-10">
-        <div className="max-w-md w-full mx-auto">
-          <Link href="#" className="inline-block mb-12">
+      <div className="relative z-10 flex w-full flex-col justify-center p-8 md:p-12 lg:w-1/2 lg:p-20">
+        <div className="mx-auto w-full max-w-md">
+          <Link href="#" className="mb-12 inline-block">
             <img
               src="/logos/logo.png"
               alt="LegisDados"
@@ -121,44 +122,44 @@ export default function Login2Page() {
             animate={{ opacity: 1, x: 0 }}
             transition={{ duration: 0.5 }}
           >
-            <h1 className="text-3xl md:text-4xl font-bold text-slate-900 mb-2">
+            <h1 className="mb-2 text-3xl font-bold text-slate-900 md:text-4xl">
               Bem-vindo de volta!
             </h1>
-            <p className="text-slate-500 mb-8">
+            <p className="mb-8 text-slate-500">
               Insira seus dados para acessar o painel.
             </p>
 
             <form className="space-y-6" onSubmit={handleSubmit(onSubmit)}>
               <div>
-                <label className="block text-sm font-semibold text-slate-700 mb-2">
+                <label className="mb-2 block text-sm font-semibold text-slate-700">
                   E-mail
                 </label>
                 <input
                   type="email"
                   autoComplete="email"
                   {...register("email")}
-                  className={`w-full px-4 py-3.5 rounded-xl border ${
+                  className={`w-full rounded-xl border px-4 py-3.5 ${
                     errors.email
                       ? "border-red-500 bg-red-50"
                       : "border-slate-200 bg-slate-50"
-                  } focus:bg-white focus:border-legis-dark focus:ring-4 focus:ring-legis-dark/5 outline-none transition-all`}
+                  } focus:border-legis-dark focus:ring-legis-dark/5 transition-all outline-none focus:bg-white focus:ring-4`}
                   placeholder="seu@email.com"
                   disabled={isSubmitting}
                 />
                 {errors.email && (
-                  <p className="text-xs text-red-500 mt-1">
+                  <p className="mt-1 text-xs text-red-500">
                     {errors.email.message}
                   </p>
                 )}
               </div>
               <div>
-                <div className="flex justify-between items-center mb-2">
+                <div className="mb-2 flex items-center justify-between">
                   <label className="block text-sm font-semibold text-slate-700">
                     Senha
                   </label>
                   <Link
                     href="/recover-password"
-                    className="text-sm font-medium text-legis-light hover:text-legis-dark transition-colors"
+                    className="text-legis-light hover:text-legis-dark text-sm font-medium transition-colors"
                   >
                     Esqueceu a senha?
                   </Link>
@@ -168,25 +169,25 @@ export default function Login2Page() {
                     type={showPassword ? "text" : "password"}
                     autoComplete="current-password"
                     {...register("password")}
-                    className={`w-full px-4 py-3.5 rounded-xl border ${
+                    className={`w-full rounded-xl border px-4 py-3.5 ${
                       errors.password
                         ? "border-red-500 bg-red-50"
                         : "border-slate-200 bg-slate-50"
-                    } focus:bg-white focus:border-legis-dark focus:ring-4 focus:ring-legis-dark/5 outline-none transition-all pr-12`}
+                    } focus:border-legis-dark focus:ring-legis-dark/5 pr-12 transition-all outline-none focus:bg-white focus:ring-4`}
                     placeholder="••••••••"
                     disabled={isSubmitting}
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600"
+                    className="absolute top-1/2 right-4 -translate-y-1/2 text-slate-400 hover:text-slate-600"
                     disabled={isSubmitting}
                   >
                     {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
                   </button>
                 </div>
                 {errors.password && (
-                  <p className="text-xs text-red-500 mt-1">
+                  <p className="mt-1 text-xs text-red-500">
                     {errors.password.message}
                   </p>
                 )}
@@ -195,26 +196,26 @@ export default function Login2Page() {
               <button
                 type="submit"
                 disabled={isSubmitting}
-                className="w-full py-4 bg-legis-dark text-white font-bold rounded-xl shadow-lg hover:bg-legis-dark/90 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center group disabled:opacity-50 disabled:cursor-not-allowed"
+                className="bg-legis-dark hover:bg-legis-dark/90 group flex w-full items-center justify-center rounded-xl py-4 font-bold text-white shadow-lg transition-all hover:scale-[1.01] active:scale-[0.99] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isSubmitting ? (
                   "Entrando..."
                 ) : (
                   <>
                     Entrar na Plataforma{" "}
-                    <ArrowRight className="ml-2 w-4 h-4 group-hover:translate-x-1 transition-transform" />
+                    <ArrowRight className="ml-2 h-4 w-4 transition-transform group-hover:translate-x-1" />
                   </>
                 )}
               </button>
             </form>
 
-            <div className="mt-10 pt-6 border-t border-slate-100">
-              <p className="text-center text-slate-600 mb-4">
+            <div className="mt-10 border-t border-slate-100 pt-6">
+              <p className="mb-4 text-center text-slate-600">
                 Ainda não tem uma conta?
               </p>
               <button
                 onClick={() => setRegisterOpen(true)}
-                className="w-full py-3.5 bg-white border border-slate-200 text-slate-700 font-bold rounded-xl hover:bg-slate-50 hover:border-slate-300 transition-all shadow-sm"
+                className="w-full rounded-xl border border-slate-200 bg-white py-3.5 font-bold text-slate-700 shadow-sm transition-all hover:border-slate-300 hover:bg-slate-50"
               >
                 Criar Nova Conta
               </button>
@@ -224,10 +225,10 @@ export default function Login2Page() {
       </div>
 
       {/* Right Side: Visuals */}
-      <div className="hidden lg:flex w-1/2 bg-legis-dark relative overflow-hidden items-center justify-center p-12">
+      <div className="bg-legis-dark relative hidden w-1/2 items-center justify-center overflow-hidden p-12 lg:flex">
         {/* Background Elements */}
-        <div className="absolute top-0 right-0 w-[600px] h-[600px] bg-legis-light/20 rounded-full blur-[120px] translate-x-1/2 -translate-y-1/2" />
-        <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-legis-accent/10 rounded-full blur-[100px] -translate-x-1/2 translate-y-1/2" />
+        <div className="bg-legis-light/20 absolute top-0 right-0 h-[600px] w-[600px] translate-x-1/2 -translate-y-1/2 rounded-full blur-[120px]" />
+        <div className="bg-legis-accent/10 absolute bottom-0 left-0 h-[500px] w-[500px] -translate-x-1/2 translate-y-1/2 rounded-full blur-[100px]" />
 
         <div className="relative z-10 max-w-lg text-white">
           <motion.div
@@ -236,16 +237,16 @@ export default function Login2Page() {
             transition={{ delay: 0.2, duration: 0.8 }}
             className="mb-12"
           >
-            <div className="inline-block px-3 py-1 bg-white/10 backdrop-blur-md rounded-full border border-white/20 text-xs font-semibold tracking-wider uppercase mb-6">
+            <div className="mb-6 inline-block rounded-full border border-white/20 bg-white/10 px-3 py-1 text-xs font-semibold tracking-wider uppercase backdrop-blur-md">
               Inteligência Legislativa
             </div>
-            <h2 className="text-5xl font-bold leading-tight mb-6">
+            <h2 className="mb-6 text-5xl leading-tight font-bold">
               Dados complexos, <br />
               <span className="text-legis-light">decisões simples.</span>
             </h2>
-            <p className="text-lg text-slate-300 leading-relaxed">
-              Monitore projetos de lei, analise riscos e antecipe tendências
-              com a plataforma de RIG mais completa do Brasil.
+            <p className="text-lg leading-relaxed text-slate-300">
+              Monitore projetos de lei, analise riscos e antecipe tendências com
+              a plataforma de RIG mais completa do Brasil.
             </p>
           </motion.div>
 
@@ -254,10 +255,10 @@ export default function Login2Page() {
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.4, duration: 0.8 }}
-            className="relative h-64 w-full bg-white/10 backdrop-blur-xl rounded-2xl border border-white/20 p-6 shadow-2xl"
+            className="relative h-64 w-full rounded-2xl border border-white/20 bg-white/10 p-6 shadow-2xl backdrop-blur-xl"
           >
             {/* Fake Graph */}
-            <div className="flex items-end justify-between h-32 mb-6 space-x-2">
+            <div className="mb-6 flex h-32 items-end justify-between space-x-2">
               {[40, 70, 45, 90, 60, 80, 50].map((h, i) => (
                 <motion.div
                   key={i}
@@ -271,8 +272,8 @@ export default function Login2Page() {
               ))}
             </div>
             <div className="flex items-center space-x-3">
-              <div className="w-10 h-10 rounded-full bg-legis-light flex items-center justify-center">
-                <CheckCircle className="text-white w-6 h-6" />
+              <div className="bg-legis-light flex h-10 w-10 items-center justify-center rounded-full">
+                <CheckCircle className="h-6 w-6 text-white" />
               </div>
               <div>
                 <div className="text-sm font-bold">PL 490/2007 Aprovado</div>
@@ -284,7 +285,7 @@ export default function Login2Page() {
             <motion.div
               animate={{ y: [0, -10, 0] }}
               transition={{ repeat: Infinity, duration: 4, ease: "easeInOut" }}
-              className="absolute -right-4 -top-8 bg-white text-legis-dark p-4 rounded-xl shadow-xl font-bold border border-slate-100"
+              className="text-legis-dark absolute -top-8 -right-4 rounded-xl border border-slate-100 bg-white p-4 font-bold shadow-xl"
             >
               Success rate <span className="text-legis-light">98%</span>
             </motion.div>
