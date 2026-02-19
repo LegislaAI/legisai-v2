@@ -26,7 +26,7 @@ import {
   X
 } from "lucide-react";
 import moment from "moment";
-import { useParams, useRouter } from "next/navigation";
+import { useParams } from "next/navigation";
 import { useEffect, useState } from "react";
 
 import { MembersTab } from "./components/MembersTab";
@@ -148,9 +148,7 @@ const StatusBadge = ({ status }: { status: string }) => {
 
 export default function EventDetailsPage() {
   const params = useParams();
-  const router = useRouter();
   const { GetAPI } = useApiContext();
-  const commissionId = params.id as string;
   const eventId = params.eventId as string;
 
   const [activeTab, setActiveTab] = useState("overview");

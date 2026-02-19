@@ -30,7 +30,7 @@ import { usePathname } from "next/navigation";
 interface MenuItem {
   label: string;
   href: string;
-  icon: React.ComponentType<any>;
+  icon: React.ComponentType<{ size?: number; className?: string }>;
   disabled?: boolean;
 }
 

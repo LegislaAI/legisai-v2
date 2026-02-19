@@ -18,7 +18,6 @@ import {
   BarChart3,
   Banknote,
   Building2,
-  Calendar,
   ChevronLeft,
   ChevronRight,
   CreditCard,
@@ -166,7 +165,6 @@ export function TabDespesasFinanceiro({ data }: { data: DeputadoPageData }) {
     chartSeries,
     hasChartData,
     finance,
-    hasFinanceDetail,
     availableYears,
     ceapAno,
     setCeapAno,
@@ -458,7 +456,7 @@ export function TabDespesasFinanceiro({ data }: { data: DeputadoPageData }) {
               />
             </div>
             <div className="grid gap-0 border-t border-gray-100 sm:grid-cols-2 lg:grid-cols-3">
-              {detailItems.map((item, i) => {
+              {detailItems.map((item) => {
                 const ItemIcon = item.icon;
                 return (
                   <div

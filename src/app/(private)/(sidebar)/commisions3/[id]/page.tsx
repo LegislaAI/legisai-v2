@@ -163,28 +163,6 @@ const StatusBadge = ({ status }: { status: string }) => {
   );
 };
 
-// Componente de Barra de Progresso Simples
-const ProgressBar = ({
-  value,
-  colorClass,
-  label,
-}: {
-  value: number;
-  colorClass: string;
-  label?: string;
-}) => (
-  <div className="w-full">
-    {label && (
-      <div className="mb-1 flex justify-between text-xs font-medium text-[#6f767e]">
-        <span>{label}</span>
-        <span>{value}%</span>
-      </div>
-    )}
-    <div className="h-2 w-full overflow-hidden rounded-full bg-gray-200">
-      <div className={`h-full ${colorClass}`} style={{ width: `${value}%` }} />
-    </div>
-  </div>
-);
 
 export default function DeliberativeSessionScreen() {
   const pathname = usePathname();
@@ -486,8 +464,8 @@ export default function DeliberativeSessionScreen() {
                 <div>
                   <h3 className="mb-2 text-xl font-bold">Destaque do Dia</h3>
                   <p className="text-sm text-white/90">
-                    "A aprovação desta matéria é fundamental para a transição
-                    energética do país."
+                    &quot;A aprovação desta matéria é fundamental para a transição
+                    energética do país.&quot;
                   </p>
                 </div>
                 <div className="mt-4 flex items-center gap-2 text-sm font-semibold">
@@ -679,7 +657,7 @@ export default function DeliberativeSessionScreen() {
                           Resumo IA
                         </span>
                         <p className="rounded-lg border border-gray-100 bg-[#f4f4f4] p-3 text-sm text-[#1a1d1f] italic">
-                          "{speaker.summary}"
+                          &quot;{speaker.summary}&quot;
                         </p>
                       </div>
                       <div>
@@ -716,7 +694,7 @@ export default function DeliberativeSessionScreen() {
                                 className="mt-1 shrink-0 text-gray-300 group-hover:text-yellow-500"
                               />
                               <p className="text-sm font-medium text-gray-700">
-                                "{highlight}"
+                                &quot;{highlight}&quot;
                               </p>
                             </div>
                           ))}

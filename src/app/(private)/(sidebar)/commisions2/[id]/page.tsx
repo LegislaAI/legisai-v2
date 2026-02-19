@@ -262,7 +262,7 @@ export default function SessionDetailScreen() {
   const { GetAPI } = useApiContext();
   const [selectedSpeakerId, setSelectedSpeakerId] = useState<string>("all");
   const [loading, setLoading] = useState(true);
-  const [eventDetails, setEventDetails] = useState<EventDetailsAPI | null>(
+  const [, setEventDetails] = useState<EventDetailsAPI | null>(
     null,
   );
   const [sessionData, setSessionData] = useState<SessionData>(mockSession);

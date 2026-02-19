@@ -134,16 +134,11 @@ function formatBRL(value: number | null | undefined): string {
 
 export function Section1() {
   const {
-    politicians,
-    GetPoliticians,
     selectedPolitician,
     GetSelectedPoliticianDetails,
     selectedYear,
     setSelectedYear,
     loading,
-    selectedLegislature,
-    setSelectedLegislature,
-    availableLegislatures,
     currentLegislature,
   } = usePoliticianContext();
 
@@ -155,7 +150,7 @@ export function Section1() {
   const [localPoliticians, setLocalPoliticians] = useState<PoliticianProps[]>(
     [],
   );
-  const [page, setPage] = useState(1);
+  const [, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
   const [isLoadingMore, setIsLoadingMore] = useState(false);
   const [showCurrentLegislatureOnly, setShowCurrentLegislatureOnly] =
@@ -274,10 +269,6 @@ export function Section1() {
     };
   }, [hasMore, isLoadingMore, searchTerm, dropdownOpen, fetchPoliticians]);
 
-  const handleLegislatureChange = (value: string) => {
-    setSelectedLegislature(Number(value));
-  };
-
   const [displayPolitician, setDisplayPolitician] =
     useState<PoliticianDetailsProps | null>(null);
   useEffect(() => {
@@ -387,39 +378,30 @@ export function Section1() {
   const detailItems = useMemo(() => {
     if (!displayPolitician?.finance) return [];
     const finance = displayPolitician.finance;
-    return [
-      {
-        icon: Users,
-        label: "Servidores Contratados",
-        value: finance.contractedPeople,
-      },
-      {
-        icon: DollarSign,
-        label: "Salário Bruto",
-        value: finance.grossSalary,
-      },
-      {
-        icon: Building2,
-        label: "Imóvel Funcional",
-        value: finance.functionalPropertyUsage,
-      },
-      {
-        icon: CreditCard,
-        label: "Viagens",
-        value: finance.trips,
-      },
-      {
-        icon: FileText,
-        label: "Passaporte Diplomático",
-        value: finance.diplomaticPassport,
-      },
-      {
-        icon: Banknote,
-        label: "Auxílio-Moradia",
-        value: finance.housingAssistant,
-      },
-    ].filter((d) => d.value);
-  }, [displayPolitician]);
+    const items: { icon: typeof Users; label: string; value: string | number }[] = [];
+
+    // Quando há dados do gráfico (monthlyCosts), mostrar totais no detalhamento
+    if (hasChartData) {
+      items.push(
+        { icon: Wallet, label: "Cota Parlamentar", value: formatBRL(totalCota) },
+        { icon: Wallet, label: "Verba de Gabinete", value: formatBRL(totalGabinete) },
+        { icon: DollarSign, label: "Total Geral", value: formatBRL(totalCota + totalGabinete) },
+        { icon: Banknote, label: "Média Mensal", value: formatBRL((totalCota + totalGabinete) / 12) },
+      );
+    }
+
+    // Itens adicionais de detalhamento (quando a API envia)
+    const extraItems = [
+      { icon: Users, label: "Servidores Contratados", value: finance.contractedPeople },
+      { icon: DollarSign, label: "Salário Bruto", value: finance.grossSalary },
+      { icon: Building2, label: "Imóvel Funcional", value: finance.functionalPropertyUsage },
+      { icon: CreditCard, label: "Viagens", value: finance.trips },
+      { icon: FileText, label: "Passaporte Diplomático", value: finance.diplomaticPassport },
+      { icon: Banknote, label: "Auxílio-Moradia", value: finance.housingAssistant },
+    ].filter((d) => d.value != null && d.value !== "");
+
+    return [...items, ...extraItems];
+  }, [displayPolitician, hasChartData, totalCota, totalGabinete]);
 
   const hasFinanceData = detailItems.length > 0;
 

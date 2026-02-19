@@ -36,7 +36,7 @@ export default function RecoverPassword2Page() {
   const router = useRouter();
   
   const [step, setStep] = useState(1);
-  const [email, setEmail] = useState("");
+  const [, setEmail] = useState("");
   const [code, setCode] = useState("");
 
   // Forms
@@ -55,7 +55,7 @@ export default function RecoverPassword2Page() {
       } else {
         toast.error(response.body.message || "Erro ao enviar código");
       }
-    } catch (error) {
+    } catch {
       toast.error("Erro inesperado");
     }
   };
@@ -72,7 +72,7 @@ export default function RecoverPassword2Page() {
         } else {
              toast.error(response.body.message || "Código inválido");
         }
-    } catch (error) {
+    } catch {
       toast.error("Erro ao validar código");
     }
   };
@@ -90,7 +90,7 @@ export default function RecoverPassword2Page() {
       } else {
         toast.error(response.body.message || "Erro ao alterar senha");
       }
-    } catch (error) {
+    } catch {
       toast.error("Erro inesperado");
     }
   };

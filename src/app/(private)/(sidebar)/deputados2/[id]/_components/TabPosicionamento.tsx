@@ -2,12 +2,7 @@
 
 import { Button } from "@/components/v2/components/ui/Button";
 import { CustomPagination } from "@/components/ui/CustomPagination";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/v2/components/ui/tooltip";
+import { TooltipProvider } from "@/components/v2/components/ui/tooltip";
 import {
   Activity,
   ArrowUpRight,
@@ -18,7 +13,6 @@ import {
   FileText,
   Hash,
   Mic2,
-  Scale,
   Tag,
   TrendingUp,
   Vote,
@@ -42,8 +36,16 @@ const GLASS_HEADER =
   "bg-gradient-to-r from-[#749c5b]/[0.04] via-white/80 to-white backdrop-blur-sm";
 
 const BI_PALETTE = [
-  "#749c5b", "#4E9F3D", "#2d5a3d", "#1B3B2B", "#5a8c4a",
-  "#8ab86e", "#3d7a5c", "#6bc28c", "#2e6b4a", "#a0d88a",
+  "#749c5b",
+  "#4E9F3D",
+  "#2d5a3d",
+  "#1B3B2B",
+  "#5a8c4a",
+  "#8ab86e",
+  "#3d7a5c",
+  "#6bc28c",
+  "#2e6b4a",
+  "#a0d88a",
 ];
 
 function SectionTitle({
@@ -74,9 +76,7 @@ function SectionTitle({
           <h3 className="text-[15px] font-bold tracking-tight text-gray-900">
             {title}
           </h3>
-          {subtitle && (
-            <p className="text-[11px] text-gray-400">{subtitle}</p>
-          )}
+          {subtitle && <p className="text-[11px] text-gray-400">{subtitle}</p>}
         </div>
       </div>
       {badge && (
@@ -98,6 +98,7 @@ function KPICard({
   gradient,
   iconBg,
   textColor,
+  comingSoon,
 }: {
   value: number | string;
   label: string;
@@ -105,88 +106,43 @@ function KPICard({
   gradient: string;
   iconBg: string;
   textColor: string;
+  comingSoon?: boolean;
 }) {
   return (
-    <div className={`${CARD_3D} group cursor-default p-0`}>
-      <div className="relative p-5">
-        <div className="mb-4 flex items-center justify-between">
-          <div
-            className="flex h-10 w-10 items-center justify-center rounded-xl shadow-sm"
-            style={{ background: iconBg }}
-          >
-            <Icon className="h-5 w-5" style={{ color: textColor }} />
+    <div
+      className={`${CARD_3D} group cursor-default p-0 ${comingSoon ? "relative overflow-hidden" : ""}`}
+    >
+      {comingSoon && (
+        <span className="absolute top-3 right-3 z-10 rounded-full bg-gray-200/60 px-2.5 py-1 text-[10px] font-bold tracking-wider text-gray-600 uppercase backdrop-blur-sm">
+          Em breve
+        </span>
+      )}
+      <div className={cn("relative p-5", comingSoon && "select-none")}>
+        <div className={cn(comingSoon && "pointer-events-none blur-[2px]")}>
+          <div className="mb-4 flex items-center justify-between">
+            <div
+              className="flex h-10 w-10 items-center justify-center rounded-xl shadow-sm"
+              style={{ background: iconBg }}
+            >
+              <Icon className="h-5 w-5" style={{ color: textColor }} />
+            </div>
           </div>
+          <p
+            className="text-3xl font-extrabold tracking-tight"
+            style={{ color: textColor }}
+          >
+            {comingSoon ? "-" : value}
+          </p>
+          <p className="mt-1 text-xs font-semibold tracking-widest text-gray-400 uppercase">
+            {label}
+          </p>
         </div>
-        <p
-          className="text-3xl font-extrabold tracking-tight"
-          style={{ color: textColor }}
-        >
-          {value}
-        </p>
-        <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-gray-400">
-          {label}
-        </p>
         <div
           className="absolute bottom-0 left-0 h-1 w-full"
           style={{ background: gradient }}
         />
       </div>
     </div>
-  );
-}
-
-function AlinhamentoGauge({ value }: { value: number }) {
-  const pct = Math.min(100, Math.max(0, value));
-  const color =
-    pct >= 70 ? "#059669" : pct >= 40 ? "#d97706" : "#ef4444";
-  const label = pct >= 70 ? "Alto" : pct >= 40 ? "Médio" : "Baixo";
-
-  const gaugeOptions: ApexOptions = {
-    chart: { type: "radialBar", fontFamily: "inherit" },
-    plotOptions: {
-      radialBar: {
-        startAngle: -135,
-        endAngle: 135,
-        hollow: { size: "65%", background: "transparent" },
-        track: {
-          background: "#f3f4f6",
-          strokeWidth: "100%",
-          dropShadow: { enabled: true, top: 2, blur: 4, opacity: 0.06 },
-        },
-        dataLabels: {
-          name: {
-            show: true,
-            fontSize: "11px",
-            color: "#9ca3af",
-            offsetY: -8,
-          },
-          value: {
-            show: true,
-            fontSize: "28px",
-            fontWeight: "800",
-            color: "#111827",
-            offsetY: 4,
-            formatter: () => `${pct.toFixed(0)}%`,
-          },
-        },
-      },
-    },
-    fill: {
-      type: "solid",
-      colors: [color],
-    },
-    stroke: { lineCap: "round" },
-    labels: [label],
-  };
-
-  return (
-    <ReactApexChart
-      options={gaugeOptions}
-      series={[Math.round(pct)]}
-      type="radialBar"
-      height={220}
-      width="100%"
-    />
   );
 }
 
@@ -197,11 +153,11 @@ function ProposicaoCard({ prop }: { prop: ProposicaoDeputado }) {
   return (
     <Link
       href={`/propositions/${prop.id}`}
-      className="group flex flex-col gap-2 rounded-xl border border-gray-100 bg-white p-4 transition-all duration-200 hover:border-secondary/30 hover:shadow-md sm:flex-row sm:items-start sm:justify-between sm:gap-4"
+      className="group hover:border-secondary/30 flex flex-col gap-2 rounded-xl border border-gray-100 bg-white p-4 transition-all duration-200 hover:shadow-md sm:flex-row sm:items-start sm:justify-between sm:gap-4"
     >
       <div className="min-w-0 flex-1 space-y-2">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1 rounded-lg bg-secondary/10 px-2.5 py-1 text-xs font-bold text-secondary">
+          <span className="bg-secondary/10 text-secondary inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-bold">
             <Hash className="h-3.5 w-3.5" />
             {identificador}
           </span>
@@ -222,7 +178,7 @@ function ProposicaoCard({ prop }: { prop: ProposicaoDeputado }) {
           {dataStr}
         </div>
       </div>
-      <span className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-secondary/5 px-3 py-1.5 text-xs font-bold text-secondary transition-all group-hover:bg-secondary group-hover:text-white">
+      <span className="bg-secondary/5 text-secondary group-hover:bg-secondary inline-flex shrink-0 items-center gap-1 rounded-lg px-3 py-1.5 text-xs font-bold transition-all group-hover:text-white">
         Ver proposição
         <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
       </span>
@@ -240,7 +196,6 @@ export function TabPosicionamento({ data }: { data: DeputadoPageData }) {
     setProposicoesPage,
     proposicoesPages,
     votacoesIndicadores,
-    loadingVotacoes,
     temas,
     loadingTemas,
     presenca,
@@ -248,60 +203,172 @@ export function TabPosicionamento({ data }: { data: DeputadoPageData }) {
     contadores,
     loadingContadores,
     discursosResumo,
-    loadingDiscursos,
   } = data;
 
   const temasTop = temas?.temas?.slice(0, 10) ?? [];
 
-  const propsPorTipo = proposicoesResumo?.cnt_prop_por_tipo ?? [];
+  const propsPorTipoRaw = proposicoesResumo?.cnt_prop_por_tipo ?? [];
+  const totalProposicoes = proposicoesResumo?.total ?? 0;
+  const propsPorTipo = [...propsPorTipoRaw].sort((a, b) => b.count - a.count);
 
-  const piePropsOptions: ApexOptions = {
-    chart: {
-      type: "donut",
-      fontFamily: "inherit",
-      dropShadow: { enabled: true, top: 2, blur: 6, opacity: 0.08 },
-    },
-    colors: BI_PALETTE.slice(0, propsPorTipo.length),
-    labels: propsPorTipo.map((t) => t.sigla_tipo),
-    legend: {
-      position: "bottom",
-      fontSize: "11px",
-      fontWeight: 600,
-      markers: { size: 6, shape: "circle" as const },
-    },
-    dataLabels: {
-      enabled: true,
-      formatter: (val: number) => `${Math.round(val)}%`,
-      style: { fontSize: "11px", fontWeight: "700" },
-      dropShadow: { enabled: false },
-    },
-    plotOptions: {
-      pie: {
-        donut: {
-          size: "68%",
-          labels: {
-            show: true,
-            name: { show: true, fontSize: "11px", color: "#9ca3af" },
-            value: {
-              show: true,
-              fontSize: "22px",
-              fontWeight: "800",
-              color: "#111827",
-            },
-            total: {
-              show: true,
-              label: "Total",
-              fontSize: "11px",
-              color: "#9ca3af",
-            },
+  const LIMITE_PCT_OUTROS = 1;
+  const propsPorTipoComPct = propsPorTipo.map((t) => ({
+    ...t,
+    pct: totalProposicoes > 0 ? (t.count / totalProposicoes) * 100 : 0,
+  }));
+  const principais = propsPorTipoComPct.filter((t) => t.pct > LIMITE_PCT_OUTROS);
+  const outrosItens = propsPorTipoComPct.filter((t) => t.pct <= LIMITE_PCT_OUTROS);
+  const outrosCount = outrosItens.reduce((s, t) => s + t.count, 0);
+  const propsPorTipoExibir =
+    outrosItens.length === 0
+      ? principais
+      : [
+          ...principais,
+          {
+            sigla_tipo: "Outros (≤1%)",
+            count: outrosCount,
+            pct: totalProposicoes > 0 ? (outrosCount / totalProposicoes) * 100 : 0,
           },
+        ];
+
+  const barPropsPorTipoOptions: ApexOptions = {
+    chart: {
+      type: "bar",
+      fontFamily: "inherit",
+      toolbar: { show: false },
+      zoom: { enabled: false },
+      animations: {
+        enabled: true,
+        speed: 600,
+      },
+      events: {
+        mounted: (chart: { el?: Element }) => {
+          const wrap = chart?.el;
+          const inner = wrap?.querySelector?.(".apexcharts-inner");
+          const dl = wrap?.querySelector?.(".apexcharts-datalabels-group");
+          if (inner && dl) {
+            inner.appendChild(dl);
+          }
         },
       },
     },
-    stroke: { width: 3, colors: ["#fff"] },
+    plotOptions: {
+      bar: {
+        horizontal: true,
+        borderRadius: 6,
+        borderRadiusApplication: "end",
+        barHeight: "72%",
+        distributed: true,
+        dataLabels: { position: "top" as const },
+        rangeBarOverlap: false,
+      },
+    },
+    colors: propsPorTipoExibir.map((_, i) =>
+      propsPorTipoExibir[i]?.sigla_tipo === "Outros (≤1%)"
+        ? "#9ca3af"
+        : BI_PALETTE[i % BI_PALETTE.length],
+    ),
+    dataLabels: {
+      enabled: true,
+      textAnchor: "start",
+      offsetX: 14,
+      style: {
+        fontSize: "12px",
+        fontWeight: "800",
+        fontFamily: "inherit",
+        colors: propsPorTipoExibir.map(() => "#111827"),
+      },
+      dropShadow: { enabled: false },
+      background: {
+        enabled: true,
+        padding: 8,
+        borderRadius: 6,
+        borderColor: "#d1d5db",
+        borderWidth: 1,
+        backgroundColor: "#ffffff",
+        foreColor: "#111827",
+      },
+      formatter: (_val: number, opt: { dataPointIndex: number }) => {
+        const item = propsPorTipoExibir[opt.dataPointIndex];
+        const pct =
+          totalProposicoes > 0
+            ? ((item?.count ?? 0) / totalProposicoes) * 100
+            : 0;
+        return `${item?.count ?? 0} (${pct.toFixed(1)}%)`;
+      },
+    },
+    xaxis: {
+      categories: propsPorTipoExibir.map((t) => t.sigla_tipo),
+      labels: {
+        show: true,
+        style: { fontSize: "11px", colors: "#9ca3af" },
+      },
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+      tickAmount: 6,
+    },
+    yaxis: {
+      labels: {
+        style: {
+          fontSize: "12px",
+          fontWeight: "600",
+          colors: Array(propsPorTipoExibir.length).fill("#374151"),
+        },
+        maxWidth: 64,
+      },
+      reversed: false,
+    },
+    grid: {
+      xaxis: { lines: { show: false } },
+      yaxis: { lines: { show: false } },
+      padding: { top: 8, right: 100, bottom: 0, left: 4 },
+    },
+    legend: { show: false },
     tooltip: {
-      y: {
-        formatter: (val: number) => `${val} proposição(ões)`,
+      shared: true,
+      intersect: false,
+      custom: function ({ seriesIndex, dataPointIndex }) {
+        const item = propsPorTipoExibir[dataPointIndex];
+        if (!item) return "";
+        const pct =
+          totalProposicoes > 0
+            ? ((item.count / totalProposicoes) * 100).toFixed(1)
+            : "0";
+        const isOutros = item.sigla_tipo === "Outros (≤1%)";
+        const cor = isOutros ? "#9ca3af" : BI_PALETTE[seriesIndex % BI_PALETTE.length];
+        const detalhesOutros =
+          isOutros && outrosItens.length > 0
+            ? `
+            <div class="mt-2 pt-2 border-t border-gray-100 space-y-1">
+              <div class="text-[10px] font-semibold text-gray-500 uppercase tracking-wide">Tipos incluídos (≤1% cada)</div>
+              ${outrosItens
+                .map(
+                  (t) =>
+                    `<div class="flex justify-between gap-3 text-xs"><span class="text-gray-600">${t.sigla_tipo}</span><span class="font-bold text-gray-900">${t.count} (${t.pct.toFixed(1)}%)</span></div>`,
+                )
+                .join("")}
+            </div>
+            `
+            : "";
+        return `
+          <div class="rounded-xl border border-gray-100 bg-white p-3 shadow-lg" style="min-width: 180px;">
+            <div class="flex items-center gap-2 border-b border-gray-100 pb-2 mb-2">
+              <span class="flex h-2 w-2 rounded-full shrink-0" style="background: ${cor}"></span>
+              <span class="text-sm font-bold text-gray-900">${item.sigla_tipo}</span>
+            </div>
+            <div class="space-y-1 text-xs">
+              <div class="flex justify-between gap-4">
+                <span class="text-gray-500">Quantidade</span>
+                <span class="font-bold text-gray-900">${item.count.toLocaleString("pt-BR")} proposição(ões)</span>
+              </div>
+              <div class="flex justify-between gap-4">
+                <span class="text-gray-500">Do total</span>
+                <span class="font-bold text-secondary">${pct}%</span>
+              </div>
+              ${detalhesOutros}
+            </div>
+          </div>
+        `;
       },
     },
   };
@@ -381,40 +448,13 @@ export function TabPosicionamento({ data }: { data: DeputadoPageData }) {
             textColor="#2563eb"
           />
           <KPICard
-            value={
-              votacoesIndicadores?.alinhamentoPct != null
-                ? `${votacoesIndicadores.alinhamentoPct.toFixed(0)}%`
-                : "—"
-            }
+            value="—"
             label="Alinhamento"
             icon={TrendingUp}
-            gradient={
-              votacoesIndicadores?.alinhamentoPct != null &&
-              votacoesIndicadores.alinhamentoPct >= 70
-                ? "linear-gradient(90deg, #059669, #10b981)"
-                : votacoesIndicadores?.alinhamentoPct != null &&
-                    votacoesIndicadores.alinhamentoPct >= 40
-                  ? "linear-gradient(90deg, #d97706, #f59e0b)"
-                  : "linear-gradient(90deg, #ef4444, #f87171)"
-            }
-            iconBg={
-              votacoesIndicadores?.alinhamentoPct != null &&
-              votacoesIndicadores.alinhamentoPct >= 70
-                ? "#05966918"
-                : votacoesIndicadores?.alinhamentoPct != null &&
-                    votacoesIndicadores.alinhamentoPct >= 40
-                  ? "#d9770618"
-                  : "#ef444418"
-            }
-            textColor={
-              votacoesIndicadores?.alinhamentoPct != null &&
-              votacoesIndicadores.alinhamentoPct >= 70
-                ? "#059669"
-                : votacoesIndicadores?.alinhamentoPct != null &&
-                    votacoesIndicadores.alinhamentoPct >= 40
-                  ? "#d97706"
-                  : "#ef4444"
-            }
+            gradient="linear-gradient(90deg, #6b7280, #9ca3af)"
+            iconBg="#6b728018"
+            textColor="#6b7280"
+            comingSoon
           />
           <KPICard
             value={temasTop.length > 0 ? temasTop.length : "—"}
@@ -423,68 +463,12 @@ export function TabPosicionamento({ data }: { data: DeputadoPageData }) {
             gradient="linear-gradient(90deg, #7c3aed, #8b5cf6)"
             iconBg="#7c3aed18"
             textColor="#7c3aed"
+            comingSoon
           />
         </div>
 
-        {/* ═══════ ROW 2 — Votações Gauge + Proposições Donut ═══════ */}
-        <div className="grid gap-6 lg:grid-cols-2">
-          {/* Alinhamento Gauge */}
-          <div className={CARD_3D}>
-            <div className={`${GLASS_HEADER} px-6 pt-5 pb-3`}>
-              <SectionTitle
-                icon={Scale}
-                title="Alinhamento nas Votações"
-                subtitle={
-                  votacoesIndicadores
-                    ? `${new Date(votacoesIndicadores.dataInicio).toLocaleDateString("pt-BR")} — ${new Date(votacoesIndicadores.dataFim).toLocaleDateString("pt-BR")}`
-                    : "Período legislativo"
-                }
-                accentColor="#2563eb"
-              />
-            </div>
-            <div className="px-4 pb-4">
-              {loadingVotacoes ? (
-                <div className="flex items-center justify-center py-16">
-                  <SkeletonLoader className="h-48 w-48 rounded-full" />
-                </div>
-              ) : votacoesIndicadores &&
-                votacoesIndicadores.alinhamentoPct != null ? (
-                <>
-                  <div className="flex items-center justify-center">
-                    <AlinhamentoGauge
-                      value={votacoesIndicadores.alinhamentoPct}
-                    />
-                  </div>
-                  <div className="grid grid-cols-2 gap-0 border-t border-gray-100">
-                    <div className="flex flex-col items-center border-r border-gray-100 py-4">
-                      <span className="text-2xl font-extrabold text-blue-600">
-                        {votacoesIndicadores.baseVotosCount}
-                      </span>
-                      <span className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                        Votações
-                      </span>
-                    </div>
-                    <div className="flex flex-col items-center py-4">
-                      <span className="text-2xl font-extrabold text-gray-900">
-                        {votacoesIndicadores.alinhamentoPct.toFixed(1)}%
-                      </span>
-                      <span className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                        Alinhamento
-                      </span>
-                    </div>
-                  </div>
-                </>
-              ) : (
-                <div className="flex flex-col items-center justify-center py-16 text-center">
-                  <Vote className="mb-3 h-10 w-10 text-gray-200" />
-                  <p className="text-sm font-medium text-gray-400">
-                    Sem dados de votações para o período.
-                  </p>
-                </div>
-              )}
-            </div>
-          </div>
-
+        {/* ═══════ ROW 2 — Presença e Atividade ═══════ */}
+        <div className="grid gap-6 lg:grid-cols-1">
           {/* Presença e Atividade */}
           <div className={CARD_3D}>
             <div className={`${GLASS_HEADER} px-6 pt-5 pb-3`}>
@@ -511,8 +495,7 @@ export function TabPosicionamento({ data }: { data: DeputadoPageData }) {
                 </div>
               ) : (
                 <div className="space-y-4">
-                  {presenca &&
-                  presenca.presencas + presenca.ausencias > 0 ? (
+                  {presenca && presenca.presencas + presenca.ausencias > 0 ? (
                     <div className="flex items-center gap-4 rounded-xl bg-gradient-to-r from-emerald-50 to-emerald-50/30 p-4">
                       <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-emerald-100 shadow-sm">
                         <span className="text-lg font-extrabold text-emerald-600">
@@ -529,8 +512,8 @@ export function TabPosicionamento({ data }: { data: DeputadoPageData }) {
                           Taxa de Presença
                         </p>
                         <p className="text-xs text-gray-500">
-                          {presenca.presencas} presenças ·{" "}
-                          {presenca.ausencias} ausências
+                          {presenca.presencas} presenças · {presenca.ausencias}{" "}
+                          ausências
                         </p>
                       </div>
                     </div>
@@ -578,7 +561,7 @@ export function TabPosicionamento({ data }: { data: DeputadoPageData }) {
                             item.bg,
                           )}
                         >
-                          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                          <p className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">
                             {item.label}
                           </p>
                           <p
@@ -637,14 +620,26 @@ export function TabPosicionamento({ data }: { data: DeputadoPageData }) {
                     title="Proposições por Tipo"
                     subtitle="Distribuição das proposições por categoria"
                     badge={`${proposicoesResumo?.total ?? 0} total`}
+                    accentColor="#749c5b"
                   />
                 </div>
-                <div className="flex items-center justify-center px-4 pb-4">
+                <div className="px-4 pt-1 pb-4 chart-proposicoes-por-tipo">
+                  <style>{`
+                    .chart-proposicoes-por-tipo .apexcharts-datalabels-group text {
+                      fill: #111827 !important;
+                      font-weight: 800 !important;
+                    }
+                  `}</style>
                   <ReactApexChart
-                    options={piePropsOptions}
-                    series={propsPorTipo.map((t) => t.count)}
-                    type="donut"
-                    height={300}
+                    options={barPropsPorTipoOptions}
+                    series={[
+                      {
+                        name: "Proposições",
+                        data: propsPorTipoExibir.map((t) => t.count),
+                      },
+                    ]}
+                    type="bar"
+                    height={Math.max(propsPorTipoExibir.length * 40, 280)}
                     width="100%"
                   />
                 </div>
@@ -711,7 +706,7 @@ export function TabPosicionamento({ data }: { data: DeputadoPageData }) {
                   <Link href={`/procedures?authorId=${politician.id}`}>
                     <Button
                       variant="outline"
-                      className="h-9 rounded-xl border-secondary/30 bg-secondary/5 text-xs font-bold text-secondary hover:bg-secondary hover:text-white"
+                      className="border-secondary/30 bg-secondary/5 text-secondary hover:bg-secondary h-9 rounded-xl text-xs font-bold hover:text-white"
                     >
                       Buscar na LegisAI
                     </Button>

@@ -147,23 +147,6 @@ interface BrevesComunicacoesResponse {
   processing?: boolean; // True when data is still being collected
 }
 
-const MOCK_ORDER_INDEX = Array.from({ length: 8 }, (_, i) => ({
-  id: i + 1,
-  status: i < 3 ? "ja_apreciado" : i === 3 ? "em_apreciacao" : "nao_apreciado",
-  relatorPresente: i === 3 || i === 4,
-}));
-
-const MOCK_PROPOSITION_CARDS = [
-  { label: "PDL 167/2025", status: "nao_apreciado" },
-  { label: "PL 331/2020", status: "nao_apreciado" },
-  { label: "PLP 453/2017", status: "nao_apreciado" },
-  { label: "PL 2664/2003", status: "nao_apreciado" },
-  { label: "PL 2829/2025", status: "em_apreciacao" }, // Active
-  { label: "PL 4333/2025", status: "nao_apreciado" },
-  { label: "REQ 4635/2025", status: "nao_apreciado" },
-  { label: "REQ 5097/2025", status: "ja_apreciado" },
-];
-
 const StatusBadge = ({ status }: { status: string }) => {
   const styles =
     status.toLowerCase() === "em andamento" ||
@@ -197,9 +180,9 @@ export default function DeliberativeSessionScreen() {
   const [orderPropositions, setOrderPropositions] = useState<
     EventProposition[]
   >([]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- reserved for loading UI
   const [loadingOrder, setLoadingOrder] = useState(false);
-
-  const [votesList, setVotesList] = useState<EventVoting[]>([]);
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars -- reserved for loading UI
   const [loadingVotes, setLoadingVotes] = useState(false);
   const [selectedVote, setSelectedVote] = useState<EventVoting | null>(null);
   const [positiveVotesList, setPositiveVotesList] = useState<
@@ -379,7 +362,7 @@ export default function DeliberativeSessionScreen() {
         if (response.status === 200) {
           setBrevesComunicacoes(response.body);
         }
-      } catch (error) {
+      } catch {
         // Error fetching breves comunicações
       }
       setLoadingBreves(false);

@@ -33,7 +33,7 @@ export type Prompt = {
 interface Category {
     id: string;
     label: string;
-    icon: any;
+    icon: React.ComponentType<{ size?: number; className?: string }>;
     color: string;
     description: string;
 }
@@ -156,10 +156,10 @@ const [selectedCategory, setSelectedCategory] = useState<Category | null>(null);
     const [isLoadingHistory, setIsLoadingHistory] = useState(false);
 
     const fetchSidebarHistory = async (page: number = 1) => {
-    let endpoint = `/chat/ai?page=${page}`;
+    const historyEndpoint = `/chat/ai?page=${page}`;
     setIsLoadingHistory(true);
     try {
-        const res = await GetAPI(endpoint, true);
+        const res = await GetAPI(historyEndpoint, true);
            if (res.status === 200) {
                if(page === 1) {
                    setHistoryList(res.body.chats || []);

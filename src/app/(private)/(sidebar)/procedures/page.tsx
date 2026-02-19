@@ -16,12 +16,11 @@ export default function ProceduresPage() {
         prompts, 
         activeChatId, 
         handleSelectPrompt,
-        setActiveChatId,
         fetchChats,
         selectedPrompt
     } = useChatPage("proposition");
 
-    const [isSidebarOpen, setSidebarOpen] = useState(true);
+    const [, setSidebarOpen] = useState(true);
 
     // Auto-select first prompt if available and no chat active
     useEffect(() => {

@@ -54,7 +54,7 @@ type PaymentMethod = "card" | "pix";
 function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { PostAPI, GetAPI } = useApiContext();
+  const { PostAPI } = useApiContext();
   const { plans, checkSubscription } = useSignatureContext();
   const { user } = useUserContext();
 

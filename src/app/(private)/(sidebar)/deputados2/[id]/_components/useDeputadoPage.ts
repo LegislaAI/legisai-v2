@@ -41,7 +41,7 @@ export function useDeputadoPage(id: string | undefined) {
 
   const [agendaResumo, setAgendaResumo] = useState<AgendaResumo | null>(null);
   const [eventos, setEventos] = useState<EventoAgenda[]>([]);
-  const [eventosTotal, setEventosTotal] = useState(0);
+  const [, setEventosTotal] = useState(0);
   const [eventosPages, setEventosPages] = useState(0);
   const [eventosPage, setEventosPage] = useState(1);
   const [loadingAgenda, setLoadingAgenda] = useState(false);
@@ -54,7 +54,7 @@ export function useDeputadoPage(id: string | undefined) {
   const [proposicoesResumo, setProposicoesResumo] =
     useState<ProposicoesResumo | null>(null);
   const [proposicoes, setProposicoes] = useState<ProposicaoDeputado[]>([]);
-  const [proposicoesTotal, setProposicoesTotal] = useState(0);
+  const [, setProposicoesTotal] = useState(0);
   const [proposicoesPages, setProposicoesPages] = useState(0);
   const [proposicoesPage, setProposicoesPage] = useState(1);
   const [loadingProposicoes, setLoadingProposicoes] = useState(false);
@@ -92,14 +92,20 @@ export function useDeputadoPage(id: string | undefined) {
   const [ceapResumo, setCeapResumo] = useState<DespesasResumoCEAP | null>(null);
   const [despesasCeap, setDespesasCeap] = useState<DespesaCEAP[]>([]);
   const [ceapPage, setCeapPage] = useState(1);
-  const [ceapAno, setCeapAno] = useState(new Date().getFullYear().toString());
+  const [ceapAno, setCeapAno] = useState(selectedYear);
   const [ceapHasMore, setCeapHasMore] = useState(false);
   const [loadingCeapResumo, setLoadingCeapResumo] = useState(false);
   const [loadingCeapDespesas, setLoadingCeapDespesas] = useState(false);
 
   const [pastEvents, setPastEvents] = useState<EventoAgenda[]>([]);
+  const [pastEventsPage, setPastEventsPage] = useState(1);
+  const [pastEventsPages, setPastEventsPages] = useState(0);
+  const [pastEventsTotal, setPastEventsTotal] = useState(0);
   const [loadingPastEvents, setLoadingPastEvents] = useState(false);
   const [upcomingEvents, setUpcomingEvents] = useState<EventoAgenda[]>([]);
+  const [upcomingEventsPage, setUpcomingEventsPage] = useState(1);
+  const [upcomingEventsPages, setUpcomingEventsPages] = useState(0);
+  const [upcomingEventsTotal, setUpcomingEventsTotal] = useState(0);
   const [loadingUpcomingEvents, setLoadingUpcomingEvents] = useState(false);
 
   const [discursosResumo, setDiscursosResumo] =
@@ -257,6 +263,8 @@ export function useDeputadoPage(id: string | undefined) {
     fetchCalendarEvents();
   }, [fetchCalendarEvents]);
 
+  const PAST_UPCOMING_PAGE_SIZE = 5;
+
   const fetchPastEvents = useCallback(async () => {
     if (!id) return;
     setLoadingPastEvents(true);
@@ -264,7 +272,8 @@ export function useDeputadoPage(id: string | undefined) {
       const today = new Date().toISOString().slice(0, 10);
       const params = new URLSearchParams();
       params.set("dataFim", today);
-      params.set("pageSize", "10");
+      params.set("pageSize", String(PAST_UPCOMING_PAGE_SIZE));
+      params.set("page", String(pastEventsPage));
       const res = await GetAPI(
         `/politician/${id}/eventos?${params.toString()}`,
         true,
@@ -276,13 +285,23 @@ export function useDeputadoPage(id: string | undefined) {
             new Date(b.dt_inicio).getTime() - new Date(a.dt_inicio).getTime(),
         );
         setPastEvents(evts);
-      } else setPastEvents([]);
+        const total = res.body.total ?? 0;
+        setPastEventsTotal(total);
+        const pages = (res.body.pages ?? Math.ceil(total / PAST_UPCOMING_PAGE_SIZE)) || 1;
+        setPastEventsPages(pages);
+      } else {
+        setPastEvents([]);
+        setPastEventsTotal(0);
+        setPastEventsPages(0);
+      }
     } catch {
       setPastEvents([]);
+      setPastEventsTotal(0);
+      setPastEventsPages(0);
     } finally {
       setLoadingPastEvents(false);
     }
-  }, [id, GetAPI]);
+  }, [id, pastEventsPage, GetAPI]);
 
   const fetchUpcomingEvents = useCallback(async () => {
     if (!id) return;
@@ -291,7 +310,8 @@ export function useDeputadoPage(id: string | undefined) {
       const today = new Date().toISOString().slice(0, 10);
       const params = new URLSearchParams();
       params.set("dataInicio", today);
-      params.set("pageSize", "10");
+      params.set("pageSize", String(PAST_UPCOMING_PAGE_SIZE));
+      params.set("page", String(upcomingEventsPage));
       const res = await GetAPI(
         `/politician/${id}/eventos?${params.toString()}`,
         true,
@@ -303,13 +323,23 @@ export function useDeputadoPage(id: string | undefined) {
             new Date(a.dt_inicio).getTime() - new Date(b.dt_inicio).getTime(),
         );
         setUpcomingEvents(evts);
-      } else setUpcomingEvents([]);
+        const totalUp = res.body.total ?? 0;
+        setUpcomingEventsTotal(totalUp);
+        const pagesUp = (res.body.pages ?? Math.ceil(totalUp / PAST_UPCOMING_PAGE_SIZE)) || 1;
+        setUpcomingEventsPages(pagesUp);
+      } else {
+        setUpcomingEvents([]);
+        setUpcomingEventsTotal(0);
+        setUpcomingEventsPages(0);
+      }
     } catch {
       setUpcomingEvents([]);
+      setUpcomingEventsTotal(0);
+      setUpcomingEventsPages(0);
     } finally {
       setLoadingUpcomingEvents(false);
     }
-  }, [id, GetAPI]);
+  }, [id, upcomingEventsPage, GetAPI]);
 
   useEffect(() => {
     fetchPastEvents();
@@ -534,6 +564,11 @@ export function useDeputadoPage(id: string | undefined) {
   }, [id, ceapAno, ceapPage, GetAPI]);
 
   useEffect(() => {
+    setCeapAno(selectedYear);
+    setCeapPage(1);
+  }, [selectedYear]);
+
+  useEffect(() => {
     fetchCeapResumo();
   }, [fetchCeapResumo]);
 
@@ -664,8 +699,16 @@ export function useDeputadoPage(id: string | undefined) {
     loadingCalendarEvents,
 
     pastEvents,
+    pastEventsPage,
+    setPastEventsPage,
+    pastEventsPages,
+    pastEventsTotal,
     loadingPastEvents,
     upcomingEvents,
+    upcomingEventsPage,
+    setUpcomingEventsPage,
+    upcomingEventsPages,
+    upcomingEventsTotal,
     loadingUpcomingEvents,
 
     proposicoesResumo,

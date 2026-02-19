@@ -14,11 +14,6 @@ import remarkGfm from "remark-gfm";
 import { FileViewer } from "./FileViewer";
 import { Prompt } from "./types";
 
-// Mock data strictly for the sidebar list if the API fails, though we will try to use real data via props
-const MOCK_HISTORY_FALLBACK = [
-    { id: "1", name: "Exemplo: Resumo PL 2630", createdAt: new Date().toISOString() },
-];
-
 interface SectionGeminiProps {
   activeChatId?: string | null;
   selectedPrompt?: Prompt | null; 
@@ -30,7 +25,7 @@ export function SectionAi({ activeChatId, selectedPrompt, onChatCreated}: Sectio
     // Internal state to trigger hook reloads
     const [loadNewChat, setLoadNewChat] = useState(false);
     const [loadOldChat, setLoadOldChat] = useState<string | null>(null);
-    const [loadHistory, setLoadHistory] = useState(false);
+    const [, setLoadHistory] = useState(false);
     const isInputDisabled = !activeChatId && !selectedPrompt; // Disable if new chat but no prompt selected
     // Initial load sync
     useEffect(() => {
@@ -58,7 +53,6 @@ export function SectionAi({ activeChatId, selectedPrompt, onChatCreated}: Sectio
         startRecording,
         stopRecording,
         handleSendMessage,
-        handleNewChat,
         chatId
     } = useSectionChat({
         loadNewChat,
@@ -145,7 +139,7 @@ export function SectionAi({ activeChatId, selectedPrompt, onChatCreated}: Sectio
                          {/* Quick Actions based on type could go here */}
                          <div className="grid grid-cols-1 gap-3 w-full max-w-sm">
                               <button onClick={() => setInputMessage("O que você pode fazer?")} className="p-3 border border-gray-200 bg-white rounded-xl hover:border-secondary hover:shadow-md transition-all text-center text-gray-600 text-sm">
-                                  "O que você pode fazer?"
+                                  &quot;O que você pode fazer?&quot;
                               </button>
                          </div>
                     </div>

@@ -40,9 +40,9 @@ export default function EventoPautaPage() {
   const { GetAPI } = useApiContext();
   const [event, setEvent] = useState<EventDetails | null>(null);
   const [propositions, setPropositions] = useState<PropositionOnPauta[]>([]);
-  const [propositionsPages, setPropositionsPages] = useState(0);
+  const [, setPropositionsPages] = useState(0);
   const [loading, setLoading] = useState(true);
-  const [page, setPage] = useState(1);
+  const [page] = useState(1);
 
   const fetchEvent = useCallback(async () => {
     if (!eventId) return;

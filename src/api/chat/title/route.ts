@@ -7,7 +7,7 @@ export async function POST(req: Request) {
 
     // 1. OTIMIZAÇÃO: Limpa e trunca o contexto para não confundir a IA
     // Pegamos a mensagem do usuário e um pedaço da resposta da IA
-    const cleanContext = messages.map((m: any) => ({
+    const cleanContext = messages.map((m: { role: string; content?: string }) => ({
       role: m.role,
       // Cortamos em 1000 chars para economizar e focar no tópico principal
       content: m.content ? m.content.substring(0, 1000) : "",
@@ -52,7 +52,7 @@ export async function POST(req: Request) {
     const cleanTitle = newTitle.replace(/^"|"$/g, "").replace(/\.$/, "");
 
     return NextResponse.json({ title: cleanTitle });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Erro ao gerar título:", error);
     return NextResponse.json({ title: "Novo Chat" }, { status: 500 });
   }

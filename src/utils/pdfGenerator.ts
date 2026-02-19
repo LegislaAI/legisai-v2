@@ -2,6 +2,8 @@ import { PoliticianDetailsProps } from "@/@types/v2/politician";
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
 
+type DocWithAutoTable = jsPDF & { lastAutoTable?: { finalY: number } };
+
 export const generatePoliticianReport = (
   politician: PoliticianDetailsProps,
   year: string,
@@ -65,7 +67,7 @@ export const generatePoliticianReport = (
   });
 
   // Update Y position after first table
-  currentY = (doc as any).lastAutoTable.finalY + 15;
+  currentY = (doc as DocWithAutoTable).lastAutoTable!.finalY + 15;
 
   // --- Monthly Costs Table ---
   doc.setFontSize(14);
@@ -99,7 +101,7 @@ export const generatePoliticianReport = (
       headStyles: { fillColor: [26, 29, 31] }, // Dark color
       margin: { left: 14, right: 14 },
     });
-    currentY = (doc as any).lastAutoTable.finalY + 15;
+    currentY = (doc as DocWithAutoTable).lastAutoTable!.finalY + 15;
   } else {
     doc.setFontSize(10);
     doc.setTextColor(150);
@@ -267,7 +269,7 @@ export const generateSessionReport = (data: SessionReportData) => {
     margin: { left: 14, right: 14 },
   });
 
-  currentY = (doc as any).lastAutoTable.finalY + 10;
+  currentY = (doc as DocWithAutoTable).lastAutoTable!.finalY + 10;
 
   // --- Stats ---
   if (!data.hideStats) {
@@ -291,7 +293,7 @@ export const generateSessionReport = (data: SessionReportData) => {
       margin: { left: 14, right: 14 },
     });
 
-    currentY = (doc as any).lastAutoTable.finalY + 15;
+    currentY = (doc as DocWithAutoTable).lastAutoTable!.finalY + 15;
   }
 
   // --- Voting Results (if any) ---
@@ -322,7 +324,7 @@ export const generateSessionReport = (data: SessionReportData) => {
       margin: { left: 14, right: 14 },
     });
 
-    currentY = (doc as any).lastAutoTable.finalY + 15;
+    currentY = (doc as DocWithAutoTable).lastAutoTable!.finalY + 15;
   }
 
   // --- Order of Day (Propositions) ---
@@ -352,7 +354,7 @@ export const generateSessionReport = (data: SessionReportData) => {
       margin: { left: 14, right: 14 },
     });
 
-    currentY = (doc as any).lastAutoTable.finalY + 15;
+    currentY = (doc as DocWithAutoTable).lastAutoTable!.finalY + 15;
   }
 
   // --- Speakers (if any - mostly for Solemn) ---
@@ -382,7 +384,7 @@ export const generateSessionReport = (data: SessionReportData) => {
       margin: { left: 14, right: 14 },
     });
 
-    currentY = (doc as any).lastAutoTable.finalY + 15;
+    currentY = (doc as DocWithAutoTable).lastAutoTable!.finalY + 15;
   }
 
   // --- Speeches with Full Transcriptions (for Solemn Sessions) ---
@@ -500,7 +502,7 @@ export const generateSessionReport = (data: SessionReportData) => {
       margin: { left: 14, right: 14 },
     });
 
-    currentY = (doc as any).lastAutoTable.finalY + 15;
+    currentY = (doc as DocWithAutoTable).lastAutoTable!.finalY + 15;
   }
 
   // --- Presence List ---

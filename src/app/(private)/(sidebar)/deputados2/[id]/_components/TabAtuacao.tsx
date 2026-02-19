@@ -130,10 +130,8 @@ export function TabAtuacao({ data }: { data: DeputadoPageData }) {
     politician,
     presenca,
     loadingPresenca,
-    contadores,
     discursosResumo,
     loadingDiscursos,
-    votacoesIndicadores,
     profile,
   } = data;
 
@@ -787,22 +785,6 @@ export function TabAtuacao({ data }: { data: DeputadoPageData }) {
                   <span className="text-2xl font-extrabold text-emerald-600">
                     {profile.rollCallVotes ?? "—"}
                   </span>
-                  {votacoesIndicadores &&
-                    votacoesIndicadores.alinhamentoPct !== null && (
-                      <Tooltip>
-                        <TooltipTrigger asChild>
-                          <span className="ml-3 inline-flex cursor-default items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600">
-                            <TrendingUp className="h-3 w-3" />
-                            {votacoesIndicadores.alinhamentoPct.toFixed(0)}%
-                            alinhamento
-                          </span>
-                        </TooltipTrigger>
-                        <TooltipContent>
-                          Alinhamento com base governista (
-                          {votacoesIndicadores.baseVotosCount} votos analisados)
-                        </TooltipContent>
-                      </Tooltip>
-                    )}
                 </div>
                 <div className="flex flex-wrap gap-2">
                   {profile.rollCallVotesUrl && (

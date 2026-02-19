@@ -25,7 +25,7 @@ interface SectionGeminiProps {
   initialAuthorId?: string;
 }
 
-export function SectionProposition({ activeChatId, selectedPrompt, onChatCreated, type, initialAuthorId }: SectionGeminiProps) {
+export function SectionProposition({ activeChatId, selectedPrompt, onChatCreated, type }: SectionGeminiProps) {
     const { GetAPI } = useApiContext();
     const [historyList, setHistoryList] = useState<{ id: string, name: string, createdAt: string }[]>([]);
     const [chatTotalPages, setChatTotalPages] = useState(1);
@@ -297,7 +297,7 @@ export function SectionProposition({ activeChatId, selectedPrompt, onChatCreated
                          {/* Quick Actions based on type could go here */}
                          <div className="grid grid-cols-1 gap-3 w-full max-w-sm">
                               <button onClick={() => setInputMessage("O que você pode fazer?")} className="p-3 border border-gray-200 bg-white rounded-xl hover:border-secondary hover:shadow-md transition-all text-center text-gray-600 text-sm">
-                                  "O que você pode fazer?"
+                                  &quot;O que você pode fazer?&quot;
                               </button>
                          </div>
                     </div>

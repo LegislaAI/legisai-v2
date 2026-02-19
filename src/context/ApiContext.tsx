@@ -105,7 +105,7 @@ export const ApiContextProvider = ({ children }: ProviderProps) => {
             body: "Ops! algo deu errado, tente novamente",
           }
         : connect;
-    } catch (criticalError) {
+    } catch {
       return { status: 500, body: "Critical API Error" };
     }
   }

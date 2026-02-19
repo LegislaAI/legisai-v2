@@ -108,11 +108,11 @@ export default function ProfilePage() {
       if (response.status === 200 || response.status === 201) {
         toast.success("Perfil atualizado com sucesso!");
         setIsEditing(false);
-        setUser({ ...user, ...data } as any); // Optimistic update or refetch
+        setUser({ ...user, ...data } as typeof user); // Optimistic update or refetch
       } else {
         toast.error(response.body.message || "Erro ao atualizar perfil");
       }
-    } catch (error) {
+    } catch {
       toast.error("Erro inesperado ao salvar perfil");
     }
   };
@@ -137,7 +137,7 @@ export default function ProfilePage() {
       } else {
         toast.error(response.body.message || "Erro ao enviar código");
       }
-    } catch (error) {
+    } catch {
       toast.error("Erro ao solicitar código");
     }
   };
@@ -156,7 +156,7 @@ export default function ProfilePage() {
       } else {
         toast.error(response.body.message || "Código inválido");
       }
-    } catch (error) {
+    } catch {
       toast.error("Erro ao validar código");
     }
   };
@@ -185,7 +185,7 @@ export default function ProfilePage() {
       } else {
         toast.error(response.body.message || "Erro ao alterar senha");
       }
-    } catch (error) {
+    } catch {
       toast.error("Erro inesperado");
     }
   };

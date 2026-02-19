@@ -210,7 +210,7 @@ export default function DeputadoDetalhesPage() {
 
   const [agendaResumo, setAgendaResumo] = useState<AgendaResumo | null>(null);
   const [eventos, setEventos] = useState<EventoAgenda[]>([]);
-  const [eventosTotal, setEventosTotal] = useState(0);
+  const [, setEventosTotal] = useState(0);
   const [eventosPages, setEventosPages] = useState(0);
   const [eventosPage, setEventosPage] = useState(1);
   const [loadingAgenda, setLoadingAgenda] = useState(false);
@@ -219,7 +219,7 @@ export default function DeputadoDetalhesPage() {
   const [proposicoesResumo, setProposicoesResumo] =
     useState<ProposicoesResumo | null>(null);
   const [proposicoes, setProposicoes] = useState<ProposicaoDeputado[]>([]);
-  const [proposicoesTotal, setProposicoesTotal] = useState(0);
+  const [, setProposicoesTotal] = useState(0);
   const [proposicoesPages, setProposicoesPages] = useState(0);
   const [proposicoesPage, setProposicoesPage] = useState(1);
   const [loadingProposicoes, setLoadingProposicoes] = useState(false);

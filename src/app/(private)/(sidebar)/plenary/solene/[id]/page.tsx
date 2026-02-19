@@ -362,17 +362,16 @@ export default function SessionDetailScreen() {
         // Set Speakers
         // Map from politicians array to Speaker interface
         if (apiEvent.politicians) {
-          const mappedSpeakers: Speaker[] = apiEvent.politicians.map(
+          void apiEvent.politicians.map(
             (ep: EventPolitician, index: number) => ({
               id: ep.politician.id,
               position: index + 1,
               name: ep.politician.name,
               party: ep.politician.politicalPartyAcronym,
               state: ep.politician.state,
-              status: "falou", // Assume everyone linked here spoke or was present
+              status: "falou",
             }),
           );
-          // setSpeakers(mappedSpeakers);
         }
       }
       setLoading(false);

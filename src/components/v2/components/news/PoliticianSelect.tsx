@@ -22,7 +22,7 @@ interface PoliticianSelectProps {
 export function PoliticianSelect({ onSelect, selectedPolitician }: PoliticianSelectProps) {
   const [open, setOpen] = useState(false);
   const [politicians, setPoliticians] = useState<PoliticianProps[]>([]);
-  const [page, setPage] = useState(1);
+  const [, setPage] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
   const [hasMore, setHasMore] = useState(true);
   const [searchTerm, setSearchTerm] = useState("");

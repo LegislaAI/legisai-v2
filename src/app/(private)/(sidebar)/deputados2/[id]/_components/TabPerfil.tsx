@@ -1,6 +1,5 @@
 "use client";
 
-import { Card } from "@/components/v2/components/ui/Card";
 import { Button } from "@/components/v2/components/ui/Button";
 import { Input } from "@/components/v2/components/ui/Input";
 import {
@@ -11,12 +10,7 @@ import {
   SelectValue,
 } from "@/components/v2/components/ui/select";
 import { CustomPagination } from "@/components/ui/CustomPagination";
-import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/v2/components/ui/tooltip";
+import { TooltipProvider } from "@/components/v2/components/ui/tooltip";
 import {
   BarChart3,
   BookOpen,
@@ -32,7 +26,6 @@ import {
   Instagram,
   Mail,
   MapPin,
-  MessageSquare,
   Mic2,
   Phone,
   Search,
@@ -128,9 +121,7 @@ function SectionTitle({
           <h3 className="text-[15px] font-bold tracking-tight text-gray-900">
             {title}
           </h3>
-          {subtitle && (
-            <p className="text-[11px] text-gray-400">{subtitle}</p>
-          )}
+          {subtitle && <p className="text-[11px] text-gray-400">{subtitle}</p>}
         </div>
       </div>
       {badge && (
@@ -198,7 +189,7 @@ function KPICard({
         >
           {value}
         </p>
-        <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-gray-400">
+        <p className="mt-1 text-xs font-semibold tracking-widest text-gray-400 uppercase">
           {label}
         </p>
         <div
@@ -286,7 +277,6 @@ export function TabPerfil({ data }: { data: DeputadoPageData }) {
     : 0;
 
   const temasTop = temas?.temas?.slice(0, 10) ?? [];
-  const temasMaxCount = Math.max(...temasTop.map((t) => t.count), 1);
 
   const profileValues = profile
     ? [
@@ -300,57 +290,75 @@ export function TabPerfil({ data }: { data: DeputadoPageData }) {
     : [];
   const hasRadarData = profileValues.some((v) => v > 0);
 
-  const donutOptions: ApexOptions = {
+  const activityCategories = contadores
+    ? [
+        { label: "Eventos", value: contadores.eventos, color: "#749c5b" },
+        {
+          label: "Proposições",
+          value: contadores.proposicoes,
+          color: "#4E9F3D",
+        },
+        { label: "Discursos", value: contadores.discursos, color: "#2d5a3d" },
+        { label: "Votações", value: contadores.votacoes, color: "#8ab86e" },
+      ].sort((a, b) => b.value - a.value)
+    : [];
+
+  const barActivityOptions: ApexOptions = {
     chart: {
-      type: "donut",
+      type: "bar",
       fontFamily: "inherit",
-      dropShadow: {
-        enabled: true,
-        top: 2,
-        left: 0,
-        blur: 8,
-        opacity: 0.12,
-        color: "#749c5b",
-      },
-    },
-    colors: ["#749c5b", "#4E9F3D", "#2d5a3d", "#8ab86e"],
-    labels: ["Eventos", "Proposições", "Discursos", "Votações"],
-    legend: { show: false },
-    dataLabels: {
-      enabled: true,
-      formatter: (val: number) => `${Math.round(val)}%`,
-      style: { fontSize: "11px", fontWeight: "700" },
-      dropShadow: { enabled: false },
+      toolbar: { show: false },
     },
     plotOptions: {
-      pie: {
-        donut: {
-          size: "70%",
-          labels: {
-            show: true,
-            name: { show: true, fontSize: "12px", color: "#9ca3af" },
-            value: {
-              show: true,
-              fontSize: "24px",
-              fontWeight: "800",
-              color: "#111827",
-            },
-            total: {
-              show: true,
-              label: "Total",
-              fontSize: "11px",
-              color: "#9ca3af",
-              formatter: () => String(totalContadores),
-            },
-          },
+      bar: {
+        horizontal: true,
+        borderRadius: 6,
+        borderRadiusApplication: "end",
+        barHeight: "72%",
+        distributed: true,
+        dataLabels: { position: "top" as const },
+      },
+    },
+    colors: activityCategories.map((c) => c.color),
+    dataLabels: {
+      enabled: true,
+      textAnchor: "start",
+      offsetX: 6,
+      style: { fontSize: "11px", fontWeight: "700", colors: ["#374151"] },
+      formatter: (_val: number, opt: { dataPointIndex: number }) => {
+        const item = activityCategories[opt.dataPointIndex];
+        const pct =
+          totalContadores > 0
+            ? ((item?.value ?? 0) / totalContadores) * 100
+            : 0;
+        return `${item?.value ?? 0} (${pct.toFixed(1)}%)`;
+      },
+    },
+    xaxis: {
+      categories: activityCategories.map((c) => c.label),
+      labels: { style: { fontSize: "11px", colors: "#9ca3af" } },
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+    },
+    yaxis: {
+      labels: {
+        style: {
+          fontSize: "12px",
+          fontWeight: "600",
+          colors: activityCategories.map(() => "#374151"),
         },
       },
     },
-    stroke: { width: 3, colors: ["#fff"] },
+    grid: {
+      xaxis: { lines: { show: false } },
+      yaxis: { lines: { show: false } },
+      padding: { top: 8, right: 16, bottom: 0, left: 4 },
+    },
+    legend: { show: false },
     tooltip: {
       y: {
         formatter: (val: number) =>
-          `${val} (${totalContadores > 0 ? ((val / totalContadores) * 100).toFixed(1) : 0}%)`,
+          `${val} (${totalContadores > 0 ? ((val / totalContadores) * 100).toFixed(1) : 0}% do total)`,
       },
     },
   };
@@ -491,9 +499,7 @@ export function TabPerfil({ data }: { data: DeputadoPageData }) {
     },
     xaxis: {
       categories: temasTop.map((t) =>
-        t.tema_nome.length > 30
-          ? t.tema_nome.slice(0, 28) + "…"
-          : t.tema_nome,
+        t.tema_nome.length > 30 ? t.tema_nome.slice(0, 28) + "…" : t.tema_nome,
       ),
       labels: { show: false },
       axisBorder: { show: false },
@@ -509,51 +515,15 @@ export function TabPerfil({ data }: { data: DeputadoPageData }) {
         maxWidth: 200,
       },
     },
-    grid: { xaxis: { lines: { show: false } }, yaxis: { lines: { show: false } } },
+    grid: {
+      xaxis: { lines: { show: false } },
+      yaxis: { lines: { show: false } },
+    },
     legend: { show: false },
     tooltip: {
       y: { formatter: (val: number) => `${val} proposições` },
     },
   };
-
-  const treemapOptions: ApexOptions = {
-    chart: {
-      type: "treemap",
-      fontFamily: "inherit",
-      toolbar: { show: false },
-    },
-    colors: BI_PALETTE,
-    plotOptions: {
-      treemap: {
-        distributed: true,
-        enableShades: true,
-        shadeIntensity: 0.3,
-        colorScale: { ranges: [] },
-      },
-    },
-    legend: { show: false },
-    dataLabels: {
-      enabled: true,
-      style: { fontSize: "12px", fontWeight: "700" },
-      formatter: (_text: string, op: { value: number }) => `${op.value}`,
-      offsetY: -2,
-    },
-    tooltip: {
-      y: {
-        formatter: (val: number) =>
-          `${val} (${totalContadores > 0 ? ((val / totalContadores) * 100).toFixed(1) : 0}%)`,
-      },
-    },
-  };
-
-  const treemapData = contadores
-    ? [
-        { x: "Eventos", y: contadores.eventos },
-        { x: "Proposições", y: contadores.proposicoes },
-        { x: "Discursos", y: contadores.discursos },
-        { x: "Votações", y: contadores.votacoes },
-      ].filter((d) => d.y > 0)
-    : [];
 
   return (
     <TooltipProvider delayDuration={200}>
@@ -597,80 +567,61 @@ export function TabPerfil({ data }: { data: DeputadoPageData }) {
         )}
 
         {/* ═══════ ROW 2 — Gráficos: Donut + Treemap + Presença ═══════ */}
-        <div className="grid gap-6 lg:grid-cols-3">
-          {/* Donut — Distribuição */}
-          {contadores && totalContadores > 0 && (
-            <div className={CARD_3D}>
-              <div className={`${GLASS_HEADER} px-6 pt-5 pb-3`}>
-                <SectionTitle
-                  icon={BarChart3}
-                  title="Distribuição de Atividades"
-                  subtitle="Proporção por tipo de atuação"
-                />
-              </div>
-              <div className="flex items-center justify-center px-4 pb-4">
-                <ReactApexChart
-                  options={donutOptions}
-                  series={[
-                    contadores.eventos,
-                    contadores.proposicoes,
-                    contadores.discursos,
-                    contadores.votacoes,
-                  ]}
-                  type="donut"
-                  height={260}
-                  width="100%"
-                />
-              </div>
-              <div className="grid grid-cols-4 gap-0 border-t border-gray-100">
-                {[
-                  { label: "Eventos", value: contadores.eventos, color: "#749c5b" },
-                  { label: "Props.", value: contadores.proposicoes, color: "#4E9F3D" },
-                  { label: "Disc.", value: contadores.discursos, color: "#2d5a3d" },
-                  { label: "Vot.", value: contadores.votacoes, color: "#8ab86e" },
-                ].map((item, i) => (
-                  <div
-                    key={item.label}
-                    className={`flex flex-col items-center py-3 ${i < 3 ? "border-r border-gray-100" : ""}`}
-                  >
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Barras — Distribuição de Atividades */}
+          {contadores &&
+            totalContadores > 0 &&
+            activityCategories.length > 0 && (
+              <div className={CARD_3D}>
+                <div className={`${GLASS_HEADER} px-6 pt-5 pb-3`}>
+                  <SectionTitle
+                    icon={BarChart3}
+                    title="Distribuição de Atividades"
+                    subtitle="Proporção por tipo de atuação"
+                    badge={`${totalContadores} total`}
+                  />
+                </div>
+                <div className="px-4 pt-1 pb-4">
+                  <ReactApexChart
+                    options={barActivityOptions}
+                    series={[
+                      {
+                        name: "Quantidade",
+                        data: activityCategories.map((c) => c.value),
+                      },
+                    ]}
+                    type="bar"
+                    height={220}
+                    width="100%"
+                  />
+                </div>
+                <div className="grid grid-cols-4 gap-0 border-t border-gray-100">
+                  {activityCategories.map((item, i) => (
                     <div
-                      className="mb-1 h-2 w-2 rounded-full"
-                      style={{ background: item.color }}
-                    />
-                    <span className="text-lg font-extrabold text-gray-900">
-                      {item.value}
-                    </span>
-                    <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
-                      {item.label}
-                    </span>
-                  </div>
-                ))}
+                      key={item.label}
+                      className={`flex flex-col items-center py-3 ${i < activityCategories.length - 1 ? "border-r border-gray-100" : ""}`}
+                    >
+                      <div
+                        className="mb-1 h-2 w-2 rounded-full"
+                        style={{ background: item.color }}
+                      />
+                      <span className="text-lg font-extrabold text-gray-900">
+                        {item.value}
+                      </span>
+                      <span className="text-[10px] font-semibold tracking-wider text-gray-400 uppercase">
+                        {item.label === "Proposições"
+                          ? "Props."
+                          : item.label === "Discursos"
+                            ? "Disc."
+                            : item.label === "Votações"
+                              ? "Vot."
+                              : item.label}
+                      </span>
+                    </div>
+                  ))}
+                </div>
               </div>
-            </div>
-          )}
-
-          {/* Treemap — Mapa de Calor */}
-          {contadores && treemapData.length > 0 && (
-            <div className={CARD_3D}>
-              <div className={`${GLASS_HEADER} px-6 pt-5 pb-3`}>
-                <SectionTitle
-                  icon={BarChart3}
-                  title="Mapa de Atividades"
-                  subtitle="Visão proporcional por categoria"
-                  badge={`${totalContadores} total`}
-                />
-              </div>
-              <div className="px-4 pb-4">
-                <ReactApexChart
-                  options={treemapOptions}
-                  series={[{ data: treemapData }]}
-                  type="treemap"
-                  height={300}
-                  width="100%"
-                />
-              </div>
-            </div>
-          )}
+            )}
 
           {/* Presença — Radial Gauge */}
           {presencaRate !== null && presenca && (
@@ -687,7 +638,7 @@ export function TabPerfil({ data }: { data: DeputadoPageData }) {
                   options={radialOptions}
                   series={[Math.round(presencaRate)]}
                   type="radialBar"
-                  height={240}
+                  height={285}
                   width="100%"
                 />
               </div>
@@ -696,7 +647,7 @@ export function TabPerfil({ data }: { data: DeputadoPageData }) {
                   <span className="text-2xl font-extrabold text-emerald-600">
                     {presenca.presencas}
                   </span>
-                  <span className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-emerald-400">
+                  <span className="mt-0.5 text-[10px] font-bold tracking-widest text-emerald-400 uppercase">
                     Presenças
                   </span>
                 </div>
@@ -704,7 +655,7 @@ export function TabPerfil({ data }: { data: DeputadoPageData }) {
                   <span className="text-2xl font-extrabold text-red-500">
                     {presenca.ausencias}
                   </span>
-                  <span className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-red-400">
+                  <span className="mt-0.5 text-[10px] font-bold tracking-widest text-red-400 uppercase">
                     Ausências
                   </span>
                 </div>
@@ -734,12 +685,32 @@ export function TabPerfil({ data }: { data: DeputadoPageData }) {
             </div>
             <div className="grid grid-cols-6 gap-0 border-t border-gray-100">
               {[
-                { label: "Plenário", val: profile.plenaryPresence, color: "#059669" },
-                { label: "Comissões", val: profile.committeesPresence, color: "#2563eb" },
-                { label: "Props. Criadas", val: profile.createdProposals, color: "#d97706" },
-                { label: "Props. Relac.", val: profile.relatedProposals, color: "#ea580c" },
+                {
+                  label: "Plenário",
+                  val: profile.plenaryPresence,
+                  color: "#059669",
+                },
+                {
+                  label: "Comissões",
+                  val: profile.committeesPresence,
+                  color: "#2563eb",
+                },
+                {
+                  label: "Props. Criadas",
+                  val: profile.createdProposals,
+                  color: "#d97706",
+                },
+                {
+                  label: "Props. Relac.",
+                  val: profile.relatedProposals,
+                  color: "#ea580c",
+                },
                 { label: "Discursos", val: profile.speeches, color: "#7c3aed" },
-                { label: "Votações", val: profile.rollCallVotes, color: "#749c5b" },
+                {
+                  label: "Votações",
+                  val: profile.rollCallVotes,
+                  color: "#749c5b",
+                },
               ].map((item, i) => (
                 <div
                   key={item.label}
@@ -751,7 +722,7 @@ export function TabPerfil({ data }: { data: DeputadoPageData }) {
                   >
                     {item.val ?? "—"}
                   </span>
-                  <span className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                  <span className="mt-0.5 text-[10px] font-bold tracking-widest text-gray-400 uppercase">
                     {item.label}
                   </span>
                 </div>
@@ -848,10 +819,10 @@ export function TabPerfil({ data }: { data: DeputadoPageData }) {
               <div className="mt-1 grid gap-3 sm:grid-cols-3">
                 {politician.birthDate && (
                   <div className="group rounded-xl bg-gradient-to-br from-gray-50 to-white p-4 shadow-sm transition-all hover:shadow-md">
-                    <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-secondary/10">
-                      <Calendar className="h-4 w-4 text-secondary" />
+                    <div className="bg-secondary/10 mb-3 flex h-9 w-9 items-center justify-center rounded-lg">
+                      <Calendar className="text-secondary h-4 w-4" />
                     </div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                    <p className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">
                       Nascimento
                     </p>
                     <p className="mt-1 text-sm font-bold text-gray-900">
@@ -864,10 +835,10 @@ export function TabPerfil({ data }: { data: DeputadoPageData }) {
                 )}
                 {politician.placeOfBirth && (
                   <div className="group rounded-xl bg-gradient-to-br from-gray-50 to-white p-4 shadow-sm transition-all hover:shadow-md">
-                    <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-secondary/10">
-                      <MapPin className="h-4 w-4 text-secondary" />
+                    <div className="bg-secondary/10 mb-3 flex h-9 w-9 items-center justify-center rounded-lg">
+                      <MapPin className="text-secondary h-4 w-4" />
                     </div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                    <p className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">
                       Naturalidade
                     </p>
                     <p className="mt-1 text-sm font-bold text-gray-900">
@@ -877,10 +848,10 @@ export function TabPerfil({ data }: { data: DeputadoPageData }) {
                 )}
                 {politician.mandatoDataInicio && (
                   <div className="group rounded-xl bg-gradient-to-br from-gray-50 to-white p-4 shadow-sm transition-all hover:shadow-md">
-                    <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-secondary/10">
-                      <Globe className="h-4 w-4 text-secondary" />
+                    <div className="bg-secondary/10 mb-3 flex h-9 w-9 items-center justify-center rounded-lg">
+                      <Globe className="text-secondary h-4 w-4" />
                     </div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                    <p className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">
                       Início do Exercício
                     </p>
                     <p className="mt-1 text-sm font-bold text-gray-900">
@@ -913,50 +884,50 @@ export function TabPerfil({ data }: { data: DeputadoPageData }) {
               {politician.email && (
                 <a
                   href={`mailto:${politician.email}`}
-                  className="group flex items-center gap-3 rounded-xl p-3 transition-all hover:bg-secondary/5"
+                  className="group hover:bg-secondary/5 flex items-center gap-3 rounded-xl p-3 transition-all"
                 >
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary/10 transition-colors group-hover:bg-secondary group-hover:text-white">
-                    <Mail className="h-4 w-4 text-secondary group-hover:text-white" />
+                  <div className="bg-secondary/10 group-hover:bg-secondary flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors group-hover:text-white">
+                    <Mail className="text-secondary h-4 w-4 group-hover:text-white" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                    <p className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">
                       E-mail
                     </p>
-                    <p className="truncate text-sm font-semibold text-gray-700 group-hover:text-secondary">
+                    <p className="group-hover:text-secondary truncate text-sm font-semibold text-gray-700">
                       {politician.email}
                     </p>
                   </div>
-                  <ChevronRight className="h-4 w-4 text-gray-300 transition-transform group-hover:translate-x-1 group-hover:text-secondary" />
+                  <ChevronRight className="group-hover:text-secondary h-4 w-4 text-gray-300 transition-transform group-hover:translate-x-1" />
                 </a>
               )}
               {politician.phone && (
                 <a
                   href={`tel:${politician.phone}`}
-                  className="group flex items-center gap-3 rounded-xl p-3 transition-all hover:bg-secondary/5"
+                  className="group hover:bg-secondary/5 flex items-center gap-3 rounded-xl p-3 transition-all"
                 >
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary/10 transition-colors group-hover:bg-secondary group-hover:text-white">
-                    <Phone className="h-4 w-4 text-secondary group-hover:text-white" />
+                  <div className="bg-secondary/10 group-hover:bg-secondary flex h-9 w-9 shrink-0 items-center justify-center rounded-lg transition-colors group-hover:text-white">
+                    <Phone className="text-secondary h-4 w-4 group-hover:text-white" />
                   </div>
                   <div className="min-w-0 flex-1">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                    <p className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">
                       Telefone
                     </p>
-                    <p className="text-sm font-semibold text-gray-700 group-hover:text-secondary">
+                    <p className="group-hover:text-secondary text-sm font-semibold text-gray-700">
                       {politician.phone}
                     </p>
                   </div>
-                  <ChevronRight className="h-4 w-4 text-gray-300 transition-transform group-hover:translate-x-1 group-hover:text-secondary" />
+                  <ChevronRight className="group-hover:text-secondary h-4 w-4 text-gray-300 transition-transform group-hover:translate-x-1" />
                 </a>
               )}
               {(politician.gabinetePredio ||
                 politician.gabineteAndar ||
                 politician.gabineteSala) && (
                 <div className="flex items-center gap-3 rounded-xl p-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary/10">
-                    <Building2 className="h-4 w-4 text-secondary" />
+                  <div className="bg-secondary/10 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg">
+                    <Building2 className="text-secondary h-4 w-4" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                    <p className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">
                       Gabinete
                     </p>
                     <p className="text-sm font-semibold text-gray-700">
@@ -973,11 +944,11 @@ export function TabPerfil({ data }: { data: DeputadoPageData }) {
               )}
               {politician.address && (
                 <div className="flex items-center gap-3 rounded-xl p-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary/10">
-                    <MapPin className="h-4 w-4 text-secondary" />
+                  <div className="bg-secondary/10 flex h-9 w-9 shrink-0 items-center justify-center rounded-lg">
+                    <MapPin className="text-secondary h-4 w-4" />
                   </div>
                   <div>
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                    <p className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">
                       Endereço
                     </p>
                     <p className="text-sm font-semibold text-gray-700">
@@ -994,6 +965,15 @@ export function TabPerfil({ data }: { data: DeputadoPageData }) {
                     Nenhum contato disponível.
                   </p>
                 )}
+              <a
+                href={`https://www.camara.leg.br/deputados/${politician.id}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="group hover:border-secondary/30 hover:bg-secondary/5 hover:text-secondary mt-2 flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-gray-50/50 py-3 text-sm font-semibold text-gray-700 transition-all"
+              >
+                Ver mais
+                <ExternalLink className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+              </a>
             </div>
           </div>
         </div>
@@ -1010,13 +990,13 @@ export function TabPerfil({ data }: { data: DeputadoPageData }) {
               />
             </div>
             <div className="px-6 pb-6">
-              <div className="relative ml-5 border-l-2 border-secondary/20 pl-8">
+              <div className="border-secondary/20 relative ml-5 border-l-2 pl-8">
                 {politician.positions.map((pos) => (
                   <div key={pos.id} className="group relative pb-7 last:pb-0">
-                    <div className="absolute -left-[37px] top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-secondary to-[#4E9F3D] shadow-lg shadow-secondary/20 transition-transform group-hover:scale-110">
+                    <div className="from-secondary shadow-secondary/20 absolute top-1.5 -left-[37px] flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br to-[#4E9F3D] shadow-lg transition-transform group-hover:scale-110">
                       <div className="h-2.5 w-2.5 rounded-full bg-white" />
                     </div>
-                    <div className="rounded-xl border border-gray-100 bg-gradient-to-r from-gray-50/50 to-white p-4 shadow-sm transition-all group-hover:border-secondary/20 group-hover:shadow-md">
+                    <div className="group-hover:border-secondary/20 rounded-xl border border-gray-100 bg-gradient-to-r from-gray-50/50 to-white p-4 shadow-sm transition-all group-hover:shadow-md">
                       <p className="font-bold text-gray-900">{pos.position}</p>
                       <div className="mt-1.5 flex items-center gap-2">
                         <Calendar className="h-3.5 w-3.5 text-gray-400" />
@@ -1052,11 +1032,11 @@ export function TabPerfil({ data }: { data: DeputadoPageData }) {
               <div className="space-y-6">
                 {biografia?.escolaridade && (
                   <div>
-                    <h4 className="mb-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                    <h4 className="mb-3 flex items-center gap-2 text-[10px] font-bold tracking-widest text-gray-400 uppercase">
                       <GraduationCap className="h-3 w-3" />
                       Escolaridade
                     </h4>
-                    <div className="inline-flex items-center gap-2 rounded-xl border border-secondary/20 bg-gradient-to-r from-secondary/10 to-secondary/5 px-4 py-3 text-sm font-semibold text-secondary shadow-sm">
+                    <div className="border-secondary/20 from-secondary/10 to-secondary/5 text-secondary inline-flex items-center gap-2 rounded-xl border bg-gradient-to-r px-4 py-3 text-sm font-semibold shadow-sm">
                       <GraduationCap className="h-4 w-4" />
                       {biografia.escolaridade}
                     </div>
@@ -1064,7 +1044,7 @@ export function TabPerfil({ data }: { data: DeputadoPageData }) {
                 )}
                 {profissoes.length > 0 && (
                   <div>
-                    <h4 className="mb-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                    <h4 className="mb-3 flex items-center gap-2 text-[10px] font-bold tracking-widest text-gray-400 uppercase">
                       <Briefcase className="h-3 w-3" />
                       Profissões
                     </h4>
@@ -1072,11 +1052,11 @@ export function TabPerfil({ data }: { data: DeputadoPageData }) {
                       {profissoes.map((p, i) => (
                         <span
                           key={i}
-                          className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-secondary/15 to-secondary/5 px-4 py-2 text-sm font-semibold text-secondary shadow-sm transition-all hover:shadow-md"
+                          className="from-secondary/15 to-secondary/5 text-secondary inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r px-4 py-2 text-sm font-semibold shadow-sm transition-all hover:shadow-md"
                         >
                           {p.titulo}
                           {p.data && (
-                            <span className="rounded-full bg-white/80 px-1.5 py-0.5 text-[10px] font-bold text-secondary/60">
+                            <span className="text-secondary/60 rounded-full bg-white/80 px-1.5 py-0.5 text-[10px] font-bold">
                               {p.data}
                             </span>
                           )}
@@ -1087,7 +1067,7 @@ export function TabPerfil({ data }: { data: DeputadoPageData }) {
                 )}
                 {ocupacoes.length > 0 && (
                   <div>
-                    <h4 className="mb-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                    <h4 className="mb-3 flex items-center gap-2 text-[10px] font-bold tracking-widest text-gray-400 uppercase">
                       <BookOpen className="h-3 w-3" />
                       Ocupações
                     </h4>
@@ -1095,9 +1075,9 @@ export function TabPerfil({ data }: { data: DeputadoPageData }) {
                       {ocupacoes.map((o, i) => (
                         <div
                           key={i}
-                          className="group flex items-center gap-3 rounded-xl border border-gray-100 bg-gradient-to-r from-gray-50/50 to-white px-4 py-3 transition-all hover:border-secondary/20 hover:shadow-sm"
+                          className="group hover:border-secondary/20 flex items-center gap-3 rounded-xl border border-gray-100 bg-gradient-to-r from-gray-50/50 to-white px-4 py-3 transition-all hover:shadow-sm"
                         >
-                          <div className="h-2 w-2 shrink-0 rounded-full bg-secondary/40 transition-colors group-hover:bg-secondary" />
+                          <div className="bg-secondary/40 group-hover:bg-secondary h-2 w-2 shrink-0 rounded-full transition-colors" />
                           <div>
                             <span className="text-sm font-bold text-gray-800">
                               {o.titulo}
@@ -1175,7 +1155,7 @@ export function TabPerfil({ data }: { data: DeputadoPageData }) {
               />
               <div className="flex flex-wrap items-end gap-3">
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                  <label className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">
                     Ano
                   </label>
                   <Select
@@ -1196,12 +1176,12 @@ export function TabPerfil({ data }: { data: DeputadoPageData }) {
                   </Select>
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                  <label className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">
                     Buscar
                   </label>
                   <div className="flex gap-2">
                     <div className="relative">
-                      <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+                      <Search className="pointer-events-none absolute top-1/2 left-3 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
                       <Input
                         className="h-9 w-[200px] rounded-xl border-gray-200 bg-white pl-8 text-sm shadow-sm placeholder:text-gray-300"
                         placeholder="Ex.: comissão, CPI..."
@@ -1214,7 +1194,7 @@ export function TabPerfil({ data }: { data: DeputadoPageData }) {
                     </div>
                     <Button
                       variant="outline"
-                      className="h-9 rounded-xl border-secondary/30 bg-secondary/5 text-sm font-bold text-secondary transition-all hover:bg-secondary hover:text-white"
+                      className="border-secondary/30 bg-secondary/5 text-secondary hover:bg-secondary h-9 rounded-xl text-sm font-bold transition-all hover:text-white"
                       onClick={handleHistoricoSearchApply}
                     >
                       Filtrar
@@ -1222,7 +1202,7 @@ export function TabPerfil({ data }: { data: DeputadoPageData }) {
                   </div>
                 </div>
                 <div className="flex flex-col gap-1.5">
-                  <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                  <label className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">
                     Por página
                   </label>
                   <Select
@@ -1264,20 +1244,17 @@ export function TabPerfil({ data }: { data: DeputadoPageData }) {
             ) : historico && historico.movimentacoes.length > 0 ? (
               <>
                 <div className="mb-5">
-                  <span className="inline-flex items-center gap-2 rounded-full bg-secondary/10 px-3.5 py-1.5 text-xs font-bold text-secondary">
+                  <span className="bg-secondary/10 text-secondary inline-flex items-center gap-2 rounded-full px-3.5 py-1.5 text-xs font-bold">
                     <BarChart3 className="h-3.5 w-3.5" />
                     {historico.total} movimentação(ões)
                   </span>
                 </div>
-                <div className="relative ml-5 border-l-2 border-dashed border-secondary/15 pl-8">
+                <div className="border-secondary/15 relative ml-5 border-l-2 border-dashed pl-8">
                   <ul className="space-y-4" role="list">
                     {historico.movimentacoes.map((mov, idx) => (
-                      <li
-                        key={`${mov.data}-${idx}`}
-                        className="group relative"
-                      >
-                        <div className="absolute -left-[37px] top-4 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-secondary/70 shadow-sm transition-colors group-hover:bg-secondary" />
-                        <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm transition-all group-hover:border-secondary/20 group-hover:shadow-md">
+                      <li key={`${mov.data}-${idx}`} className="group relative">
+                        <div className="bg-secondary/70 group-hover:bg-secondary absolute top-4 -left-[37px] flex h-5 w-5 items-center justify-center rounded-full border-2 border-white shadow-sm transition-colors" />
+                        <div className="group-hover:border-secondary/20 rounded-xl border border-gray-100 bg-white p-4 shadow-sm transition-all group-hover:shadow-md">
                           <div className="mb-2 inline-flex items-center gap-1.5 rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-bold text-gray-600">
                             <Calendar className="h-3 w-3" />
                             {mov.data}

@@ -143,7 +143,7 @@ export default function SessionListScreen() {
   const filteredSessions = useMemo(() => {
     return events
       .filter((event) => {
-        const eventType = getSessionType(event.eventType.name);
+        getSessionType(event.eventType.name);
         const eventStatus = getStatus(event.situation);
 
         // Filter by active tab (session type) - REMOVED since it's server-side now

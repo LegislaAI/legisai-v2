@@ -46,7 +46,7 @@ export default function TermsOfUsePage() {
                 propriedade dos materiais; ou
               </li>
               <li>
-                transferir os materiais para outra pessoa ou 'espelhe' os
+                transferir os materiais para outra pessoa ou &apos;espelhe&apos; os
                 materiais em qualquer outro servidor.
               </li>
             </ol>
@@ -65,7 +65,7 @@ export default function TermsOfUsePage() {
             </h2>
             <ol className="ml-4 list-inside list-decimal space-y-1">
               <li>
-                Os materiais no site da Legis AI são fornecidos 'como estão'.
+                Os materiais no site da Legis AI são fornecidos &apos;como estão&apos;.
                 Legis AI não oferece garantias, expressas ou implícitas, e, por
                 este meio, isenta e nega todas as outras garantias, incluindo,
                 sem limitação, garantias implícitas ou condições de

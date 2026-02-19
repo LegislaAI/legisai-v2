@@ -81,8 +81,8 @@ export default function CommissionDetailsPage() {
   const [activeTab, setActiveTab] = useState("eventos");
   
   // Members state
-  const [members, setMembers] = useState<any[]>([]);
-  const [allMembers, setAllMembers] = useState<any[]>([]); // Todos os membros (sem paginação)
+  const [members, setMembers] = useState<unknown[]>([]);
+  const [allMembers, setAllMembers] = useState<unknown[]>([]); // Todos os membros (sem paginação)
   const [loadingMembers, setLoadingMembers] = useState(false);
   const [membersPage, setMembersPage] = useState(1);
   const [membersTotalPages, setMembersTotalPages] = useState(0);
@@ -94,13 +94,13 @@ export default function CommissionDetailsPage() {
   const [membersStateFilter, setMembersStateFilter] = useState("");
 
   // Propositions state
-  const [propositions, setPropositions] = useState<any[]>([]);
+  const [propositions, setPropositions] = useState<unknown[]>([]);
   const [loadingPropositions, setLoadingPropositions] = useState(false);
   const [propositionsPage, setPropositionsPage] = useState(1);
   const [propositionsTotalPages, setPropositionsTotalPages] = useState(0);
 
   // News state
-  const [news, setNews] = useState<any[]>([]);
+  const [news, setNews] = useState<unknown[]>([]);
   const [loadingNews, setLoadingNews] = useState(false);
   const [newsPage, setNewsPage] = useState(1);
   const [newsTotalPages, setNewsTotalPages] = useState(0);
@@ -192,7 +192,7 @@ export default function CommissionDetailsPage() {
   // Aplicar filtros e paginação nos membros
   const { filteredMembers, totalFilteredPages } = useMemo(() => {
     // Remover duplicatas baseado no ID antes de aplicar filtros
-    const uniqueMembersMap = new Map<string, any>();
+    const uniqueMembersMap = new Map<string, unknown>();
     allMembers.forEach((member) => {
       if (member.id && !uniqueMembersMap.has(member.id)) {
         uniqueMembersMap.set(member.id, member);

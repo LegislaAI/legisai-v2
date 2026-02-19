@@ -1,3 +1,4 @@
+import type { ComponentType } from "react";
 
 export interface Prompt {
     id: string;
@@ -14,7 +15,7 @@ export interface Category {
     type: string;
     description: string;
     color: string;
-    icon?: any; // Lucide icon or string
+    icon?: ComponentType<{ size?: number; className?: string }>;
 }
 
 

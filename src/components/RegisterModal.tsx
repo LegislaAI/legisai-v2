@@ -1,9 +1,8 @@
 'use client';
 
 import { AnimatePresence, motion } from 'framer-motion';
-import { AlertCircle, Building2, Briefcase, Calendar, ChevronDown, ChevronUp, Eye, EyeOff, Loader2, MapPin, User, X } from 'lucide-react';
+import { AlertCircle, Building2, ChevronDown, ChevronUp, Eye, EyeOff, Loader2, MapPin, User, X } from 'lucide-react';
 import moment from 'moment';
-import { useRouter } from 'next/navigation';
 import React, { useState } from 'react';
 import { toast } from 'sonner';
 
@@ -38,7 +37,6 @@ interface RegisterModalProps {
 
 const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose, formData, setFormData }) => {
     const { PostAPI, setToken } = useApiContext();
-    const router = useRouter();
     const cookies = useCookies();
     const [loading, setLoading] = useState(false);
     const [fiscalOpen, setFiscalOpen] = useState(false);
@@ -83,7 +81,7 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose, formData
                 } else {
                     toast.error("CEP não encontrado.");
                 }
-            } catch (err) {
+            } catch {
                 toast.error("Erro ao buscar CEP.");
             } finally {
                 setCepLoading(false);

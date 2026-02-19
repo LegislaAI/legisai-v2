@@ -26,8 +26,6 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
-import { generatePoliticianReport } from "@/utils/pdfGenerator";
-
 interface DeputadoHeaderProps {
   politician: PoliticianDetailsProps;
   selectedYear: string;

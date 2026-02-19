@@ -11,7 +11,7 @@ export async function POST(req: Request) {
     }
 
     // 1. OPTIMIZATION: Clean and truncate context
-    const cleanContext = messages.map((m: any) => ({
+    const cleanContext = messages.map((m: { role: string; content?: string }) => ({
       role: m.role,
       // Truncate to 1000 chars to save tokens and focus on main topic
       content: m.content ? String(m.content).substring(0, 1000) : "",
@@ -59,7 +59,7 @@ export async function POST(req: Request) {
     const cleanTitle = newTitle.replace(/^"|"$/g, "").replace(/\.$/, "");
 
     return NextResponse.json({ title: cleanTitle });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("Error generating title:", error);
     return NextResponse.json({ title: "Novo Chat" }, { status: 500 });
   }

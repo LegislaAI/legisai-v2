@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import {
   Calendar,
   CalendarDays,
@@ -13,12 +13,12 @@ import {
   ChevronRight,
   LayoutGrid,
   Columns3,
-  ExternalLink,
 } from "lucide-react";
 import Link from "next/link";
 import type { DeputadoPageData } from "./useDeputadoPage";
 import type { EventoAgenda } from "./types";
 import { SkeletonLoader } from "./SkeletonLoader";
+import { CustomPagination } from "@/components/ui/CustomPagination";
 import { cn } from "@/lib/utils";
 import {
   startOfMonth,
@@ -70,6 +70,15 @@ function fmtTime(dt: string) {
     hour: "2-digit",
     minute: "2-digit",
   });
+}
+
+/** Define link para detalhe do evento: plenário (solene/deliberativa) ou comissões. */
+function getEventDetailHref(ev: EventoAgenda): string {
+  const tipo = (ev.descricao_tipo_evento || ev.cod_tipo_evento || "").toLowerCase();
+  if (tipo.includes("solene")) return `/plenary/solene/${ev.id}`;
+  if (tipo.includes("reunião") || tipo.includes("comissão")) return `/plenary/commissions/${ev.id}`;
+  if (tipo.includes("sessão") || tipo.includes("plenária") || tipo.includes("plenário")) return `/plenary/deliberativa/${ev.id}`;
+  return `/plenary/deliberativa/${ev.id}`;
 }
 
 function getEventColor(tipo: string) {
@@ -150,7 +159,7 @@ function MiniEventCard({ ev }: { ev: EventoAgenda }) {
 
   return (
     <Link
-      href={`/eventos/${ev.id}`}
+      href={getEventDetailHref(ev)}
       className={cn(
         "group flex flex-col gap-2.5 rounded-xl border border-gray-100 bg-white p-4 transition-all duration-200",
         "hover:border-[#749c5b]/30 hover:bg-[#749c5b]/5 hover:shadow-sm",
@@ -216,7 +225,7 @@ function EventListCard({ ev }: { ev: EventoAgenda }) {
 
   return (
     <Link
-      href={`/eventos/${ev.id}`}
+      href={getEventDetailHref(ev)}
       className={cn(
         "group flex flex-col gap-3 rounded-xl border border-gray-100 bg-white p-4 transition-all duration-200",
         "hover:border-[#749c5b]/30 hover:bg-[#749c5b]/5 hover:shadow-sm",
@@ -274,13 +283,24 @@ export function TabAgenda({ data }: { data: DeputadoPageData }) {
     calendarEvents,
     loadingCalendarEvents,
     pastEvents,
+    pastEventsPage,
+    setPastEventsPage,
+    pastEventsPages,
+    pastEventsTotal,
     loadingPastEvents,
     upcomingEvents,
+    upcomingEventsPage,
+    setUpcomingEventsPage,
+    upcomingEventsPages,
+    upcomingEventsTotal,
     loadingUpcomingEvents,
   } = data;
 
   const [viewMode, setViewMode] = useState<ViewMode>("month");
   const [selectedDate, setSelectedDate] = useState<Date | null>(new Date());
+  const [selectedDayEventsPage, setSelectedDayEventsPage] = useState(1);
+
+  const EVENTS_PER_DAY_PAGE = 3;
 
   const eventsByDate = useMemo(
     () => groupEventsByDateKey(calendarEvents),
@@ -308,6 +328,22 @@ export function TabAgenda({ data }: { data: DeputadoPageData }) {
     return eventsByDate[key] ?? [];
   }, [selectedDate, eventsByDate]);
 
+  const selectedDayEventsPages = Math.ceil(selectedDayEvents.length / EVENTS_PER_DAY_PAGE) || 1;
+  const selectedDayEventsPaginated = useMemo(() => {
+    const start = (selectedDayEventsPage - 1) * EVENTS_PER_DAY_PAGE;
+    return selectedDayEvents.slice(start, start + EVENTS_PER_DAY_PAGE);
+  }, [selectedDayEvents, selectedDayEventsPage]);
+
+  const handleDayClick = (day: Date) => {
+    setSelectedDate(day);
+    setSelectedDayEventsPage(1);
+    if (!isSameMonth(day, calendarDate)) setCalendarDate(day);
+  };
+
+  useEffect(() => {
+    setSelectedDayEventsPage(1);
+  }, [selectedDate]);
+
   const goToPrevMonth = () => setCalendarDate(subMonths(calendarDate, 1));
   const goToNextMonth = () => setCalendarDate(addMonths(calendarDate, 1));
 
@@ -326,11 +362,7 @@ export function TabAgenda({ data }: { data: DeputadoPageData }) {
     const today = new Date();
     setCalendarDate(today);
     setSelectedDate(today);
-  };
-
-  const handleDayClick = (day: Date) => {
-    setSelectedDate(day);
-    if (!isSameMonth(day, calendarDate)) setCalendarDate(day);
+    setSelectedDayEventsPage(1);
   };
 
   const totalMonthEvents = calendarEvents.length;
@@ -589,7 +621,7 @@ export function TabAgenda({ data }: { data: DeputadoPageData }) {
                               return (
                                 <Link
                                   key={ev.id}
-                                  href={`/eventos/${ev.id}`}
+                                  href={getEventDetailHref(ev)}
                                   className={cn(
                                     "block rounded-md p-1.5 transition-all hover:shadow-sm",
                                     c.bg,
@@ -652,11 +684,22 @@ export function TabAgenda({ data }: { data: DeputadoPageData }) {
                 </p>
               </div>
             ) : selectedDayEvents.length > 0 ? (
-              <div className="space-y-3">
-                {selectedDayEvents.map((ev) => (
-                  <MiniEventCard key={ev.id} ev={ev} />
-                ))}
-              </div>
+              <>
+                <div className="space-y-3">
+                  {selectedDayEventsPaginated.map((ev) => (
+                    <MiniEventCard key={ev.id} ev={ev} />
+                  ))}
+                </div>
+                {selectedDayEventsPages > 1 && (
+                  <div className="mt-4 border-t border-gray-100 pt-4">
+                    <CustomPagination
+                      pages={selectedDayEventsPages}
+                      currentPage={selectedDayEventsPage}
+                      setCurrentPage={setSelectedDayEventsPage}
+                    />
+                  </div>
+                )}
+              </>
             ) : (
               <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 bg-gray-50/30 py-10 text-center">
                 <Calendar className="h-8 w-8 text-gray-300" />
@@ -671,32 +714,43 @@ export function TabAgenda({ data }: { data: DeputadoPageData }) {
 
       {/* ═══════ Past Events + Upcoming Events — Side by Side ═══════ */}
       <div className="grid gap-6 lg:grid-cols-2">
-        {/* Últimos Eventos */}
+        {/* Últimos Eventos — altura fixa + paginação */}
         <div className={CARD_3D}>
           <div className={cn(GLASS_HEADER, "px-6 pt-5 pb-4")}>
             <SectionTitle
               icon={Clock}
               title="Últimos Eventos"
               subtitle="Eventos mais recentes"
-              badge={pastEvents.length > 0 ? `${pastEvents.length}` : undefined}
+              badge={pastEventsTotal > 0 ? `${pastEventsTotal} total` : undefined}
               accentColor="#6b7280"
             />
           </div>
-          <div className="p-6">
+          <div className="flex min-h-[320px] flex-col p-6">
             {loadingPastEvents ? (
               <div className="space-y-3">
-                {[1, 2, 3].map((i) => (
+                {[1, 2, 3, 4, 5].map((i) => (
                   <SkeletonLoader key={i} className="h-20 w-full rounded-xl" />
                 ))}
               </div>
             ) : pastEvents.length > 0 ? (
-              <div className="space-y-3">
-                {pastEvents.map((ev) => (
-                  <EventListCard key={ev.id} ev={ev} />
-                ))}
-              </div>
+              <>
+                <div className="min-h-[280px] space-y-3">
+                  {pastEvents.map((ev) => (
+                    <EventListCard key={ev.id} ev={ev} />
+                  ))}
+                </div>
+                {pastEventsPages > 1 && (
+                  <div className="mt-4 border-t border-gray-100 pt-4">
+                    <CustomPagination
+                      pages={pastEventsPages}
+                      currentPage={pastEventsPage}
+                      setCurrentPage={setPastEventsPage}
+                    />
+                  </div>
+                )}
+              </>
             ) : (
-              <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 bg-gray-50/30 py-10 text-center">
+              <div className="flex flex-1 flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 bg-gray-50/30 py-10 text-center">
                 <Clock className="h-8 w-8 text-gray-300" />
                 <p className="mt-3 text-sm font-medium text-gray-500">
                   Nenhum evento passado
@@ -709,7 +763,7 @@ export function TabAgenda({ data }: { data: DeputadoPageData }) {
           </div>
         </div>
 
-        {/* Próximos Eventos */}
+        {/* Próximos Eventos — altura fixa + paginação */}
         <div className={CARD_3D}>
           <div className={cn(GLASS_HEADER, "px-6 pt-5 pb-4")}>
             <SectionTitle
@@ -717,26 +771,37 @@ export function TabAgenda({ data }: { data: DeputadoPageData }) {
               title="Próximos Eventos"
               subtitle="Agenda futura"
               badge={
-                upcomingEvents.length > 0 ? `${upcomingEvents.length}` : undefined
+                upcomingEventsTotal > 0 ? `${upcomingEventsTotal} total` : undefined
               }
               accentColor="#4E9F3D"
             />
           </div>
-          <div className="p-6">
+          <div className="flex min-h-[320px] flex-col p-6">
             {loadingUpcomingEvents ? (
               <div className="space-y-3">
-                {[1, 2, 3].map((i) => (
+                {[1, 2, 3, 4, 5].map((i) => (
                   <SkeletonLoader key={i} className="h-20 w-full rounded-xl" />
                 ))}
               </div>
             ) : upcomingEvents.length > 0 ? (
-              <div className="space-y-3">
-                {upcomingEvents.map((ev) => (
-                  <EventListCard key={ev.id} ev={ev} />
-                ))}
-              </div>
+              <>
+                <div className="min-h-[280px] space-y-3">
+                  {upcomingEvents.map((ev) => (
+                    <EventListCard key={ev.id} ev={ev} />
+                  ))}
+                </div>
+                {upcomingEventsPages > 1 && (
+                  <div className="mt-4 border-t border-gray-100 pt-4">
+                    <CustomPagination
+                      pages={upcomingEventsPages}
+                      currentPage={upcomingEventsPage}
+                      setCurrentPage={setUpcomingEventsPage}
+                    />
+                  </div>
+                )}
+              </>
             ) : (
-              <div className="flex flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 bg-gray-50/30 py-10 text-center">
+              <div className="flex flex-1 flex-col items-center justify-center rounded-xl border-2 border-dashed border-gray-200 bg-gray-50/30 py-10 text-center">
                 <CalendarCheck className="h-8 w-8 text-gray-300" />
                 <p className="mt-3 text-sm font-medium text-gray-500">
                   Nenhum evento agendado

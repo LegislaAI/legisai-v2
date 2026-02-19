@@ -126,7 +126,7 @@ export default function CommissionDetailScreen() {
           ].map((tab) => (
             <button
               key={tab.id}
-              onClick={() => setActiveTab(tab.id as any)}
+              onClick={() => setActiveTab(tab.id)}
               className={`rounded-lg px-4 py-2 text-sm font-medium whitespace-nowrap transition-all ${
                 activeTab === tab.id
                   ? "bg-[#749c5b] text-white shadow-md"

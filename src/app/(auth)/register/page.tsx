@@ -12,7 +12,6 @@ import {
 } from "lucide-react";
 import moment from "moment";
 import Link from "next/link";
-import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import * as z from "zod";
@@ -39,7 +38,6 @@ type RegisterFormData = z.infer<typeof registerSchema>;
 
 export default function Register2Page() {
   const { PostAPI, setToken } = useApiContext();
-  const router = useRouter();
   const cookies = useCookies();
 
   const {

@@ -45,15 +45,6 @@ async function transcribeAudio(
   }
 }
 
-interface Tool {
-  type: "function";
-  function: {
-    name: string;
-    description?: string;
-    parameters: object;
-  };
-}
-
 export async function POST(req: Request) {
   try {
     const { messages, model, files, systemPrompt, tools } = await req.json();
@@ -100,14 +91,14 @@ export async function POST(req: Request) {
       content: systemContent,
     };
 
-    let finalMessages = [timeContextMessage, ...messages];
+    const finalMessages = [timeContextMessage, ...messages];
 
     // --- PROCESSAMENTO DE ARQUIVOS ---
     if (files && Array.isArray(files) && files.length > 0) {
       const lastMsgIndex = finalMessages.length - 1;
       const lastMsg = finalMessages[lastMsgIndex];
 
-      const contentArray: any[] = [
+      const contentArray: { type: string; text?: string; image_url?: { url: string } }[] = [
         {
           type: "text",
           text: lastMsg.content || "Analise o contexto enviado.",
@@ -210,7 +201,13 @@ export async function POST(req: Request) {
     }
 
     // --- CHAMADA FINAL ---
-    const requestBody: any = {
+    const requestBody: {
+      model: string;
+      messages: typeof finalMessages;
+      stream: boolean;
+      tools?: unknown[];
+      tool_choice?: string;
+    } = {
       model: modelId,
       messages: finalMessages,
       stream: true,
@@ -249,8 +246,11 @@ export async function POST(req: Request) {
         Connection: "keep-alive",
       },
     });
-  } catch (error: any) {
+  } catch (error: unknown) {
     console.error("API Chat Error:", error);
-    return NextResponse.json({ error: error.message }, { status: 500 });
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : "Erro interno" },
+      { status: 500 },
+    );
   }
 }
