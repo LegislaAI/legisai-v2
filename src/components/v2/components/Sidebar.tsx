@@ -11,17 +11,23 @@ import { useLoadingContext } from "@/context/LoadingContext";
 import { useSidebarContext } from "@/context/SidebarContext2";
 import { cn } from "@/lib/utils";
 import {
+  Award,
   BellDot,
+  Building2,
   ChevronRight,
   Cog,
+  Flag,
+  Globe,
   Home,
+  Layers,
   LogOut,
   PlayCircle,
   Settings2,
   Sparkles,
   UserCircle,
+  Users,
   UsersRound,
-  Wallet
+  Wallet,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -39,6 +45,12 @@ const menuItems: MenuItem[] = [
   { label: "Deputados", href: "/deputados", icon: UserCircle, disabled: false },
   { label: "Plenários / Sessões", href: "/plenary", icon: Wallet },
   { label: "Comissões", href: "/commissions", icon: UsersRound, disabled: false },
+  { label: "Órgãos", href: "/orgaos", icon: Building2, disabled: false },
+  { label: "Partidos", href: "/partidos", icon: Flag, disabled: false },
+  { label: "Blocos", href: "/blocos", icon: Layers, disabled: false },
+  { label: "Frentes", href: "/frentes", icon: Users, disabled: false },
+  { label: "Grupos", href: "/grupos", icon: Globe, disabled: false },
+  { label: "Lideranças", href: "/liderancas", icon: Award, disabled: false },
   // { label: "Proposições", href: "/propositions", icon: FileText, disabled: false },
   {
     label: "Novidades e Notícias",
@@ -116,6 +128,7 @@ export function Sidebar() {
           {menuItems.map((item) => {
             const isActive =
               pathname === item.href ||
+              (item.href !== "/" && pathname.startsWith(item.href + "/")) ||
               (item.href === "/deputados" && pathname.startsWith("/deputados/"));
             const Icon = item.icon;
 
