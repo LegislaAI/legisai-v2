@@ -1,50 +1,192 @@
 "use client";
 
-import { Card } from "@/components/v2/components/ui/Card";
+import { Button } from "@/components/v2/components/ui/Button";
 import { CustomPagination } from "@/components/ui/CustomPagination";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/v2/components/ui/tooltip";
+import {
+  Activity,
   ArrowUpRight,
-  FileText,
-  Tag,
-  Vote,
-  Scale,
-  ExternalLink,
+  BarChart3,
   Calendar,
+  CheckCircle2,
+  ExternalLink,
+  FileText,
   Hash,
+  Mic2,
+  Scale,
+  Tag,
   TrendingUp,
+  Vote,
 } from "lucide-react";
 import Link from "next/link";
+import dynamic from "next/dynamic";
 import type { DeputadoPageData } from "./useDeputadoPage";
 import type { ProposicaoDeputado } from "./types";
 import { SkeletonLoader } from "./SkeletonLoader";
 import { cn } from "@/lib/utils";
+import type { ApexOptions } from "apexcharts";
 
-function AlinhamentoBar({ value }: { value: number }) {
-  const pct = Math.min(100, Math.max(0, value));
-  const { color, label } =
-    pct >= 70
-      ? { color: "bg-emerald-500", label: "Alto" }
-      : pct >= 40
-        ? { color: "bg-amber-500", label: "Médio" }
-        : { color: "bg-rose-500", label: "Baixo" };
+const ReactApexChart = dynamic(() => import("react-apexcharts"), {
+  ssr: false,
+});
+
+const CARD_3D =
+  "relative overflow-hidden rounded-2xl border-0 bg-white shadow-[0_4px_24px_-4px_rgba(0,0,0,0.08),0_1px_2px_-1px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_40px_-8px_rgba(116,156,91,0.18),0_2px_8px_-2px_rgba(0,0,0,0.06)] hover:-translate-y-[2px]";
+
+const GLASS_HEADER =
+  "bg-gradient-to-r from-[#749c5b]/[0.04] via-white/80 to-white backdrop-blur-sm";
+
+const BI_PALETTE = [
+  "#749c5b", "#4E9F3D", "#2d5a3d", "#1B3B2B", "#5a8c4a",
+  "#8ab86e", "#3d7a5c", "#6bc28c", "#2e6b4a", "#a0d88a",
+];
+
+function SectionTitle({
+  icon: Icon,
+  title,
+  subtitle,
+  badge,
+  accentColor = "#749c5b",
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  subtitle?: string;
+  badge?: string;
+  accentColor?: string;
+}) {
   return (
-    <div className="space-y-2">
-      <div className="flex items-center justify-between text-xs">
-        <span className="font-medium text-gray-500">Nível de alinhamento</span>
-        <span className={cn(
-          "font-semibold",
-          pct >= 70 ? "text-emerald-600" : pct >= 40 ? "text-amber-600" : "text-rose-600"
-        )}>
-          {label}
-        </span>
-      </div>
-      <div className="relative h-3 w-full overflow-hidden rounded-full bg-gray-100">
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-3">
         <div
-          className={cn("h-full rounded-full transition-all duration-700 ease-out", color)}
-          style={{ width: `${pct}%` }}
+          className="flex h-11 w-11 items-center justify-center rounded-xl shadow-sm"
+          style={{
+            background: `linear-gradient(135deg, ${accentColor}22, ${accentColor}0a)`,
+          }}
+        >
+          <Icon className="h-5 w-5" style={{ color: accentColor }} />
+        </div>
+        <div>
+          <h3 className="text-[15px] font-bold tracking-tight text-gray-900">
+            {title}
+          </h3>
+          {subtitle && (
+            <p className="text-[11px] text-gray-400">{subtitle}</p>
+          )}
+        </div>
+      </div>
+      {badge && (
+        <span
+          className="rounded-full px-3 py-1.5 text-[11px] font-bold"
+          style={{ background: `${accentColor}15`, color: accentColor }}
+        >
+          {badge}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function KPICard({
+  value,
+  label,
+  icon: Icon,
+  gradient,
+  iconBg,
+  textColor,
+}: {
+  value: number | string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  gradient: string;
+  iconBg: string;
+  textColor: string;
+}) {
+  return (
+    <div className={`${CARD_3D} group cursor-default p-0`}>
+      <div className="relative p-5">
+        <div className="mb-4 flex items-center justify-between">
+          <div
+            className="flex h-10 w-10 items-center justify-center rounded-xl shadow-sm"
+            style={{ background: iconBg }}
+          >
+            <Icon className="h-5 w-5" style={{ color: textColor }} />
+          </div>
+        </div>
+        <p
+          className="text-3xl font-extrabold tracking-tight"
+          style={{ color: textColor }}
+        >
+          {value}
+        </p>
+        <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-gray-400">
+          {label}
+        </p>
+        <div
+          className="absolute bottom-0 left-0 h-1 w-full"
+          style={{ background: gradient }}
         />
       </div>
     </div>
+  );
+}
+
+function AlinhamentoGauge({ value }: { value: number }) {
+  const pct = Math.min(100, Math.max(0, value));
+  const color =
+    pct >= 70 ? "#059669" : pct >= 40 ? "#d97706" : "#ef4444";
+  const label = pct >= 70 ? "Alto" : pct >= 40 ? "Médio" : "Baixo";
+
+  const gaugeOptions: ApexOptions = {
+    chart: { type: "radialBar", fontFamily: "inherit" },
+    plotOptions: {
+      radialBar: {
+        startAngle: -135,
+        endAngle: 135,
+        hollow: { size: "65%", background: "transparent" },
+        track: {
+          background: "#f3f4f6",
+          strokeWidth: "100%",
+          dropShadow: { enabled: true, top: 2, blur: 4, opacity: 0.06 },
+        },
+        dataLabels: {
+          name: {
+            show: true,
+            fontSize: "11px",
+            color: "#9ca3af",
+            offsetY: -8,
+          },
+          value: {
+            show: true,
+            fontSize: "28px",
+            fontWeight: "800",
+            color: "#111827",
+            offsetY: 4,
+            formatter: () => `${pct.toFixed(0)}%`,
+          },
+        },
+      },
+    },
+    fill: {
+      type: "solid",
+      colors: [color],
+    },
+    stroke: { lineCap: "round" },
+    labels: [label],
+  };
+
+  return (
+    <ReactApexChart
+      options={gaugeOptions}
+      series={[Math.round(pct)]}
+      type="radialBar"
+      height={220}
+      width="100%"
+    />
   );
 }
 
@@ -55,35 +197,34 @@ function ProposicaoCard({ prop }: { prop: ProposicaoDeputado }) {
   return (
     <Link
       href={`/propositions/${prop.id}`}
-      className={cn(
-        "group flex flex-col gap-2 rounded-xl border border-gray-100 bg-white p-4 transition-all duration-200",
-        "hover:border-[#749c5b]/30 hover:bg-[#749c5b]/5 hover:shadow-sm",
-        "sm:flex-row sm:items-start sm:justify-between sm:gap-4"
-      )}
+      className="group flex flex-col gap-2 rounded-xl border border-gray-100 bg-white p-4 transition-all duration-200 hover:border-secondary/30 hover:shadow-md sm:flex-row sm:items-start sm:justify-between sm:gap-4"
     >
       <div className="min-w-0 flex-1 space-y-2">
         <div className="flex flex-wrap items-center gap-2">
-          <span className="inline-flex items-center gap-1 rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-semibold text-gray-800">
+          <span className="inline-flex items-center gap-1 rounded-lg bg-secondary/10 px-2.5 py-1 text-xs font-bold text-secondary">
             <Hash className="h-3.5 w-3.5" />
             {identificador}
           </span>
           {prop.situacao_descricao && (
-            <span className="rounded-full border border-gray-200 bg-white px-2 py-0.5 text-xs text-gray-600">
+            <span className="rounded-full border border-gray-200 bg-gray-50 px-2.5 py-0.5 text-[10px] font-semibold text-gray-500">
               {prop.situacao_descricao}
             </span>
           )}
         </div>
         <p
-          className="line-clamp-2 text-sm text-gray-700"
+          className="line-clamp-2 text-sm leading-relaxed text-gray-700"
           title={prop.ementa || undefined}
         >
           {prop.ementa || "—"}
         </p>
-        <p className="text-xs text-gray-500">Apresentação: {dataStr}</p>
+        <div className="flex items-center gap-1.5 text-xs text-gray-400">
+          <Calendar className="h-3 w-3" />
+          {dataStr}
+        </div>
       </div>
-      <span className="inline-flex shrink-0 items-center gap-1 text-sm font-medium text-[#749c5b] group-hover:underline">
+      <span className="inline-flex shrink-0 items-center gap-1 rounded-lg bg-secondary/5 px-3 py-1.5 text-xs font-bold text-secondary transition-all group-hover:bg-secondary group-hover:text-white">
         Ver proposição
-        <ArrowUpRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
+        <ArrowUpRight className="h-3.5 w-3.5 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5" />
       </span>
     </Link>
   );
@@ -91,6 +232,7 @@ function ProposicaoCard({ prop }: { prop: ProposicaoDeputado }) {
 
 export function TabPosicionamento({ data }: { data: DeputadoPageData }) {
   const {
+    politician,
     proposicoesResumo,
     proposicoes,
     loadingProposicoes,
@@ -101,93 +243,529 @@ export function TabPosicionamento({ data }: { data: DeputadoPageData }) {
     loadingVotacoes,
     temas,
     loadingTemas,
+    presenca,
+    loadingPresenca,
+    contadores,
+    loadingContadores,
+    discursosResumo,
+    loadingDiscursos,
   } = data;
 
-  return (
-    <div className="space-y-8">
-      {/* Intro */}
-      <div className="rounded-2xl border border-gray-100 bg-gradient-to-br from-[#749c5b]/5 via-gray-50/80 to-white p-6">
-        <div className="flex items-start gap-4">
-          <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#749c5b]/10 shadow-sm">
-            <Scale className="h-6 w-6 text-[#749c5b]" />
-          </div>
-          <div>
-            <h2 className="text-xl font-bold text-gray-900">
-              Posicionamento parlamentar
-            </h2>
-            <p className="mt-2 text-sm leading-relaxed text-gray-600">
-              Proposições de autoria ou coautoria, participação em votações
-              nominais e temas em que o deputado mais atua. Use esta aba para
-              entender como ele se posiciona por meio de projetos e votos.
-            </p>
-          </div>
-        </div>
-      </div>
+  const temasTop = temas?.temas?.slice(0, 10) ?? [];
 
-      {/* Proposições */}
-      <Card className="overflow-hidden border-gray-100 shadow-sm transition-shadow hover:shadow-md">
-        <div className="border-b border-gray-100 bg-gray-50/50 px-6 py-4">
-          <div className="flex flex-wrap items-center justify-between gap-3">
-            <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#749c5b]/10">
-                <FileText className="h-5 w-5 text-[#749c5b]" />
-              </div>
-              <div>
-                <h3 className="font-bold text-gray-900">Proposições</h3>
-                <p className="text-xs text-gray-500">
-                  Autoria e coautoria de projetos de lei e outras proposições
-                </p>
-              </div>
-            </div>
-            {proposicoesResumo?.link && (
-              <a
-                href={proposicoesResumo.link}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:border-[#749c5b]/40 hover:bg-[#749c5b]/5 hover:text-[#749c5b]"
-              >
-                Ver detalhes
-                <ExternalLink className="h-3.5 w-3.5" />
-              </a>
-            )}
-          </div>
+  const propsPorTipo = proposicoesResumo?.cnt_prop_por_tipo ?? [];
+
+  const piePropsOptions: ApexOptions = {
+    chart: {
+      type: "donut",
+      fontFamily: "inherit",
+      dropShadow: { enabled: true, top: 2, blur: 6, opacity: 0.08 },
+    },
+    colors: BI_PALETTE.slice(0, propsPorTipo.length),
+    labels: propsPorTipo.map((t) => t.sigla_tipo),
+    legend: {
+      position: "bottom",
+      fontSize: "11px",
+      fontWeight: 600,
+      markers: { size: 6, shape: "circle" as const },
+    },
+    dataLabels: {
+      enabled: true,
+      formatter: (val: number) => `${Math.round(val)}%`,
+      style: { fontSize: "11px", fontWeight: "700" },
+      dropShadow: { enabled: false },
+    },
+    plotOptions: {
+      pie: {
+        donut: {
+          size: "68%",
+          labels: {
+            show: true,
+            name: { show: true, fontSize: "11px", color: "#9ca3af" },
+            value: {
+              show: true,
+              fontSize: "22px",
+              fontWeight: "800",
+              color: "#111827",
+            },
+            total: {
+              show: true,
+              label: "Total",
+              fontSize: "11px",
+              color: "#9ca3af",
+            },
+          },
+        },
+      },
+    },
+    stroke: { width: 3, colors: ["#fff"] },
+    tooltip: {
+      y: {
+        formatter: (val: number) => `${val} proposição(ões)`,
+      },
+    },
+  };
+
+  const barTemasOptions: ApexOptions = {
+    chart: {
+      type: "bar",
+      fontFamily: "inherit",
+      toolbar: { show: false },
+    },
+    plotOptions: {
+      bar: {
+        horizontal: true,
+        borderRadius: 6,
+        borderRadiusApplication: "end",
+        barHeight: "70%",
+        distributed: true,
+        dataLabels: { position: "top" },
+      },
+    },
+    colors: BI_PALETTE,
+    dataLabels: {
+      enabled: true,
+      textAnchor: "start",
+      offsetX: 5,
+      style: { fontSize: "11px", fontWeight: "700", colors: ["#374151"] },
+      formatter: (_val: number, opt: { dataPointIndex: number }) =>
+        String(temasTop[opt.dataPointIndex]?.count ?? ""),
+    },
+    xaxis: {
+      categories: temasTop.map((t) =>
+        t.tema_nome.length > 32 ? t.tema_nome.slice(0, 30) + "…" : t.tema_nome,
+      ),
+      labels: { show: false },
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+    },
+    yaxis: {
+      labels: {
+        style: {
+          fontSize: "11px",
+          fontWeight: "600",
+          colors: Array(temasTop.length).fill("#374151"),
+        },
+        maxWidth: 220,
+      },
+    },
+    grid: {
+      xaxis: { lines: { show: false } },
+      yaxis: { lines: { show: false } },
+    },
+    legend: { show: false },
+    tooltip: {
+      y: { formatter: (val: number) => `${val} proposição(ões)` },
+    },
+  };
+
+  return (
+    <TooltipProvider delayDuration={200}>
+      <div className="space-y-6">
+        {/* ═══════ ROW 1 — KPI Cards ═══════ */}
+        <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+          <KPICard
+            value={proposicoesResumo?.total ?? "—"}
+            label="Proposições"
+            icon={FileText}
+            gradient="linear-gradient(90deg, #749c5b, #4E9F3D)"
+            iconBg="#749c5b18"
+            textColor="#749c5b"
+          />
+          <KPICard
+            value={votacoesIndicadores?.baseVotosCount ?? "—"}
+            label="Votações"
+            icon={Vote}
+            gradient="linear-gradient(90deg, #2563eb, #3b82f6)"
+            iconBg="#2563eb18"
+            textColor="#2563eb"
+          />
+          <KPICard
+            value={
+              votacoesIndicadores?.alinhamentoPct != null
+                ? `${votacoesIndicadores.alinhamentoPct.toFixed(0)}%`
+                : "—"
+            }
+            label="Alinhamento"
+            icon={TrendingUp}
+            gradient={
+              votacoesIndicadores?.alinhamentoPct != null &&
+              votacoesIndicadores.alinhamentoPct >= 70
+                ? "linear-gradient(90deg, #059669, #10b981)"
+                : votacoesIndicadores?.alinhamentoPct != null &&
+                    votacoesIndicadores.alinhamentoPct >= 40
+                  ? "linear-gradient(90deg, #d97706, #f59e0b)"
+                  : "linear-gradient(90deg, #ef4444, #f87171)"
+            }
+            iconBg={
+              votacoesIndicadores?.alinhamentoPct != null &&
+              votacoesIndicadores.alinhamentoPct >= 70
+                ? "#05966918"
+                : votacoesIndicadores?.alinhamentoPct != null &&
+                    votacoesIndicadores.alinhamentoPct >= 40
+                  ? "#d9770618"
+                  : "#ef444418"
+            }
+            textColor={
+              votacoesIndicadores?.alinhamentoPct != null &&
+              votacoesIndicadores.alinhamentoPct >= 70
+                ? "#059669"
+                : votacoesIndicadores?.alinhamentoPct != null &&
+                    votacoesIndicadores.alinhamentoPct >= 40
+                  ? "#d97706"
+                  : "#ef4444"
+            }
+          />
+          <KPICard
+            value={temasTop.length > 0 ? temasTop.length : "—"}
+            label="Temas Ativos"
+            icon={Tag}
+            gradient="linear-gradient(90deg, #7c3aed, #8b5cf6)"
+            iconBg="#7c3aed18"
+            textColor="#7c3aed"
+          />
         </div>
-        <div className="p-6">
-          {proposicoesResumo && (
-            <div className="mb-6 flex flex-wrap items-center gap-4">
-              <div className="flex items-center gap-3 rounded-xl border border-gray-100 bg-gradient-to-br from-[#749c5b]/10 to-[#749c5b]/5 px-5 py-4">
-                <div className="flex h-11 w-11 items-center justify-center rounded-lg bg-[#749c5b]/15">
-                  <FileText className="h-5 w-5 text-[#749c5b]" />
+
+        {/* ═══════ ROW 2 — Votações Gauge + Proposições Donut ═══════ */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* Alinhamento Gauge */}
+          <div className={CARD_3D}>
+            <div className={`${GLASS_HEADER} px-6 pt-5 pb-3`}>
+              <SectionTitle
+                icon={Scale}
+                title="Alinhamento nas Votações"
+                subtitle={
+                  votacoesIndicadores
+                    ? `${new Date(votacoesIndicadores.dataInicio).toLocaleDateString("pt-BR")} — ${new Date(votacoesIndicadores.dataFim).toLocaleDateString("pt-BR")}`
+                    : "Período legislativo"
+                }
+                accentColor="#2563eb"
+              />
+            </div>
+            <div className="px-4 pb-4">
+              {loadingVotacoes ? (
+                <div className="flex items-center justify-center py-16">
+                  <SkeletonLoader className="h-48 w-48 rounded-full" />
                 </div>
-                <div>
-                  <span className="text-xs font-medium uppercase tracking-wider text-gray-500">
-                    Total de proposições
-                  </span>
-                  <p className="mt-0.5 text-2xl font-bold text-gray-900">
-                    {proposicoesResumo.total}
+              ) : votacoesIndicadores &&
+                votacoesIndicadores.alinhamentoPct != null ? (
+                <>
+                  <div className="flex items-center justify-center">
+                    <AlinhamentoGauge
+                      value={votacoesIndicadores.alinhamentoPct}
+                    />
+                  </div>
+                  <div className="grid grid-cols-2 gap-0 border-t border-gray-100">
+                    <div className="flex flex-col items-center border-r border-gray-100 py-4">
+                      <span className="text-2xl font-extrabold text-blue-600">
+                        {votacoesIndicadores.baseVotosCount}
+                      </span>
+                      <span className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                        Votações
+                      </span>
+                    </div>
+                    <div className="flex flex-col items-center py-4">
+                      <span className="text-2xl font-extrabold text-gray-900">
+                        {votacoesIndicadores.alinhamentoPct.toFixed(1)}%
+                      </span>
+                      <span className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                        Alinhamento
+                      </span>
+                    </div>
+                  </div>
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-16 text-center">
+                  <Vote className="mb-3 h-10 w-10 text-gray-200" />
+                  <p className="text-sm font-medium text-gray-400">
+                    Sem dados de votações para o período.
                   </p>
                 </div>
+              )}
+            </div>
+          </div>
+
+          {/* Presença e Atividade */}
+          <div className={CARD_3D}>
+            <div className={`${GLASS_HEADER} px-6 pt-5 pb-3`}>
+              <SectionTitle
+                icon={Activity}
+                title="Presença e Atividade"
+                subtitle={
+                  presenca
+                    ? `${new Date(presenca.dataInicio).toLocaleDateString("pt-BR")} — ${new Date(presenca.dataFim).toLocaleDateString("pt-BR")}`
+                    : "Período legislativo"
+                }
+                accentColor="#059669"
+              />
+            </div>
+            <div className="px-6 pb-5">
+              {loadingPresenca || loadingContadores ? (
+                <div className="space-y-3 py-8">
+                  {[1, 2, 3].map((i) => (
+                    <SkeletonLoader
+                      key={i}
+                      className="h-12 w-full rounded-xl"
+                    />
+                  ))}
+                </div>
+              ) : (
+                <div className="space-y-4">
+                  {presenca &&
+                  presenca.presencas + presenca.ausencias > 0 ? (
+                    <div className="flex items-center gap-4 rounded-xl bg-gradient-to-r from-emerald-50 to-emerald-50/30 p-4">
+                      <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-xl bg-emerald-100 shadow-sm">
+                        <span className="text-lg font-extrabold text-emerald-600">
+                          {Math.round(
+                            (presenca.presencas /
+                              (presenca.presencas + presenca.ausencias)) *
+                              100,
+                          )}
+                          %
+                        </span>
+                      </div>
+                      <div>
+                        <p className="text-sm font-bold text-gray-900">
+                          Taxa de Presença
+                        </p>
+                        <p className="text-xs text-gray-500">
+                          {presenca.presencas} presenças ·{" "}
+                          {presenca.ausencias} ausências
+                        </p>
+                      </div>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-3 rounded-xl bg-gray-50 p-4">
+                      <CheckCircle2 className="h-5 w-5 text-gray-300" />
+                      <p className="text-xs font-medium text-gray-400">
+                        Dados de presença indisponíveis
+                      </p>
+                    </div>
+                  )}
+
+                  {contadores && (
+                    <div className="grid grid-cols-2 gap-3">
+                      {[
+                        {
+                          label: "Eventos",
+                          value: contadores.eventos,
+                          color: "#2563eb",
+                          bg: "bg-blue-50",
+                        },
+                        {
+                          label: "Proposições",
+                          value: contadores.proposicoes,
+                          color: "#749c5b",
+                          bg: "bg-green-50",
+                        },
+                        {
+                          label: "Discursos",
+                          value: contadores.discursos,
+                          color: "#7c3aed",
+                          bg: "bg-purple-50",
+                        },
+                        {
+                          label: "Votações",
+                          value: contadores.votacoes,
+                          color: "#d97706",
+                          bg: "bg-amber-50",
+                        },
+                      ].map((item) => (
+                        <div
+                          key={item.label}
+                          className={cn(
+                            "rounded-xl p-3 transition-all hover:shadow-sm",
+                            item.bg,
+                          )}
+                        >
+                          <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                            {item.label}
+                          </p>
+                          <p
+                            className="mt-1 text-xl font-extrabold"
+                            style={{ color: item.color }}
+                          >
+                            {item.value}
+                          </p>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  {discursosResumo && discursosResumo.total > 0 && (
+                    <div className="flex items-center justify-between rounded-lg border border-purple-100 bg-purple-50/50 px-4 py-2.5">
+                      <div className="flex items-center gap-2">
+                        <Mic2 className="h-4 w-4 text-purple-500" />
+                        <span className="text-xs font-semibold text-gray-700">
+                          <span className="font-extrabold text-purple-600">
+                            {discursosResumo.total}
+                          </span>{" "}
+                          discursos no período
+                        </span>
+                      </div>
+                      {discursosResumo.ultimaData && (
+                        <span className="text-[10px] text-gray-400">
+                          Último:{" "}
+                          {new Date(
+                            discursosResumo.ultimaData,
+                          ).toLocaleDateString("pt-BR")}
+                        </span>
+                      )}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* ═══════ ROW 3 — Proposições por Tipo + Temas ═══════ */}
+        {(propsPorTipo.length > 0 || temasTop.length > 0) && (
+          <div
+            className={cn(
+              "grid gap-6",
+              propsPorTipo.length > 0 && temasTop.length > 0
+                ? "lg:grid-cols-2"
+                : "",
+            )}
+          >
+            {propsPorTipo.length > 0 && (
+              <div className={CARD_3D}>
+                <div className={`${GLASS_HEADER} px-6 pt-5 pb-3`}>
+                  <SectionTitle
+                    icon={BarChart3}
+                    title="Proposições por Tipo"
+                    subtitle="Distribuição das proposições por categoria"
+                    badge={`${proposicoesResumo?.total ?? 0} total`}
+                  />
+                </div>
+                <div className="flex items-center justify-center px-4 pb-4">
+                  <ReactApexChart
+                    options={piePropsOptions}
+                    series={propsPorTipo.map((t) => t.count)}
+                    type="donut"
+                    height={300}
+                    width="100%"
+                  />
+                </div>
               </div>
-              <div className="flex flex-wrap gap-2">
-                {proposicoesResumo.cnt_prop_por_tipo?.slice(0, 6).map((t) => (
+            )}
+
+            {temasTop.length > 0 && (
+              <div className={CARD_3D}>
+                <div className={`${GLASS_HEADER} px-6 pt-5 pb-3`}>
+                  <SectionTitle
+                    icon={Tag}
+                    title="Temas de Atuação"
+                    subtitle="Ranking de temas nas proposições (autor/coautor)"
+                    badge={`Top ${temasTop.length}`}
+                    accentColor="#4E9F3D"
+                  />
+                </div>
+                {loadingTemas ? (
+                  <div className="space-y-3 px-6 pb-6">
+                    {[1, 2, 3, 4, 5].map((i) => (
+                      <SkeletonLoader
+                        key={i}
+                        className="h-10 w-full rounded-xl"
+                      />
+                    ))}
+                  </div>
+                ) : (
+                  <div className="px-0 pb-4">
+                    <ReactApexChart
+                      options={barTemasOptions}
+                      series={[
+                        {
+                          name: "Proposições",
+                          data: temasTop.map((t) => t.count),
+                        },
+                      ]}
+                      type="bar"
+                      height={Math.max(temasTop.length * 42, 220)}
+                      width="100%"
+                    />
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* ═══════ ROW 4 — Lista de Proposições ═══════ */}
+        <div className={CARD_3D}>
+          <div className="border-b border-gray-100 bg-gradient-to-r from-gray-50/80 to-white p-6">
+            <div className="flex flex-wrap items-center justify-between gap-4">
+              <SectionTitle
+                icon={FileText}
+                title="Proposições"
+                subtitle="Autoria e coautoria de projetos de lei"
+                badge={
+                  proposicoesResumo
+                    ? `${proposicoesResumo.total} total`
+                    : undefined
+                }
+              />
+              <div className="flex flex-wrap items-center gap-2">
+                {politician && (
+                  <Link href={`/procedures?authorId=${politician.id}`}>
+                    <Button
+                      variant="outline"
+                      className="h-9 rounded-xl border-secondary/30 bg-secondary/5 text-xs font-bold text-secondary hover:bg-secondary hover:text-white"
+                    >
+                      Buscar na LegisAI
+                    </Button>
+                  </Link>
+                )}
+                {proposicoesResumo?.link && (
+                  <a
+                    href={proposicoesResumo.link}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                  >
+                    <Button
+                      variant="outline"
+                      className="h-9 rounded-xl border-gray-200 text-xs font-bold text-gray-600 hover:bg-gray-100"
+                    >
+                      Ver na Câmara
+                      <ExternalLink className="ml-1.5 h-3.5 w-3.5" />
+                    </Button>
+                  </a>
+                )}
+              </div>
+            </div>
+          </div>
+          <div className="p-6">
+            {/* Badges por tipo */}
+            {propsPorTipo.length > 0 && (
+              <div className="mb-5 flex flex-wrap gap-2">
+                {propsPorTipo.slice(0, 8).map((t, i) => (
                   <span
                     key={t.sigla_tipo}
-                    className="rounded-full bg-[#749c5b]/10 px-3 py-1.5 text-xs font-semibold text-[#749c5b]"
+                    className="inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-xs font-bold shadow-sm"
+                    style={{
+                      background: `${BI_PALETTE[i % BI_PALETTE.length]}15`,
+                      color: BI_PALETTE[i % BI_PALETTE.length],
+                    }}
                   >
-                    {t.sigla_tipo}: {t.count}
+                    {t.sigla_tipo}
+                    <span
+                      className="rounded-full px-1.5 py-0.5 text-[10px] font-extrabold"
+                      style={{
+                        background: `${BI_PALETTE[i % BI_PALETTE.length]}20`,
+                      }}
+                    >
+                      {t.count}
+                    </span>
                   </span>
                 ))}
               </div>
-            </div>
-          )}
-          <div>
-            <h4 className="mb-3 text-sm font-semibold text-gray-700">
-              Lista (autor/coautor)
-            </h4>
+            )}
+
             {loadingProposicoes ? (
               <div className="space-y-3">
                 {[1, 2, 3, 4, 5].map((i) => (
-                  <SkeletonLoader key={i} className="h-24 w-full rounded-xl" />
+                  <SkeletonLoader key={i} className="h-20 w-full rounded-xl" />
                 ))}
               </div>
             ) : proposicoes.length > 0 ? (
@@ -198,7 +776,7 @@ export function TabPosicionamento({ data }: { data: DeputadoPageData }) {
                   ))}
                 </div>
                 {proposicoesPages > 1 && (
-                  <div className="mt-6 flex justify-center">
+                  <div className="mt-6 rounded-xl border border-gray-100 bg-gray-50/30 p-3">
                     <CustomPagination
                       pages={proposicoesPages}
                       currentPage={proposicoesPage}
@@ -208,170 +786,21 @@ export function TabPosicionamento({ data }: { data: DeputadoPageData }) {
                 )}
               </>
             ) : (
-              <div className="rounded-xl border border-dashed border-gray-200 py-14 text-center">
-                <FileText className="mx-auto h-12 w-12 text-gray-300" />
-                <p className="mt-3 text-sm text-gray-500">
-                  Nenhuma proposição encontrada.
+              <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/30 py-16 text-center">
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100">
+                  <FileText className="h-8 w-8 text-gray-300" />
+                </div>
+                <h4 className="text-base font-bold text-gray-600">
+                  Nenhuma proposição encontrada
+                </h4>
+                <p className="mt-2 max-w-sm text-sm text-gray-400">
+                  Não há proposições de autoria ou coautoria registradas.
                 </p>
               </div>
             )}
           </div>
         </div>
-      </Card>
-
-      {/* Votações */}
-      <Card className="overflow-hidden border-gray-100 shadow-sm transition-shadow hover:shadow-md">
-        <div className="border-b border-gray-100 bg-gray-50/50 px-6 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#749c5b]/10">
-              <Vote className="h-5 w-5 text-[#749c5b]" />
-            </div>
-            <div>
-              <h3 className="font-bold text-gray-900">Votações nominais</h3>
-              <p className="text-xs text-gray-500">
-                Participação e alinhamento nas votações no período
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="p-6">
-          {loadingVotacoes ? (
-            <div className="flex flex-wrap gap-4">
-              <SkeletonLoader className="h-28 w-40 rounded-xl" />
-              <SkeletonLoader className="h-28 w-52 rounded-xl" />
-            </div>
-          ) : votacoesIndicadores ? (
-            <div className="space-y-6">
-              <div className="grid gap-4 sm:grid-cols-2">
-                <div className="flex items-center gap-4 rounded-xl border border-gray-100 bg-gray-50/50 px-5 py-5 transition-colors hover:bg-gray-50">
-                  <div className="flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-[#749c5b]/10">
-                    <Vote className="h-6 w-6 text-[#749c5b]" />
-                  </div>
-                  <div>
-                    <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
-                      Votações no período
-                    </p>
-                    <p className="mt-1 text-2xl font-bold text-gray-900">
-                      {votacoesIndicadores.baseVotosCount}
-                    </p>
-                  </div>
-                </div>
-                {votacoesIndicadores.alinhamentoPct != null && (
-                  <div className="rounded-xl border border-gray-100 bg-gray-50/50 px-5 py-5 transition-colors hover:bg-gray-50">
-                    <div className="mb-3 flex items-center gap-2">
-                      <TrendingUp className="h-4 w-4 text-gray-500" />
-                      <p className="text-xs font-medium uppercase tracking-wider text-gray-500">
-                        Alinhamento
-                      </p>
-                    </div>
-                    <p className="text-2xl font-bold text-gray-900">
-                      {votacoesIndicadores.alinhamentoPct}%
-                    </p>
-                    <div className="mt-4">
-                      <AlinhamentoBar value={votacoesIndicadores.alinhamentoPct} />
-                    </div>
-                  </div>
-                )}
-              </div>
-              <div className="flex items-center gap-2 rounded-xl bg-gray-50/80 px-4 py-3 text-sm text-gray-600">
-                <Calendar className="h-4 w-4 shrink-0 text-gray-400" />
-                <span>
-                  Período:{" "}
-                  {new Date(
-                    votacoesIndicadores.dataInicio
-                  ).toLocaleDateString("pt-BR")}{" "}
-                  a{" "}
-                  {new Date(
-                    votacoesIndicadores.dataFim
-                  ).toLocaleDateString("pt-BR")}
-                </span>
-              </div>
-            </div>
-          ) : (
-            <div className="rounded-xl border border-dashed border-gray-200 py-14 text-center">
-              <Vote className="mx-auto h-12 w-12 text-gray-300" />
-              <p className="mt-3 text-sm text-gray-500">
-                Sem dados de votações para o período.
-              </p>
-            </div>
-          )}
-        </div>
-      </Card>
-
-      {/* Temas */}
-      <Card className="overflow-hidden border-gray-100 shadow-sm transition-shadow hover:shadow-md">
-        <div className="border-b border-gray-100 bg-gray-50/50 px-6 py-4">
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#749c5b]/10">
-              <Tag className="h-5 w-5 text-[#749c5b]" />
-            </div>
-            <div>
-              <h3 className="font-bold text-gray-900">Temas</h3>
-              <p className="text-xs text-gray-500">
-                Temas presentes nas proposições de autoria ou coautoria
-              </p>
-            </div>
-          </div>
-        </div>
-        <div className="p-6">
-          {loadingTemas ? (
-            <div className="space-y-3">
-              {[1, 2, 3, 4, 5, 6, 7].map((i) => (
-                <SkeletonLoader key={i} className="h-14 w-full rounded-xl" />
-              ))}
-            </div>
-          ) : temas?.temas && temas.temas.length > 0 ? (
-            <div className="space-y-4">
-              <p className="text-xs font-medium text-gray-500">
-                Ordenado por quantidade de proposições por tema
-              </p>
-              <ul className="space-y-3">
-                {(() => {
-                  const maxCount = Math.max(
-                    ...temas.temas.map((x) => x.count),
-                    1
-                  );
-                  return temas.temas.map((t, idx) => (
-                    <li
-                      key={t.cod_tema}
-                      className={cn(
-                        "group flex items-center gap-4 rounded-xl border px-4 py-3.5 transition-all",
-                        idx < 3
-                          ? "border-[#749c5b]/20 bg-[#749c5b]/5 hover:bg-[#749c5b]/10"
-                          : "border-gray-100 bg-gray-50/30 hover:border-[#749c5b]/20 hover:bg-[#749c5b]/5"
-                      )}
-                    >
-                      <div className="min-w-0 flex-1 space-y-2">
-                        <span className="text-sm font-medium text-gray-900">
-                          {t.tema_nome}
-                        </span>
-                        <div className="h-2.5 w-full overflow-hidden rounded-full bg-gray-100">
-                          <div
-                            className="h-full rounded-full bg-[#749c5b] transition-all duration-500"
-                            style={{
-                              width: `${(t.count / maxCount) * 100}%`,
-                            }}
-                          />
-                        </div>
-                      </div>
-                      <span className="shrink-0 rounded-full bg-[#749c5b]/15 px-3.5 py-1 text-sm font-bold text-[#749c5b]">
-                        {t.count}
-                      </span>
-                    </li>
-                  ));
-                })()}
-              </ul>
-            </div>
-          ) : (
-            <div className="rounded-xl border border-dashed border-gray-200 py-14 text-center">
-              <Tag className="mx-auto h-12 w-12 text-gray-300" />
-              <p className="mt-3 text-sm text-gray-500">
-                Nenhum tema encontrado nas proposições.
-              </p>
-            </div>
-          )}
-        </div>
-      </Card>
-    </div>
+      </div>
+    </TooltipProvider>
   );
 }

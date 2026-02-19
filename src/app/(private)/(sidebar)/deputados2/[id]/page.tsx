@@ -54,7 +54,21 @@ export default function DeputadoDetalhesPage2() {
         </div>
       ) : !data.politician ? (
         <Card className="border-gray-100 p-8 text-center text-gray-500">
-          Deputado não encontrado.
+          {data.fetchError ? (
+            <>
+              <p className="font-medium text-gray-700">
+                Não foi possível carregar o deputado
+              </p>
+              <p className="mt-2 text-sm">{data.fetchError}</p>
+              <p className="mt-4 text-sm">
+                Confirme que a API está rodando e que o banco de dados está
+                acessível. O ID {id} pode estar correto, mas o servidor não
+                respondeu.
+              </p>
+            </>
+          ) : (
+            "Deputado não encontrado."
+          )}
         </Card>
       ) : (
         <>
@@ -96,7 +110,7 @@ export default function DeputadoDetalhesPage2() {
               value="overview"
               className="animate-in fade-in slide-in-from-bottom-2 space-y-6 duration-300"
             >
-              <TabOverview data={data} />
+              <TabOverview data={data} onNavigateTab={setActiveTab} />
             </Tabs.Content>
 
             <Tabs.Content

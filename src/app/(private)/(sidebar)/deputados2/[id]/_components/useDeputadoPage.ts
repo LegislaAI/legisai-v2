@@ -28,6 +28,7 @@ export function useDeputadoPage(id: string | undefined) {
     null,
   );
   const [loading, setLoading] = useState(true);
+  const [fetchError, setFetchError] = useState<string | null>(null);
   const [selectedYear, setSelectedYear] = useState("2025");
 
   const [historico, setHistorico] = useState<HistoricoResponse | null>(null);
@@ -46,6 +47,10 @@ export function useDeputadoPage(id: string | undefined) {
   const [loadingAgenda, setLoadingAgenda] = useState(false);
   const [loadingEventos, setLoadingEventos] = useState(false);
 
+  const [calendarDate, setCalendarDate] = useState<Date>(new Date());
+  const [calendarEvents, setCalendarEvents] = useState<EventoAgenda[]>([]);
+  const [loadingCalendarEvents, setLoadingCalendarEvents] = useState(false);
+
   const [proposicoesResumo, setProposicoesResumo] =
     useState<ProposicoesResumo | null>(null);
   const [proposicoes, setProposicoes] = useState<ProposicaoDeputado[]>([]);
@@ -60,6 +65,18 @@ export function useDeputadoPage(id: string | undefined) {
   const [ocupacoes, setOcupacoes] = useState<
     { titulo: string; entidade?: string; periodo?: string }[]
   >([]);
+  const [biografia, setBiografia] = useState<{
+    escolaridade: string | null;
+    sexo: string | null;
+    dataNascimento: string | null;
+    dataFalecimento: string | null;
+    municipioNascimento: string | null;
+    ufNascimento: string | null;
+    nomeCivil: string | null;
+    cpf: string | null;
+    urlWebsite: string | null;
+    redesSociais: string[];
+  } | null>(null);
   const [loadingBio, setLoadingBio] = useState(false);
 
   const [contadores, setContadores] = useState<Contadores | null>(null);
@@ -80,6 +97,11 @@ export function useDeputadoPage(id: string | undefined) {
   const [loadingCeapResumo, setLoadingCeapResumo] = useState(false);
   const [loadingCeapDespesas, setLoadingCeapDespesas] = useState(false);
 
+  const [pastEvents, setPastEvents] = useState<EventoAgenda[]>([]);
+  const [loadingPastEvents, setLoadingPastEvents] = useState(false);
+  const [upcomingEvents, setUpcomingEvents] = useState<EventoAgenda[]>([]);
+  const [loadingUpcomingEvents, setLoadingUpcomingEvents] = useState(false);
+
   const [discursosResumo, setDiscursosResumo] =
     useState<DiscursosResumo | null>(null);
   const [loadingDiscursos, setLoadingDiscursos] = useState(false);
@@ -94,15 +116,28 @@ export function useDeputadoPage(id: string | undefined) {
   const fetchDetails = useCallback(async () => {
     if (!id) return;
     setLoading(true);
+    setFetchError(null);
     try {
       const res = await GetAPI(
         `/politician/details/${id}?year=${selectedYear}`,
         true,
       );
-      if (res.status === 200 && res.body) setPolitician(res.body);
-      else setPolitician(null);
+      if (res.status === 200) {
+        setPolitician(res.body ?? null);
+        setFetchError(null);
+      } else {
+        setPolitician(null);
+        setFetchError(
+          typeof res.body === "string"
+            ? res.body
+            : "Não foi possível carregar os dados do deputado. Verifique sua conexão ou tente mais tarde.",
+        );
+      }
     } catch {
       setPolitician(null);
+      setFetchError(
+        "Não foi possível carregar os dados do deputado. Verifique sua conexão ou tente mais tarde.",
+      );
     } finally {
       setLoading(false);
     }
@@ -191,6 +226,99 @@ export function useDeputadoPage(id: string | undefined) {
     fetchEventos();
   }, [fetchEventos]);
 
+  const fetchCalendarEvents = useCallback(async () => {
+    if (!id) return;
+    setLoadingCalendarEvents(true);
+    try {
+      const year = calendarDate.getFullYear();
+      const month = calendarDate.getMonth();
+      const dataInicio = `${year}-${String(month + 1).padStart(2, "0")}-01`;
+      const lastDay = new Date(year, month + 1, 0).getDate();
+      const dataFim = `${year}-${String(month + 1).padStart(2, "0")}-${String(lastDay).padStart(2, "0")}`;
+      const params = new URLSearchParams();
+      params.set("dataInicio", dataInicio);
+      params.set("dataFim", dataFim);
+      params.set("pageSize", "200");
+      const res = await GetAPI(
+        `/politician/${id}/eventos?${params.toString()}`,
+        true,
+      );
+      if (res.status === 200 && res.body) {
+        setCalendarEvents(res.body.eventos ?? []);
+      } else setCalendarEvents([]);
+    } catch {
+      setCalendarEvents([]);
+    } finally {
+      setLoadingCalendarEvents(false);
+    }
+  }, [id, calendarDate, GetAPI]);
+
+  useEffect(() => {
+    fetchCalendarEvents();
+  }, [fetchCalendarEvents]);
+
+  const fetchPastEvents = useCallback(async () => {
+    if (!id) return;
+    setLoadingPastEvents(true);
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const params = new URLSearchParams();
+      params.set("dataFim", today);
+      params.set("pageSize", "10");
+      const res = await GetAPI(
+        `/politician/${id}/eventos?${params.toString()}`,
+        true,
+      );
+      if (res.status === 200 && res.body) {
+        const evts: EventoAgenda[] = res.body.eventos ?? [];
+        evts.sort(
+          (a, b) =>
+            new Date(b.dt_inicio).getTime() - new Date(a.dt_inicio).getTime(),
+        );
+        setPastEvents(evts);
+      } else setPastEvents([]);
+    } catch {
+      setPastEvents([]);
+    } finally {
+      setLoadingPastEvents(false);
+    }
+  }, [id, GetAPI]);
+
+  const fetchUpcomingEvents = useCallback(async () => {
+    if (!id) return;
+    setLoadingUpcomingEvents(true);
+    try {
+      const today = new Date().toISOString().slice(0, 10);
+      const params = new URLSearchParams();
+      params.set("dataInicio", today);
+      params.set("pageSize", "10");
+      const res = await GetAPI(
+        `/politician/${id}/eventos?${params.toString()}`,
+        true,
+      );
+      if (res.status === 200 && res.body) {
+        const evts: EventoAgenda[] = res.body.eventos ?? [];
+        evts.sort(
+          (a, b) =>
+            new Date(a.dt_inicio).getTime() - new Date(b.dt_inicio).getTime(),
+        );
+        setUpcomingEvents(evts);
+      } else setUpcomingEvents([]);
+    } catch {
+      setUpcomingEvents([]);
+    } finally {
+      setLoadingUpcomingEvents(false);
+    }
+  }, [id, GetAPI]);
+
+  useEffect(() => {
+    fetchPastEvents();
+  }, [fetchPastEvents]);
+
+  useEffect(() => {
+    fetchUpcomingEvents();
+  }, [fetchUpcomingEvents]);
+
   const fetchProposicoesResumo = useCallback(async () => {
     if (!id) return;
     const res = await GetAPI(`/politician/${id}/proposicoes/resumo`, true);
@@ -232,9 +360,10 @@ export function useDeputadoPage(id: string | undefined) {
     if (!id) return;
     setLoadingBio(true);
     try {
-      const [rProf, rOcup] = await Promise.all([
+      const [rProf, rOcup, rBio] = await Promise.all([
         GetAPI(`/politician/${id}/profissoes`, true),
         GetAPI(`/politician/${id}/ocupacoes`, true),
+        GetAPI(`/politician/${id}/biografia`, true),
       ]);
       if (rProf.status === 200 && rProf.body?.profissoes)
         setProfissoes(rProf.body.profissoes);
@@ -242,9 +371,12 @@ export function useDeputadoPage(id: string | undefined) {
       if (rOcup.status === 200 && rOcup.body?.ocupacoes)
         setOcupacoes(rOcup.body.ocupacoes);
       else setOcupacoes([]);
+      if (rBio.status === 200 && rBio.body) setBiografia(rBio.body);
+      else setBiografia(null);
     } catch {
       setProfissoes([]);
       setOcupacoes([]);
+      setBiografia(null);
     } finally {
       setLoadingBio(false);
     }
@@ -526,6 +658,16 @@ export function useDeputadoPage(id: string | undefined) {
     loadingAgenda,
     loadingEventos,
 
+    calendarDate,
+    setCalendarDate,
+    calendarEvents,
+    loadingCalendarEvents,
+
+    pastEvents,
+    loadingPastEvents,
+    upcomingEvents,
+    loadingUpcomingEvents,
+
     proposicoesResumo,
     proposicoes,
     proposicoesPage,
@@ -535,6 +677,7 @@ export function useDeputadoPage(id: string | undefined) {
 
     profissoes,
     ocupacoes,
+    biografia,
     loadingBio,
 
     contadores,
@@ -566,6 +709,8 @@ export function useDeputadoPage(id: string | undefined) {
     hasChartData,
     hasFinanceDetail,
     socialLinks,
+
+    fetchError,
   };
 }
 

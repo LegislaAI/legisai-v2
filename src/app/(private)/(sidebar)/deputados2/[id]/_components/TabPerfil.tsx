@@ -10,29 +10,241 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/v2/components/ui/select";
-import { Progress } from "@/components/v2/components/ui/progress";
 import { CustomPagination } from "@/components/ui/CustomPagination";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/v2/components/ui/tooltip";
+import {
   BarChart3,
+  BookOpen,
   Briefcase,
   Building2,
   Calendar,
+  ChevronRight,
   ExternalLink,
+  Facebook,
   Globe,
+  GraduationCap,
   History,
+  Instagram,
   Mail,
   MapPin,
+  MessageSquare,
+  Mic2,
   Phone,
+  Search,
+  Share2,
   Tag,
+  TrendingUp,
   User,
   Vote,
+  Youtube,
 } from "lucide-react";
 import dynamic from "next/dynamic";
 import type { DeputadoPageData } from "./useDeputadoPage";
 import { SkeletonLoader } from "./SkeletonLoader";
 import { HISTORICO_YEARS, HISTORICO_PAGE_SIZES } from "./constants";
+import type { ApexOptions } from "apexcharts";
 
-const ReactApexChart = dynamic(() => import("react-apexcharts"), { ssr: false });
+const ReactApexChart = dynamic(() => import("react-apexcharts"), {
+  ssr: false,
+});
+
+const BI_PALETTE = [
+  "#749c5b",
+  "#4E9F3D",
+  "#2d5a3d",
+  "#1B3B2B",
+  "#5a8c4a",
+  "#8ab86e",
+  "#3d7a5c",
+  "#6bc28c",
+  "#2e6b4a",
+  "#a0d88a",
+];
+
+function parsePositionDate(dateStr: string | null | undefined): string {
+  if (!dateStr || dateStr.trim() === "") return "Data não informada";
+
+  // Tenta parsear formato ISO (YYYY-MM-DD)
+  let date = new Date(dateStr);
+  if (!isNaN(date.getTime())) {
+    return date.toLocaleDateString("pt-BR", { dateStyle: "long" });
+  }
+
+  // Tenta parsear formato brasileiro (DD/MM/YYYY)
+  const brMatch = dateStr.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (brMatch) {
+    const [, day, month, year] = brMatch;
+    date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+    if (!isNaN(date.getTime())) {
+      return date.toLocaleDateString("pt-BR", { dateStyle: "long" });
+    }
+  }
+
+  // Tenta extrair apenas o ano (ex: "2023")
+  const yearMatch = dateStr.match(/^(\d{4})$/);
+  if (yearMatch) {
+    return yearMatch[1];
+  }
+
+  return "Data não informada";
+}
+
+const CARD_3D =
+  "relative overflow-hidden rounded-2xl border-0 bg-white shadow-[0_4px_24px_-4px_rgba(0,0,0,0.08),0_1px_2px_-1px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_40px_-8px_rgba(116,156,91,0.18),0_2px_8px_-2px_rgba(0,0,0,0.06)] hover:-translate-y-[2px]";
+
+const GLASS_HEADER =
+  "bg-gradient-to-r from-[#749c5b]/[0.04] via-white/80 to-white backdrop-blur-sm";
+
+function SectionTitle({
+  icon: Icon,
+  title,
+  subtitle,
+  badge,
+  accentColor = "#749c5b",
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  subtitle?: string;
+  badge?: string;
+  accentColor?: string;
+}) {
+  return (
+    <div className="flex items-center justify-between">
+      <div className="flex items-center gap-3">
+        <div
+          className="flex h-11 w-11 items-center justify-center rounded-xl shadow-sm"
+          style={{
+            background: `linear-gradient(135deg, ${accentColor}22, ${accentColor}0a)`,
+          }}
+        >
+          <Icon className="h-5 w-5" style={{ color: accentColor }} />
+        </div>
+        <div>
+          <h3 className="text-[15px] font-bold tracking-tight text-gray-900">
+            {title}
+          </h3>
+          {subtitle && (
+            <p className="text-[11px] text-gray-400">{subtitle}</p>
+          )}
+        </div>
+      </div>
+      {badge && (
+        <span
+          className="rounded-full px-3 py-1.5 text-[11px] font-bold"
+          style={{
+            background: `${accentColor}15`,
+            color: accentColor,
+          }}
+        >
+          {badge}
+        </span>
+      )}
+    </div>
+  );
+}
+
+function KPICard({
+  value,
+  label,
+  icon: Icon,
+  gradient,
+  iconBg,
+  textColor,
+  trend,
+}: {
+  value: number | string;
+  label: string;
+  icon: React.ComponentType<{ className?: string }>;
+  gradient: string;
+  iconBg: string;
+  textColor: string;
+  trend?: string;
+}) {
+  return (
+    <div
+      className={`${CARD_3D} group cursor-default p-0`}
+      style={{ perspective: "800px" }}
+    >
+      <div
+        className="absolute inset-0 opacity-[0.03]"
+        style={{
+          backgroundImage:
+            "radial-gradient(circle at 80% 20%, currentColor 0%, transparent 50%)",
+        }}
+      />
+      <div className="relative p-5">
+        <div className="mb-4 flex items-center justify-between">
+          <div
+            className="flex h-10 w-10 items-center justify-center rounded-xl shadow-sm"
+            style={{ background: iconBg }}
+          >
+            <Icon className="h-5 w-5" style={{ color: textColor }} />
+          </div>
+          {trend && (
+            <span className="flex items-center gap-1 rounded-full bg-emerald-50 px-2 py-0.5 text-[10px] font-bold text-emerald-600">
+              <TrendingUp className="h-3 w-3" />
+              {trend}
+            </span>
+          )}
+        </div>
+        <p
+          className="text-3xl font-extrabold tracking-tight"
+          style={{ color: textColor }}
+        >
+          {value}
+        </p>
+        <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-gray-400">
+          {label}
+        </p>
+        <div
+          className="absolute bottom-0 left-0 h-1 w-full"
+          style={{ background: gradient }}
+        />
+      </div>
+    </div>
+  );
+}
+
+function getSocialIcon(label: string) {
+  const lower = label.toLowerCase();
+  if (lower.includes("facebook")) return Facebook;
+  if (lower.includes("instagram")) return Instagram;
+  if (lower.includes("youtube")) return Youtube;
+  return Globe;
+}
+
+function getSocialColor(label: string) {
+  const lower = label.toLowerCase();
+  if (lower.includes("facebook"))
+    return {
+      hover: "hover:bg-[#1877F2]/10 hover:border-[#1877F2]/30",
+      color: "#1877F2",
+    };
+  if (lower.includes("instagram"))
+    return {
+      hover: "hover:bg-[#E4405F]/10 hover:border-[#E4405F]/30",
+      color: "#E4405F",
+    };
+  if (lower.includes("youtube"))
+    return {
+      hover: "hover:bg-[#FF0000]/10 hover:border-[#FF0000]/30",
+      color: "#FF0000",
+    };
+  if (lower.includes("tiktok"))
+    return {
+      hover: "hover:bg-[#010101]/10 hover:border-[#010101]/30",
+      color: "#010101",
+    };
+  return {
+    hover: "hover:bg-secondary/10 hover:border-secondary/30",
+    color: "#749c5b",
+  };
+}
 
 export function TabPerfil({ data }: { data: DeputadoPageData }) {
   const {
@@ -43,6 +255,7 @@ export function TabPerfil({ data }: { data: DeputadoPageData }) {
     temas,
     profissoes,
     ocupacoes,
+    biografia,
     loadingBio,
     socialLinks,
     historico,
@@ -60,654 +273,1049 @@ export function TabPerfil({ data }: { data: DeputadoPageData }) {
 
   if (!politician) return null;
 
+  const presencaRate =
+    presenca && presenca.presencas + presenca.ausencias > 0
+      ? (presenca.presencas / (presenca.presencas + presenca.ausencias)) * 100
+      : null;
+
+  const totalContadores = contadores
+    ? contadores.eventos +
+      contadores.proposicoes +
+      contadores.discursos +
+      contadores.votacoes
+    : 0;
+
+  const temasTop = temas?.temas?.slice(0, 10) ?? [];
+  const temasMaxCount = Math.max(...temasTop.map((t) => t.count), 1);
+
+  const profileValues = profile
+    ? [
+        Number(profile.plenaryPresence) || 0,
+        Number(profile.committeesPresence) || 0,
+        Number(profile.createdProposals) || 0,
+        Number(profile.relatedProposals) || 0,
+        Number(profile.speeches) || 0,
+        Number(profile.rollCallVotes) || 0,
+      ]
+    : [];
+  const hasRadarData = profileValues.some((v) => v > 0);
+
+  const donutOptions: ApexOptions = {
+    chart: {
+      type: "donut",
+      fontFamily: "inherit",
+      dropShadow: {
+        enabled: true,
+        top: 2,
+        left: 0,
+        blur: 8,
+        opacity: 0.12,
+        color: "#749c5b",
+      },
+    },
+    colors: ["#749c5b", "#4E9F3D", "#2d5a3d", "#8ab86e"],
+    labels: ["Eventos", "Proposições", "Discursos", "Votações"],
+    legend: { show: false },
+    dataLabels: {
+      enabled: true,
+      formatter: (val: number) => `${Math.round(val)}%`,
+      style: { fontSize: "11px", fontWeight: "700" },
+      dropShadow: { enabled: false },
+    },
+    plotOptions: {
+      pie: {
+        donut: {
+          size: "70%",
+          labels: {
+            show: true,
+            name: { show: true, fontSize: "12px", color: "#9ca3af" },
+            value: {
+              show: true,
+              fontSize: "24px",
+              fontWeight: "800",
+              color: "#111827",
+            },
+            total: {
+              show: true,
+              label: "Total",
+              fontSize: "11px",
+              color: "#9ca3af",
+              formatter: () => String(totalContadores),
+            },
+          },
+        },
+      },
+    },
+    stroke: { width: 3, colors: ["#fff"] },
+    tooltip: {
+      y: {
+        formatter: (val: number) =>
+          `${val} (${totalContadores > 0 ? ((val / totalContadores) * 100).toFixed(1) : 0}%)`,
+      },
+    },
+  };
+
+  const radialOptions: ApexOptions = {
+    chart: { type: "radialBar", fontFamily: "inherit" },
+    plotOptions: {
+      radialBar: {
+        startAngle: -135,
+        endAngle: 135,
+        hollow: { size: "68%", background: "transparent" },
+        track: {
+          background: "#f3f4f6",
+          strokeWidth: "100%",
+          dropShadow: {
+            enabled: true,
+            top: 2,
+            left: 0,
+            blur: 4,
+            opacity: 0.08,
+          },
+        },
+        dataLabels: {
+          name: {
+            show: true,
+            fontSize: "12px",
+            color: "#9ca3af",
+            offsetY: -10,
+          },
+          value: {
+            show: true,
+            fontSize: "32px",
+            fontWeight: "800",
+            color: "#111827",
+            offsetY: 4,
+            formatter: (val: number) => `${val.toFixed(0)}%`,
+          },
+        },
+      },
+    },
+    fill: {
+      type: "gradient",
+      gradient: {
+        shade: "dark",
+        type: "horizontal",
+        colorStops: [
+          { offset: 0, color: "#749c5b", opacity: 1 },
+          { offset: 50, color: "#4E9F3D", opacity: 1 },
+          { offset: 100, color: "#2d5a3d", opacity: 1 },
+        ],
+      },
+    },
+    stroke: { lineCap: "round" },
+    labels: ["Taxa de Presença"],
+  };
+
+  const radarOptions: ApexOptions = {
+    chart: {
+      type: "radar",
+      fontFamily: "inherit",
+      toolbar: { show: false },
+      dropShadow: {
+        enabled: true,
+        blur: 4,
+        left: 1,
+        top: 1,
+        opacity: 0.1,
+      },
+    },
+    colors: ["#749c5b"],
+    xaxis: {
+      categories: [
+        "Plenário",
+        "Comissões",
+        "Props. Criadas",
+        "Props. Relac.",
+        "Discursos",
+        "Votações",
+      ],
+      labels: {
+        style: {
+          colors: Array(6).fill("#6b7280"),
+          fontSize: "11px",
+          fontWeight: "600",
+        },
+      },
+    },
+    yaxis: { show: false },
+    fill: {
+      opacity: 0.25,
+      colors: ["#749c5b"],
+    },
+    stroke: { width: 2.5, colors: ["#749c5b"] },
+    markers: {
+      size: 4,
+      colors: ["#fff"],
+      strokeColors: "#749c5b",
+      strokeWidth: 2,
+    },
+    plotOptions: {
+      radar: {
+        polygons: {
+          strokeColors: "#e5e7eb",
+          connectorColors: "#e5e7eb",
+          fill: { colors: ["#fafafa", "#fff"] },
+        },
+      },
+    },
+    tooltip: {
+      y: { formatter: (val: number) => String(val) },
+    },
+  };
+
+  const barTemasOptions: ApexOptions = {
+    chart: {
+      type: "bar",
+      fontFamily: "inherit",
+      toolbar: { show: false },
+    },
+    plotOptions: {
+      bar: {
+        horizontal: true,
+        borderRadius: 6,
+        borderRadiusApplication: "end",
+        barHeight: "70%",
+        distributed: true,
+        dataLabels: { position: "top" },
+      },
+    },
+    colors: BI_PALETTE,
+    dataLabels: {
+      enabled: true,
+      textAnchor: "start",
+      offsetX: 5,
+      style: { fontSize: "11px", fontWeight: "700", colors: ["#374151"] },
+      formatter: (_val: number, opt: { dataPointIndex: number }) =>
+        String(temasTop[opt.dataPointIndex]?.count ?? ""),
+    },
+    xaxis: {
+      categories: temasTop.map((t) =>
+        t.tema_nome.length > 30
+          ? t.tema_nome.slice(0, 28) + "…"
+          : t.tema_nome,
+      ),
+      labels: { show: false },
+      axisBorder: { show: false },
+      axisTicks: { show: false },
+    },
+    yaxis: {
+      labels: {
+        style: {
+          fontSize: "11px",
+          fontWeight: "600",
+          colors: Array(temasTop.length).fill("#374151"),
+        },
+        maxWidth: 200,
+      },
+    },
+    grid: { xaxis: { lines: { show: false } }, yaxis: { lines: { show: false } } },
+    legend: { show: false },
+    tooltip: {
+      y: { formatter: (val: number) => `${val} proposições` },
+    },
+  };
+
+  const treemapOptions: ApexOptions = {
+    chart: {
+      type: "treemap",
+      fontFamily: "inherit",
+      toolbar: { show: false },
+    },
+    colors: BI_PALETTE,
+    plotOptions: {
+      treemap: {
+        distributed: true,
+        enableShades: true,
+        shadeIntensity: 0.3,
+        colorScale: { ranges: [] },
+      },
+    },
+    legend: { show: false },
+    dataLabels: {
+      enabled: true,
+      style: { fontSize: "12px", fontWeight: "700" },
+      formatter: (_text: string, op: { value: number }) => `${op.value}`,
+      offsetY: -2,
+    },
+    tooltip: {
+      y: {
+        formatter: (val: number) =>
+          `${val} (${totalContadores > 0 ? ((val / totalContadores) * 100).toFixed(1) : 0}%)`,
+      },
+    },
+  };
+
+  const treemapData = contadores
+    ? [
+        { x: "Eventos", y: contadores.eventos },
+        { x: "Proposições", y: contadores.proposicoes },
+        { x: "Discursos", y: contadores.discursos },
+        { x: "Votações", y: contadores.votacoes },
+      ].filter((d) => d.y > 0)
+    : [];
+
   return (
-    <div className="space-y-6">
-      <div className="grid gap-6 lg:grid-cols-2">
-        <Card className="hover:border-secondary/10 border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md">
-          <div className="flex items-center gap-2 border-b border-gray-100/50 p-4">
-            <div className="bg-secondary/10 rounded-lg p-2">
-              <User className="text-secondary h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="font-bold text-gray-900">
-                Identidade e mandato
-              </h3>
-              <p className="text-xs text-gray-500">
-                Dados pessoais e do mandato
-              </p>
-            </div>
+    <TooltipProvider delayDuration={200}>
+      <div className="space-y-6">
+        {/* ═══════ ROW 1 — KPI Cards ═══════ */}
+        {contadores && (
+          <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+            <KPICard
+              value={contadores.eventos}
+              label="Eventos"
+              icon={Calendar}
+              gradient="linear-gradient(90deg, #749c5b, #4E9F3D)"
+              iconBg="#749c5b18"
+              textColor="#749c5b"
+            />
+            <KPICard
+              value={contadores.proposicoes}
+              label="Proposições"
+              icon={BookOpen}
+              gradient="linear-gradient(90deg, #4E9F3D, #2d5a3d)"
+              iconBg="#4E9F3D18"
+              textColor="#4E9F3D"
+            />
+            <KPICard
+              value={contadores.discursos}
+              label="Discursos"
+              icon={Mic2}
+              gradient="linear-gradient(90deg, #2d5a3d, #1B3B2B)"
+              iconBg="#2d5a3d18"
+              textColor="#2d5a3d"
+            />
+            <KPICard
+              value={contadores.votacoes}
+              label="Votações"
+              icon={Vote}
+              gradient="linear-gradient(90deg, #5a8c4a, #749c5b)"
+              iconBg="#5a8c4a18"
+              textColor="#5a8c4a"
+            />
           </div>
-          <ul className="space-y-0 p-4">
-            {politician.birthDate && (
-              <li className="flex items-center gap-3 rounded-lg py-2.5 pl-2 transition-colors hover:bg-gray-50">
-                <Calendar className="text-secondary h-4 w-4 shrink-0" />
-                <span className="text-sm text-gray-700">
-                  Nascimento:{" "}
-                  <strong>
-                    {new Date(politician.birthDate).toLocaleDateString("pt-BR", {
-                      dateStyle: "long",
-                    })}
-                  </strong>
-                </span>
-              </li>
-            )}
-            {politician.placeOfBirth && (
-              <li className="flex items-center gap-3 rounded-lg py-2.5 pl-2 transition-colors hover:bg-gray-50">
-                <MapPin className="text-secondary h-4 w-4 shrink-0" />
-                <span className="text-sm text-gray-700">
-                  Natural de <strong>{politician.placeOfBirth}</strong>
-                </span>
-              </li>
-            )}
-            {politician.mandatoDataInicio && (
-              <li className="flex items-center gap-3 rounded-lg py-2.5 pl-2 transition-colors hover:bg-gray-50">
-                <Globe className="text-secondary h-4 w-4 shrink-0" />
-                <span className="text-sm text-gray-700">
-                  Início do exercício:{" "}
-                  <strong>
-                    {new Date(
-                      politician.mandatoDataInicio,
-                    ).toLocaleDateString("pt-BR")}
-                  </strong>
-                </span>
-              </li>
-            )}
-            {!politician.birthDate &&
-              !politician.placeOfBirth &&
-              !politician.mandatoDataInicio && (
-                <li className="py-4 text-center text-sm text-gray-500">
-                  Nenhum dado de identidade disponível.
-                </li>
-              )}
-          </ul>
-        </Card>
+        )}
 
-        <Card className="hover:border-secondary/10 border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md">
-          <div className="flex items-center gap-2 border-b border-gray-100/50 p-4">
-            <div className="bg-secondary/10 rounded-lg p-2">
-              <Building2 className="text-secondary h-5 w-5" />
+        {/* ═══════ ROW 2 — Gráficos: Donut + Treemap + Presença ═══════ */}
+        <div className="grid gap-6 lg:grid-cols-3">
+          {/* Donut — Distribuição */}
+          {contadores && totalContadores > 0 && (
+            <div className={CARD_3D}>
+              <div className={`${GLASS_HEADER} px-6 pt-5 pb-3`}>
+                <SectionTitle
+                  icon={BarChart3}
+                  title="Distribuição de Atividades"
+                  subtitle="Proporção por tipo de atuação"
+                />
+              </div>
+              <div className="flex items-center justify-center px-4 pb-4">
+                <ReactApexChart
+                  options={donutOptions}
+                  series={[
+                    contadores.eventos,
+                    contadores.proposicoes,
+                    contadores.discursos,
+                    contadores.votacoes,
+                  ]}
+                  type="donut"
+                  height={260}
+                  width="100%"
+                />
+              </div>
+              <div className="grid grid-cols-4 gap-0 border-t border-gray-100">
+                {[
+                  { label: "Eventos", value: contadores.eventos, color: "#749c5b" },
+                  { label: "Props.", value: contadores.proposicoes, color: "#4E9F3D" },
+                  { label: "Disc.", value: contadores.discursos, color: "#2d5a3d" },
+                  { label: "Vot.", value: contadores.votacoes, color: "#8ab86e" },
+                ].map((item, i) => (
+                  <div
+                    key={item.label}
+                    className={`flex flex-col items-center py-3 ${i < 3 ? "border-r border-gray-100" : ""}`}
+                  >
+                    <div
+                      className="mb-1 h-2 w-2 rounded-full"
+                      style={{ background: item.color }}
+                    />
+                    <span className="text-lg font-extrabold text-gray-900">
+                      {item.value}
+                    </span>
+                    <span className="text-[10px] font-semibold uppercase tracking-wider text-gray-400">
+                      {item.label}
+                    </span>
+                  </div>
+                ))}
+              </div>
             </div>
-            <div>
-              <h3 className="font-bold text-gray-900">Contato</h3>
-              <p className="text-xs text-gray-500">Gabinete e canais</p>
-            </div>
-          </div>
-          <ul className="space-y-0 p-4">
-            {politician.email && (
-              <li>
-                <a
-                  href={`mailto:${politician.email}`}
-                  className="hover:bg-secondary/5 flex items-center gap-3 rounded-lg py-2.5 pl-2 transition-colors"
-                >
-                  <Mail className="text-secondary h-4 w-4 shrink-0" />
-                  <span className="hover:text-secondary text-sm text-gray-700 underline-offset-2 hover:underline">
-                    {politician.email}
-                  </span>
-                </a>
-              </li>
-            )}
-            {politician.phone && (
-              <li>
-                <a
-                  href={`tel:${politician.phone}`}
-                  className="hover:bg-secondary/5 flex items-center gap-3 rounded-lg py-2.5 pl-2 transition-colors"
-                >
-                  <Phone className="text-secondary h-4 w-4 shrink-0" />
-                  <span className="hover:text-secondary text-sm text-gray-700 underline-offset-2 hover:underline">
-                    {politician.phone}
-                  </span>
-                </a>
-              </li>
-            )}
-            {(politician.gabinetePredio ||
-              politician.gabineteAndar ||
-              politician.gabineteSala) && (
-              <li className="flex items-center gap-3 rounded-lg py-2.5 pl-2 transition-colors hover:bg-gray-50">
-                <Building2 className="text-secondary h-4 w-4 shrink-0" />
-                <span className="text-sm text-gray-700">
-                  Gabinete:{" "}
-                  {[
-                    politician.gabinetePredio,
-                    politician.gabineteAndar,
-                    politician.gabineteSala,
-                  ]
-                    .filter(Boolean)
-                    .join(" / ")}
-                </span>
-              </li>
-            )}
-            {politician.address && (
-              <li className="flex items-center gap-3 rounded-lg py-2.5 pl-2 transition-colors hover:bg-gray-50">
-                <MapPin className="text-secondary h-4 w-4 shrink-0" />
-                <span className="text-sm text-gray-700">
-                  {politician.address}
-                </span>
-              </li>
-            )}
-            {!politician.email &&
-              !politician.phone &&
-              !politician.gabinetePredio &&
-              !politician.address && (
-                <li className="py-4 text-center text-sm text-gray-500">
-                  Nenhum contato disponível.
-                </li>
-              )}
-          </ul>
-        </Card>
-      </div>
+          )}
 
-      {politician.positions && politician.positions.length > 0 && (
-        <Card className="hover:border-secondary/10 border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md">
-          <div className="flex items-center gap-2 border-b border-gray-100/50 p-4">
-            <div className="bg-secondary/10 rounded-lg p-2">
-              <Globe className="text-secondary h-5 w-5" />
+          {/* Treemap — Mapa de Calor */}
+          {contadores && treemapData.length > 0 && (
+            <div className={CARD_3D}>
+              <div className={`${GLASS_HEADER} px-6 pt-5 pb-3`}>
+                <SectionTitle
+                  icon={BarChart3}
+                  title="Mapa de Atividades"
+                  subtitle="Visão proporcional por categoria"
+                  badge={`${totalContadores} total`}
+                />
+              </div>
+              <div className="px-4 pb-4">
+                <ReactApexChart
+                  options={treemapOptions}
+                  series={[{ data: treemapData }]}
+                  type="treemap"
+                  height={300}
+                  width="100%"
+                />
+              </div>
             </div>
-            <div>
-              <h3 className="font-bold text-gray-900">Cargos e mandatos</h3>
-              <p className="text-xs text-gray-500">Histórico de posições</p>
-            </div>
-          </div>
-          <div className="relative p-6 pl-8">
-            <div className="bg-secondary/20 absolute top-6 bottom-6 left-[19px] w-0.5" />
-            {politician.positions.map((pos) => (
-              <div key={pos.id} className="relative mb-6 last:mb-0">
-                <div className="bg-secondary absolute top-0.5 left-[-26px] h-3 w-3 rounded-full border-2 border-white shadow-sm" />
-                <div className="hover:border-secondary/20 hover:bg-secondary/5 rounded-xl border border-gray-100 bg-gray-50/50 p-4 transition-colors">
-                  <p className="font-medium text-gray-900">{pos.position}</p>
-                  <p className="mt-0.5 text-xs text-gray-500">
-                    Desde{" "}
-                    {new Date(pos.startDate).toLocaleDateString("pt-BR", {
-                      dateStyle: "long",
-                    })}
-                  </p>
+          )}
+
+          {/* Presença — Radial Gauge */}
+          {presencaRate !== null && presenca && (
+            <div className={CARD_3D}>
+              <div className={`${GLASS_HEADER} px-6 pt-5 pb-3`}>
+                <SectionTitle
+                  icon={User}
+                  title="Presença Parlamentar"
+                  subtitle={`${new Date(presenca.dataInicio).toLocaleDateString("pt-BR")} — ${new Date(presenca.dataFim).toLocaleDateString("pt-BR")}`}
+                />
+              </div>
+              <div className="flex flex-col items-center px-4 pb-2">
+                <ReactApexChart
+                  options={radialOptions}
+                  series={[Math.round(presencaRate)]}
+                  type="radialBar"
+                  height={240}
+                  width="100%"
+                />
+              </div>
+              <div className="grid grid-cols-2 gap-0 border-t border-gray-100">
+                <div className="flex flex-col items-center border-r border-gray-100 py-4">
+                  <span className="text-2xl font-extrabold text-emerald-600">
+                    {presenca.presencas}
+                  </span>
+                  <span className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-emerald-400">
+                    Presenças
+                  </span>
+                </div>
+                <div className="flex flex-col items-center py-4">
+                  <span className="text-2xl font-extrabold text-red-500">
+                    {presenca.ausencias}
+                  </span>
+                  <span className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-red-400">
+                    Ausências
+                  </span>
                 </div>
               </div>
-            ))}
-          </div>
-        </Card>
-      )}
-
-      <Card className="hover:border-secondary/10 border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md">
-        <div className="flex items-center gap-2 border-b border-gray-100/50 p-4">
-          <div className="bg-secondary/10 rounded-lg p-2">
-            <Briefcase className="text-secondary h-5 w-5" />
-          </div>
-          <div>
-            <h3 className="font-bold text-gray-900">Biografia</h3>
-            <p className="text-xs text-gray-500">
-              Profissões e ocupações declaradas
-            </p>
-          </div>
-        </div>
-        <div className="space-y-6 p-6">
-          {loadingBio ? (
-            <div className="space-y-3">
-              <SkeletonLoader className="h-10 w-full rounded-lg" />
-              <SkeletonLoader className="h-16 w-full rounded-lg" />
             </div>
-          ) : (
-            <>
-              {profissoes.length > 0 && (
-                <div>
-                  <h4 className="mb-2 text-xs font-semibold tracking-wider text-gray-500 uppercase">
-                    Profissões declaradas
-                  </h4>
-                  <ul className="flex flex-wrap gap-2">
-                    {profissoes.map((p, i) => (
-                      <li
-                        key={i}
-                        className="bg-secondary/10 text-secondary hover:bg-secondary/20 rounded-lg px-3 py-1.5 text-sm font-medium transition-colors"
-                      >
-                        {p.titulo}
-                        {p.data ? ` (${p.data})` : ""}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {ocupacoes.length > 0 && (
-                <div>
-                  <h4 className="mb-2 text-xs font-semibold tracking-wider text-gray-500 uppercase">
-                    Ocupações declaradas
-                  </h4>
-                  <ul className="space-y-2">
-                    {ocupacoes.map((o, i) => (
-                      <li
-                        key={i}
-                        className="hover:border-secondary/20 hover:bg-secondary/5 rounded-lg border border-gray-100 bg-gray-50/50 px-3 py-2 text-sm text-gray-700 transition-colors"
-                      >
-                        <span className="font-medium">{o.titulo}</span>
-                        {(o.entidade || o.periodo) && (
-                          <span className="text-gray-500">
-                            {" "}
-                            —{" "}
-                            {[o.entidade, o.periodo]
-                              .filter(Boolean)
-                              .join(" • ")}
-                          </span>
-                        )}
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-              {profissoes.length === 0 &&
-                ocupacoes.length === 0 &&
-                !loadingBio && (
-                  <p className="text-center text-sm text-gray-500">
-                    Nenhuma informação de biografia disponível.
-                  </p>
-                )}
-            </>
           )}
         </div>
-      </Card>
 
-      <div className="grid gap-6 lg:grid-cols-2">
-        {contadores && (
-          <Card className="hover:border-secondary/10 border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md">
-            <div className="flex items-center gap-2 border-b border-gray-100/50 p-4">
-              <div className="bg-secondary/10 rounded-lg p-2">
-                <BarChart3 className="text-secondary h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-gray-900">Em números</h3>
-                <p className="text-xs text-gray-500">
-                  Resumo da atuação parlamentar
-                </p>
-              </div>
-            </div>
-            <div className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center">
-              <div className="grid grid-cols-2 gap-3 sm:flex-1">
-                <div className="hover:bg-secondary/5 rounded-xl border border-gray-100 bg-gray-50/50 p-3 text-center transition-colors">
-                  <p className="text-2xl font-bold text-gray-900">
-                    {contadores.eventos}
-                  </p>
-                  <p className="text-xs text-gray-500">Eventos</p>
-                </div>
-                <div className="hover:bg-secondary/5 rounded-xl border border-gray-100 bg-gray-50/50 p-3 text-center transition-colors">
-                  <p className="text-2xl font-bold text-gray-900">
-                    {contadores.proposicoes}
-                  </p>
-                  <p className="text-xs text-gray-500">Proposições</p>
-                </div>
-                <div className="hover:bg-secondary/5 rounded-xl border border-gray-100 bg-gray-50/50 p-3 text-center transition-colors">
-                  <p className="text-2xl font-bold text-gray-900">
-                    {contadores.discursos}
-                  </p>
-                  <p className="text-xs text-gray-500">Discursos</p>
-                </div>
-                <div className="hover:bg-secondary/5 rounded-xl border border-gray-100 bg-gray-50/50 p-3 text-center transition-colors">
-                  <p className="text-2xl font-bold text-gray-900">
-                    {contadores.votacoes}
-                  </p>
-                  <p className="text-xs text-gray-500">Votações</p>
-                </div>
-              </div>
-              {contadores.eventos +
-                contadores.proposicoes +
-                contadores.discursos +
-                contadores.votacoes >
-                0 && (
-                <div className="h-[160px] w-full max-w-[160px] shrink-0 sm:mx-auto">
-                  <ReactApexChart
-                    options={{
-                      chart: { type: "donut", fontFamily: "inherit" },
-                      colors: ["#749c5b", "#5a8c4a", "#4E9F3D", "#1B3B2B"],
-                      labels: [
-                        "Eventos",
-                        "Proposições",
-                        "Discursos",
-                        "Votações",
-                      ],
-                      legend: { show: false },
-                      dataLabels: {
-                        enabled: true,
-                        formatter: (val: number) => `${Math.round(val)}%`,
-                      },
-                      plotOptions: { pie: { donut: { size: "70%" } } },
-                    }}
-                    series={[
-                      contadores.eventos,
-                      contadores.proposicoes,
-                      contadores.discursos,
-                      contadores.votacoes,
-                    ]}
-                    type="donut"
-                    height={160}
-                    width="100%"
-                  />
-                </div>
-              )}
-            </div>
-          </Card>
-        )}
-
-        {presenca && presenca.presencas + presenca.ausencias > 0 && (
-          <Card className="hover:border-secondary/10 border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md">
-            <div className="flex items-center gap-2 border-b border-gray-100/50 p-4">
-              <div className="bg-secondary/10 rounded-lg p-2">
-                <Calendar className="text-secondary h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-gray-900">
-                  Presença no período
-                </h3>
-                <p className="text-xs text-gray-500">
-                  {new Date(presenca.dataInicio).toLocaleDateString("pt-BR")} a{" "}
-                  {new Date(presenca.dataFim).toLocaleDateString("pt-BR")}
-                </p>
-              </div>
-            </div>
-            <div className="p-6">
-              <div className="mb-4 flex justify-between text-sm">
-                <span className="font-medium text-gray-700">
-                  {presenca.presencas} presenças
-                </span>
-                <span className="text-gray-500">
-                  {presenca.ausencias} ausências
-                </span>
-              </div>
-              <Progress
-                value={
-                  (presenca.presencas /
-                    (presenca.presencas + presenca.ausencias)) *
-                  100
-                }
-                className="h-4 bg-gray-200"
+        {/* ═══════ ROW 3 — Perfil Parlamentar (Radar) — Full Width ═══════ */}
+        {profile && hasRadarData && (
+          <div className={CARD_3D}>
+            <div className={`${GLASS_HEADER} px-6 pt-5 pb-3`}>
+              <SectionTitle
+                icon={TrendingUp}
+                title={`Perfil Parlamentar (${profile.year})`}
+                subtitle="Visão radar da atuação"
               />
-              <p className="text-secondary mt-2 text-center text-2xl font-bold">
-                {(
-                  (presenca.presencas /
-                    (presenca.presencas + presenca.ausencias)) *
-                  100
-                ).toFixed(0)}
-                % taxa de presença
-              </p>
             </div>
-          </Card>
-        )}
-
-        {temas?.temas && temas.temas.length > 0 && (
-          <Card className="hover:border-secondary/10 border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md lg:col-span-2">
-            <div className="flex items-center gap-2 border-b border-gray-100/50 p-4">
-              <div className="bg-secondary/10 rounded-lg p-2">
-                <Tag className="text-secondary h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-gray-900">Temas de atuação</h3>
-                <p className="text-xs text-gray-500">
-                  Temas nas proposições (autor/coautor)
-                </p>
-              </div>
+            <div className="px-0 pb-0">
+              <ReactApexChart
+                options={radarOptions}
+                series={[{ name: "Atuação", data: profileValues }]}
+                type="radar"
+                height={380}
+                width="100%"
+              />
             </div>
-            <div className="p-6">
-              <ul className="grid gap-3 sm:grid-cols-2">
-                {temas.temas.slice(0, 10).map((t) => {
-                  const maxCount = Math.max(
-                    ...temas.temas.map((x) => x.count),
-                    1,
-                  );
-                  return (
-                    <li
-                      key={t.cod_tema}
-                      className="hover:border-secondary/20 hover:bg-secondary/5 flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/50 p-3 transition-all"
-                    >
-                      <div className="min-w-0 flex-1">
-                        <p className="truncate text-sm font-medium text-gray-900">
-                          {t.tema_nome}
-                        </p>
-                        <div className="mt-1.5 h-2 w-full overflow-hidden rounded-full bg-gray-200">
-                          <div
-                            className="bg-secondary h-full rounded-full transition-all duration-300"
-                            style={{
-                              width: `${(t.count / maxCount) * 100}%`,
-                            }}
-                          />
-                        </div>
-                      </div>
-                      <span className="bg-secondary/15 text-secondary shrink-0 rounded-full px-2.5 py-0.5 text-xs font-bold">
-                        {t.count}
-                      </span>
-                    </li>
-                  );
-                })}
-              </ul>
-            </div>
-          </Card>
-        )}
-
-        {profile && (
-          <Card className="hover:border-secondary/10 border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md lg:col-span-2">
-            <div className="flex items-center gap-2 border-b border-gray-100/50 p-4">
-              <div className="bg-secondary/10 rounded-lg p-2">
-                <Vote className="text-secondary h-5 w-5" />
-              </div>
-              <div>
-                <h3 className="font-bold text-gray-900">
-                  Perfil parlamentar ({profile.year})
-                </h3>
-                <p className="text-xs text-gray-500">
-                  Plenário, comissões, proposições e votações
-                </p>
-              </div>
-            </div>
-            <div className="grid gap-4 p-6 sm:grid-cols-2 lg:grid-cols-4">
-              <div className="hover:bg-secondary/5 rounded-xl border border-gray-100 bg-gray-50/50 p-4 transition-colors">
-                <p className="text-xs font-medium text-gray-500">Plenário</p>
-                <p className="mt-0.5 font-semibold text-gray-900">
-                  {profile.plenaryPresence ?? "—"}
-                </p>
-              </div>
-              <div className="hover:bg-secondary/5 rounded-xl border border-gray-100 bg-gray-50/50 p-4 transition-colors">
-                <p className="text-xs font-medium text-gray-500">Comissões</p>
-                <p className="mt-0.5 font-semibold text-gray-900">
-                  {profile.committeesPresence ?? "—"}
-                </p>
-              </div>
-              <div className="hover:bg-secondary/5 rounded-xl border border-gray-100 bg-gray-50/50 p-4 transition-colors">
-                <p className="text-xs font-medium text-gray-500">
-                  Proposições (criadas / relacionadas)
-                </p>
-                <p className="mt-0.5 font-semibold text-gray-900">
-                  {profile.createdProposals ?? "—"} /{" "}
-                  {profile.relatedProposals ?? "—"}
-                </p>
-              </div>
-              <div className="hover:bg-secondary/5 rounded-xl border border-gray-100 bg-gray-50/50 p-4 transition-colors">
-                <p className="text-xs font-medium text-gray-500">
-                  Discursos / Votações nominais
-                </p>
-                <p className="mt-0.5 font-semibold text-gray-900">
-                  {profile.speeches ?? "—"} / {profile.rollCallVotes ?? "—"}
-                </p>
-              </div>
-            </div>
-          </Card>
-        )}
-      </div>
-
-      {socialLinks.length > 0 && (
-        <Card className="hover:border-secondary/10 border-gray-100 shadow-sm transition-all duration-200 hover:shadow-md">
-          <div className="flex items-center gap-2 border-b border-gray-100/50 p-4">
-            <div className="bg-secondary/10 rounded-lg p-2">
-              <ExternalLink className="text-secondary h-5 w-5" />
-            </div>
-            <div>
-              <h3 className="font-bold text-gray-900">Redes sociais</h3>
-              <p className="text-xs text-gray-500">Perfis oficiais</p>
-            </div>
-          </div>
-          <div className="flex flex-wrap gap-3 p-6">
-            {socialLinks.map((s) => (
-              <a
-                key={s.label}
-                href={s.url!}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="hover:border-secondary/40 hover:bg-secondary/10 hover:text-secondary inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2.5 text-sm font-medium text-gray-700 shadow-sm transition-all"
-              >
-                <ExternalLink className="h-4 w-4" />
-                {s.label}
-              </a>
-            ))}
-          </div>
-        </Card>
-      )}
-
-      {/* Histórico de movimentações */}
-      <Card className="overflow-hidden border-0 rounded-2xl bg-white shadow-lg shadow-gray-200/50 transition-all duration-300 hover:shadow-xl hover:shadow-secondary/10 border-gray-100 hover:border-secondary/10">
-        <div className="flex flex-col gap-4 border-b border-gray-100 bg-gradient-to-r from-gray-50 to-white p-6 sm:flex-row sm:items-end sm:justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-gradient-to-br from-secondary/20 to-secondary/10">
-              <History className="text-secondary h-6 w-6" />
-            </div>
-            <div>
-              <h3 className="text-lg font-bold tracking-tight text-gray-900">
-                Histórico de movimentações
-              </h3>
-              <p className="text-sm text-gray-500">
-                Comissões, cargos e posse (fonte: CSV Câmara)
-              </p>
-            </div>
-          </div>
-          <div className="flex flex-wrap items-end gap-4">
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-                Ano
-              </label>
-              <Select
-                value={historicoYear || "todos"}
-                onValueChange={handleHistoricoYearChange}
-              >
-                <SelectTrigger className="h-10 w-[120px] rounded-xl border-gray-200 bg-white shadow-sm">
-                  <SelectValue placeholder="Todos" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="todos">Todos</SelectItem>
-                  {HISTORICO_YEARS.map((y) => (
-                    <SelectItem key={y} value={String(y)}>
-                      {y}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-                Buscar
-              </label>
-              <div className="flex gap-2">
-                <Input
-                  className="h-10 w-[220px] rounded-xl border-gray-200 bg-white shadow-sm placeholder:text-gray-400"
-                  placeholder="Ex.: comissão, CPI..."
-                  value={historicoSearch}
-                  onChange={(e) => setHistoricoSearch(e.target.value)}
-                  onKeyDown={(e) =>
-                    e.key === "Enter" && handleHistoricoSearchApply()
-                  }
-                />
-                <Button
-                  variant="outline"
-                  className="h-10 rounded-xl border-secondary/40 bg-secondary/10 font-medium text-secondary hover:bg-secondary/20"
-                  onClick={handleHistoricoSearchApply}
-                >
-                  Filtrar
-                </Button>
-              </div>
-            </div>
-            <div className="flex flex-col gap-1.5">
-              <label className="text-xs font-semibold uppercase tracking-wider text-gray-500">
-                Por página
-              </label>
-              <Select
-                value={String(historicoPageSize)}
-                onValueChange={(v) => {
-                  setHistoricoPageSize(Number(v));
-                  setHistoricoPage(1);
-                }}
-              >
-                <SelectTrigger className="h-10 w-[90px] rounded-xl border-gray-200 bg-white shadow-sm">
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  {HISTORICO_PAGE_SIZES.map((s) => (
-                    <SelectItem key={s} value={String(s)}>
-                      {s}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-            </div>
-          </div>
-        </div>
-        <div className="p-6">
-          {loadingHistorico ? (
-            <div className="space-y-4 py-12">
-              {[1, 2, 3, 4, 5].map((i) => (
+            <div className="grid grid-cols-6 gap-0 border-t border-gray-100">
+              {[
+                { label: "Plenário", val: profile.plenaryPresence, color: "#059669" },
+                { label: "Comissões", val: profile.committeesPresence, color: "#2563eb" },
+                { label: "Props. Criadas", val: profile.createdProposals, color: "#d97706" },
+                { label: "Props. Relac.", val: profile.relatedProposals, color: "#ea580c" },
+                { label: "Discursos", val: profile.speeches, color: "#7c3aed" },
+                { label: "Votações", val: profile.rollCallVotes, color: "#749c5b" },
+              ].map((item, i) => (
                 <div
-                  key={i}
-                  className="flex gap-4 rounded-2xl border border-gray-100 bg-gray-50/50 p-4"
+                  key={item.label}
+                  className={`flex flex-col items-center py-4 ${i < 5 ? "border-r border-gray-100" : ""}`}
                 >
-                  <SkeletonLoader className="h-8 w-20 shrink-0 rounded-lg" />
-                  <SkeletonLoader className="h-5 flex-1" />
+                  <span
+                    className="text-2xl font-extrabold"
+                    style={{ color: item.color }}
+                  >
+                    {item.val ?? "—"}
+                  </span>
+                  <span className="mt-0.5 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                    {item.label}
+                  </span>
                 </div>
               ))}
             </div>
-          ) : historico && historico.movimentacoes.length > 0 ? (
-            <>
-              <div className="mb-4 flex items-center justify-between">
-                <p className="text-sm font-medium text-gray-600">
-                  <span className="rounded-full bg-secondary/15 px-2.5 py-0.5 font-semibold text-secondary">
-                    {historico.total}
-                  </span>{" "}
-                  movimentação(ões)
-                </p>
-              </div>
-              <div className="relative pl-6">
-                <div className="absolute left-[7px] top-2 bottom-2 w-0.5 rounded-full bg-gradient-to-b from-secondary/30 via-secondary/20 to-secondary/10" />
-                <ul className="space-y-4" role="list">
-                  {historico.movimentacoes.map((mov, idx) => (
-                    <li key={`${mov.data}-${idx}`} className="relative flex gap-4">
-                      <div className="absolute left-[-22px] top-0.5 h-4 w-4 shrink-0 rounded-full border-2 border-white bg-secondary shadow-sm" />
-                      <div className="min-w-0 flex-1 rounded-2xl border border-gray-100 bg-gradient-to-br from-gray-50/80 to-white p-4 shadow-sm transition-all hover:border-secondary/20 hover:shadow-md">
-                        <span className="mb-1.5 inline-block rounded-lg bg-gray-200/80 px-2.5 py-0.5 text-xs font-semibold text-gray-600">
-                          {mov.data}
+          </div>
+        )}
+
+        {/* ═══════ ROW 3b — Temas (Bar) — Full Width ═══════ */}
+        {temasTop.length > 0 && (
+          <div className={CARD_3D}>
+            <div className={`${GLASS_HEADER} px-6 pt-5 pb-3`}>
+              <SectionTitle
+                icon={Tag}
+                title="Temas de Atuação"
+                subtitle="Ranking de temas nas proposições"
+                badge={`Top ${temasTop.length}`}
+                accentColor="#4E9F3D"
+              />
+            </div>
+            <div className="px-0 pb-4">
+              <ReactApexChart
+                options={barTemasOptions}
+                series={[
+                  { name: "Proposições", data: temasTop.map((t) => t.count) },
+                ]}
+                type="bar"
+                height={Math.max(temasTop.length * 42, 220)}
+                width="100%"
+              />
+            </div>
+          </div>
+        )}
+
+        {/* ═══════ ROW 4 — Indicadores Detalhados (DESATIVADO — descomentar para reativar) ═══════ */}
+        {/* {profile && (
+          <div className={CARD_3D}>
+            <div className={`${GLASS_HEADER} px-6 pt-5 pb-4`}>
+              <SectionTitle
+                icon={Vote}
+                title={`Indicadores Detalhados (${profile.year})`}
+                subtitle="Plenário, comissões, proposições, discursos e votações"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-0 border-t border-gray-100 sm:grid-cols-3 lg:grid-cols-6">
+              {[
+                { label: "Plenário", val: profile.plenaryPresence, color: "#059669", bg: "#ecfdf5" },
+                { label: "Comissões", val: profile.committeesPresence, color: "#2563eb", bg: "#eff6ff" },
+                { label: "Props. Criadas", val: profile.createdProposals, color: "#d97706", bg: "#fffbeb" },
+                { label: "Props. Relac.", val: profile.relatedProposals, color: "#ea580c", bg: "#fff7ed" },
+                { label: "Discursos", val: profile.speeches, color: "#7c3aed", bg: "#f5f3ff" },
+                { label: "Votações", val: profile.rollCallVotes, color: "#749c5b", bg: "#f0fdf4" },
+              ].map((item, i) => (
+                <Tooltip key={item.label}>
+                  <TooltipTrigger asChild>
+                    <div
+                      className="flex flex-col items-center justify-center border-b border-r border-gray-100 py-5 transition-colors duration-200 hover:bg-gray-50/50 cursor-default"
+                      style={{ borderColor: "#f3f4f6" }}
+                    >
+                      <div
+                        className="mb-2 flex h-8 w-8 items-center justify-center rounded-lg"
+                        style={{ background: item.bg }}
+                      >
+                        <span
+                          className="text-sm font-extrabold"
+                          style={{ color: item.color }}
+                        >
+                          {item.val ?? "—"}
                         </span>
-                        <p className="text-sm leading-relaxed text-gray-800">
-                          {mov.descricao}
-                        </p>
                       </div>
-                    </li>
-                  ))}
-                </ul>
+                      <span className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                        {item.label}
+                      </span>
+                    </div>
+                  </TooltipTrigger>
+                  <TooltipContent>{item.label}</TooltipContent>
+                </Tooltip>
+              ))}
+            </div>
+          </div>
+        )} */}
+
+        {/* ═══════ ROW 5 — Identidade + Contato ═══════ */}
+        <div className="grid gap-6 lg:grid-cols-5">
+          <div className={`${CARD_3D} lg:col-span-3`}>
+            <div className={`${GLASS_HEADER} px-6 pt-5 pb-4`}>
+              <SectionTitle
+                icon={User}
+                title="Identidade & Mandato"
+                subtitle="Dados pessoais e informações do exercício"
+              />
+            </div>
+            <div className="px-6 pb-6">
+              <div className="mt-1 grid gap-3 sm:grid-cols-3">
+                {politician.birthDate && (
+                  <div className="group rounded-xl bg-gradient-to-br from-gray-50 to-white p-4 shadow-sm transition-all hover:shadow-md">
+                    <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-secondary/10">
+                      <Calendar className="h-4 w-4 text-secondary" />
+                    </div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                      Nascimento
+                    </p>
+                    <p className="mt-1 text-sm font-bold text-gray-900">
+                      {new Date(politician.birthDate).toLocaleDateString(
+                        "pt-BR",
+                        { dateStyle: "long" },
+                      )}
+                    </p>
+                  </div>
+                )}
+                {politician.placeOfBirth && (
+                  <div className="group rounded-xl bg-gradient-to-br from-gray-50 to-white p-4 shadow-sm transition-all hover:shadow-md">
+                    <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-secondary/10">
+                      <MapPin className="h-4 w-4 text-secondary" />
+                    </div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                      Naturalidade
+                    </p>
+                    <p className="mt-1 text-sm font-bold text-gray-900">
+                      {politician.placeOfBirth}
+                    </p>
+                  </div>
+                )}
+                {politician.mandatoDataInicio && (
+                  <div className="group rounded-xl bg-gradient-to-br from-gray-50 to-white p-4 shadow-sm transition-all hover:shadow-md">
+                    <div className="mb-3 flex h-9 w-9 items-center justify-center rounded-lg bg-secondary/10">
+                      <Globe className="h-4 w-4 text-secondary" />
+                    </div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                      Início do Exercício
+                    </p>
+                    <p className="mt-1 text-sm font-bold text-gray-900">
+                      {new Date(
+                        politician.mandatoDataInicio,
+                      ).toLocaleDateString("pt-BR")}
+                    </p>
+                  </div>
+                )}
               </div>
-              {historico.totalPages > 1 && (
-                <div className="mt-6 rounded-xl border border-gray-100 bg-gray-50/30 p-4">
-                  <CustomPagination
-                    pages={historico.totalPages}
-                    currentPage={historicoPage}
-                    setCurrentPage={setHistoricoPage}
-                  />
+              {!politician.birthDate &&
+                !politician.placeOfBirth &&
+                !politician.mandatoDataInicio && (
+                  <p className="py-8 text-center text-sm text-gray-400">
+                    Nenhum dado de identidade disponível.
+                  </p>
+                )}
+            </div>
+          </div>
+
+          <div className={`${CARD_3D} lg:col-span-2`}>
+            <div className={`${GLASS_HEADER} px-6 pt-5 pb-4`}>
+              <SectionTitle
+                icon={Building2}
+                title="Contato"
+                subtitle="Gabinete e canais"
+              />
+            </div>
+            <div className="space-y-0.5 px-4 pb-5">
+              {politician.email && (
+                <a
+                  href={`mailto:${politician.email}`}
+                  className="group flex items-center gap-3 rounded-xl p-3 transition-all hover:bg-secondary/5"
+                >
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary/10 transition-colors group-hover:bg-secondary group-hover:text-white">
+                    <Mail className="h-4 w-4 text-secondary group-hover:text-white" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                      E-mail
+                    </p>
+                    <p className="truncate text-sm font-semibold text-gray-700 group-hover:text-secondary">
+                      {politician.email}
+                    </p>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-gray-300 transition-transform group-hover:translate-x-1 group-hover:text-secondary" />
+                </a>
+              )}
+              {politician.phone && (
+                <a
+                  href={`tel:${politician.phone}`}
+                  className="group flex items-center gap-3 rounded-xl p-3 transition-all hover:bg-secondary/5"
+                >
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary/10 transition-colors group-hover:bg-secondary group-hover:text-white">
+                    <Phone className="h-4 w-4 text-secondary group-hover:text-white" />
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                      Telefone
+                    </p>
+                    <p className="text-sm font-semibold text-gray-700 group-hover:text-secondary">
+                      {politician.phone}
+                    </p>
+                  </div>
+                  <ChevronRight className="h-4 w-4 text-gray-300 transition-transform group-hover:translate-x-1 group-hover:text-secondary" />
+                </a>
+              )}
+              {(politician.gabinetePredio ||
+                politician.gabineteAndar ||
+                politician.gabineteSala) && (
+                <div className="flex items-center gap-3 rounded-xl p-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary/10">
+                    <Building2 className="h-4 w-4 text-secondary" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                      Gabinete
+                    </p>
+                    <p className="text-sm font-semibold text-gray-700">
+                      {[
+                        politician.gabinetePredio,
+                        politician.gabineteAndar,
+                        politician.gabineteSala,
+                      ]
+                        .filter(Boolean)
+                        .join(" / ")}
+                    </p>
+                  </div>
                 </div>
               )}
-            </>
-          ) : (
-            <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/50 py-16 text-center">
-              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gray-100">
-                <History className="h-8 w-8 text-gray-400" />
-              </div>
-              <h4 className="text-lg font-semibold text-gray-700">
-                Nenhuma movimentação encontrada
-              </h4>
-              <p className="mt-2 max-w-sm text-sm text-gray-500">
-                Não há registros de comissões, cargos ou posse para este
-                deputado no período. Tente outro ano ou termo de busca.
-              </p>
+              {politician.address && (
+                <div className="flex items-center gap-3 rounded-xl p-3">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-secondary/10">
+                    <MapPin className="h-4 w-4 text-secondary" />
+                  </div>
+                  <div>
+                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                      Endereço
+                    </p>
+                    <p className="text-sm font-semibold text-gray-700">
+                      {politician.address}
+                    </p>
+                  </div>
+                </div>
+              )}
+              {!politician.email &&
+                !politician.phone &&
+                !politician.gabinetePredio &&
+                !politician.address && (
+                  <p className="py-8 text-center text-sm text-gray-400">
+                    Nenhum contato disponível.
+                  </p>
+                )}
             </div>
-          )}
+          </div>
         </div>
-      </Card>
-    </div>
+
+        {/* ═══════ ROW 6 — Cargos (Timeline) ═══════ */}
+        {politician.positions && politician.positions.length > 0 && (
+          <div className={CARD_3D}>
+            <div className={`${GLASS_HEADER} px-6 pt-5 pb-4`}>
+              <SectionTitle
+                icon={Briefcase}
+                title="Cargos & Mandatos"
+                subtitle="Linha do tempo das posições ocupadas"
+                badge={`${politician.positions.length} posição(ões)`}
+              />
+            </div>
+            <div className="px-6 pb-6">
+              <div className="relative ml-5 border-l-2 border-secondary/20 pl-8">
+                {politician.positions.map((pos) => (
+                  <div key={pos.id} className="group relative pb-7 last:pb-0">
+                    <div className="absolute -left-[37px] top-1.5 flex h-7 w-7 items-center justify-center rounded-full bg-gradient-to-br from-secondary to-[#4E9F3D] shadow-lg shadow-secondary/20 transition-transform group-hover:scale-110">
+                      <div className="h-2.5 w-2.5 rounded-full bg-white" />
+                    </div>
+                    <div className="rounded-xl border border-gray-100 bg-gradient-to-r from-gray-50/50 to-white p-4 shadow-sm transition-all group-hover:border-secondary/20 group-hover:shadow-md">
+                      <p className="font-bold text-gray-900">{pos.position}</p>
+                      <div className="mt-1.5 flex items-center gap-2">
+                        <Calendar className="h-3.5 w-3.5 text-gray-400" />
+                        <span className="text-xs text-gray-500">
+                          Desde {parsePositionDate(pos.startDate)}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ═══════ ROW 7 — Biografia ═══════ */}
+        <div className={CARD_3D}>
+          <div className={`${GLASS_HEADER} px-6 pt-5 pb-4`}>
+            <SectionTitle
+              icon={GraduationCap}
+              title="Biografia"
+              subtitle="Escolaridade, profissões e ocupações"
+              accentColor="#2d5a3d"
+            />
+          </div>
+          <div className="px-6 pb-6">
+            {loadingBio ? (
+              <div className="space-y-3">
+                <SkeletonLoader className="h-10 w-full rounded-xl" />
+                <SkeletonLoader className="h-16 w-full rounded-xl" />
+              </div>
+            ) : (
+              <div className="space-y-6">
+                {biografia?.escolaridade && (
+                  <div>
+                    <h4 className="mb-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                      <GraduationCap className="h-3 w-3" />
+                      Escolaridade
+                    </h4>
+                    <div className="inline-flex items-center gap-2 rounded-xl border border-secondary/20 bg-gradient-to-r from-secondary/10 to-secondary/5 px-4 py-3 text-sm font-semibold text-secondary shadow-sm">
+                      <GraduationCap className="h-4 w-4" />
+                      {biografia.escolaridade}
+                    </div>
+                  </div>
+                )}
+                {profissoes.length > 0 && (
+                  <div>
+                    <h4 className="mb-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                      <Briefcase className="h-3 w-3" />
+                      Profissões
+                    </h4>
+                    <div className="flex flex-wrap gap-2">
+                      {profissoes.map((p, i) => (
+                        <span
+                          key={i}
+                          className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-secondary/15 to-secondary/5 px-4 py-2 text-sm font-semibold text-secondary shadow-sm transition-all hover:shadow-md"
+                        >
+                          {p.titulo}
+                          {p.data && (
+                            <span className="rounded-full bg-white/80 px-1.5 py-0.5 text-[10px] font-bold text-secondary/60">
+                              {p.data}
+                            </span>
+                          )}
+                        </span>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {ocupacoes.length > 0 && (
+                  <div>
+                    <h4 className="mb-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                      <BookOpen className="h-3 w-3" />
+                      Ocupações
+                    </h4>
+                    <div className="space-y-2">
+                      {ocupacoes.map((o, i) => (
+                        <div
+                          key={i}
+                          className="group flex items-center gap-3 rounded-xl border border-gray-100 bg-gradient-to-r from-gray-50/50 to-white px-4 py-3 transition-all hover:border-secondary/20 hover:shadow-sm"
+                        >
+                          <div className="h-2 w-2 shrink-0 rounded-full bg-secondary/40 transition-colors group-hover:bg-secondary" />
+                          <div>
+                            <span className="text-sm font-bold text-gray-800">
+                              {o.titulo}
+                            </span>
+                            {(o.entidade || o.periodo) && (
+                              <span className="ml-2 text-xs text-gray-400">
+                                {[o.entidade, o.periodo]
+                                  .filter(Boolean)
+                                  .join(" · ")}
+                              </span>
+                            )}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {!biografia?.escolaridade &&
+                  profissoes.length === 0 &&
+                  ocupacoes.length === 0 &&
+                  !loadingBio && (
+                    <p className="py-8 text-center text-sm text-gray-400">
+                      Nenhuma informação biográfica disponível.
+                    </p>
+                  )}
+              </div>
+            )}
+          </div>
+        </div>
+
+        {/* ═══════ ROW 8 — Redes Sociais ═══════ */}
+        {socialLinks.length > 0 && (
+          <div className={CARD_3D}>
+            <div className={`${GLASS_HEADER} px-6 pt-5 pb-4`}>
+              <SectionTitle
+                icon={Share2}
+                title="Redes Sociais"
+                subtitle="Perfis oficiais"
+              />
+            </div>
+            <div className="flex flex-wrap gap-3 px-6 pb-6">
+              {socialLinks.map((s) => {
+                const SocialIcon = getSocialIcon(s.label);
+                const social = getSocialColor(s.label);
+                return (
+                  <a
+                    key={s.label}
+                    href={s.url!}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className={`group inline-flex items-center gap-3 rounded-xl border border-gray-200 bg-white px-5 py-3.5 text-sm font-bold text-gray-700 shadow-sm transition-all duration-200 hover:-translate-y-1 hover:shadow-lg ${social.hover}`}
+                  >
+                    <SocialIcon
+                      className="h-5 w-5 transition-transform group-hover:scale-110"
+                      style={{ color: social.color }}
+                    />
+                    {s.label}
+                    <ExternalLink className="h-3.5 w-3.5 text-gray-300" />
+                  </a>
+                );
+              })}
+            </div>
+          </div>
+        )}
+
+        {/* ═══════ ROW 9 — Histórico de Movimentações ═══════ */}
+        <div className={CARD_3D}>
+          <div className="border-b border-gray-100 bg-gradient-to-r from-gray-50/80 to-white p-6">
+            <div className="flex flex-col gap-5 sm:flex-row sm:items-end sm:justify-between">
+              <SectionTitle
+                icon={History}
+                title="Histórico de Movimentações"
+                subtitle="Comissões, cargos e posse (fonte: CSV Câmara)"
+                accentColor="#1B3B2B"
+              />
+              <div className="flex flex-wrap items-end gap-3">
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                    Ano
+                  </label>
+                  <Select
+                    value={historicoYear || "todos"}
+                    onValueChange={handleHistoricoYearChange}
+                  >
+                    <SelectTrigger className="h-9 w-[110px] rounded-xl border-gray-200 bg-white text-sm shadow-sm">
+                      <SelectValue placeholder="Todos" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="todos">Todos</SelectItem>
+                      {HISTORICO_YEARS.map((y) => (
+                        <SelectItem key={y} value={String(y)}>
+                          {y}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                    Buscar
+                  </label>
+                  <div className="flex gap-2">
+                    <div className="relative">
+                      <Search className="pointer-events-none absolute left-3 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-gray-400" />
+                      <Input
+                        className="h-9 w-[200px] rounded-xl border-gray-200 bg-white pl-8 text-sm shadow-sm placeholder:text-gray-300"
+                        placeholder="Ex.: comissão, CPI..."
+                        value={historicoSearch}
+                        onChange={(e) => setHistoricoSearch(e.target.value)}
+                        onKeyDown={(e) =>
+                          e.key === "Enter" && handleHistoricoSearchApply()
+                        }
+                      />
+                    </div>
+                    <Button
+                      variant="outline"
+                      className="h-9 rounded-xl border-secondary/30 bg-secondary/5 text-sm font-bold text-secondary transition-all hover:bg-secondary hover:text-white"
+                      onClick={handleHistoricoSearchApply}
+                    >
+                      Filtrar
+                    </Button>
+                  </div>
+                </div>
+                <div className="flex flex-col gap-1.5">
+                  <label className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                    Por página
+                  </label>
+                  <Select
+                    value={String(historicoPageSize)}
+                    onValueChange={(v) => {
+                      setHistoricoPageSize(Number(v));
+                      setHistoricoPage(1);
+                    }}
+                  >
+                    <SelectTrigger className="h-9 w-[80px] rounded-xl border-gray-200 bg-white text-sm shadow-sm">
+                      <SelectValue />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {HISTORICO_PAGE_SIZES.map((s) => (
+                        <SelectItem key={s} value={String(s)}>
+                          {s}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div className="p-6">
+            {loadingHistorico ? (
+              <div className="space-y-4 py-8">
+                {[1, 2, 3, 4, 5].map((i) => (
+                  <div
+                    key={i}
+                    className="flex gap-4 rounded-xl border border-gray-100 bg-gray-50/50 p-4"
+                  >
+                    <SkeletonLoader className="h-7 w-20 shrink-0 rounded-lg" />
+                    <SkeletonLoader className="h-5 flex-1 rounded" />
+                  </div>
+                ))}
+              </div>
+            ) : historico && historico.movimentacoes.length > 0 ? (
+              <>
+                <div className="mb-5">
+                  <span className="inline-flex items-center gap-2 rounded-full bg-secondary/10 px-3.5 py-1.5 text-xs font-bold text-secondary">
+                    <BarChart3 className="h-3.5 w-3.5" />
+                    {historico.total} movimentação(ões)
+                  </span>
+                </div>
+                <div className="relative ml-5 border-l-2 border-dashed border-secondary/15 pl-8">
+                  <ul className="space-y-4" role="list">
+                    {historico.movimentacoes.map((mov, idx) => (
+                      <li
+                        key={`${mov.data}-${idx}`}
+                        className="group relative"
+                      >
+                        <div className="absolute -left-[37px] top-4 flex h-5 w-5 items-center justify-center rounded-full border-2 border-white bg-secondary/70 shadow-sm transition-colors group-hover:bg-secondary" />
+                        <div className="rounded-xl border border-gray-100 bg-white p-4 shadow-sm transition-all group-hover:border-secondary/20 group-hover:shadow-md">
+                          <div className="mb-2 inline-flex items-center gap-1.5 rounded-lg bg-gray-100 px-2.5 py-1 text-xs font-bold text-gray-600">
+                            <Calendar className="h-3 w-3" />
+                            {mov.data}
+                          </div>
+                          <p className="text-sm leading-relaxed text-gray-700">
+                            {mov.descricao}
+                          </p>
+                        </div>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                {historico.totalPages > 1 && (
+                  <div className="mt-6 rounded-xl border border-gray-100 bg-gray-50/30 p-3">
+                    <CustomPagination
+                      pages={historico.totalPages}
+                      currentPage={historicoPage}
+                      setCurrentPage={setHistoricoPage}
+                    />
+                  </div>
+                )}
+              </>
+            ) : (
+              <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-gray-200 bg-gray-50/30 py-16 text-center">
+                <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100">
+                  <History className="h-8 w-8 text-gray-300" />
+                </div>
+                <h4 className="text-base font-bold text-gray-600">
+                  Nenhuma movimentação encontrada
+                </h4>
+                <p className="mt-2 max-w-sm text-sm text-gray-400">
+                  Não há registros para este deputado no período selecionado.
+                </p>
+              </div>
+            )}
+          </div>
+        </div>
+      </div>
+    </TooltipProvider>
   );
 }
