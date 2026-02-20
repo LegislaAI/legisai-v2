@@ -119,11 +119,11 @@ export default function CommissionDetailScreen() {
 
         {/* TABS NAVIGATION */}
         <div className="flex gap-2 overflow-x-auto pb-2">
-          {[
+          {([
             { id: "general", label: "Visão Geral / Pauta" },
             { id: "votes", label: "Votações" },
             { id: "presence", label: "Lista de Presença" },
-          ].map((tab) => (
+          ] as const).map((tab) => (
             <button
               key={tab.id}
               onClick={() => setActiveTab(tab.id)}

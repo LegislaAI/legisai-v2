@@ -2,6 +2,7 @@
 
 import { BackButton } from "@/components/v2/components/ui/BackButton";
 import { Card } from "@/components/v2/components/ui/Card";
+import { PropositionRelatedSection } from "@/components/v2/components/ui/PropositionRelatedSection";
 import { useApiContext } from "@/context/ApiContext";
 import { ExternalLink, FileText } from "lucide-react";
 import Link from "next/link";
@@ -209,6 +210,9 @@ export default function PropositionDetailPage() {
           )}
         </div>
       </Card>
+
+      {/* Proposições Relacionadas */}
+      <PropositionRelatedSection propositionId={id} />
     </div>
   );
 }

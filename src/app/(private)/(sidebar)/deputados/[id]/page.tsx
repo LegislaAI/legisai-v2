@@ -1914,8 +1914,7 @@ export default function DeputadoDetalhesPage() {
                             {ceapPage > 1 && (
                               <Button
                                 variant="outline"
-                                size="sm"
-                                className="border-gray-200"
+                                className="border-gray-200 px-3 py-1.5 text-sm"
                                 onClick={() =>
                                   setCeapPage((p) => Math.max(1, p - 1))
                                 }
@@ -1926,8 +1925,7 @@ export default function DeputadoDetalhesPage() {
                             {ceapHasMore && (
                               <Button
                                 variant="outline"
-                                size="sm"
-                                className="border-gray-200"
+                                className="border-gray-200 px-3 py-1.5 text-sm"
                                 onClick={() => setCeapPage((p) => p + 1)}
                               >
                                 Próxima

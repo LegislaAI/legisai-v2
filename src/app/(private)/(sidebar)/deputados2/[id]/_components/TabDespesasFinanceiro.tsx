@@ -58,7 +58,7 @@ function SectionTitle({
   accentColor = "#749c5b",
   rightSlot,
 }: {
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
   title: string;
   subtitle?: string;
   badge?: string;
@@ -111,7 +111,7 @@ function KPICard({
 }: {
   value: string;
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
   gradient: string;
   iconBg: string;
   textColor: string;

@@ -55,7 +55,7 @@ function SectionTitle({
   badge,
   accentColor = "#749c5b",
 }: {
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
   title: string;
   subtitle?: string;
   badge?: string;
@@ -102,7 +102,7 @@ function KPICard({
 }: {
   value: number | string;
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
   gradient: string;
   iconBg: string;
   textColor: string;

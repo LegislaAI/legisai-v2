@@ -166,6 +166,8 @@ export default function DeliberativeSessionScreen() {
   const [loadingOrder, setLoadingOrder] = useState(false);
   const [loadingVotes, setLoadingVotes] = useState(false);
   /* eslint-enable @typescript-eslint/no-unused-vars */
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const [votesList, setVotesList] = useState<any[]>([]);
   const [selectedVote, setSelectedVote] = useState<EventVoting | null>(null);
   const [positiveVotesList, setPositiveVotesList] = useState<
     VoteDetailsProps[]

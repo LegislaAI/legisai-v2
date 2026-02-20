@@ -1,5 +1,6 @@
 "use client";
 import { VoteDetailsProps } from "@/@types/proposition";
+import { VotingOrientationsCard } from "@/components/v2/components/ui/VotingOrientationsCard";
 import { BackButton } from "@/components/v2/components/ui/BackButton";
 import { LegislativeSyncLoader } from "@/components/v2/components/ui/LegislativeSyncLoader";
 import { SpeechModal } from "@/components/v2/components/ui/SpeechModal";
@@ -150,7 +151,7 @@ interface BrevesComunicacoesResponse {
 const StatusBadge = ({ status }: { status: string }) => {
   const styles =
     status.toLowerCase() === "em andamento" ||
-    status.toLowerCase().includes("em andamento")
+      status.toLowerCase().includes("em andamento")
       ? "bg-[#749c5b]/20 text-[#749c5b] border-[#749c5b]/30 animate-pulse"
       : "bg-gray-100 text-gray-600 border-gray-200";
 
@@ -184,6 +185,7 @@ export default function DeliberativeSessionScreen() {
   const [loadingOrder, setLoadingOrder] = useState(false);
   // eslint-disable-next-line @typescript-eslint/no-unused-vars -- reserved for loading UI
   const [loadingVotes, setLoadingVotes] = useState(false);
+  const [votesList, setVotesList] = useState<EventVoting[]>([]);
   const [selectedVote, setSelectedVote] = useState<EventVoting | null>(null);
   const [positiveVotesList, setPositiveVotesList] = useState<
     VoteDetailsProps[]
@@ -236,7 +238,7 @@ export default function DeliberativeSessionScreen() {
   // Format countdown time
   const formatCountdown = (milliseconds: number): string => {
     if (milliseconds <= 0) return "";
-    
+
     const totalSeconds = Math.floor(milliseconds / 1000);
     const days = Math.floor(totalSeconds / 86400);
     const hours = Math.floor((totalSeconds % 86400) / 3600);
@@ -273,27 +275,53 @@ export default function DeliberativeSessionScreen() {
   useEffect(() => {
     async function fetchEventDetails() {
       const eventId = pathname.split("/").pop();
-      if (!eventId) return;
+      console.log("[DEBUG fetchEventDetails] pathname:", pathname);
+      console.log("[DEBUG fetchEventDetails] eventId extraído:", eventId);
+      if (!eventId) {
+        console.warn("[DEBUG fetchEventDetails] eventId está vazio, abortando fetch.");
+        return;
+      }
 
       setLoading(true);
-      const response = await GetAPI(`/event/details/${eventId}`, true);
+      const apiUrl = `/event/details/${eventId}`;
+      console.log("[DEBUG fetchEventDetails] Chamando API:", apiUrl);
+      const response = await GetAPI(apiUrl, true);
+      console.log("[DEBUG fetchEventDetails] Response status:", response.status);
+      console.log("[DEBUG fetchEventDetails] Response body:", JSON.stringify(response.body, null, 2)?.substring(0, 2000));
+
       if (response.status === 200) {
+        if (!response.body || response.body === null) {
+          console.error("[DEBUG fetchEventDetails] ⚠️ Response body é null/undefined! O evento provavelmente NÃO EXISTE no banco de dados.");
+        } else {
+          console.log("[DEBUG fetchEventDetails] ✅ Dados recebidos com sucesso!");
+          console.log("[DEBUG fetchEventDetails] eventType:", JSON.stringify(response.body.eventType));
+          console.log("[DEBUG fetchEventDetails] description:", response.body.description);
+          console.log("[DEBUG fetchEventDetails] EventProposition count:", response.body.EventProposition?.length ?? "N/A (campo ausente)");
+          console.log("[DEBUG fetchEventDetails] voting count:", response.body.voting?.length ?? "N/A (campo ausente)");
+          console.log("[DEBUG fetchEventDetails] politicians count:", response.body.politicians?.length ?? "N/A (campo ausente)");
+          console.log("[DEBUG fetchEventDetails] situation:", response.body.situation);
+          console.log("[DEBUG fetchEventDetails] startDate:", response.body.startDate);
+          console.log("[DEBUG fetchEventDetails] endDate:", response.body.endDate);
+        }
+
         setEventDetails(response.body);
-        setOrderPropositions(response.body.EventProposition || []);
-        setVotesList(response.body.voting || []);
+        setOrderPropositions(response.body?.EventProposition || []);
+        setVotesList(response.body?.voting || []);
 
         // Calculate countdown if event is in the future
         // Treat dates from database as local time (ignore UTC indicator)
         // If date comes as ISO string with Z, parse as local time
-        const startDateStr = typeof response.body.startDate === 'string' 
-          ? response.body.startDate.replace('Z', '') 
-          : response.body.startDate;
+        const startDateStr = typeof response.body?.startDate === 'string'
+          ? response.body.startDate.replace('Z', '')
+          : response.body?.startDate;
         const timeDiff = moment(startDateStr).diff(moment(), "milliseconds");
         if (timeDiff > 0) {
           setTimeLeft(timeDiff);
         } else {
           setTimeLeft(0);
         }
+      } else {
+        console.error("[DEBUG fetchEventDetails] ❌ Erro na API! Status:", response.status, "Body:", JSON.stringify(response.body));
       }
       setLoading(false);
     }
@@ -590,7 +618,7 @@ export default function DeliberativeSessionScreen() {
     }
 
     generateSessionReport({
-      title: eventDetails.description || eventDetails.eventType.name,
+      title: eventDetails.description || eventDetails.eventType?.name || '',
       date: eventDetails.startDate,
       time: moment(eventDetails.startDate).utc().format("HH:mm"),
       endTime: eventDetails.endDate
@@ -598,7 +626,7 @@ export default function DeliberativeSessionScreen() {
         : undefined,
       local: eventDetails.local || "Local não informado",
       status: eventDetails.situation,
-      description: eventDetails.eventType.description,
+      description: eventDetails.eventType?.description || '',
       presences: eventDetails.politicians?.length || 0,
       propositionsCount: eventDetails.EventProposition?.length || 0,
       votingCount: eventDetails.voting?.length || 0,
@@ -626,13 +654,13 @@ export default function DeliberativeSessionScreen() {
         })) || [],
       brevesComunicacoes: brevesData
         ? {
-            speakers: brevesData.speakers.map((s) => ({
-              name: s.name,
-              time: s.time,
-              party: s.party,
-              speechSummary: s.speechSummary,
-            })),
-          }
+          speakers: brevesData.speakers.map((s) => ({
+            name: s.name,
+            time: s.time,
+            party: s.party,
+            speechSummary: s.speechSummary,
+          })),
+        }
         : undefined,
     });
   };
@@ -668,13 +696,13 @@ export default function DeliberativeSessionScreen() {
                   <h1
                     className="line-clamp-2 overflow-hidden text-2xl leading-tight font-bold md:text-4xl"
                     title={
-                      eventDetails?.description || eventDetails?.eventType.name
+                      eventDetails?.description || eventDetails?.eventType?.name
                     }
                   >
-                    {eventDetails?.description || eventDetails?.eventType.name}
+                    {eventDetails?.description || eventDetails?.eventType?.name}
                   </h1>
                   <p className="max-w-2xl text-sm text-gray-400 md:text-base">
-                    {eventDetails?.eventType.description}
+                    {eventDetails?.eventType?.description}
                   </p>
                 </div>
 
@@ -941,11 +969,10 @@ export default function DeliberativeSessionScreen() {
                                   : ""}
                               </span>
                               <span
-                                className={`rounded-full px-2 py-0.5 text-xs font-bold ${
-                                  vote.result
-                                    ? "bg-green-100 text-green-700"
-                                    : "bg-red-100 text-red-700"
-                                }`}
+                                className={`rounded-full px-2 py-0.5 text-xs font-bold ${vote.result
+                                  ? "bg-green-100 text-green-700"
+                                  : "bg-red-100 text-red-700"
+                                  }`}
                               >
                                 {vote.result ? "Aprovada" : "Rejeitada"}
                               </span>
@@ -1274,12 +1301,12 @@ export default function DeliberativeSessionScreen() {
                               selectedProposition?.id === item.id
                                 ? "border-secondary bg-secondary ring-secondary scale-110 text-white ring-2 ring-offset-2"
                                 : getCategoriaPorCodigo(
-                                      item.proposition?.situationId || "",
-                                    ) === "ja_apreciado"
+                                  item.proposition?.situationId || "",
+                                ) === "ja_apreciado"
                                   ? "border-[#3e5f48] bg-[#3e5f48] text-white"
                                   : getCategoriaPorCodigo(
-                                        item.proposition?.situationId || "",
-                                      ) === "em_apreciacao"
+                                    item.proposition?.situationId || "",
+                                  ) === "em_apreciacao"
                                     ? "border-[#d4a017] bg-[#d4a017] text-white"
                                     : "border-[#4a6b7c] bg-[#4a6b7c] text-white hover:bg-[#3b5563]",
                             )}
@@ -1313,12 +1340,12 @@ export default function DeliberativeSessionScreen() {
                               selectedProposition?.id === prop.id
                                 ? "border-secondary bg-secondary ring-secondary scale-105 text-white ring-2 ring-offset-2"
                                 : getCategoriaPorCodigo(
-                                      prop.proposition?.situationId || "",
-                                    ) === "ja_apreciado"
+                                  prop.proposition?.situationId || "",
+                                ) === "ja_apreciado"
                                   ? "border-[#3e5f48] bg-[#3e5f48] text-white"
                                   : getCategoriaPorCodigo(
-                                        prop.proposition?.situationId || "",
-                                      ) === "em_apreciacao"
+                                    prop.proposition?.situationId || "",
+                                  ) === "em_apreciacao"
                                     ? "border-[#d4a017] bg-[#d4a017] text-white"
                                     : "border-[#4a6b7c] bg-[#4a6b7c] text-white hover:bg-[#3b5563]",
                             )}
@@ -1379,61 +1406,61 @@ export default function DeliberativeSessionScreen() {
                           findIfRelactorIsPresent(
                             selectedProposition.reporterId,
                           ))) && (
-                        <div className="space-y-3 rounded border border-gray-200 bg-white p-4 text-sm text-gray-600 shadow-sm">
-                          {selectedProposition.proposition
-                            ?.situationDescription && (
-                            <div>
-                              <span className="block font-bold text-gray-700">
-                                Situação:
-                              </span>
-                              <span className="text-gray-600">
-                                {
-                                  selectedProposition.proposition
-                                    .situationDescription
-                                }
-                              </span>
-                            </div>
-                          )}
+                          <div className="space-y-3 rounded border border-gray-200 bg-white p-4 text-sm text-gray-600 shadow-sm">
+                            {selectedProposition.proposition
+                              ?.situationDescription && (
+                                <div>
+                                  <span className="block font-bold text-gray-700">
+                                    Situação:
+                                  </span>
+                                  <span className="text-gray-600">
+                                    {
+                                      selectedProposition.proposition
+                                        .situationDescription
+                                    }
+                                  </span>
+                                </div>
+                              )}
 
-                          {selectedProposition.topic && (
-                            <div>
-                              <span className="block font-bold text-gray-700">
-                                Tópico:
-                              </span>
-                              <span className="text-gray-600">
-                                {selectedProposition.topic}
-                              </span>
-                            </div>
-                          )}
-
-                          {selectedProposition.regime && (
-                            <div>
-                              <span className="block font-bold text-gray-700">
-                                Regime:
-                              </span>
-                              <span className="text-gray-600">
-                                {selectedProposition.regime}
-                              </span>
-                            </div>
-                          )}
-
-                          {selectedProposition.reporterId &&
-                            findIfRelactorIsPresent(
-                              selectedProposition.reporterId,
-                            ) && (
+                            {selectedProposition.topic && (
                               <div>
                                 <span className="block font-bold text-gray-700">
-                                  Relator:
+                                  Tópico:
                                 </span>
                                 <span className="text-gray-600">
-                                  {findRelactorName(
-                                    selectedProposition.reporterId,
-                                  )}
+                                  {selectedProposition.topic}
                                 </span>
                               </div>
                             )}
-                        </div>
-                      )}
+
+                            {selectedProposition.regime && (
+                              <div>
+                                <span className="block font-bold text-gray-700">
+                                  Regime:
+                                </span>
+                                <span className="text-gray-600">
+                                  {selectedProposition.regime}
+                                </span>
+                              </div>
+                            )}
+
+                            {selectedProposition.reporterId &&
+                              findIfRelactorIsPresent(
+                                selectedProposition.reporterId,
+                              ) && (
+                                <div>
+                                  <span className="block font-bold text-gray-700">
+                                    Relator:
+                                  </span>
+                                  <span className="text-gray-600">
+                                    {findRelactorName(
+                                      selectedProposition.reporterId,
+                                    )}
+                                  </span>
+                                </div>
+                              )}
+                          </div>
+                        )}
 
                       {/* Action Button - Link to Full Proposition */}
                       {selectedProposition.proposition?.fullPropositionUrl && (
@@ -1553,11 +1580,10 @@ export default function DeliberativeSessionScreen() {
                               )}
                               {/* Resultado */}
                               <span
-                                className={`rounded-full px-3 py-1 text-xs font-bold ${
-                                  vote.result
-                                    ? "bg-green-100 text-green-700"
-                                    : "bg-red-100 text-red-700"
-                                }`}
+                                className={`rounded-full px-3 py-1 text-xs font-bold ${vote.result
+                                  ? "bg-green-100 text-green-700"
+                                  : "bg-red-100 text-red-700"
+                                  }`}
                               >
                                 {vote.result ? "Aprovado" : "Rejeitado"}
                               </span>
@@ -1609,6 +1635,9 @@ export default function DeliberativeSessionScreen() {
                                 </div>
                               </div>
                             </div>
+
+                            {/* Orientações das Bancadas */}
+                            <VotingOrientationsCard votingId={vote.id} />
 
                             {/* Vote Statistics */}
                             <div className="mb-6 rounded-lg border border-gray-200 bg-white p-6">
@@ -2294,33 +2323,33 @@ export default function DeliberativeSessionScreen() {
                     </div>
                     <h3 className="text-lg font-semibold text-gray-700">
                       {presenceSearch ||
-                      presencePartyFilter ||
-                      presenceStateFilter
+                        presencePartyFilter ||
+                        presenceStateFilter
                         ? "Nenhum resultado encontrado"
                         : "Nenhuma presença registrada"}
                     </h3>
                     <p className="mt-2 text-sm text-gray-500">
                       {presenceSearch ||
-                      presencePartyFilter ||
-                      presenceStateFilter
+                        presencePartyFilter ||
+                        presenceStateFilter
                         ? "Tente ajustar os filtros para encontrar parlamentares."
                         : "Não há registros de presença para este evento."}
                     </p>
                     {(presenceSearch ||
                       presencePartyFilter ||
                       presenceStateFilter) && (
-                      <button
-                        onClick={() => {
-                          setPresenceSearch("");
-                          setPresencePartyFilter("");
-                          setPresenceStateFilter("");
-                          setPresencePage(1);
-                        }}
-                        className="mt-4 rounded-lg bg-[#749c5b] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#658a4e]"
-                      >
-                        Limpar filtros
-                      </button>
-                    )}
+                        <button
+                          onClick={() => {
+                            setPresenceSearch("");
+                            setPresencePartyFilter("");
+                            setPresenceStateFilter("");
+                            setPresencePage(1);
+                          }}
+                          className="mt-4 rounded-lg bg-[#749c5b] px-4 py-2 text-sm font-medium text-white transition-colors hover:bg-[#658a4e]"
+                        >
+                          Limpar filtros
+                        </button>
+                      )}
                   </div>
                 ) : (
                   <div className="grid grid-cols-1 gap-4 p-6 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4">

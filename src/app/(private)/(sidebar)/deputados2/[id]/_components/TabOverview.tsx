@@ -40,7 +40,7 @@ function SectionTitle({
   subtitle,
   accentColor = "#749c5b",
 }: {
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
   title: string;
   subtitle?: string;
   accentColor?: string;
@@ -122,7 +122,7 @@ function MiniKPI({
 }: {
   value: string | number;
   label: string;
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
   color: string;
   tooltip?: string;
 }) {

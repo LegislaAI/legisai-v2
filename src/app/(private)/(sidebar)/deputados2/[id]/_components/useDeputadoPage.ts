@@ -3,7 +3,7 @@
 import { PoliticianDetailsProps } from "@/@types/v2/politician";
 import { useApiContext } from "@/context/ApiContext";
 import { generatePoliticianReport } from "@/utils/pdfGenerator";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ApexOptions } from "apexcharts";
 import type {
   AgendaResumo,
@@ -149,9 +149,7 @@ export function useDeputadoPage(id: string | undefined) {
     }
   }, [id, selectedYear, GetAPI]);
 
-  useEffect(() => {
-    fetchDetails();
-  }, [fetchDetails]);
+  // (orchestrated via wave-based loading below)
 
   const fetchHistorico = useCallback(async () => {
     if (!id) return;
@@ -183,10 +181,7 @@ export function useDeputadoPage(id: string | undefined) {
     GetAPI,
   ]);
 
-  useEffect(() => {
-    if (!id) return;
-    fetchHistorico();
-  }, [id, fetchHistorico]);
+  // (orchestrated via wave-based loading below)
 
   const fetchAgendaResumo = useCallback(async () => {
     if (!id) return;
@@ -224,13 +219,7 @@ export function useDeputadoPage(id: string | undefined) {
     }
   }, [id, eventosPage, GetAPI]);
 
-  useEffect(() => {
-    fetchAgendaResumo();
-  }, [fetchAgendaResumo]);
-
-  useEffect(() => {
-    fetchEventos();
-  }, [fetchEventos]);
+  // (orchestrated via wave-based loading below)
 
   const fetchCalendarEvents = useCallback(async () => {
     if (!id) return;
@@ -259,9 +248,7 @@ export function useDeputadoPage(id: string | undefined) {
     }
   }, [id, calendarDate, GetAPI]);
 
-  useEffect(() => {
-    fetchCalendarEvents();
-  }, [fetchCalendarEvents]);
+  // (orchestrated via wave-based loading below)
 
   const PAST_UPCOMING_PAGE_SIZE = 5;
 
@@ -341,13 +328,7 @@ export function useDeputadoPage(id: string | undefined) {
     }
   }, [id, upcomingEventsPage, GetAPI]);
 
-  useEffect(() => {
-    fetchPastEvents();
-  }, [fetchPastEvents]);
-
-  useEffect(() => {
-    fetchUpcomingEvents();
-  }, [fetchUpcomingEvents]);
+  // (orchestrated via wave-based loading below)
 
   const fetchProposicoesResumo = useCallback(async () => {
     if (!id) return;
@@ -378,13 +359,7 @@ export function useDeputadoPage(id: string | undefined) {
     }
   }, [id, proposicoesPage, GetAPI]);
 
-  useEffect(() => {
-    fetchProposicoesResumo();
-  }, [fetchProposicoesResumo]);
-
-  useEffect(() => {
-    fetchProposicoes();
-  }, [fetchProposicoes]);
+  // (orchestrated via wave-based loading below)
 
   const fetchBiografia = useCallback(async () => {
     if (!id) return;
@@ -412,9 +387,7 @@ export function useDeputadoPage(id: string | undefined) {
     }
   }, [id, GetAPI]);
 
-  useEffect(() => {
-    fetchBiografia();
-  }, [fetchBiografia]);
+  // (orchestrated via wave-based loading below)
 
   const fetchContadores = useCallback(async () => {
     if (!id) return;
@@ -482,21 +455,7 @@ export function useDeputadoPage(id: string | undefined) {
     }
   }, [id, GetAPI]);
 
-  useEffect(() => {
-    fetchContadores();
-  }, [fetchContadores]);
-
-  useEffect(() => {
-    fetchPresenca();
-  }, [fetchPresenca]);
-
-  useEffect(() => {
-    fetchVotacoesIndicadores();
-  }, [fetchVotacoesIndicadores]);
-
-  useEffect(() => {
-    fetchTemas();
-  }, [fetchTemas]);
+  // (orchestrated via wave-based loading below)
 
   const fetchDiscursosResumo = useCallback(async () => {
     if (!id) return;
@@ -517,9 +476,7 @@ export function useDeputadoPage(id: string | undefined) {
     }
   }, [id, selectedYear, GetAPI]);
 
-  useEffect(() => {
-    fetchDiscursosResumo();
-  }, [fetchDiscursosResumo]);
+  // (orchestrated via wave-based loading below)
 
   const fetchCeapResumo = useCallback(async () => {
     if (!id) return;
@@ -568,13 +525,121 @@ export function useDeputadoPage(id: string | undefined) {
     setCeapPage(1);
   }, [selectedYear]);
 
-  useEffect(() => {
-    fetchCeapResumo();
-  }, [fetchCeapResumo]);
+  // (ceapResumo + ceapDespesas orchestrated via wave-based loading below)
+
+  // ─── WAVE-BASED INITIAL LOAD ──────────────────────────────────────
+  // Prevents thundering herd: instead of 17 simultaneous API calls,
+  // requests are staggered in 3 priority waves.
+  const initialLoadDoneRef = useRef(false);
+  const prevYearRef = useRef(selectedYear);
 
   useEffect(() => {
-    fetchCeapDespesas();
-  }, [fetchCeapDespesas]);
+    if (!id) return;
+    initialLoadDoneRef.current = false;
+    let cancelled = false;
+
+    (async () => {
+      // Wave 1: Header data (critical for first paint)
+      await Promise.allSettled([fetchDetails(), fetchContadores()]);
+      if (cancelled) return;
+
+      // Wave 2: Agenda & events (visible tab content)
+      await Promise.allSettled([
+        fetchHistorico(),
+        fetchAgendaResumo(),
+        fetchEventos(),
+        fetchCalendarEvents(),
+        fetchPastEvents(),
+        fetchUpcomingEvents(),
+      ]);
+      if (cancelled) return;
+
+      // Wave 3: Remaining tabs (loaded in background)
+      await Promise.allSettled([
+        fetchProposicoesResumo(),
+        fetchProposicoes(),
+        fetchBiografia(),
+        fetchPresenca(),
+        fetchVotacoesIndicadores(),
+        fetchTemas(),
+        fetchDiscursosResumo(),
+        fetchCeapResumo(),
+        fetchCeapDespesas(),
+      ]);
+
+      if (!cancelled) initialLoadDoneRef.current = true;
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [id]);
+
+  // ─── YEAR-CHANGE REFETCHES (only year-dependent endpoints) ───────
+  useEffect(() => {
+    if (!id || !initialLoadDoneRef.current) return;
+    if (prevYearRef.current === selectedYear) return;
+    prevYearRef.current = selectedYear;
+    let cancelled = false;
+
+    (async () => {
+      await Promise.allSettled([fetchDetails(), fetchPresenca()]);
+      if (cancelled) return;
+      await Promise.allSettled([
+        fetchVotacoesIndicadores(),
+        fetchDiscursosResumo(),
+      ]);
+    })();
+
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedYear]);
+
+  // ─── PAGINATION / USER-INTERACTION REFETCHES ─────────────────────
+  useEffect(() => {
+    if (initialLoadDoneRef.current) fetchHistorico();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [historicoPage, historicoPageSize, historicoYear, historicoSearchApplied]);
+
+  useEffect(() => {
+    if (initialLoadDoneRef.current) fetchEventos();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [eventosPage]);
+
+  useEffect(() => {
+    if (initialLoadDoneRef.current) fetchCalendarEvents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [calendarDate]);
+
+  useEffect(() => {
+    if (initialLoadDoneRef.current) fetchPastEvents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [pastEventsPage]);
+
+  useEffect(() => {
+    if (initialLoadDoneRef.current) fetchUpcomingEvents();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [upcomingEventsPage]);
+
+  useEffect(() => {
+    if (initialLoadDoneRef.current) fetchProposicoes();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [proposicoesPage]);
+
+  useEffect(() => {
+    if (initialLoadDoneRef.current) fetchCeapResumo();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ceapAno]);
+
+  useEffect(() => {
+    if (initialLoadDoneRef.current) fetchCeapDespesas();
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [ceapAno, ceapPage]);
+
+  // ─── END WAVE-BASED LOADING ──────────────────────────────────────
 
   const handleHistoricoYearChange = useCallback((value: string) => {
     setHistoricoYear(value === "todos" ? "" : value);

@@ -74,7 +74,7 @@ function SectionTitle({
   accentColor = "#749c5b",
   rightSlot,
 }: {
-  icon: React.ComponentType<{ className?: string }>;
+  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
   title: string;
   subtitle?: string;
   badge?: string;
@@ -356,12 +356,12 @@ export function Section1() {
 
   const totalCota = useMemo(() => {
     if (!cota.length) return 0;
-    return cota.reduce((sum, v) => sum + (v || 0), 0);
+    return cota.reduce((sum, v) => (sum ?? 0) + (v || 0), 0) ?? 0;
   }, [cota]);
 
   const totalGabinete = useMemo(() => {
     if (!gabinete.length) return 0;
-    return gabinete.reduce((sum, v) => sum + (v || 0), 0);
+    return gabinete.reduce((sum, v) => (sum ?? 0) + (v || 0), 0) ?? 0;
   }, [gabinete]);
 
   const hasChartData = useMemo(() => {
