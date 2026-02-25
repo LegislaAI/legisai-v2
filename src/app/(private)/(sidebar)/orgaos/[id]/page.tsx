@@ -9,25 +9,25 @@ import {
   TooltipTrigger,
 } from "@/components/v2/components/ui/tooltip";
 import { fetchCamara } from "@/lib/camara-api";
-import {
-  Building2,
-  Calendar,
-  ExternalLink,
-  Info,
-  MapPin,
-  Globe,
-  Users,
-  Vote,
-  BarChart3,
-  User,
-} from "lucide-react";
-import Link from "next/link";
-import { useParams } from "next/navigation";
-import { useEffect, useMemo, useState } from "react";
 import { cn } from "@/lib/utils";
 import { format, subMonths } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import {
+  BarChart3,
+  Building2,
+  Calendar,
+  ExternalLink,
+  Globe,
+  Info,
+  MapPin,
+  User,
+  Users,
+  Vote,
+} from "lucide-react";
 import dynamic from "next/dynamic";
+import Link from "next/link";
+import { useParams } from "next/navigation";
+import { useEffect, useMemo, useState } from "react";
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), { ssr: false });
 
@@ -342,17 +342,7 @@ export default function OrgaoDetalhePage() {
                 )}
               </div>
             </div>
-            {orgao.uri && (
-              <a
-                href={orgao.uri}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="inline-flex items-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50"
-              >
-                Ver na API
-                <ExternalLink className="h-4 w-4" />
-              </a>
-            )}
+      
           </div>
         </div>
 
@@ -608,7 +598,7 @@ export default function OrgaoDetalhePage() {
                     {membrosUnicos.map((m) => (
                       <li key={m.id}>
                         <Link
-                          href={`/deputados2/${m.id}`}
+                          href={`/deputados/${m.id}`}
                           className="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/50 p-3 transition-colors hover:border-[#749c5b]/20 hover:bg-[#749c5b]/5"
                         >
                           {m.urlFoto ? (

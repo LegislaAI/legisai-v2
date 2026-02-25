@@ -20,7 +20,6 @@ import {
   Vote,
   XCircle,
 } from "lucide-react";
-import Link from "next/link";
 import dynamic from "next/dynamic";
 import type { DeputadoPageData } from "./useDeputadoPage";
 import { SkeletonLoader } from "./SkeletonLoader";
@@ -669,14 +668,17 @@ export function TabAtuacao({ data }: { data: DeputadoPageData }) {
                   </Tooltip>
                 </div>
                 <div className="flex flex-wrap gap-2">
-                  <Link href={`/procedures?authorId=${politician.id}`}>
-                    <Button
-                      variant="outline"
-                      className="h-8 rounded-lg border-secondary/30 bg-secondary/5 text-xs font-bold text-secondary hover:bg-secondary hover:text-white"
-                    >
-                      Buscar na LegisAI
-                    </Button>
-                  </Link>
+                  <Button
+                    variant="outline"
+                    className="h-8 rounded-lg border-secondary/30 bg-secondary/5 text-xs font-bold text-secondary hover:bg-secondary hover:text-white"
+                    onClick={() => {
+                      const nome = politician.name ?? `Deputado (ID: ${politician.id})`;
+                      const promptText = `Liste e detalhe as proposições de autoria e coautoria do deputado ${nome} (ID: ${politician.id}). Inclua resumo, status de tramitação e atores políticos envolvidos quando aplicável.`;
+                      window.location.href = `/procedures?initialPrompt=${encodeURIComponent(promptText)}`;
+                    }}
+                  >
+                    Buscar na LegisAI
+                  </Button>
                   {profile.createdProposalsUrl && (
                     <a
                       href={profile.createdProposalsUrl}

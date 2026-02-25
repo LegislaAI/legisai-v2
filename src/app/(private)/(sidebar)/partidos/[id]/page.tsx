@@ -229,7 +229,7 @@ export default function PartidoDetalhePage() {
               <div className="px-6 pb-6 pt-4">
                 {lider?.nome ? (
                   <Link
-                    href={lider.id ? `/deputados2/${lider.id}` : "#"}
+                    href={lider.id ? `/deputados/${lider.id}` : "#"}
                     className={cn(
                       "flex items-center gap-4 rounded-2xl border border-gray-100 bg-white p-4 transition hover:border-secondary/20 hover:shadow-md",
                       lider.id ? "cursor-pointer" : "cursor-default"
@@ -295,7 +295,7 @@ export default function PartidoDetalhePage() {
                   {membros.map((m) => (
                     <li key={m.id}>
                       <Link
-                        href={`/deputados2/${m.id}`}
+                        href={`/deputados/${m.id}`}
                         className="flex items-center gap-4 rounded-2xl border border-gray-100 p-3 transition hover:border-secondary/20 hover:bg-secondary/5 hover:shadow-sm"
                       >
                         {m.urlFoto ? (

@@ -277,7 +277,7 @@ Detalhe o resumo do texto, matérias correlatas, todo o histórico de tramitaç�
                     a.politicianId ? (
                       <Link
                         key={a.id}
-                        href={`/deputados2/${a.politicianId}`}
+                        href={`/deputados/${a.politicianId}`}
                         className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-800 shadow-sm transition-colors hover:border-secondary hover:text-secondary"
                       >
                         <User className="h-4 w-4 text-gray-400" />

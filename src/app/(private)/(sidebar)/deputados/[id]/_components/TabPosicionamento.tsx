@@ -703,14 +703,17 @@ export function TabPosicionamento({ data }: { data: DeputadoPageData }) {
               />
               <div className="flex flex-wrap items-center gap-2">
                 {politician && (
-                  <Link href={`/procedures?authorId=${politician.id}`}>
-                    <Button
-                      variant="outline"
-                      className="border-secondary/30 bg-secondary/5 text-secondary hover:bg-secondary h-9 rounded-xl text-xs font-bold hover:text-white"
-                    >
-                      Buscar na LegisAI
-                    </Button>
-                  </Link>
+                  <Button
+                    variant="outline"
+                    className="border-secondary/30 bg-secondary/5 text-secondary hover:bg-secondary h-9 rounded-xl text-xs font-bold hover:text-white"
+                    onClick={() => {
+                      const nome = politician.name ?? `Deputado (ID: ${politician.id})`;
+                      const promptText = `Liste e detalhe as proposições de autoria e coautoria do deputado ${nome} (ID: ${politician.id}). Inclua resumo, status de tramitação e atores políticos envolvidos quando aplicável.`;
+                      window.location.href = `/procedures?initialPrompt=${encodeURIComponent(promptText)}`;
+                    }}
+                  >
+                    Buscar na LegisAI
+                  </Button>
                 )}
                 {proposicoesResumo?.link && (
                   <a

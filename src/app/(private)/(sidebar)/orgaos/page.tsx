@@ -381,7 +381,7 @@ export default function OrgaosPage() {
                     dataLabels: { enabled: true },
                     xaxis: {
                       categories: [...chartData.labels].reverse(),
-                      labels: { maxWidth: 280 },
+                      labels: { trim: true },
                       axisBorder: { show: false },
                       axisTicks: { show: false },
                     },

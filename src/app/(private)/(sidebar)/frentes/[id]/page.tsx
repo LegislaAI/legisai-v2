@@ -172,7 +172,7 @@ export default function FrenteDetalhePage() {
             <div className="px-6 pb-6 pt-4">
               {coordenador?.nome ? (
                 <Link
-                  href={`/deputados2/${coordenador.id}`}
+                  href={`/deputados/${coordenador.id}`}
                   className="flex items-center gap-4 rounded-2xl border border-gray-100 bg-gray-50/50 p-4 transition hover:border-[#749c5b]/20 hover:bg-[#749c5b]/5 hover:shadow-md"
                 >
                   {coordenador.urlFoto ? (
@@ -329,7 +329,7 @@ export default function FrenteDetalhePage() {
                 {membros.map((m) => (
                   <li key={m.id}>
                     <Link
-                      href={`/deputados2/${m.id}`}
+                      href={`/deputados/${m.id}`}
                       className="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/50 p-3 transition-colors hover:border-[#749c5b]/25 hover:bg-[#749c5b]/5"
                     >
                       {m.urlFoto ? (

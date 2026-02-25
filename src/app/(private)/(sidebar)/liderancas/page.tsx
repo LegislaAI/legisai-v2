@@ -202,7 +202,7 @@ export default function LiderancasPage() {
                           <td className="px-6 py-3">
                             {idDep ? (
                               <Link
-                                href={`/deputados2/${idDep}`}
+                                href={`/deputados/${idDep}`}
                                 className="font-medium text-[#749c5b] hover:underline"
                               >
                                 {nome}

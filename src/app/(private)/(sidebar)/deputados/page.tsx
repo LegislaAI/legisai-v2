@@ -131,7 +131,7 @@ export default function DeputadosListPage() {
   }, [debouncedSearch, showActiveOnly, filterParty, filterState]);
 
   const handleDeputadoClick = (id: string) => {
-    router.push(`/deputados2/${id}`);
+    router.push(`/deputados/${id}`);
   };
 
   const hasActiveFilters = !!(filterParty || filterState || debouncedSearch);

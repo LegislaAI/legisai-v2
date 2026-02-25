@@ -231,7 +231,7 @@ export default function GrupoDetalhePage() {
                         const depId = match?.[1];
                         return depId ? (
                           <Link
-                            href={`/deputados2/${depId}`}
+                            href={`/deputados/${depId}`}
                             className="font-bold text-gray-900 hover:text-[#749c5b]"
                           >
                             {presidenteNome || "—"}
@@ -289,7 +289,7 @@ export default function GrupoDetalhePage() {
                     return (
                       <Link
                         key={m.id}
-                        href={`/deputados2/${m.id}`}
+                        href={`/deputados/${m.id}`}
                         className="flex flex-wrap items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/50 p-3 transition-colors hover:border-[#749c5b]/25 hover:bg-[#749c5b]/5 md:grid md:grid-cols-12 md:gap-2"
                       >
                         <div className="flex min-w-0 flex-1 items-center gap-3 md:col-span-5">
