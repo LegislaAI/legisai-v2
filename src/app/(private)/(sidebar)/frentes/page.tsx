@@ -16,19 +16,11 @@ import {
   SelectValue,
 } from "@/components/v2/components/ui/select";
 import { fetchCamara, getTotalPagesFromLinks } from "@/lib/camara-api";
-import { Users, ArrowRight, Info, ChevronLeft, ChevronRight } from "lucide-react";
+import type { Frente } from "@/types/frentes";
+import { getIconForFrente } from "@/lib/frentes-icons";
+import { ArrowRight, Info, ChevronLeft, ChevronRight, Search, Users } from "lucide-react";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
-
-const CARD_3D =
-  "relative overflow-hidden rounded-2xl border border-gray-100/80 bg-white shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06)] transition-all duration-300 hover:border-[#749c5b]/20 hover:shadow-[0_8px_32px_-8px_rgba(116,156,91,0.2)] hover:-translate-y-0.5";
-
-interface Frente {
-  id: number;
-  titulo: string;
-  idLegislatura?: number;
-  uri?: string;
-}
 
 interface Legislatura {
   id: number;
@@ -41,6 +33,8 @@ export default function FrentesPage() {
   const [frentes, setFrentes] = useState<Frente[]>([]);
   const [legislaturas, setLegislaturas] = useState<Legislatura[]>([]);
   const [idLegislatura, setIdLegislatura] = useState<string>("");
+  const [nomeBusca, setNomeBusca] = useState("");
+  const [nomeSubmit, setNomeSubmit] = useState("");
   const [loading, setLoading] = useState(true);
   const [currentPage, setCurrentPage] = useState(1);
   const [totalPages, setTotalPages] = useState(1);
@@ -64,6 +58,7 @@ export default function FrentesPage() {
       setLoading(true);
       const params: Record<string, string | number> = { itens: 50, pagina: currentPage };
       if (idLegislatura) params.idLegislatura = idLegislatura;
+      if (nomeSubmit.trim()) params.nome = nomeSubmit.trim();
       const { ok, body, dados } = await fetchCamara<Frente[]>("frentes", params);
       if (ok) {
         setFrentes(Array.isArray(dados) ? dados : []);
@@ -74,7 +69,7 @@ export default function FrentesPage() {
       setLoading(false);
     }
     if (idLegislatura || legislaturas.length === 0) loadFrentes();
-  }, [currentPage, idLegislatura, legislaturas.length]);
+  }, [currentPage, idLegislatura, nomeSubmit, legislaturas.length]);
 
   const handleFrenteClick = (id: number) => {
     router.push(`/frentes/${id}`);
@@ -84,6 +79,12 @@ export default function FrentesPage() {
     const ini = l.dataInicio ? new Date(l.dataInicio).getFullYear() : "";
     const fim = l.dataFim ? new Date(l.dataFim).getFullYear() : "";
     return fim ? `${l.id} (${ini}-${fim})` : `${l.id} (${ini})`;
+  };
+
+  const handleBuscaSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    setNomeSubmit(nomeBusca);
+    setCurrentPage(1);
   };
 
   return (
@@ -120,20 +121,40 @@ export default function FrentesPage() {
                   </TooltipContent>
                 </Tooltip>
               </div>
-              {legislaturas.length > 0 && (
-                <Select value={idLegislatura} onValueChange={(v) => { setIdLegislatura(v); setCurrentPage(1); }}>
-                  <SelectTrigger className="w-[220px] border-gray-200 bg-white">
-                    <SelectValue placeholder="Legislatura" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {legislaturas.map((l) => (
-                      <SelectItem key={l.id} value={String(l.id)}>
-                        {legislaturaLabel(l)}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              )}
+              <div className="flex flex-wrap items-center gap-3">
+                <form onSubmit={handleBuscaSubmit} className="flex items-center gap-2">
+                  <div className="relative">
+                    <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                    <input
+                      type="search"
+                      placeholder="Buscar por nome..."
+                      value={nomeBusca}
+                      onChange={(e) => setNomeBusca(e.target.value)}
+                      className="h-10 w-52 rounded-xl border border-gray-200 bg-white pl-9 pr-3 text-sm text-gray-900 placeholder:text-gray-400 focus:border-[#749c5b] focus:outline-none focus:ring-1 focus:ring-[#749c5b]"
+                    />
+                  </div>
+                  <button
+                    type="submit"
+                    className="h-10 rounded-xl border border-[#749c5b]/30 bg-[#749c5b]/10 px-4 text-sm font-semibold text-[#749c5b] transition-colors hover:bg-[#749c5b]/20"
+                  >
+                    Buscar
+                  </button>
+                </form>
+                {legislaturas.length > 0 && (
+                  <Select value={idLegislatura} onValueChange={(v) => { setIdLegislatura(v); setCurrentPage(1); }}>
+                    <SelectTrigger className="w-[220px] border-gray-200 bg-white">
+                      <SelectValue placeholder="Legislatura" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {legislaturas.map((l) => (
+                        <SelectItem key={l.id} value={String(l.id)}>
+                          {legislaturaLabel(l)}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                )}
+              </div>
             </div>
           </div>
 
@@ -146,29 +167,42 @@ export default function FrentesPage() {
           ) : frentes.length > 0 ? (
             <>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {frentes.map((f) => (
-                  <div
-                    key={f.id}
-                    onClick={() => handleFrenteClick(f.id)}
-                    className={`${CARD_3D} group cursor-pointer p-5`}
-                  >
-                    <div className="absolute left-0 top-0 h-full w-1 rounded-l-2xl bg-[#749c5b] opacity-0 transition-opacity group-hover:opacity-100" />
-                    <div className="flex flex-col gap-3">
-                      {f.idLegislatura && (
-                        <span className="text-xs font-medium text-gray-500">
-                          Legislatura {f.idLegislatura}
-                        </span>
-                      )}
-                      <h3 className="font-bold leading-tight text-gray-900 line-clamp-3">
-                        {f.titulo || "Sem título"}
-                      </h3>
-                      <div className="mt-auto flex items-center justify-end gap-2 text-[#749c5b]">
-                        <span className="text-sm font-medium">Ver membros</span>
-                        <ArrowRight className="h-4 w-4" />
+                {frentes.map((f) => {
+                  const IconFrente = getIconForFrente(f.titulo || "");
+                  return (
+                    <div
+                      key={f.id}
+                      onClick={() => handleFrenteClick(f.id)}
+                      className="group relative cursor-pointer overflow-hidden rounded-2xl border border-gray-100/80 bg-white shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06)] transition-all duration-300 hover:-translate-y-0.5 hover:border-[#749c5b]/20 hover:shadow-[0_8px_32px_-8px_rgba(116,156,91,0.2)] p-5"
+                    >
+                      <div className="absolute left-0 top-0 h-full w-1 rounded-l-2xl bg-[#749c5b] opacity-0 transition-opacity group-hover:opacity-100" />
+                      <div className="flex flex-col gap-3">
+                        <div className="flex items-start gap-3">
+                          <div
+                            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-gray-100 bg-gray-50"
+                            style={{ background: "linear-gradient(135deg, #749c5b12, #749c5b06)" }}
+                          >
+                            <IconFrente className="h-5 w-5 text-[#749c5b]" />
+                          </div>
+                          <div className="min-w-0 flex-1">
+                            {f.idLegislatura && (
+                              <span className="text-xs font-medium text-gray-500">
+                                Legislatura {f.idLegislatura}
+                              </span>
+                            )}
+                            <h3 className="font-bold leading-tight text-gray-900 line-clamp-3">
+                              {f.titulo || "Sem título"}
+                            </h3>
+                          </div>
+                        </div>
+                        <div className="mt-auto flex items-center justify-end gap-2 text-gray-600 group-hover:text-[#749c5b]">
+                          <span className="text-sm font-medium">Ver membros</span>
+                          <ArrowRight className="h-4 w-4 transition-transform group-hover:translate-x-0.5" />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
 
               {totalPages > 1 && (

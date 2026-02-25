@@ -21,9 +21,11 @@ export function Header() {
   const { clearToken } = useApiContext();
 
   return (
-    <div className="flex h-14 w-full items-center justify-between xl:h-20">
-      <div
-        onClick={() => {
+    <div className="flex h-14 w-full items-center justify-between xl:h-20 gap-4">
+      <div className="flex items-center gap-4 flex-1">
+        <Menu className="lg:hidden cursor-pointer shrink-0" onClick={() => setIsSidebarOpen(true)} />
+        <div
+          onClick={() => {
           if (pathname === "/") {
             return;
           } else if (pathname.includes("/plenary/")) {
@@ -40,8 +42,9 @@ export function Header() {
         <span className="font-semibold">
           {pathname.includes("/plenary/") ? "Plenários" : "Home"}
         </span>
+        </div>
       </div>
-      <div className="ml-auto flex items-center gap-4">
+      <div className="ml-auto flex items-center gap-4 shrink-0">
         {/* <button
           onClick={() => router.push("/prediction-ai")}
           className="bg-secondary h-8 rounded-full px-4 text-white"
@@ -98,8 +101,6 @@ export function Header() {
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>
-
-        <Menu className="lg:hidden" onClick={() => setIsSidebarOpen(true)} />
       </div>
     </div>
   );

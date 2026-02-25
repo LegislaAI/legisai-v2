@@ -7,6 +7,7 @@ import {
   CheckSquare,
   ChevronLeft,
   ChevronRight,
+  FileText,
   Search,
   SlidersHorizontal,
   X,
@@ -21,8 +22,10 @@ import { useApiContext } from "@/context/ApiContext";
 import { useRouter } from "next/navigation";
 
 // --- TIPOS ---
+type MainPlenaryTab = "pauta" | "sessoes" | "sessao_texto";
 type SessionType = "solene" | "deliberativa";
 type ApiEventType = "SOLEMN" | "DELIBERATIVE";
+type SessoesSubView = "hoje" | "resultados";
 
 interface SessionSummary {
   id: string;
@@ -56,12 +59,18 @@ interface EventProps {
 export default function SessionListScreen() {
   const router = useRouter();
   const { GetAPI } = useApiContext();
+  const [mainTab, setMainTab] = useState<MainPlenaryTab>("sessoes");
+  const [sessoesSubView, setSessoesSubView] = useState<SessoesSubView>("resultados");
   const [activeTab, setActiveTab] = useState<SessionType>("deliberativa");
   const [dateRange, setDateRange] = useState<DateRange | undefined>(undefined);
   const [currentPage, setCurrentPage] = useState(1);
   const [loading, setLoading] = useState(true);
   const [events, setEvents] = useState<EventProps[]>([]);
   const [totalPages, setTotalPages] = useState(0);
+
+  // Pauta da semana: próximas sessões (próximos 7 dias)
+  const [pautaEvents, setPautaEvents] = useState<EventProps[]>([]);
+  const [loadingPauta, setLoadingPauta] = useState(false);
 
   // Status filter state
   const [statusFilters, setStatusFilters] = useState<{
@@ -125,6 +134,31 @@ export default function SessionListScreen() {
     fetchEvents();
   }, [currentPage, dateRange, activeTab]);
 
+  // Pauta da semana: buscar próximas sessões (próximos 7 dias)
+  useEffect(() => {
+    if (mainTab !== "pauta") return;
+    async function fetchPautaSemana() {
+      setLoadingPauta(true);
+      const start = moment().format("YYYY-MM-DD");
+      const end = moment().add(7, "days").format("YYYY-MM-DD");
+      try {
+        const [delRes, solRes] = await Promise.all([
+          GetAPI(`/event?page=1&startDate=${start}&endDate=${end}&type=DELIBERATIVE`, true),
+          GetAPI(`/event?page=1&startDate=${start}&endDate=${end}&type=SOLEMN`, true),
+        ]);
+        const delEvents = delRes.status === 200 ? delRes.body.events || [] : [];
+        const solEvents = solRes.status === 200 ? solRes.body.events || [] : [];
+        const combined = [...delEvents, ...solEvents].sort(
+          (a, b) => new Date(a.startDate).getTime() - new Date(b.startDate).getTime()
+        );
+        setPautaEvents(combined);
+      } finally {
+        setLoadingPauta(false);
+      }
+    }
+    fetchPautaSemana();
+  }, [mainTab]);
+
   // Reset to page 1 when filters change
   useEffect(() => {
     if (currentPage !== 1) {
@@ -180,37 +214,167 @@ export default function SessionListScreen() {
     }));
   };
 
+  const setFiltroHoje = () => {
+    const today = new Date();
+    setDateRange({ from: today, to: today });
+    setSessoesSubView("hoje");
+  };
+
+  const limparFiltros = () => {
+    setDateRange(undefined);
+    setSessoesSubView("resultados");
+  };
+
+  const handlePautaNavigation = (id: string, type: "deliberativa" | "solene") => {
+    if (type === "solene") router.push(`/plenary/solene/${id}`);
+    else router.push(`/plenary/deliberativa/${id}`);
+  };
+
   return (
     <div className="min-h-screen bg-[#f4f4f4] p-6 font-sans text-[#1a1d1f]">
       <div className="mx-auto space-y-8">
-        {/* --- CABEÇALHO --- */}
+        {/* --- CABEÇALHO E ABAS PRINCIPAIS (Pauta | Sessões | Sessão em texto) --- */}
         <div className="overflow-hidden rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
           <h1 className="mb-2 text-3xl font-bold text-[#1a1d1f]">
-            Acompanhe as Sessões
+            Plenário
           </h1>
-          <p className="text-gray-700">
-            Selecione o tipo de sessão e utilize os filtros para refinar sua
-            busca.
+          <p className="mb-4 text-gray-700">
+            Acompanhe a pauta da semana, pesquise sessões e acesse o registro em texto quando disponível.
           </p>
-          <div className="mt-4 flex w-fit flex-col gap-2 rounded-lg border border-gray-300 bg-white p-1 sm:flex-row">
+          <div className="flex flex-wrap gap-2 border-b border-gray-200 pb-2">
             {[
-              { id: "deliberativa", label: "Sessões Deliberativas" },
-              { id: "solene", label: "Sessões Solenes" },
-            ].map(({ id, label }) => (
+              { id: "pauta" as const, label: "Pauta da semana", icon: FileText },
+              { id: "sessoes" as const, label: "Sessões", icon: CalendarIcon },
+              { id: "sessao_texto" as const, label: "Sessão em texto", icon: FileText },
+            ].map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
-                onClick={() => handleTabChange(id as SessionType)}
-                className={`rounded-md px-6 py-2 text-sm font-medium transition-all duration-200 ${
-                  activeTab === id
-                    ? "bg-[#749c5b] text-white shadow-sm"
-                    : "text-[#6f767e] hover:bg-gray-50 hover:text-[#749c5b]"
+                onClick={() => setMainTab(id)}
+                className={`flex items-center gap-2 rounded-lg border px-4 py-2 text-sm font-medium transition-all ${
+                  mainTab === id
+                    ? "border-[#749c5b] bg-[#749c5b] text-white"
+                    : "border-gray-200 bg-white text-[#6f767e] hover:border-[#749c5b]/50 hover:text-[#749c5b]"
                 }`}
               >
+                <Icon size={16} />
                 {label}
               </button>
             ))}
           </div>
         </div>
+
+        {/* --- CONTEÚDO: PAUTA DA SEMANA --- */}
+        {mainTab === "pauta" && (
+          <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+            <h2 className="mb-4 text-xl font-bold text-[#1a1d1f]">
+              Pauta da semana (Plenário)
+            </h2>
+            <p className="mb-4 text-sm text-[#6f767e]">
+              Próximas sessões nos próximos 7 dias. Clique em &quot;Ver detalhes&quot; para pauta completa e votações.
+            </p>
+            {loadingPauta ? (
+              <div className="space-y-3">
+                {[1, 2, 3].map((i) => (
+                  <div key={i} className="h-24 animate-pulse rounded-lg bg-gray-100" />
+                ))}
+              </div>
+            ) : pautaEvents.length === 0 ? (
+              <div className="rounded-lg border border-dashed border-gray-300 bg-gray-50 p-8 text-center text-[#6f767e]">
+                Nenhuma sessão prevista para os próximos 7 dias.
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {pautaEvents.map((ev) => {
+                  const type: SessionType = ev.eventType?.name?.toLowerCase().includes("solene") ? "solene" : "deliberativa";
+                  return (
+                    <div
+                      key={ev.id}
+                      className="flex flex-wrap items-center justify-between gap-4 rounded-lg border border-gray-100 bg-[#f4f4f4]/50 p-4"
+                    >
+                      <div>
+                        <span className="mr-2 rounded bg-gray-200 px-2 py-0.5 text-xs font-medium text-[#1a1d1f]">
+                          {format(new Date(ev.startDate), "dd/MM/yyyy", { locale: ptBR })}
+                        </span>
+                        <span className="font-semibold text-[#1a1d1f]">{ev.eventType?.name || ev.description}</span>
+                        <p className="mt-1 text-sm text-[#6f767e]">{ev.description}</p>
+                        <p className="mt-1 text-xs text-[#6f767e]">Itens principais: consulte o detalhe da sessão.</p>
+                      </div>
+                      <button
+                        onClick={() => handlePautaNavigation(ev.id, type)}
+                        className="flex items-center gap-1 rounded-lg bg-[#749c5b] px-4 py-2 text-sm font-medium text-white hover:bg-[#749c5b]/90"
+                      >
+                        Ver detalhes
+                        <ArrowRight size={14} />
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* --- CONTEÚDO: SESSÃO EM TEXTO (casca) --- */}
+        {mainTab === "sessao_texto" && (
+          <div className="rounded-xl border border-gray-100 bg-white p-8 shadow-sm">
+            <h2 className="mb-4 text-xl font-bold text-[#1a1d1f]">
+              Sessão em texto
+            </h2>
+            <p className="text-sm text-[#6f767e]">
+              O texto disponível das sessões (Breves Comunicações ou oradores) pode ser visto no detalhe de cada sessão: abra uma sessão deliberativa ou solene e use a aba &quot;Sessão em texto&quot; ou &quot;Breves Comunicações&quot;.
+            </p>
+          </div>
+        )}
+
+        {/* --- CONTEÚDO: SESSÕES (lista + filtros) --- */}
+        {mainTab === "sessoes" && (
+          <>
+            <div className="overflow-hidden rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+              <div className="mb-2 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+                <div className="flex w-full flex-col gap-1 rounded-lg border border-gray-200 bg-gray-50/80 p-1 sm:w-auto sm:flex-row">
+                  {[
+                    { id: "deliberativa", label: "Sessões Deliberativas" },
+                    { id: "solene", label: "Sessões Solenes" },
+                  ].map(({ id, label }) => (
+                    <button
+                      key={id}
+                      onClick={() => handleTabChange(id as SessionType)}
+                      className={`flex-1 rounded-md px-6 py-2.5 text-sm font-semibold transition-all duration-200 sm:flex-none ${
+                        activeTab === id
+                          ? "bg-white text-[#749c5b] shadow-sm border border-gray-200/50"
+                          : "text-gray-500 hover:text-gray-900"
+                      }`}
+                    >
+                      {label}
+                    </button>
+                  ))}
+                </div>
+
+                <div className="flex w-full items-center gap-2 sm:w-auto">
+                  <div className="flex w-full flex-1 gap-2 sm:w-auto p-1 bg-gray-50/80 rounded-lg border border-gray-200">
+                    {[
+                      { id: "resultados" as const, label: "Todas" },
+                      { id: "hoje" as const, label: "Hoje" },
+                    ].map(({ id, label }) => (
+                      <button
+                        key={id}
+                        onClick={() => {
+                          setSessoesSubView(id);
+                          if (id === "hoje") setFiltroHoje();
+                        }}
+                        className={`flex-1 rounded-md px-4 py-2 text-sm font-medium transition-colors sm:flex-none ${
+                          sessoesSubView === id 
+                            ? "bg-[#749c5b] text-white shadow-sm" 
+                            : "bg-transparent text-gray-500 hover:text-gray-900 hover:bg-gray-100"
+                        }`}
+                      >
+                        {label}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+              </div>
+            </div>
 
         {/* --- GRID LAYOUT --- */}
         <div className="grid grid-cols-1 items-start gap-8 lg:grid-cols-3">
@@ -271,12 +435,12 @@ export default function SessionListScreen() {
                       <div className="flex items-center sm:self-center">
                         <button
                           onClick={() => handleNavigation(session)}
-                          className="flex h-10 w-10 items-center justify-center rounded-full border border-gray-200 bg-white text-[#1a1d1f] shadow-sm transition-all hover:bg-dark hover:text-white sm:h-auto sm:w-auto sm:rounded-lg sm:border-transparent sm:bg-secondary sm:px-4 sm:py-2 sm:text-white"
+                          className="flex w-full items-center justify-center gap-2 rounded-lg bg-[#749c5b] px-4 py-3 text-white shadow-sm transition-all hover:bg-[#749c5b]/90 sm:w-auto sm:py-2"
                         >
-                          <ArrowRight size={18} className="sm:mr-2" />
-                          <span className="hidden text-sm font-medium sm:inline">
+                          <span className="text-sm font-medium">
                             Detalhes
                           </span>
+                          <ArrowRight size={18} />
                         </button>
                       </div>
                     </div>
@@ -372,14 +536,23 @@ export default function SessionListScreen() {
             )}
           </div>
 
-          {/* --- COLUNA DIREITA: SIDEBAR --- */}
+          {/* --- COLUNA DIREITA: SIDEBAR (Pesquisa) --- */}
           <div className="sticky top-6 space-y-6 lg:col-span-1">
-            {/* 1. FILTROS DE STATUS */}
+            <div className="flex flex-wrap justify-end gap-2">
+              <button
+                onClick={limparFiltros}
+                className="flex items-center gap-1 rounded-xl border border-gray-200 bg-white px-4 py-2 text-sm font-medium text-gray-600 shadow-sm transition-all hover:bg-gray-50"
+              >
+                <X size={14} />
+                Limpar filtros
+              </button>
+            </div>
+            {/* 1. PESQUISA - FILTROS DE STATUS */}
             <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
               <div className="mb-4 flex items-center justify-between border-b border-gray-100 pb-4">
                 <h2 className="flex items-center gap-2 font-bold text-[#1a1d1f]">
                   <SlidersHorizontal size={18} className="text-[#749c5b]" />
-                  Filtros
+                  Pesquisa
                 </h2>
               </div>
 
@@ -505,6 +678,8 @@ export default function SessionListScreen() {
             </div>
           </div>
         </div>
+          </>
+        )}
       </div>
     </div>
   );

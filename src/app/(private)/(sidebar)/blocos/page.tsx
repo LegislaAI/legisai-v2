@@ -17,16 +17,16 @@ import {
 } from "@/components/v2/components/ui/select";
 import { fetchCamara, getTotalPagesFromLinks } from "@/lib/camara-api";
 import { Layers, ArrowRight, Info, ChevronLeft, ChevronRight } from "lucide-react";
-import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { useEffect, useState } from "react";
 
 const CARD_3D =
   "relative overflow-hidden rounded-2xl border border-gray-100/80 bg-white shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06)] transition-all duration-300 hover:border-[#749c5b]/20 hover:shadow-[0_8px_32px_-8px_rgba(116,156,91,0.2)] hover:-translate-y-0.5";
 
 interface Bloco {
-  id: number;
+  id: number | string;
   nome: string;
-  idLegislatura?: number;
+  idLegislatura?: number | string;
   uri?: string;
 }
 
@@ -37,7 +37,6 @@ interface Legislatura {
 }
 
 export default function BlocosPage() {
-  const router = useRouter();
   const [blocos, setBlocos] = useState<Bloco[]>([]);
   const [legislaturas, setLegislaturas] = useState<Legislatura[]>([]);
   const [idLegislatura, setIdLegislatura] = useState<string>("");
@@ -75,10 +74,6 @@ export default function BlocosPage() {
     }
     if (idLegislatura || legislaturas.length === 0) loadBlocos();
   }, [currentPage, idLegislatura, legislaturas.length]);
-
-  const handleBlocoClick = (id: number) => {
-    router.push(`/blocos/${id}`);
-  };
 
   const legislaturaLabel = (l: Legislatura) => {
     const ini = l.dataInicio ? new Date(l.dataInicio).getFullYear() : "";
@@ -146,29 +141,32 @@ export default function BlocosPage() {
           ) : blocos.length > 0 ? (
             <>
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-                {blocos.map((b) => (
-                  <div
-                    key={b.id}
-                    onClick={() => handleBlocoClick(b.id)}
-                    className={`${CARD_3D} group cursor-pointer p-5`}
-                  >
-                    <div className="absolute left-0 top-0 h-full w-1 rounded-l-2xl bg-[#749c5b] opacity-0 transition-opacity group-hover:opacity-100" />
-                    <div className="flex flex-col gap-3">
-                      {b.idLegislatura && (
-                        <span className="text-xs font-medium text-gray-500">
-                          Legislatura {b.idLegislatura}
-                        </span>
-                      )}
-                      <h3 className="font-bold leading-tight text-gray-900 line-clamp-2">
-                        {b.nome || "Sem nome"}
-                      </h3>
-                      <div className="mt-auto flex items-center justify-end gap-2 text-[#749c5b]">
-                        <span className="text-sm font-medium">Ver partidos</span>
-                        <ArrowRight className="h-4 w-4" />
+                {blocos.map((b) => {
+                  const blocoId = String(b.id);
+                  return (
+                    <Link
+                      key={blocoId}
+                      href={`/blocos/${blocoId}`}
+                      className={`${CARD_3D} group block p-5`}
+                    >
+                      <div className="absolute left-0 top-0 h-full w-1 rounded-l-2xl bg-[#749c5b] opacity-0 transition-opacity group-hover:opacity-100" />
+                      <div className="flex flex-col gap-3">
+                        {b.idLegislatura != null && (
+                          <span className="text-xs font-medium text-gray-500">
+                            Legislatura {b.idLegislatura}
+                          </span>
+                        )}
+                        <h3 className="font-bold leading-tight text-gray-900 line-clamp-2">
+                          {b.nome || "Sem nome"}
+                        </h3>
+                        <div className="mt-auto flex items-center justify-end gap-2 text-[#749c5b]">
+                          <span className="text-sm font-medium">Ver partidos</span>
+                          <ArrowRight className="h-4 w-4" />
+                        </div>
                       </div>
-                    </div>
-                  </div>
-                ))}
+                    </Link>
+                  );
+                })}
               </div>
 
               {totalPages > 1 && (

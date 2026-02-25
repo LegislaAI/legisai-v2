@@ -23,9 +23,10 @@ interface SectionGeminiProps {
   type: string;
   /** Quando vindo da ficha do deputado, ID do autor para contexto da busca */
   initialAuthorId?: string;
+  initialPrompt?: string;
 }
 
-export function SectionProposition({ activeChatId, selectedPrompt, onChatCreated, type }: SectionGeminiProps) {
+export function SectionProposition({ activeChatId, selectedPrompt, onChatCreated, type, initialPrompt }: SectionGeminiProps) {
     const { GetAPI } = useApiContext();
     const [historyList, setHistoryList] = useState<{ id: string, name: string, createdAt: string }[]>([]);
     const [chatTotalPages, setChatTotalPages] = useState(1);
@@ -85,6 +86,18 @@ export function SectionProposition({ activeChatId, selectedPrompt, onChatCreated
   const [showHistory, setShowHistory] = useState(true);
   const scrollRef = useRef<HTMLDivElement>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+
+  // Auto-send initial prompt if present
+  const initialPromptSent = useRef(false);
+  useEffect(() => {
+    if (initialPrompt && !initialPromptSent.current && selectedPrompt && !loading && !activeChatId && !loadOldChat) {
+        initialPromptSent.current = true;
+        setInputMessage(initialPrompt);
+        setTimeout(() => {
+            handleSendMessage(initialPrompt);
+        }, 100);
+    }
+  }, [initialPrompt, selectedPrompt, loading, activeChatId, loadOldChat, handleSendMessage, setInputMessage]);
 
   // Auto-scroll
   useEffect(() => {

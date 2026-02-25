@@ -11,6 +11,7 @@ import * as Tabs from "@radix-ui/react-tabs";
 import {
   ArrowUpDown,
   BarChart3,
+  BookOpen,
   Calendar,
   Check,
   ChevronDown,
@@ -23,14 +24,17 @@ import {
   ExternalLink,
   FileText,
   Info,
+  LayoutList,
   MapPin,
   Mic2,
   Search,
+  Sparkles,
   Users,
   Video,
   X,
 } from "lucide-react";
 import moment from "moment";
+import { SessionSummaryReport } from "./components/SessionSummaryReport";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -233,7 +237,21 @@ export default function DeliberativeSessionScreen() {
   const [expandedSpeakers, setExpandedSpeakers] = useState<Set<number>>(
     new Set(),
   );
+  // Transcrição completa (fonte: Escriba Câmara - texto original integral)
+  const [transcricaoCompleta, setTranscricaoCompleta] = useState<{
+    exists: boolean;
+    fullText: string | null;
+  } | null>(null);
+  const [loadingTranscricao, setLoadingTranscricao] = useState(false);
   const [timeLeft, setTimeLeft] = useState<number>(0);
+  // Sessão em texto: submenu e resumo IA
+  const [sessaoTextoSubView, setSessaoTextoSubView] = useState<"visao_geral" | "texto_integral">("texto_integral");
+  const [sessionSummary, setSessionSummary] = useState<string | null>(null);
+  const [loadingSessionSummary, setLoadingSessionSummary] = useState(false);
+  const [sessaoTextoPage, setSessaoTextoPage] = useState(1);
+  const [sessaoTextoSearch, setSessaoTextoSearch] = useState("");
+  const [sessaoTextoModoLeitura, setSessaoTextoModoLeitura] = useState(false);
+  const SESSÃO_TEXTO_PARAGRAPHS_PER_PAGE = 18;
 
   // Format countdown time
   const formatCountdown = (milliseconds: number): string => {
@@ -375,11 +393,12 @@ export default function DeliberativeSessionScreen() {
     presenceSortOrder,
   ]);
 
-  // Fetch Breves Comunicações when tab is active
+  // Fetch Breves Comunicações when tab Breves or Sessão em texto is active (mesmo dado para as duas abas)
   useEffect(() => {
     async function fetchBrevesComunicacoes() {
       const eventId = pathname.split("/").pop();
-      if (!eventId || activeTab !== "brief_comm" || brevesComunicacoes) return;
+      const tabNeedsBreves = activeTab === "brief_comm" || activeTab === "sessao_texto";
+      if (!eventId || !tabNeedsBreves || brevesComunicacoes) return;
 
       setLoadingBreves(true);
       try {
@@ -397,6 +416,33 @@ export default function DeliberativeSessionScreen() {
     }
 
     fetchBrevesComunicacoes();
+  }, [pathname, activeTab]);
+
+  // Transcrição completa (original Escriba) quando aba Sessão em texto está ativa
+  useEffect(() => {
+    async function fetchTranscricaoCompleta() {
+      const eventId = pathname.split("/").pop();
+      if (!eventId || activeTab !== "sessao_texto") return;
+
+      setLoadingTranscricao(true);
+      setTranscricaoCompleta(null);
+      try {
+        const response = await GetAPI(`/event/${eventId}/transcricao-completa`, true);
+        if (response.status === 200 && response.body) {
+          setTranscricaoCompleta({
+            exists: response.body.exists === true,
+            fullText: response.body.fullText ?? null,
+          });
+        } else {
+          setTranscricaoCompleta({ exists: false, fullText: null });
+        }
+      } catch {
+        setTranscricaoCompleta({ exists: false, fullText: null });
+      }
+      setLoadingTranscricao(false);
+    }
+
+    fetchTranscricaoCompleta();
   }, [pathname, activeTab]);
 
   function getCategoriaPorCodigo(codigo?: string): string {
@@ -801,6 +847,7 @@ export default function DeliberativeSessionScreen() {
                 { id: "order_day", label: "Ordem do Dia", icon: FileText },
                 { id: "voting", label: "Votação", icon: Check },
                 { id: "presence", label: "Presenças", icon: Users },
+                { id: "sessao_texto", label: "Sessão em texto", icon: FileText },
               ].map((tab) => (
                 <Tabs.Trigger
                   key={tab.id}
@@ -2442,6 +2489,306 @@ export default function DeliberativeSessionScreen() {
                   </div>
                 )}
               </div>
+            </Tabs.Content>
+
+            {/* --- CONTEÚDO: SESSÃO EM TEXTO (submenu: Visão geral IA + Texto integral com paginação e busca) --- */}
+            <Tabs.Content
+              value="sessao_texto"
+              className="animate-in fade-in slide-in-from-bottom-2 space-y-6 duration-500"
+            >
+              {loadingTranscricao ? (
+                <div className="flex flex-col items-center justify-center rounded-xl border border-gray-100 bg-white py-16 text-center">
+                  <div className="h-8 w-8 animate-spin rounded-full border-4 border-[#749c5b] border-t-transparent" />
+                  <p className="mt-4 text-sm text-gray-500">Carregando transcrição completa...</p>
+                </div>
+              ) : loadingBreves ? (
+                <div className="flex flex-col items-center justify-center rounded-xl border border-gray-100 bg-white py-12 text-center">
+                  <p className="text-sm text-gray-500">Carregando texto disponível...</p>
+                </div>
+              ) : (() => {
+                const fullTextFromEscriba = transcricaoCompleta?.exists && transcricaoCompleta.fullText ? transcricaoCompleta.fullText : null;
+                const fullTextParts = brevesComunicacoes?.speakers
+                  ?.map((s) => (s.transcription?.trim() || s.speechSummary?.trim() || ""))
+                  .filter(Boolean) ?? [];
+                const fallbackText = fullTextParts.join("\n\n");
+                const fullTextForSession = fullTextFromEscriba ?? (fallbackText.length > 0 ? fallbackText : null);
+                const hasAnyText = !!fullTextForSession && fullTextForSession.length > 0;
+                const sourceLabel = fullTextFromEscriba
+                  ? "Transcrição completa e original (fonte: Escriba – Câmara dos Deputados)"
+                  : "Texto processado (Breves Comunicações)";
+
+                if (!hasAnyText) {
+                  return (
+                    <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+                      <p className="text-sm text-[#6f767e]">
+                        Não há transcrição disponível para esta sessão no momento.
+                      </p>
+                    </div>
+                  );
+                }
+
+                const paragraphs = fullTextForSession!
+                  .split(/\n\n+/)
+                  .map((p) => p.trim())
+                  .filter(Boolean);
+                const searchLower = sessaoTextoSearch.trim().toLowerCase();
+                const filteredParagraphs = searchLower
+                  ? paragraphs.filter((p) => p.toLowerCase().includes(searchLower))
+                  : paragraphs;
+                const totalPages = Math.max(1, Math.ceil(filteredParagraphs.length / SESSÃO_TEXTO_PARAGRAPHS_PER_PAGE));
+                const safePage = Math.min(Math.max(1, sessaoTextoPage), totalPages);
+                const start = (safePage - 1) * SESSÃO_TEXTO_PARAGRAPHS_PER_PAGE;
+                const pageParagraphs = filteredParagraphs.slice(start, start + SESSÃO_TEXTO_PARAGRAPHS_PER_PAGE);
+
+                async function handleGenerateSummary() {
+                  if (!fullTextForSession) return;
+                  setLoadingSessionSummary(true);
+                  setSessionSummary(null);
+                  try {
+                    const res = await fetch("/api/plenary/session-summary", {
+                      method: "POST",
+                      headers: { "Content-Type": "application/json" },
+                      body: JSON.stringify({ text: fullTextForSession }),
+                    });
+                    const data = await res.json();
+                    if (res.ok && data.summary) setSessionSummary(data.summary);
+                  } catch {
+                    setSessionSummary("*Erro ao gerar resumo. Tente novamente.*");
+                  }
+                  setLoadingSessionSummary(false);
+                }
+
+                return (
+                  <div className="space-y-6">
+                    {/* Submenu: Visão geral | Texto integral */}
+                    <div className="flex flex-wrap items-center gap-2 rounded-xl border border-gray-100 bg-white p-3 shadow-sm">
+                      <span className="text-sm font-medium text-[#6f767e]">Exibir:</span>
+                      {[
+                        { id: "visao_geral" as const, label: "Visão geral (IA)", icon: Sparkles },
+                        { id: "texto_integral" as const, label: "Texto integral", icon: LayoutList },
+                      ].map(({ id, label, icon: Icon }) => (
+                        <button
+                          key={id}
+                          onClick={() => setSessaoTextoSubView(id)}
+                          className={cn(
+                            "flex items-center gap-2 rounded-lg px-4 py-2.5 text-sm font-medium transition-all duration-200",
+                            sessaoTextoSubView === id
+                              ? "bg-[#749c5b] text-white shadow-md"
+                              : "bg-gray-100 text-[#6f767e] hover:bg-gray-200 hover:text-[#1a1d1f]"
+                          )}
+                        >
+                          <Icon size={16} />
+                          {label}
+                        </button>
+                      ))}
+                    </div>
+
+                    {sessaoTextoSubView === "visao_geral" && (
+                      <div className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
+                        <div className="border-b border-gray-100 bg-gradient-to-r from-[#749c5b]/10 to-emerald-50/50 px-6 py-4">
+                          <h3 className="text-lg font-bold text-[#1a1d1f] flex items-center gap-2">
+                            <Sparkles className="text-[#749c5b]" size={20} />
+                            Visão geral da sessão
+                          </h3>
+                          <p className="text-xs text-[#6f767e] mt-1">
+                            Pontos relevantes, temas, valores e ações importantes extraídos por IA (Open Router).
+                          </p>
+                          {!sessionSummary && !loadingSessionSummary && (
+                            <button
+                              onClick={handleGenerateSummary}
+                              className="mt-4 flex items-center gap-2 rounded-lg bg-[#749c5b] px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-[#64944b] active:scale-[0.98]"
+                            >
+                              <Sparkles size={16} />
+                              Gerar visão geral
+                            </button>
+                          )}
+                        </div>
+                        <div className="p-6">
+                          {loadingSessionSummary && (
+                            <div className="flex flex-col items-center justify-center py-12 text-center">
+                              <div className="h-10 w-10 animate-spin rounded-full border-4 border-[#749c5b] border-t-transparent" />
+                              <p className="mt-4 text-sm text-gray-500">Gerando visão geral...</p>
+                            </div>
+                          )}
+                          {sessionSummary && !loadingSessionSummary && (
+                            <SessionSummaryReport content={sessionSummary} />
+                          )}
+                          {!sessionSummary && !loadingSessionSummary && (
+                            <p className="text-sm text-[#6f767e]">
+                              Clique em &quot;Gerar visão geral&quot; para obter um resumo com pontos relevantes, temas e ações importantes.
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    )}
+
+                    {sessaoTextoSubView === "texto_integral" && (
+                      <div className="space-y-4">
+                        <p className="text-xs text-[#6f767e]">{sourceLabel}</p>
+                        <div className="flex flex-wrap items-center gap-3">
+                          {/* Busca */}
+                          <div className="relative flex-1 min-w-[200px]">
+                            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                            <input
+                              type="text"
+                              placeholder="Pesquisar no texto..."
+                              value={sessaoTextoSearch}
+                              onChange={(e) => {
+                                setSessaoTextoSearch(e.target.value);
+                                setSessaoTextoPage(1);
+                              }}
+                              className="w-full rounded-xl border border-gray-200 bg-white py-2.5 pl-10 pr-4 text-sm text-[#1a1d1f] placeholder:text-gray-400 focus:border-[#749c5b] focus:outline-none focus:ring-2 focus:ring-[#749c5b]/20"
+                            />
+                            {sessaoTextoSearch && (
+                              <button
+                                type="button"
+                                onClick={() => { setSessaoTextoSearch(""); setSessaoTextoPage(1); }}
+                                className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                              >
+                                <X size={16} />
+                              </button>
+                            )}
+                          </div>
+                          {/* Toggle Modo lista / Modo leitura */}
+                          <div className="flex rounded-lg border border-gray-200 bg-white p-1">
+                            <button
+                              type="button"
+                              onClick={() => setSessaoTextoModoLeitura(false)}
+                              className={cn(
+                                "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                                !sessaoTextoModoLeitura ? "bg-gray-100 text-[#1a1d1f]" : "text-gray-600 hover:bg-gray-50"
+                              )}
+                            >
+                              <LayoutList size={16} />
+                              Modo lista
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setSessaoTextoModoLeitura(true)}
+                              className={cn(
+                                "flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors",
+                                sessaoTextoModoLeitura ? "bg-[#749c5b] text-white" : "text-gray-600 hover:bg-gray-50"
+                              )}
+                            >
+                              <BookOpen size={16} />
+                              Modo leitura
+                            </button>
+                          </div>
+                        </div>
+                        {sessaoTextoSearch && (
+                          <p className="text-xs text-[#6f767e]">
+                            {filteredParagraphs.length} trecho(s) encontrado(s).
+                          </p>
+                        )}
+                        {/* Blocos de texto com animação */}
+                        <div
+                          className={cn(
+                            "rounded-xl border border-gray-100 bg-white p-6 shadow-sm",
+                            sessaoTextoModoLeitura && "max-w-[65ch] mx-auto bg-stone-50/80 border-stone-200"
+                          )}
+                        >
+                          {filteredParagraphs.length === 0 ? (
+                            <p className="py-8 text-center text-sm text-[#6f767e]">
+                              Nenhum trecho encontrado para &quot;{sessaoTextoSearch}&quot;. Tente outra palavra.
+                            </p>
+                          ) : (
+                          <div
+                            className={cn(
+                              "space-y-4",
+                              sessaoTextoModoLeitura && "space-y-5 text-base leading-loose font-serif"
+                            )}
+                          >
+                            {pageParagraphs.map((paragraph, idx) => {
+                              const globalIndex = start + idx;
+                              const highlight = sessaoTextoSearch.trim() && paragraph.toLowerCase().includes(sessaoTextoSearch.trim().toLowerCase());
+                              const firstLine = paragraph.split("\n")[0] ?? "";
+                              const looksLikeSpeaker =
+                                (firstLine.trim().endsWith(":") &&
+                                  firstLine.length < 120 &&
+                                  /^[\p{L}\s.-]+(\s*\([A-Za-z0-9]+\))?\s*:\s*$/u.test(firstLine.trim())) ||
+                                /^\d{1,2}h?\d{0,2}\s*[-–]\s*.+/.test(firstLine.trim());
+                              return (
+                                <p
+                                  key={`${globalIndex}-${paragraph.slice(0, 30)}`}
+                                  className={cn(
+                                    "rounded-lg px-3 py-2 transition-colors duration-200 animate-in fade-in slide-in-from-bottom-1",
+                                    sessaoTextoModoLeitura ? "text-stone-700" : "text-sm leading-relaxed text-gray-700",
+                                    highlight
+                                      ? "bg-amber-50 text-[#1a1d1f] border border-amber-200/60"
+                                      : "odd:bg-gray-50/50",
+                                    looksLikeSpeaker && "border-l-4 border-l-[#749c5b]/50 pl-4 font-medium text-[#1a1d1f]"
+                                  )}
+                                  style={{ animationDelay: `${idx * 30}ms`, animationFillMode: "backwards" }}
+                                >
+                                  {sessaoTextoSearch.trim() ? (
+                                    paragraph.split(new RegExp(`(${sessaoTextoSearch.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi")).map((part, i) =>
+                                      part.toLowerCase() === sessaoTextoSearch.trim().toLowerCase() ? (
+                                        <mark key={i} className="bg-amber-200/80 text-[#1a1d1f] rounded px-0.5">{part}</mark>
+                                      ) : (
+                                        <span key={i}>{part}</span>
+                                      )
+                                    )
+                                  ) : (
+                                    paragraph
+                                  )}
+                                </p>
+                              );
+                            })}
+                          </div>
+                          )}
+                        </div>
+                        {/* Paginação */}
+                        {totalPages > 1 && (
+                          <div className="flex flex-wrap items-center justify-between gap-4 rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
+                            <p className="text-xs text-[#6f767e]">
+                              Página {safePage} de {totalPages} · {filteredParagraphs.length} trecho(s)
+                            </p>
+                            <div className="flex items-center gap-1">
+                              <button
+                                onClick={() => setSessaoTextoPage(1)}
+                                disabled={safePage <= 1}
+                                className="flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                title="Primeira página"
+                              >
+                                <ChevronsLeft size={16} />
+                                <span className="hidden sm:inline">Início</span>
+                              </button>
+                              <button
+                                onClick={() => setSessaoTextoPage((p) => Math.max(1, p - 1))}
+                                disabled={safePage <= 1}
+                                className="flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                <ChevronLeft size={16} />
+                                <span className="hidden sm:inline">Anterior</span>
+                              </button>
+                              <span className="rounded-lg border border-gray-200 bg-gray-50 px-3 py-2 text-sm font-medium text-[#1a1d1f]">
+                                {safePage} / {totalPages}
+                              </span>
+                              <button
+                                onClick={() => setSessaoTextoPage((p) => Math.min(totalPages, p + 1))}
+                                disabled={safePage >= totalPages}
+                                className="flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                              >
+                                <span className="hidden sm:inline">Próxima</span>
+                                <ChevronRight size={16} />
+                              </button>
+                              <button
+                                onClick={() => setSessaoTextoPage(totalPages)}
+                                disabled={safePage >= totalPages}
+                                className="flex items-center gap-1 rounded-lg border border-gray-200 px-3 py-2 text-sm font-medium text-gray-700 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+                                title="Última página"
+                              >
+                                <span className="hidden sm:inline">Fim</span>
+                                <ChevronsRight size={16} />
+                              </button>
+                            </div>
+                          </div>
+                        )}
+                      </div>
+                    )}
+                  </div>
+                );
+              })()}
             </Tabs.Content>
           </Tabs.Root>
         </div>

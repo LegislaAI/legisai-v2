@@ -28,6 +28,7 @@ import {
   Users,
   UsersRound,
   Wallet,
+  FileText,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -51,7 +52,7 @@ const menuItems: MenuItem[] = [
   { label: "Frentes", href: "/frentes", icon: Users, disabled: false },
   { label: "Grupos", href: "/grupos", icon: Globe, disabled: false },
   { label: "Lideranças", href: "/liderancas", icon: Award, disabled: false },
-  // { label: "Proposições", href: "/propositions", icon: FileText, disabled: false },
+  { label: "Proposições", href: "/propositions", icon: FileText, disabled: false },
   {
     label: "Novidades e Notícias",
     href: "/news",
@@ -91,19 +92,21 @@ export function Sidebar() {
     handleNavigation("/login");
   };
 
+  const isExpanded = isDesktopExpanded || isMobileOpen;
+
   const SidebarContent = () => (
     <div className="flex h-full flex-col">
       <div
         className={cn(
           "flex h-16 items-center px-6",
-          isDesktopExpanded ? "justify-between" : "justify-center",
+          isExpanded ? "justify-between" : "justify-center",
         )}
       >
         <Link
           href="/"
           className="text-secondary flex items-center gap-2 text-xl font-bold"
         >
-          {isDesktopExpanded ? (
+          {isExpanded ? (
             <Image
               src="/logos/logo.png"
               alt=""
@@ -139,14 +142,14 @@ export function Sidebar() {
                     <div
                       className={cn(
                         "group relative flex cursor-not-allowed items-center rounded-xl p-3 opacity-50 transition-colors hover:bg-gray-50",
-                        isDesktopExpanded
+                        isExpanded
                           ? "justify-start gap-3"
                           : "justify-center",
                         isActive && "bg-secondary/10 text-secondary",
                       )}
                     >
                       <Icon className="h-6 w-6 min-w-[24px]" />
-                      {isDesktopExpanded && (
+                      {isExpanded && (
                         <span className="truncate font-medium">
                           {item.label}
                         </span>
@@ -155,7 +158,7 @@ export function Sidebar() {
                       <div
                         className={cn(
                           "absolute rounded-full bg-gray-300",
-                          isDesktopExpanded
+                          isExpanded
                             ? "top-1/2 right-3 h-2 w-2 -translate-y-1/2"
                             : "top-0 right-0 h-2 w-2",
                         )}
@@ -171,7 +174,7 @@ export function Sidebar() {
                       }}
                       className={cn(
                         "hover:bg-surface group relative flex items-center rounded-xl p-3 transition-colors",
-                        isDesktopExpanded
+                        isExpanded
                           ? "justify-start gap-3"
                           : "justify-center",
                         isActive
@@ -180,13 +183,13 @@ export function Sidebar() {
                       )}
                     >
                       <Icon className="h-6 w-6 min-w-[24px]" />
-                      {isDesktopExpanded && (
+                      {isExpanded && (
                         <span className="truncate font-medium">
                           {item.label}
                         </span>
                       )}
 
-                      {!isDesktopExpanded && isActive && (
+                      {!isExpanded && isActive && (
                         <div className="absolute top-1/2 right-[-8px] hidden -translate-y-1/2 rounded-full bg-white p-0.5 shadow-sm">
                           <ChevronRight className="text-secondary h-3 w-3" />
                         </div>
@@ -194,7 +197,7 @@ export function Sidebar() {
                     </Link>
                   )}
                 </TooltipTrigger>
-                {!isDesktopExpanded && (
+                {!isExpanded && (
                   <TooltipContent
                     side="right"
                     className="flex items-center gap-2"
@@ -216,14 +219,14 @@ export function Sidebar() {
                 onClick={handleLogout}
                 className={cn(
                   "flex w-full items-center rounded-xl p-3 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500",
-                  isDesktopExpanded ? "justify-start gap-3" : "justify-center",
+                  isExpanded ? "justify-start gap-3" : "justify-center",
                 )}
               >
                 <LogOut className="h-6 w-6 min-w-[24px]" />
-                {isDesktopExpanded && <span className="font-medium">Sair</span>}
+                {isExpanded && <span className="font-medium">Sair</span>}
               </button>
             </TooltipTrigger>
-            {!isDesktopExpanded && (
+            {!isExpanded && (
               <TooltipContent side="right">Sair</TooltipContent>
             )}
           </Tooltip>
@@ -248,8 +251,8 @@ export function Sidebar() {
           "fixed top-0 left-0 z-50 h-full border-r border-gray-100 bg-white transition-all duration-300 ease-in-out",
           // Mobile Open/Close
           isMobileOpen ? "translate-x-0" : "-translate-x-full md:translate-x-0",
-          // Desktop Width
-          isDesktopExpanded ? "w-64" : "w-20",
+          // Width (forced to 64 when mobile is open, otherwise responsive)
+          isMobileOpen ? "w-64" : isDesktopExpanded ? "w-64" : "w-20",
         )}
       >
         <SidebarContent />

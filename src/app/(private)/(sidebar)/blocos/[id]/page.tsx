@@ -13,7 +13,7 @@ import { cn } from "@/lib/utils";
 import { Layers, Flag, Info } from "lucide-react";
 import Link from "next/link";
 import { useParams } from "next/navigation";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 
 const CARD_3D =
   "relative overflow-hidden rounded-2xl border border-gray-100/80 bg-white shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06)] transition-all duration-300 hover:border-[#749c5b]/20 hover:shadow-[0_8px_32px_-8px_rgba(116,156,91,0.2)]";
@@ -27,8 +27,17 @@ interface BlocoDetail {
   uri?: string;
 }
 
-interface Partido {
-  id: number;
+/** Resposta de GET /blocos/{id}/partidos — a API retorna o id do BLOCO em cada item, não o do partido. */
+interface PartidoNoBloco {
+  id: number | string;
+  sigla: string;
+  nome: string;
+  uri?: string;
+}
+
+/** Resposta de GET /partidos — aqui o id é o ID real do partido. */
+interface PartidoCatalogo {
+  id: number | string;
   sigla: string;
   nome: string;
   uri?: string;
@@ -38,7 +47,8 @@ export default function BlocoDetalhePage() {
   const params = useParams();
   const id = params?.id as string;
   const [bloco, setBloco] = useState<BlocoDetail | null>(null);
-  const [partidos, setPartidos] = useState<Partido[]>([]);
+  const [partidos, setPartidos] = useState<PartidoNoBloco[]>([]);
+  const [partidosCatalogo, setPartidosCatalogo] = useState<PartidoCatalogo[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingPartidos, setLoadingPartidos] = useState(false);
   const [fetchError, setFetchError] = useState<string | null>(null);
@@ -64,7 +74,7 @@ export default function BlocoDetalhePage() {
     if (!id) return;
     async function loadPartidos() {
       setLoadingPartidos(true);
-      const { ok, dados } = await fetchCamara<Partido[]>(`blocos/${id}/partidos`);
+      const { ok, dados } = await fetchCamara<PartidoNoBloco[]>(`blocos/${id}/partidos`);
       if (ok) {
         setPartidos(Array.isArray(dados) ? dados : []);
       } else {
@@ -75,7 +85,42 @@ export default function BlocoDetalhePage() {
     loadPartidos();
   }, [id]);
 
+  // Lista de partidos da legislatura para resolver ID real por sigla (a API blocos/{id}/partidos retorna id do bloco em cada item).
+  useEffect(() => {
+    const idLeg = bloco?.idLegislatura != null ? String(bloco.idLegislatura) : "";
+    if (!idLeg) return;
+    async function loadPartidosCatalogo() {
+      const { ok, dados } = await fetchCamara<PartidoCatalogo[]>("partidos", {
+        idLegislatura: idLeg,
+        itens: 100,
+      });
+      if (ok && Array.isArray(dados)) {
+        setPartidosCatalogo(dados);
+      } else {
+        setPartidosCatalogo([]);
+      }
+    }
+    loadPartidosCatalogo();
+  }, [bloco?.idLegislatura]);
+
+  // Mapa sigla -> ID real do partido — PRECISA ficar antes de qualquer return (Rules of Hooks).
+  const partidoIdBySigla = useMemo(() => {
+    const map = new Map<string, string>();
+    partidosCatalogo.forEach((p) => map.set((p.sigla || "").toUpperCase(), String(p.id)));
+    return map;
+  }, [partidosCatalogo]);
+
+  // --- Debug: ordem e quantidade de hooks / fluxo ---
+  console.log("[BlocoDetalhePage] render", {
+    id,
+    loading,
+    bloco: bloco != null,
+    partidosCatalogoLen: partidosCatalogo.length,
+    partidoIdBySiglaSize: partidoIdBySigla.size,
+  });
+
   if (!id) {
+    console.log("[BlocoDetalhePage] early return: !id");
     return (
       <div className="animate-in fade-in slide-in-from-bottom-4 space-y-6 pb-20 duration-500">
         <BackButton />
@@ -85,6 +130,7 @@ export default function BlocoDetalhePage() {
   }
 
   if (loading) {
+    console.log("[BlocoDetalhePage] early return: loading");
     return (
       <div className="animate-in fade-in slide-in-from-bottom-4 space-y-6 pb-20 duration-500">
         <BackButton />
@@ -94,7 +140,10 @@ export default function BlocoDetalhePage() {
     );
   }
 
+  console.log("[BlocoDetalhePage] após loading, bloco =", bloco ? "ok" : "null");
+
   if (!bloco) {
+    console.log("[BlocoDetalhePage] early return: !bloco", { fetchError });
     return (
       <div className="animate-in fade-in slide-in-from-bottom-4 space-y-6 pb-20 duration-500">
         <BackButton />
@@ -105,6 +154,8 @@ export default function BlocoDetalhePage() {
       </div>
     );
   }
+
+  console.log("[BlocoDetalhePage] render principal (bloco carregado)", { blocoNome: bloco.nome });
 
   return (
     <div className="animate-in fade-in slide-in-from-bottom-4 space-y-6 pb-20 duration-500">
@@ -156,22 +207,35 @@ export default function BlocoDetalhePage() {
               </div>
             ) : partidos.length > 0 ? (
               <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
-                {partidos.map((p) => (
-                  <Link
-                    key={p.id}
-                    href={`/partidos/${p.id}`}
-                    className="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/50 p-4 transition-colors hover:border-[#749c5b]/20 hover:bg-[#749c5b]/5"
-                  >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#749c5b]/10 font-bold text-[#749c5b]">
-                      {p.sigla?.slice(0, 2) ?? "—"}
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <p className="font-bold text-gray-900">{p.sigla}</p>
-                      <p className="text-sm text-gray-600 line-clamp-1">{p.nome}</p>
-                    </div>
-                    <span className="text-sm font-medium text-[#749c5b]">Ver partido</span>
-                  </Link>
-                ))}
+                {partidos.map((p, idx) => {
+                  const siglaNorm = (p.sigla || "").toUpperCase();
+                  const partidoIdReal = partidoIdBySigla.get(siglaNorm) ?? null;
+                  const key = `${siglaNorm}-${idx}`;
+                  return (
+                    <Link
+                      key={key}
+                      href={partidoIdReal ? `/partidos/${partidoIdReal}` : "#"}
+                      className="flex items-center gap-3 rounded-xl border border-gray-100 bg-gray-50/50 p-4 transition-colors hover:border-[#749c5b]/20 hover:bg-[#749c5b]/5"
+                      onClick={(e) => !partidoIdReal && e.preventDefault()}
+                    >
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#749c5b]/10 font-bold text-[#749c5b]">
+                        {p.sigla?.slice(0, 2) ?? "—"}
+                      </div>
+                      <div className="min-w-0 flex-1">
+                        <p className="font-bold text-gray-900">{p.sigla}</p>
+                        <p className="text-sm text-gray-600 line-clamp-1">{p.nome}</p>
+                        {partidoIdReal && (
+                          <p className="mt-1 text-xs text-gray-500">ID partido: {partidoIdReal}</p>
+                        )}
+                      </div>
+                      {partidoIdReal ? (
+                        <span className="text-sm font-medium text-[#749c5b]">Ver partido</span>
+                      ) : (
+                        <span className="text-xs text-gray-400">ID não encontrado</span>
+                      )}
+                    </Link>
+                  );
+                })}
               </div>
             ) : (
               <p className="py-8 text-center text-sm text-gray-500">

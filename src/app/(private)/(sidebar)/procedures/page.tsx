@@ -10,6 +10,7 @@ import { useEffect, useState } from "react";
 export default function ProceduresPage() {
     const searchParams = useSearchParams();
     const authorId = searchParams.get("authorId") ?? undefined;
+    const initialPromptParam = searchParams.get("initialPrompt") ?? undefined;
 
     // Initialize hook with "proposition" type
     const { 
@@ -86,6 +87,7 @@ export default function ProceduresPage() {
                                 onChatCreated={fetchChats}
                                 type="proposition"
                                 initialAuthorId={authorId}
+                                initialPrompt={initialPromptParam}
                             />
                         </div>
                     </div>

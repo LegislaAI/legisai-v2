@@ -2,6 +2,7 @@
 
 import { Header } from "@/components/v2/components/Header";
 import { Sidebar } from "@/components/v2/components/Sidebar";
+import { MobileToolbar } from "@/components/v2/components/MobileToolbar";
 import { PoliticianContextProvider } from "@/context/PoliticianContext";
 import {
   SidebarContextProvider,
@@ -19,12 +20,13 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
       <Header />
       <main
         className={cn(
-          "min-h-screen p-4 pt-20 pb-0 transition-all duration-300 md:p-8 md:pt-20 md:pb-0",
+          "min-h-screen p-4 pt-20 pb-28 transition-all duration-300 md:p-8 md:pt-20 md:pb-0",
           isDesktopExpanded ? "md:ml-64" : "md:ml-20",
         )}
       >
         {children}
       </main>
+      <MobileToolbar />
     </div>
   );
 }

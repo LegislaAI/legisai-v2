@@ -28,11 +28,12 @@ import {
   Users,
   X,
 } from "lucide-react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
 
 export default function DeputadosListPage() {
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { GetAPI } = useApiContext();
 
   const [currentPage, setCurrentPage] = useState(1);
@@ -44,10 +45,16 @@ export default function DeputadosListPage() {
   const [currentLegislature, setCurrentLegislature] = useState<number | null>(
     null,
   );
-  const [filterParty, setFilterParty] = useState<string>("");
+  const [filterParty, setFilterParty] = useState<string>(() => searchParams.get("party") ?? "");
   const [filterState, setFilterState] = useState<string>("");
   const [filterStates, setFilterStates] = useState<string[]>([]);
   const [filterParties, setFilterParties] = useState<string[]>([]);
+
+  // Aplicar partido vindo da URL (ex: link "Ver deputados na base" em /partidos/[id])
+  useEffect(() => {
+    const partyFromUrl = searchParams.get("party");
+    if (partyFromUrl != null) setFilterParty(partyFromUrl);
+  }, [searchParams]);
 
   const debouncedSearch = useDebounce(searchTerm, 400);
 
