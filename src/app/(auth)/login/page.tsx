@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { motion } from "framer-motion";
 import { ArrowRight, CheckCircle, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
+import { useSearchParams } from "next/navigation";
 import { useState } from "react";
 import { useForm } from "react-hook-form";
 import { toast } from "sonner";
@@ -41,6 +42,7 @@ interface RegisterFormData {
 export default function Login2Page() {
   const { PostAPI, setToken } = useApiContext();
   const cookies = useCookies();
+  const searchParams = useSearchParams();
   const [showPassword, setShowPassword] = useState(false);
   const [registerOpen, setRegisterOpen] = useState(false);
   const [registerData, setRegisterData] = useState<RegisterFormData>({
@@ -86,8 +88,14 @@ export default function Login2Page() {
         setToken(token);
 
         toast.success("Login realizado com sucesso!");
-        // Use full page navigation to ensure the cookie is sent to middleware
-        window.location.href = "/";
+        const returnUrl = searchParams.get("returnUrl");
+        const redirect =
+          returnUrl &&
+          returnUrl.startsWith("/") &&
+          !returnUrl.startsWith("//")
+            ? returnUrl
+            : "/";
+        window.location.href = redirect;
       } else {
         toast.error(response.body.message || "Falha ao realizar login");
       }

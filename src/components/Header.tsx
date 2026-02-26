@@ -28,8 +28,8 @@ export function Header() {
           onClick={() => {
           if (pathname === "/") {
             return;
-          } else if (pathname.includes("/plenary/")) {
-            return router.push("/plenary");
+          } else if (pathname.includes("/plenario/")) {
+            return router.push("/plenario");
           }
           router.push("/");
         }}
@@ -40,7 +40,7 @@ export function Header() {
       >
         <ArrowLeft />
         <span className="font-semibold">
-          {pathname.includes("/plenary/") ? "Plenários" : "Home"}
+          {pathname.includes("/plenario/") ? "Plenários" : "Home"}
         </span>
         </div>
       </div>
@@ -67,7 +67,7 @@ export function Header() {
             <DropdownMenuArrow className="fill-zinc-400" />
             {/* <DropdownMenuItem className="group rounded-none border-b border-b-zinc-400 p-0 hover:bg-transparent">
               <button
-                onClick={() => router.push("/profile")}
+                onClick={() => router.push("/perfil")}
                 className="group-hover:bg-secondary text-secondary flex w-full cursor-pointer flex-row items-center gap-2 p-2 text-lg transition-all duration-300 group-hover:text-white"
               >
                 <CogIcon

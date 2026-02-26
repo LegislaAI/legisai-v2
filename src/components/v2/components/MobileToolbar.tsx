@@ -1,17 +1,17 @@
 "use client";
 
+import { useLoadingContext } from "@/context/LoadingContext";
 import { cn } from "@/lib/utils";
-import { Home, Sparkles, User, FileText, Search, Wallet } from "lucide-react";
+import { Home, Search, Sparkles, User, Wallet } from "lucide-react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { useLoadingContext } from "@/context/LoadingContext";
 
 const NAV_ITEMS = [
   { label: "Home", href: "/", icon: Home },
-  { label: "Plenários", href: "/plenary", icon: Wallet },
+  { label: "Plenários", href: "/plenario", icon: Wallet },
   { label: "IA", href: "/ai", icon: Sparkles },
-  { label: "Pesquisa", href: "/procedures", icon: Search },
-  { label: "Perfil", href: "/profile", icon: User },
+  { label: "Pesquisa", href: "/tramitacoes", icon: Search },
+  { label: "Perfil", href: "/perfil", icon: User },
 ];
 
 export function MobileToolbar() {

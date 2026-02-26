@@ -1,7 +1,13 @@
 import { NextResponse } from "next/server";
 
+import { getAuthToken } from "@/lib/auth";
+
 export async function POST(req: Request) {
   try {
+    if (!getAuthToken(req)) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
     const { messages } = await req.json();
     // Support both env var naming conventions observed in the project
     const apiKey = process.env.OPENROUTER_API_KEY || process.env.NEXT_PUBLIC_OPENROUTER_API_KEY;

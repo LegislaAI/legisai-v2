@@ -68,10 +68,10 @@ export function MobileSidebar() {
                 />
               </div>
               <div
-                onClick={() => handleNavigation("/plenary")}
+                onClick={() => handleNavigation("/plenario")}
                 className={cn(
                   "group relative flex w-full cursor-pointer items-center justify-between",
-                  (pathname === "/plenary" || pathname.includes("plenary")) &&
+                  (pathname === "/plenario" || pathname.includes("plenario")) &&
                     "text-secondary font-semibold",
                 )}
               >
@@ -82,7 +82,7 @@ export function MobileSidebar() {
                 <ChevronRight
                   className={cn(
                     "text-secondary opacity-0 transition duration-200 group-hover:opacity-100",
-                    (pathname === "/plenary" || pathname.includes("plenary")) &&
+                    (pathname === "/plenario" || pathname.includes("plenary")) &&
                       "opacity-100",
                   )}
                 />
@@ -91,11 +91,11 @@ export function MobileSidebar() {
                 </div>
               </div>
               <div
-                onClick={() => handleNavigation("/commissions")}
+                onClick={() => handleNavigation("/comissoes")}
                 className={cn(
                   "group relative flex w-full cursor-pointer items-center justify-between",
-                  (pathname === "/commissions" ||
-                    pathname.includes("commissions")) &&
+                  (pathname === "/comissoes" ||
+                    pathname.includes("comissoes")) &&
                     "text-secondary font-semibold",
                 )}
               >
@@ -106,8 +106,8 @@ export function MobileSidebar() {
                 <ChevronRight
                   className={cn(
                     "text-secondary opacity-0 transition duration-200 group-hover:opacity-100",
-                    (pathname === "/commissions" ||
-                      pathname.includes("commissions")) &&
+                    (pathname === "/comissoes" ||
+                      pathname.includes("comissoes")) &&
                       "opacity-100",
                   )}
                 />
@@ -116,10 +116,10 @@ export function MobileSidebar() {
                 </div>
               </div>
               <div
-                onClick={() => handleNavigation("/news")}
+                onClick={() => handleNavigation("/noticias")}
                 className={cn(
                   "group relative flex w-full cursor-pointer items-center justify-between",
-                  pathname === "/news" && "text-secondary font-semibold",
+                  pathname === "/noticias" && "text-secondary font-semibold",
                 )}
               >
                 <div className="flex items-center gap-2">
@@ -129,7 +129,7 @@ export function MobileSidebar() {
                 <ChevronRight
                   className={cn(
                     "text-secondary opacity-0 transition duration-200 group-hover:opacity-100",
-                    pathname === "/news" && "opacity-100",
+                    pathname === "/noticias" && "opacity-100",
                   )}
                 />
                 <div className="absolute flex h-full w-full flex-row items-center justify-end gap-2 rounded-md bg-white/60 text-white">
@@ -137,16 +137,16 @@ export function MobileSidebar() {
                 </div>
               </div>
               <div
-                onClick={() => handleNavigation("/procedures")}
+                onClick={() => handleNavigation("/tramitacoes")}
                 className={cn(
                   "group relative flex w-full cursor-pointer items-center justify-between",
-                  pathname === "/procedures" && "text-secondary font-semibold",
+                  pathname === "/tramitacoes" && "text-secondary font-semibold",
                 )}
               >
                 <div className="flex items-center gap-2">
                   <Image
                     src={
-                      pathname === "/procedures"
+                      pathname === "/tramitacoes"
                         ? "/icons/circle-start-secondary.png"
                         : `/icons/circle-star.png`
                     }
@@ -160,7 +160,7 @@ export function MobileSidebar() {
                 <ChevronRight
                   className={cn(
                     "text-secondary opacity-0 transition duration-200 group-hover:opacity-100",
-                    pathname === "/procedures" && "opacity-100",
+                    pathname === "/tramitacoes" && "opacity-100",
                   )}
                 />
                 <div className="absolute flex h-full w-full flex-row items-center justify-end gap-2 rounded-md bg-white/60 text-white">
@@ -211,10 +211,10 @@ export function MobileSidebar() {
                 </div>
               </div>
               <div
-                onClick={() => handleNavigation("/tutorials")}
+                onClick={() => handleNavigation("/tutoriais")}
                 className={cn(
                   "group relative flex w-full cursor-pointer items-center justify-between",
-                  pathname === "/tutorials" && "text-secondary font-semibold",
+                  pathname === "/tutoriais" && "text-secondary font-semibold",
                 )}
               >
                 <div className="flex items-center gap-2">
@@ -237,21 +237,21 @@ export function MobileSidebar() {
                       <path
                         d="M4 8C4 5.17157 4 3.75736 4.87868 2.87868C5.75736 2 7.17157 2 10 2H14C16.8284 2 18.2426 2 19.1213 2.87868C20 3.75736 20 5.17157 20 8V16C20 18.8284 20 20.2426 19.1213 21.1213C18.2426 22 16.8284 22 14 22H10C7.17157 22 5.75736 22 4.87868 21.1213C4 20.2426 4 18.8284 4 16V8Z"
                         stroke={cn(
-                          pathname === "/tutorials" ? "#749c5b" : "#000",
+                          pathname === "/tutoriais" ? "#749c5b" : "#000",
                         )}
                         strokeWidth="1.5"
                       ></path>{" "}
                       <path
                         d="M19.8978 16H7.89778C6.96781 16 6.50282 16 6.12132 16.1022C5.08604 16.3796 4.2774 17.1883 4 18.2235"
                         stroke={cn(
-                          pathname === "/tutorials" ? "#749c5b" : "#000",
+                          pathname === "/tutoriais" ? "#749c5b" : "#000",
                         )}
                         strokeWidth="1.5"
                       ></path>{" "}
                       <path
                         d="M8 7H16"
                         stroke={cn(
-                          pathname === "/tutorials" ? "#749c5b" : "#000",
+                          pathname === "/tutoriais" ? "#749c5b" : "#000",
                         )}
                         strokeWidth="1.5"
                         strokeLinecap="round"
@@ -259,7 +259,7 @@ export function MobileSidebar() {
                       <path
                         d="M8 10.5H13"
                         stroke={cn(
-                          pathname === "/tutorials" ? "#749c5b" : "#000",
+                          pathname === "/tutoriais" ? "#749c5b" : "#000",
                         )}
                         strokeWidth="1.5"
                         strokeLinecap="round"
@@ -267,7 +267,7 @@ export function MobileSidebar() {
                       <path
                         d="M13 16V19.5309C13 19.8065 13 19.9443 12.9051 20C12.8103 20.0557 12.6806 19.9941 12.4211 19.8708L11.1789 19.2808C11.0911 19.2391 11.0472 19.2182 11 19.2182C10.9528 19.2182 10.9089 19.2391 10.8211 19.2808L9.57889 19.8708C9.31943 19.9941 9.18971 20.0557 9.09485 20C9 19.9443 9 19.8065 9 19.5309V16.45"
                         stroke={cn(
-                          pathname === "/tutorials" ? "#749c5b" : "#000",
+                          pathname === "/tutoriais" ? "#749c5b" : "#000",
                         )}
                         strokeWidth="1.5"
                         strokeLinecap="round"
@@ -279,7 +279,7 @@ export function MobileSidebar() {
                 <ChevronRight
                   className={cn(
                     "text-secondary opacity-0 transition duration-200 group-hover:opacity-100",
-                    pathname === "/tutorials" && "opacity-100",
+                    pathname === "/tutoriais" && "opacity-100",
                   )}
                 />
                 <div className="absolute flex h-full w-full flex-row items-center justify-end gap-2 rounded-md bg-white/60 text-white">
@@ -287,10 +287,10 @@ export function MobileSidebar() {
                 </div>
               </div>
               <div
-                onClick={() => handleNavigation("/profile")}
+                onClick={() => handleNavigation("/perfil")}
                 className={cn(
                   "group relative flex w-full cursor-pointer items-center justify-between",
-                  pathname === "/profile" && "text-secondary font-semibold",
+                  pathname === "/perfil" && "text-secondary font-semibold",
                 )}
               >
                 <div className="flex items-center gap-2">
@@ -300,7 +300,7 @@ export function MobileSidebar() {
                 <ChevronRight
                   className={cn(
                     "text-secondary opacity-0 transition duration-200 group-hover:opacity-100",
-                    pathname === "/profile" && "opacity-100",
+                    pathname === "/perfil" && "opacity-100",
                   )}
                 />
                 <div className="absolute flex h-full w-full flex-row items-center justify-end gap-2 rounded-md bg-white/60 text-white">

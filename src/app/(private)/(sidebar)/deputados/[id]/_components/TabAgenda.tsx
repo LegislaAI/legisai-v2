@@ -1,41 +1,41 @@
 "use client";
 
-import { useState, useMemo, useEffect } from "react";
-import {
-  Calendar,
-  CalendarDays,
-  Clock,
-  MapPin,
-  ArrowUpRight,
-  Building2,
-  CalendarCheck,
-  ChevronLeft,
-  ChevronRight,
-  LayoutGrid,
-  Columns3,
-} from "lucide-react";
-import Link from "next/link";
-import type { DeputadoPageData } from "./useDeputadoPage";
-import type { EventoAgenda } from "./types";
-import { SkeletonLoader } from "./SkeletonLoader";
 import { CustomPagination } from "@/components/ui/CustomPagination";
 import { cn } from "@/lib/utils";
 import {
-  startOfMonth,
-  endOfMonth,
-  startOfWeek,
-  endOfWeek,
+  addMonths,
+  addWeeks,
   eachDayOfInterval,
+  endOfMonth,
+  endOfWeek,
   format,
+  isToday as isDateToday,
   isSameDay,
   isSameMonth,
-  isToday as isDateToday,
-  addMonths,
+  startOfMonth,
+  startOfWeek,
   subMonths,
-  addWeeks,
   subWeeks,
 } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import {
+  ArrowUpRight,
+  Building2,
+  Calendar,
+  CalendarCheck,
+  CalendarDays,
+  ChevronLeft,
+  ChevronRight,
+  Clock,
+  Columns3,
+  LayoutGrid,
+  MapPin,
+} from "lucide-react";
+import Link from "next/link";
+import { useEffect, useMemo, useState } from "react";
+import { SkeletonLoader } from "./SkeletonLoader";
+import type { EventoAgenda } from "./types";
+import type { DeputadoPageData } from "./useDeputadoPage";
 
 const CARD_3D =
   "relative overflow-hidden rounded-2xl border-0 bg-white shadow-[0_4px_24px_-4px_rgba(0,0,0,0.08),0_1px_2px_-1px_rgba(0,0,0,0.04)] transition-all duration-300 hover:shadow-[0_8px_40px_-8px_rgba(116,156,91,0.18),0_2px_8px_-2px_rgba(0,0,0,0.06)] hover:-translate-y-[2px]";
@@ -75,10 +75,10 @@ function fmtTime(dt: string) {
 /** Define link para detalhe do evento: plenário (solene/deliberativa) ou comissões. */
 function getEventDetailHref(ev: EventoAgenda): string {
   const tipo = (ev.descricao_tipo_evento || ev.cod_tipo_evento || "").toLowerCase();
-  if (tipo.includes("solene")) return `/plenary/solene/${ev.id}`;
-  if (tipo.includes("reunião") || tipo.includes("comissão")) return `/plenary/commissions/${ev.id}`;
-  if (tipo.includes("sessão") || tipo.includes("plenária") || tipo.includes("plenário")) return `/plenary/deliberativa/${ev.id}`;
-  return `/plenary/deliberativa/${ev.id}`;
+  if (tipo.includes("solene")) return `/plenario/solene/${ev.id}`;
+  if (tipo.includes("reunião") || tipo.includes("comissão")) return `/comissoes/${ev.id}`;
+  if (tipo.includes("sessão") || tipo.includes("plenária") || tipo.includes("plenário")) return `/plenario/deliberativa/${ev.id}`;
+  return `/plenario/deliberativa/${ev.id}`;
 }
 
 function getEventColor(tipo: string) {

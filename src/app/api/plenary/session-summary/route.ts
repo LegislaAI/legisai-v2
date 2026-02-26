@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { getAuthToken } from "@/lib/auth";
+
 const MAX_CHARS = 200_000; // ~30k tokens para contexto seguro no Gemini Flash
 
 const SYSTEM_PROMPT = `Você é um Cientista Político Sênior e Analista Legislativo estritamente neutro e imparcial. Sua função é analisar a transcrição completa de uma sessão plenária (contendo falas, oradores e horários) e produzir um relatório de inteligência detalhado. 
@@ -40,6 +42,10 @@ Analise a transcrição fornecida e gere um relatório utilizando EXATAMENTE a e
 
 export async function POST(req: Request) {
   try {
+    if (!getAuthToken(req)) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
     const { text } = await req.json();
     const apiKey =
       process.env.OPENROUTER_API_KEY ||

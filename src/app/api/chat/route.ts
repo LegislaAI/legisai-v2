@@ -1,5 +1,7 @@
 import { NextResponse } from "next/server";
 
+import { getAuthToken } from "@/lib/auth";
+
 export const runtime = "edge";
 
 // Helper para transcrever áudio usando um modelo rápido (Gemini Flash)
@@ -47,6 +49,10 @@ async function transcribeAudio(
 
 export async function POST(req: Request) {
   try {
+    if (!getAuthToken(req)) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
     const { messages, model, files, systemPrompt, tools } = await req.json();
 
     const apiKey = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY;

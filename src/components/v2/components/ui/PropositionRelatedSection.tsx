@@ -136,7 +136,7 @@ export function PropositionRelatedSection({
                                     <div className="min-w-0 flex-1">
                                         {item.siglaRelated && (
                                             <Link
-                                                href={`/propositions/${item.propositionRelatedId}`}
+                                                href={`/proposicoes/${item.propositionRelatedId}`}
                                                 className="text-sm font-semibold text-secondary hover:underline"
                                             >
                                                 {item.siglaRelated}
@@ -149,7 +149,7 @@ export function PropositionRelatedSection({
                                         )}
                                     </div>
                                     <Link
-                                        href={`/propositions/${item.propositionRelatedId}`}
+                                        href={`/proposicoes/${item.propositionRelatedId}`}
                                         className="shrink-0 text-gray-400 hover:text-secondary"
                                     >
                                         <Link2 className="h-4 w-4" />

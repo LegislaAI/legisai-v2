@@ -1,16 +1,16 @@
 "use client";
 
 import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-    DialogTrigger,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Card } from "@/components/v2/components/ui/Card";
+import { videos } from "@/data/video";
 import { PlayCircle } from "lucide-react";
 import Link from "next/link";
-import { videos } from "@/data/video";
 
 export function Tutorials() {
   // Pegar os 3 primeiros tutoriais
@@ -20,7 +20,7 @@ export function Tutorials() {
     <div className="w-full">
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-xl font-bold text-dark">Tutoriais em Vídeo</h2>
-        <Link href="/tutorials" className="text-sm text-secondary hover:underline">
+        <Link href="/tutoriais" className="text-sm text-secondary hover:underline">
             Ver todos
         </Link>
       </div>

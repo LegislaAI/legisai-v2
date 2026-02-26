@@ -20,12 +20,12 @@ export function Header() {
 
   const getTitle = () => {
     if (pathname === "/") return "Home";
-    if (pathname === "/procedures") return "Tramitação e Informações";
-    if (pathname === "/plenary") return "Plenários / Sessões";
-    if (pathname === "/news") return "Novidades e Notícias";
+    if (pathname === "/tramitacoes") return "Tramitação e Informações";
+    if (pathname === "/plenaplenariory") return "Plenários / Sessões";
+    if (pathname === "/noticias") return "Novidades e Notícias";
     if (pathname === "/ai") return "Inteligência Artificial";
-    if (pathname === "/profile") return "Meu Perfil";
-    if (pathname === "/tutorials") return "Tutoriais";
+    if (pathname === "/perfil") return "Meu Perfil";
+    if (pathname === "/tutoriais") return "Tutoriais";
     return "LegisAI";
   };
 

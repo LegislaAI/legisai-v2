@@ -55,6 +55,7 @@ export function useChatPage(type: string = "ai") {
       if (type === "proposition") endpoint = "/prompt?&types=proposition";
       if (type === "prediction") endpoint = "/prompt?&types=prediction";
       const response = await GetAPI(endpoint, true);
+      console.log(response.body.prompts);
       if (response.status === 200) {
         setPrompts(response.body.prompts || []);
       }

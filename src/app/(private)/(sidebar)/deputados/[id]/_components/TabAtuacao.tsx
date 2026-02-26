@@ -7,6 +7,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/v2/components/ui/tooltip";
+import type { ApexOptions } from "apexcharts";
 import {
   BookOpen,
   Briefcase,
@@ -21,9 +22,8 @@ import {
   XCircle,
 } from "lucide-react";
 import dynamic from "next/dynamic";
-import type { DeputadoPageData } from "./useDeputadoPage";
 import { SkeletonLoader } from "./SkeletonLoader";
-import type { ApexOptions } from "apexcharts";
+import type { DeputadoPageData } from "./useDeputadoPage";
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
@@ -674,7 +674,7 @@ export function TabAtuacao({ data }: { data: DeputadoPageData }) {
                     onClick={() => {
                       const nome = politician.name ?? `Deputado (ID: ${politician.id})`;
                       const promptText = `Liste e detalhe as proposições de autoria e coautoria do deputado ${nome} (ID: ${politician.id}). Inclua resumo, status de tramitação e atores políticos envolvidos quando aplicável.`;
-                      window.location.href = `/procedures?initialPrompt=${encodeURIComponent(promptText)}`;
+                      window.location.href = `/tramitacoes?initialPrompt=${encodeURIComponent(promptText)}`;
                     }}
                   >
                     Buscar na LegisAI

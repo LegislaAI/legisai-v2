@@ -1,5 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 
+import { getAuthToken } from "@/lib/auth";
+
 const CAMARA_API_BASE = "https://dadosabertos.camara.leg.br/api/v2";
 
 /**
@@ -15,6 +17,10 @@ export async function GET(
   context: { params: Promise<{ path: string[] }> }
 ) {
   try {
+    if (!getAuthToken(request)) {
+      return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
+    }
+
     const { path } = await context.params;
     const pathStr = path?.length ? path.join("/") : "";
     const searchParams = request.nextUrl.searchParams;

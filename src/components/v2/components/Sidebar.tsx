@@ -16,6 +16,7 @@ import {
   Building2,
   ChevronRight,
   Cog,
+  FileText,
   Flag,
   Globe,
   Home,
@@ -28,7 +29,6 @@ import {
   Users,
   UsersRound,
   Wallet,
-  FileText,
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
@@ -44,22 +44,22 @@ interface MenuItem {
 const menuItems: MenuItem[] = [
   { label: "Home", href: "/", icon: Home },
   { label: "Deputados", href: "/deputados", icon: UserCircle, disabled: false },
-  { label: "Plenários / Sessões", href: "/plenary", icon: Wallet },
-  { label: "Comissões", href: "/commissions", icon: UsersRound, disabled: false },
+  { label: "Plenários / Sessões", href: "/plenario", icon: Wallet },
+  { label: "Comissões", href: "/comissoes", icon: UsersRound, disabled: false },
   { label: "Órgãos", href: "/orgaos", icon: Building2, disabled: false },
   { label: "Partidos", href: "/partidos", icon: Flag, disabled: false },
   { label: "Blocos", href: "/blocos", icon: Layers, disabled: false },
   { label: "Frentes", href: "/frentes", icon: Users, disabled: false },
   { label: "Grupos", href: "/grupos", icon: Globe, disabled: false },
   { label: "Lideranças", href: "/liderancas", icon: Award, disabled: false },
-  { label: "Proposições", href: "/propositions", icon: FileText, disabled: false },
+  { label: "Proposições", href: "/proposicoes", icon: FileText, disabled: false },
   {
     label: "Novidades e Notícias",
-    href: "/news",
+    href: "/noticias",
     icon: BellDot,
     disabled: false,
   },
-  { label: "Pesquisa Legislativa", href: "/procedures", icon: Cog },
+  { label: "Pesquisa Legislativa", href: "/tramitacoes", icon: Cog },
   {
     label: "Inteligência Artificial",
     href: "/ai",
@@ -68,13 +68,13 @@ const menuItems: MenuItem[] = [
   },
   {
     label: "Tutoriais",
-    href: "/tutorials",
+    href: "/tutoriais",
     icon: PlayCircle,
     disabled: false,
   },
   {
     label: "Configurações",
-    href: "/profile",
+    href: "/perfil",
     icon: Settings2,
     disabled: false,
   },

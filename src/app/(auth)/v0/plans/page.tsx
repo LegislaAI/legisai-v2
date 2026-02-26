@@ -1,10 +1,10 @@
 "use client";
-import { SignatureCard } from "@/app/(private)/v0/(sidebar)/prediction-ai/components/signatureCard";
 import { AuthFooter } from "@/components/ui/AuthFooter";
 import { AuthHeader } from "@/components/ui/AuthHeader";
 import Image from "next/image";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import { SignatureCard } from "./_components/signatureCard";
 
 export default function Plans() {
   const router = useRouter();

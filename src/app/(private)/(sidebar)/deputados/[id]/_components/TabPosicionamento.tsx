@@ -1,8 +1,10 @@
 "use client";
 
-import { Button } from "@/components/v2/components/ui/Button";
 import { CustomPagination } from "@/components/ui/CustomPagination";
+import { Button } from "@/components/v2/components/ui/Button";
 import { TooltipProvider } from "@/components/v2/components/ui/tooltip";
+import { cn } from "@/lib/utils";
+import type { ApexOptions } from "apexcharts";
 import {
   Activity,
   ArrowUpRight,
@@ -17,13 +19,11 @@ import {
   TrendingUp,
   Vote,
 } from "lucide-react";
-import Link from "next/link";
 import dynamic from "next/dynamic";
-import type { DeputadoPageData } from "./useDeputadoPage";
-import type { ProposicaoDeputado } from "./types";
+import Link from "next/link";
 import { SkeletonLoader } from "./SkeletonLoader";
-import { cn } from "@/lib/utils";
-import type { ApexOptions } from "apexcharts";
+import type { ProposicaoDeputado } from "./types";
+import type { DeputadoPageData } from "./useDeputadoPage";
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
@@ -152,7 +152,7 @@ function ProposicaoCard({ prop }: { prop: ProposicaoDeputado }) {
 
   return (
     <Link
-      href={`/propositions/${prop.id}`}
+      href={`/proposicoes/${prop.id}`}
       className="group hover:border-secondary/30 flex flex-col gap-2 rounded-xl border border-gray-100 bg-white p-4 transition-all duration-200 hover:shadow-md sm:flex-row sm:items-start sm:justify-between sm:gap-4"
     >
       <div className="min-w-0 flex-1 space-y-2">
@@ -709,7 +709,7 @@ export function TabPosicionamento({ data }: { data: DeputadoPageData }) {
                     onClick={() => {
                       const nome = politician.name ?? `Deputado (ID: ${politician.id})`;
                       const promptText = `Liste e detalhe as proposições de autoria e coautoria do deputado ${nome} (ID: ${politician.id}). Inclua resumo, status de tramitação e atores políticos envolvidos quando aplicável.`;
-                      window.location.href = `/procedures?initialPrompt=${encodeURIComponent(promptText)}`;
+                      window.location.href = `/tramitacoes?initialPrompt=${encodeURIComponent(promptText)}`;
                     }}
                   >
                     Buscar na LegisAI
