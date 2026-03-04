@@ -15,21 +15,38 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/v2/components/ui/select";
-import { Switch } from "@/components/v2/components/ui/switch";
 import { useApiContext } from "@/context/ApiContext";
 import { useDebounce } from "@/hooks/useDebounce";
+import { fetchCamara } from "@/lib/camara-api";
 import {
   ChevronRight,
-  Mail,
+  Landmark,
   MapPin,
   Search,
-  Landmark,
   UserCircle,
   Users,
   X,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { useCallback, useEffect, useState } from "react";
+
+interface Legislatura {
+  id: number;
+  dataInicio?: string;
+  dataFim?: string;
+}
+
+interface Bloco {
+  id: number | string;
+  nome: string;
+  idLegislatura?: number;
+}
+
+interface PartidoNoBloco {
+  id: number | string;
+  sigla: string;
+  nome?: string;
+}
 
 export default function DeputadosListPage() {
   const router = useRouter();
@@ -41,14 +58,17 @@ export default function DeputadosListPage() {
   const [politicians, setPoliticians] = useState<PoliticianProps[]>([]);
   const [totalPages, setTotalPages] = useState(1);
   const [isLoading, setIsLoading] = useState(false);
-  const [showActiveOnly, setShowActiveOnly] = useState(true);
+  const [legislaturas, setLegislaturas] = useState<Legislatura[]>([]);
+  const [selectedLegislature, setSelectedLegislature] = useState<string>("current");
   const [currentLegislature, setCurrentLegislature] = useState<number | null>(
     null,
   );
   const [filterParty, setFilterParty] = useState<string>(() => searchParams.get("party") ?? "");
   const [filterState, setFilterState] = useState<string>("");
+  const [filterSex, setFilterSex] = useState<string>("");
   const [filterStates, setFilterStates] = useState<string[]>([]);
   const [filterParties, setFilterParties] = useState<string[]>([]);
+  const [partidoToBloco, setPartidoToBloco] = useState<Map<string, string>>(new Map());
 
   // Aplicar partido vindo da URL (ex: link "Ver deputados na base" em /partidos/[id])
   useEffect(() => {
@@ -65,19 +85,68 @@ export default function DeputadosListPage() {
     }
   }, [GetAPI]);
 
+  useEffect(() => {
+    async function loadLegislaturas() {
+      const { ok, dados } = await fetchCamara<Legislatura[]>("legislaturas");
+      if (ok && Array.isArray(dados)) setLegislaturas(dados);
+    }
+    loadLegislaturas();
+  }, []);
+
+  const legislatureForBlocos =
+    selectedLegislature === "current" || selectedLegislature === "all"
+      ? currentLegislature
+      : selectedLegislature !== ""
+        ? parseInt(selectedLegislature, 10)
+        : currentLegislature;
+
+  useEffect(() => {
+    const idLeg = legislatureForBlocos != null && !isNaN(legislatureForBlocos) ? legislatureForBlocos : null;
+    if (idLeg == null) return;
+    const legId: number = idLeg;
+    let cancelled = false;
+    async function loadPartidoToBloco() {
+      const { ok: okBlocos, dados: blocos } = await fetchCamara<Bloco[]>("blocos", {
+        idLegislatura: legId,
+        itens: 100,
+      });
+      if (!okBlocos || !Array.isArray(blocos) || cancelled) return;
+      const map = new Map<string, string>();
+      for (const bloco of blocos) {
+        if (cancelled) return;
+        const { ok: okPartidos, dados: partidos } = await fetchCamara<PartidoNoBloco[]>(
+          `blocos/${bloco.id}/partidos`
+        );
+        if (okPartidos && Array.isArray(partidos)) {
+          for (const p of partidos) {
+            const sigla = (p.sigla || "").trim().toUpperCase();
+            if (sigla) map.set(sigla, bloco.nome || String(bloco.id));
+          }
+        }
+      }
+      if (!cancelled) setPartidoToBloco(map);
+    }
+    loadPartidoToBloco();
+    return () => {
+      cancelled = true;
+    };
+  }, [legislatureForBlocos ?? null]);
+
   const fetchFilters = useCallback(async () => {
     let params = "?";
-    if (showActiveOnly && currentLegislature != null) {
-      params += `legislature=${currentLegislature}`;
-    } else {
+    if (selectedLegislature === "all") {
       params += "allLegislatures=true";
+    } else {
+      const leg = selectedLegislature === "current" ? currentLegislature : selectedLegislature;
+      if (leg != null && leg !== "") params += `legislature=${leg}`;
+      else if (currentLegislature != null) params += `legislature=${currentLegislature}`;
     }
     const res = await GetAPI(`/politician/filters${params}`, true);
     if (res.status === 200 && res.body) {
       setFilterStates(res.body.states ?? []);
       setFilterParties(res.body.parties ?? []);
     }
-  }, [showActiveOnly, currentLegislature, GetAPI]);
+  }, [selectedLegislature, currentLegislature, GetAPI]);
 
   const fetchPoliticians = useCallback(async () => {
     setIsLoading(true);
@@ -86,13 +155,17 @@ export default function DeputadosListPage() {
       if (debouncedSearch) params += `&query=${debouncedSearch}`;
       if (filterParty) params += `&party=${encodeURIComponent(filterParty)}`;
       if (filterState) params += `&state=${encodeURIComponent(filterState)}`;
-      if (showActiveOnly && currentLegislature != null) {
-        params += `&legislature=${currentLegislature}`;
-      } else {
+      if (filterSex) params += `&sexo=${encodeURIComponent(filterSex)}`;
+      if (selectedLegislature === "all") {
         params += "&allLegislatures=true";
+      } else {
+        const leg = selectedLegislature === "current" ? currentLegislature : selectedLegislature;
+        if (leg != null && leg !== "") params += `&legislature=${leg}`;
+        else if (currentLegislature != null) params += `&legislature=${currentLegislature}`;
       }
-
+      console.log("params", params);
       const response = await GetAPI(`/politician${params}`, true);
+      console.log("response", response);
       if (response.status === 200 && response.body) {
         setPoliticians(response.body.politicians ?? []);
         setTotalPages(response.body.pages ?? 1);
@@ -109,7 +182,8 @@ export default function DeputadosListPage() {
     debouncedSearch,
     filterParty,
     filterState,
-    showActiveOnly,
+    filterSex,
+    selectedLegislature,
     currentLegislature,
     GetAPI,
   ]);
@@ -128,18 +202,40 @@ export default function DeputadosListPage() {
 
   useEffect(() => {
     setCurrentPage(1);
-  }, [debouncedSearch, showActiveOnly, filterParty, filterState]);
+  }, [debouncedSearch, selectedLegislature, filterParty, filterState, filterSex]);
+
+  const legislaturaLabel = (l: Legislatura) => {
+    const ini = l.dataInicio ? new Date(l.dataInicio).getFullYear() : "";
+    const fim = l.dataFim ? new Date(l.dataFim).getFullYear() : "";
+    return fim ? `${l.id} (${ini}-${fim})` : `${l.id} (${ini})`;
+  };
+
+  const selectedLegislatureLabel =
+    selectedLegislature === "all"
+      ? "Todas"
+      : selectedLegislature === "current"
+        ? legislaturas.length > 0
+          ? (() => {
+              const current = legislaturas.find((l) => l.dataFim && new Date(l.dataFim) > new Date()) ?? legislaturas[legislaturas.length - 1];
+              return current ? `Atual: ${legislaturaLabel(current)}` : `Legislatura ${currentLegislature ?? "—"}`;
+            })()
+          : `Legislatura ${currentLegislature ?? "—"}`
+        : (() => {
+            const l = legislaturas.find((x) => String(x.id) === selectedLegislature);
+            return l ? legislaturaLabel(l) : `Legislatura ${selectedLegislature}`;
+          })();
 
   const handleDeputadoClick = (id: string) => {
     router.push(`/deputados/${id}`);
   };
 
-  const hasActiveFilters = !!(filterParty || filterState || debouncedSearch);
+  const hasActiveFilters = !!(filterParty || filterState || filterSex || debouncedSearch);
 
   const clearAllFilters = () => {
     setSearchTerm("");
     setFilterParty("");
     setFilterState("");
+    setFilterSex("");
   };
 
   return (
@@ -168,14 +264,7 @@ export default function DeputadosListPage() {
               <Landmark size={14} className="text-white/60" />
               <span className="text-white/60">Legislatura</span>
               <span className="font-bold">
-                {currentLegislature ?? "—"}
-              </span>
-            </div>
-            <div className="flex items-center gap-2 rounded-xl bg-white/15 px-4 py-2 text-sm backdrop-blur-sm">
-              <Users size={14} className="text-white/60" />
-              <span className="text-white/60">Exibindo</span>
-              <span className="font-bold">
-                {showActiveOnly ? "Ativos" : "Todos"}
+                {selectedLegislatureLabel}
               </span>
             </div>
             {filterParty && (
@@ -188,6 +277,12 @@ export default function DeputadosListPage() {
               <div className="flex items-center gap-2 rounded-xl bg-white/15 px-4 py-2 text-sm backdrop-blur-sm">
                 <MapPin size={14} className="text-white/60" />
                 <span className="font-bold">{filterState}</span>
+              </div>
+            )}
+            {filterSex && (
+              <div className="flex items-center gap-2 rounded-xl bg-white/15 px-4 py-2 text-sm backdrop-blur-sm">
+                <span className="text-white/60">Sexo</span>
+                <span className="font-bold">{filterSex === "M" ? "Masculino" : filterSex === "F" ? "Feminino" : filterSex}</span>
               </div>
             )}
           </div>
@@ -211,6 +306,30 @@ export default function DeputadosListPage() {
         {/* Linha 2 — Filtros */}
         <div className="mt-4 flex items-center gap-3">
           <div className="flex items-center gap-3">
+            {legislaturas.length > 0 && (
+              <Select
+                value={selectedLegislature}
+                onValueChange={(v) => {
+                  setSelectedLegislature(v);
+                  setCurrentPage(1);
+                }}
+              >
+                <SelectTrigger className="h-9 w-[220px] rounded-lg border-gray-200 bg-gray-50/50 text-xs">
+                  <SelectValue placeholder="Legislatura" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="current">
+                    Legislatura atual
+                  </SelectItem>
+                  {legislaturas.map((l) => (
+                    <SelectItem key={l.id} value={String(l.id)}>
+                      {legislaturaLabel(l)}
+                    </SelectItem>
+                  ))}
+                  <SelectItem value="all">Todas as legislaturas</SelectItem>
+                </SelectContent>
+              </Select>
+            )}
             <Select
               value={filterParty || "all"}
               onValueChange={(v) => setFilterParty(v === "all" ? "" : v)}
@@ -244,21 +363,26 @@ export default function DeputadosListPage() {
                 ))}
               </SelectContent>
             </Select>
+
+            <Select
+              value={filterSex || "all"}
+              onValueChange={(v) => {
+                setFilterSex(v === "all" ? "" : v);
+                setCurrentPage(1);
+              }}
+            >
+              <SelectTrigger className="h-9 w-[140px] rounded-lg border-gray-200 bg-gray-50/50 text-xs">
+                <SelectValue placeholder="Sexo" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">Todos</SelectItem>
+                <SelectItem value="M">Masculino</SelectItem>
+                <SelectItem value="F">Feminino</SelectItem>
+              </SelectContent>
+            </Select>
           </div>
 
           <div className="h-5 w-px bg-gray-200" />
-
-          <label
-            htmlFor="active-filter"
-            className="flex cursor-pointer items-center gap-2"
-          >
-            <Switch
-              id="active-filter"
-              checked={showActiveOnly}
-              onCheckedChange={setShowActiveOnly}
-            />
-            <span className="text-xs text-gray-500">Apenas ativos</span>
-          </label>
 
           {/* Chips inline */}
           {hasActiveFilters && (
@@ -293,6 +417,16 @@ export default function DeputadosListPage() {
                     className="inline-flex items-center gap-1 rounded-full bg-secondary/10 px-2.5 py-0.5 text-xs font-medium text-secondary transition-colors hover:bg-secondary/20"
                   >
                     {filterState}
+                    <X size={11} />
+                  </button>
+                )}
+                {filterSex && (
+                  <button
+                    type="button"
+                    onClick={() => setFilterSex("")}
+                    className="inline-flex items-center gap-1 rounded-full bg-secondary/10 px-2.5 py-0.5 text-xs font-medium text-secondary transition-colors hover:bg-secondary/20"
+                  >
+                    {filterSex === "M" ? "Masculino" : "Feminino"}
                     <X size={11} />
                   </button>
                 )}
@@ -358,7 +492,11 @@ export default function DeputadosListPage() {
         </div>
       ) : politicians.length > 0 ? (
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {politicians.map((dep) => (
+          {politicians.map((dep) => {
+            const partidoSigla = dep.politicalPartyAcronym?.trim() || dep.politicalParty?.trim() || "";
+            const blocoNome = partidoSigla ? partidoToBloco.get(partidoSigla.toUpperCase()) : undefined;
+            const legList = (dep.legislaturas?.length ? dep.legislaturas : dep.legislature != null ? [dep.legislature] : []).sort((a, b) => b - a);
+            return (
             <Card
               key={dep.id}
               className="group relative cursor-pointer border-gray-100 p-5 transition-all duration-200 hover:-translate-y-0.5 hover:border-secondary/40 hover:shadow-lg"
@@ -412,12 +550,20 @@ export default function DeputadosListPage() {
                   )}
 
                   <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                    {(dep.politicalPartyAcronym?.trim() ||
-                      dep.politicalParty?.trim()) && (
-                      <span className="inline-flex shrink-0 items-center rounded-md bg-secondary/10 px-2 py-0.5 text-xs font-semibold text-secondary">
-                        {dep.politicalPartyAcronym?.trim() ||
-                          dep.politicalParty?.trim()}
-                      </span>
+                    {partidoSigla && (
+                      <>
+                        <span className="inline-flex shrink-0 items-center rounded-md bg-secondary/10 px-2 py-0.5 text-xs font-semibold text-secondary">
+                          {partidoSigla}
+                        </span>
+                        {blocoNome && (
+                          <span
+                            className="inline-flex max-w-[180px] shrink-0 items-center truncate rounded-md border border-gray-200 bg-gray-50 px-2 py-0.5 text-xs font-medium text-gray-600"
+                            title={blocoNome}
+                          >
+                            {blocoNome}
+                          </span>
+                        )}
+                      </>
                     )}
                     {dep.state?.trim() && (
                       <span className="inline-flex shrink-0 items-center gap-1 rounded-md bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
@@ -425,21 +571,22 @@ export default function DeputadosListPage() {
                         {dep.state.trim()}
                       </span>
                     )}
+                    {legList.length > 0 && (
+                      <span
+                        className="inline-flex shrink-0 items-center gap-1 rounded-md border border-gray-200 bg-white px-2 py-0.5 text-xs font-medium text-gray-600"
+                        title={`Legislaturas: ${legList.join(", ")}`}
+                      >
+                        <Landmark size={10} />
+                        Leg. {legList.join(", ")}
+                      </span>
+                    )}
                   </div>
                 </div>
               </div>
 
-              {/* Footer meta */}
-              {dep.email && (
-                <div className="mt-4 flex items-center gap-2 border-t border-gray-50 pt-3">
-                  <Mail size={12} className="shrink-0 text-gray-300" />
-                  <span className="truncate text-xs text-gray-400">
-                    {dep.email}
-                  </span>
-                </div>
-              )}
             </Card>
-          ))}
+          );
+          })}
         </div>
       ) : (
         <Card className="border-dashed border-gray-200 py-20 text-center">

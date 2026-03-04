@@ -82,15 +82,10 @@ const menuItems: MenuItem[] = [
 
 export function Sidebar() {
   const pathname = usePathname();
-  const { clearToken } = useApiContext();
+  const { logout } = useApiContext();
   const { handleNavigation } = useLoadingContext();
   const { isMobileOpen, isDesktopExpanded, closeMobileSidebar } =
     useSidebarContext();
-
-  const handleLogout = () => {
-    clearToken();
-    handleNavigation("/login");
-  };
 
   const isExpanded = isDesktopExpanded || isMobileOpen;
 
@@ -216,7 +211,7 @@ export function Sidebar() {
           <Tooltip delayDuration={0}>
             <TooltipTrigger asChild>
               <button
-                onClick={handleLogout}
+                onClick={logout}
                 className={cn(
                   "flex w-full items-center rounded-xl p-3 text-gray-400 transition-colors hover:bg-red-50 hover:text-red-500",
                   isExpanded ? "justify-start gap-3" : "justify-center",

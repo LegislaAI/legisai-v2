@@ -7,13 +7,9 @@ import {
   AvatarImage,
 } from "@/components/v2/components/ui/avatar";
 import { Button } from "@/components/v2/components/ui/Button";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/v2/components/ui/select";
+import { useApiContext } from "@/context/ApiContext";
+import { fetchCamara } from "@/lib/camara-api";
+import { formatGabineteDisplay } from "@/lib/utils";
 import {
   Building2,
   Calendar,
@@ -26,21 +22,88 @@ import {
 } from "lucide-react";
 import Image from "next/image";
 import Link from "next/link";
+import { useEffect, useState } from "react";
+
+interface Bloco {
+  id: number | string;
+  nome: string;
+  idLegislatura?: number;
+}
+
+interface PartidoNoBloco {
+  id: number | string;
+  sigla: string;
+  nome?: string;
+}
 interface DeputadoHeaderProps {
   politician: PoliticianDetailsProps;
-  selectedYear: string;
-  availableYears: string[];
-  onYearChange: (year: string) => void;
   onExportPDF: () => void;
+  /** UF de nascimento (naturalidade), ex.: "SP". Vem da biografia quando disponível. */
+  ufNascimento?: string | null;
 }
 
 export function DeputadoHeader({
   politician,
-  selectedYear,
-  availableYears,
-  onYearChange,
   onExportPDF,
+  ufNascimento,
 }: DeputadoHeaderProps) {
+  const { GetAPI } = useApiContext();
+  const [blocoNome, setBlocoNome] = useState<string | null>(null);
+  const [todasLegislaturas, setTodasLegislaturas] = useState<number[]>([]);
+
+  const legislature = politician.legislature ?? null;
+  const partidoSigla = (politician.politicalPartyAcronym || politician.politicalParty || "").trim().toUpperCase();
+
+  useEffect(() => {
+    if (!politician.id) return;
+    let cancelled = false;
+    (async () => {
+      const res = await GetAPI(`/politician/${politician.id}/legislaturas`, true);
+      if (cancelled) return;
+      if (res.status === 200 && Array.isArray(res.body?.legislaturas)) {
+        setTodasLegislaturas(res.body.legislaturas);
+      } else {
+        setTodasLegislaturas(politician.legislature != null ? [politician.legislature] : []);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [politician.id, politician.legislature, GetAPI]);
+
+  useEffect(() => {
+    if (!legislature || !partidoSigla) return;
+    const leg = legislature;
+    let cancelled = false;
+    async function loadBloco() {
+      const { ok: okBlocos, dados: blocos } = await fetchCamara<Bloco[]>("blocos", {
+        idLegislatura: leg,
+        itens: 100,
+      });
+      if (!okBlocos || !Array.isArray(blocos) || cancelled) return;
+      for (const bloco of blocos) {
+        if (cancelled) return;
+        const { ok: okPartidos, dados: partidos } = await fetchCamara<PartidoNoBloco[]>(
+          `blocos/${bloco.id}/partidos`
+        );
+        if (okPartidos && Array.isArray(partidos)) {
+          const pertence = partidos.some(
+            (p) => (p.sigla || "").trim().toUpperCase() === partidoSigla
+          );
+          if (pertence) {
+            if (!cancelled) setBlocoNome(bloco.nome || String(bloco.id));
+            return;
+          }
+        }
+      }
+      if (!cancelled) setBlocoNome(null);
+    }
+    loadBloco();
+    return () => {
+      cancelled = true;
+    };
+  }, [legislature, partidoSigla]);
+
   return (
     <header>
       <div className="relative overflow-hidden rounded-2xl shadow-lg">
@@ -86,9 +149,22 @@ export function DeputadoHeader({
                 </h1>
                 <p className="mt-1 text-base text-gray-800">
                   {politician.politicalPartyAcronym ||
-                    politician.politicalParty}{" "}
+                    politician.politicalParty}
+                  {blocoNome && (
+                    <>
+                      {" "}
+                      <span className="text-gray-600">
+                        ({blocoNome})
+                      </span>
+                    </>
+                  )}{" "}
                   • {politician.state}
                 </p>
+                {todasLegislaturas.length > 0 && (
+                  <p className="mt-0.5 text-sm text-gray-600">
+                    Legislaturas: {todasLegislaturas.sort((a, b) => b - a).join(", ")}
+                  </p>
+                )}
                 {politician.positions?.[0] && (
                   <p className="mt-0.5 text-sm text-gray-700">
                     {politician.positions[0].position}
@@ -107,18 +183,6 @@ export function DeputadoHeader({
                   Alterar parlamentar
                 </Button>
               </Link>
-              <Select value={selectedYear} onValueChange={onYearChange}>
-                <SelectTrigger className="h-10 w-[110px] border-gray-300 bg-white text-gray-900">
-                  <SelectValue placeholder="Ano" />
-                </SelectTrigger>
-                <SelectContent>
-                  {availableYears.map((y) => (
-                    <SelectItem key={y} value={y}>
-                      {y}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
               <Button
                 variant="outline"
                 className="border-gray-300 bg-white text-gray-900 hover:bg-gray-50"
@@ -154,6 +218,7 @@ export function DeputadoHeader({
               <span className="flex items-center gap-2">
                 <MapPin className="h-5 w-5 text-gray-700" />
                 {politician.placeOfBirth}
+                {ufNascimento?.trim() && ` - ${ufNascimento.trim()}`}
               </span>
             )}
             {politician.email && (
@@ -176,17 +241,19 @@ export function DeputadoHeader({
             )}
             {(politician.gabinetePredio ||
               politician.gabineteAndar ||
-              politician.gabineteSala) && (
+              politician.gabineteSala ||
+              politician.address) && (
               <span className="flex items-center gap-2">
                 <Building2 className="h-5 w-5 text-gray-700" />
-                Gabinete:{" "}
-                {[
-                  politician.gabinetePredio,
-                  politician.gabineteAndar,
-                  politician.gabineteSala,
-                ]
-                  .filter(Boolean)
-                  .join(" / ")}
+                {formatGabineteDisplay(
+                  politician.address?.trim()
+                    ? politician.address
+                    : {
+                        predio: politician.gabinetePredio,
+                        andar: politician.gabineteAndar,
+                        sala: politician.gabineteSala,
+                      }
+                )}
               </span>
             )}
           </div>

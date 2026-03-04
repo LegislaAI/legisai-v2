@@ -21,6 +21,10 @@ import { Button } from "@/components/v2/components/ui/Button";
 import { Card } from "@/components/v2/components/ui/Card";
 import { Input } from "@/components/v2/components/ui/Input";
 import { useApiContext } from "@/context/ApiContext";
+import {
+  getTokenCookieName,
+  getTokenCookieOptions,
+} from "@/lib/auth-cookies";
 import { maskCpfCnpj, maskDate, maskPhone } from "@/lib/masks";
 import { useCookies } from "next-client-cookies";
 
@@ -65,13 +69,10 @@ export default function Register2Page() {
       const response = await PostAPI("/user/signup", payload, false);
 
       if (response.status === 200 || response.status === 201) {
-        // Get access token from response
         const token = response.body.accessToken;
-        const cookieName =
-          process.env.NEXT_PUBLIC_USER_TOKEN || "legisai-token";
+        const cookieOptions = getTokenCookieOptions(true);
 
-        // Save token in cookie and context
-        cookies.set(cookieName, token);
+        cookies.set(getTokenCookieName(), token, cookieOptions);
         setToken(token);
 
         toast.success("Conta criada com sucesso! Você já está logado.");

@@ -4,7 +4,6 @@ import { useSidebarContext } from "@/context/SidebarContext";
 import { cn } from "@/lib/utils";
 import { DropdownMenuArrow } from "@radix-ui/react-dropdown-menu";
 import { ArrowLeft, LogOut, Menu, User2 } from "lucide-react";
-import { useCookies } from "next-client-cookies";
 import { usePathname, useRouter } from "next/navigation";
 import {
   DropdownMenu,
@@ -16,9 +15,8 @@ import {
 export function Header() {
   const pathname = usePathname();
   const router = useRouter();
-  const cookies = useCookies();
   const { setIsSidebarOpen } = useSidebarContext();
-  const { clearToken } = useApiContext();
+  const { logout } = useApiContext();
 
   return (
     <div className="flex h-14 w-full items-center justify-between xl:h-20 gap-4">
@@ -82,11 +80,7 @@ export function Header() {
               <button
                 onClick={() => {
                   if (window.confirm("Tem certeza que deseja sair?")) {
-                    clearToken();
-                    cookies.remove(
-                      process.env.NEXT_PUBLIC_USER_TOKEN as string,
-                    );
-                    router.push("/");
+                    logout();
                   }
                 }}
                 className="group-hover:bg-secondary text-secondary flex w-full cursor-pointer flex-row items-center gap-2 p-2 text-lg transition-all duration-300 group-hover:text-white"

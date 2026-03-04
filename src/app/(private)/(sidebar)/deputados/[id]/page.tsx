@@ -74,10 +74,8 @@ export default function DeputadoDetalhesPage2() {
         <>
           <DeputadoHeader
             politician={data.politician}
-            selectedYear={data.selectedYear}
-            availableYears={data.availableYears}
-            onYearChange={data.setSelectedYear}
             onExportPDF={data.handleExportPDF}
+            ufNascimento={data.biografia?.ufNascimento}
           />
 
           <Tabs.Root

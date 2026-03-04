@@ -4,7 +4,11 @@ import axios from "axios";
 import { useCookies } from "next-client-cookies";
 import { createContext, useContext, useState } from "react";
 
+import { getTokenCookieName } from "@/lib/auth-cookies";
+
 const baseURL = process.env.NEXT_PUBLIC_API_URL;
+
+const LOGIN_PATH = "/login";
 
 export interface ApiContextProps {
   PostAPI: (
@@ -28,6 +32,8 @@ export interface ApiContextProps {
   token: string;
   setToken: React.Dispatch<React.SetStateAction<string>>;
   clearToken: () => void;
+  /** Remove token/cookie, limpa estado e redireciona para login (usar em logout e no interceptor 401). */
+  logout: () => void;
 }
 
 const ApiContext = createContext<ApiContextProps | undefined>(undefined);
@@ -38,18 +44,40 @@ interface ProviderProps {
 
 export const ApiContextProvider = ({ children }: ProviderProps) => {
   const cookies = useCookies();
+  const cookieName = getTokenCookieName();
 
-  const [token, setToken] = useState<string>(
-    cookies.get(process.env.NEXT_PUBLIC_USER_TOKEN as string) || "",
-  );
+  const [token, setToken] = useState<string>(() => cookies.get(cookieName) || "");
 
   function clearToken() {
-    cookies.remove(process.env.NEXT_PUBLIC_USER_TOKEN as string);
+    cookies.remove(cookieName);
+  }
+
+  /** Remove token/cookie, limpa estado e redireciona para login. Conforme AUTHENTICATION_FLOW.md: em 401 não tentar refresh. */
+  function logout() {
+    clearToken();
+    setToken("");
+    if (typeof window !== "undefined") {
+      window.location.href = LOGIN_PATH;
+    }
   }
 
   const api = axios.create({
     baseURL,
   });
+
+  // Interceptor 401: token inválido/expirado → logout e redirect para login (sem refresh)
+  api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+      if (
+        error.response?.status === 401 &&
+        error.config?.headers?.Authorization
+      ) {
+        logout();
+      }
+      return Promise.reject(error);
+    },
+  );
 
   function config(auth: boolean) {
     return {
@@ -164,6 +192,7 @@ export const ApiContextProvider = ({ children }: ProviderProps) => {
         PostAPI,
         GetAPI,
         clearToken,
+        logout,
         PutAPI,
         DeleteAPI,
       }}

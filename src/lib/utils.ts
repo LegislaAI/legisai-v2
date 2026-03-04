@@ -5,6 +5,39 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs));
 }
 
+/**
+ * Formata o endereço do gabinete (ex.: "4, 9, 911") como "Gabinete 911 - Anexo 4".
+ * O segundo valor (ex.: andar "9") não é exibido.
+ * Aceita string no formato "predio, andar, sala" ou objeto com predio/sala.
+ */
+export function formatGabineteDisplay(
+  addressOrParts:
+    | string
+    | { predio?: string | null; andar?: string | null; sala?: string | null }
+): string {
+  if (typeof addressOrParts === "string") {
+    const parts = addressOrParts.split(",").map((p) => p.trim()).filter(Boolean);
+    if (parts.length >= 3) {
+      return `Gabinete ${parts[2]} - Anexo ${parts[0]}`;
+    }
+    if (parts.length === 2) {
+      return `Gabinete ${parts[1]} - Anexo ${parts[0]}`;
+    }
+    if (parts.length === 1) {
+      return `Gabinete ${parts[0]}`;
+    }
+    return "";
+  }
+  const predio = addressOrParts.predio?.trim();
+  const sala = addressOrParts.sala?.trim();
+  if (sala && predio) {
+    return `Gabinete ${sala} - Anexo ${predio}`;
+  }
+  if (sala) return `Gabinete ${sala}`;
+  if (predio) return `Anexo ${predio}`;
+  return "";
+}
+
 export const isLocationMatch = (
   targetLocation: string,
   locationName: string,

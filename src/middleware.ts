@@ -1,7 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 
-const COOKIE_TOKEN_NAME =
-  process.env.NEXT_PUBLIC_USER_TOKEN || "legisai-token";
+import { getTokenCookieName } from "@/lib/auth-cookies";
 
 export const config = {
   matcher: [
@@ -35,7 +34,7 @@ export const config = {
 };
 
 export async function middleware(req: NextRequest) {
-  const token = req.cookies.get(COOKIE_TOKEN_NAME)?.value;
+  const token = req.cookies.get(getTokenCookieName())?.value;
 
   if (!token || token.trim() === "") {
     const url = req.nextUrl.clone();

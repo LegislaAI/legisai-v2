@@ -23,6 +23,9 @@ export interface PoliticianProps {
   gabineteSala?: string | null;
   situacaoExercicio?: string | null;
   mandatoDataInicio?: string | null;
+  legislature?: number;
+  /** Todas as legislaturas em que o político participou (quando retornado pela listagem). */
+  legislaturas?: number[];
 }
 
 export interface PoliticianDetailsProps extends PoliticianProps {

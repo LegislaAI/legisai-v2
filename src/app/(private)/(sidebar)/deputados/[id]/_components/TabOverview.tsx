@@ -716,6 +716,8 @@ export function TabOverview({
                     </p>
                     <p className="mt-0.5 text-sm font-bold text-gray-800">
                       {politician.placeOfBirth}
+                      {data.biografia?.ufNascimento?.trim() &&
+                        ` - ${data.biografia.ufNascimento.trim()}`}
                     </p>
                   </div>
                 )}

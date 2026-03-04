@@ -8,6 +8,10 @@ import { toast } from 'sonner';
 
 import { RegisterPayload } from '@/@types/v2/auth';
 import { useApiContext } from '@/context/ApiContext';
+import {
+  getTokenCookieName,
+  getTokenCookieOptions,
+} from '@/lib/auth-cookies';
 import { maskCpfCnpj, maskDate, maskPhone } from '@/lib/masks';
 import { useCookies } from 'next-client-cookies';
 
@@ -196,13 +200,10 @@ const RegisterModal: React.FC<RegisterModalProps> = ({ isOpen, onClose, formData
             const response = await PostAPI("/user/signup", payload, false);
 
             if (response.status === 200 || response.status === 201) {
-                // Get access token from response
                 const token = response.body.accessToken;
-                const cookieName =
-                    process.env.NEXT_PUBLIC_USER_TOKEN || "legisai-token";
+                const cookieOptions = getTokenCookieOptions(true);
 
-                // Save token in cookie and context
-                cookies.set(cookieName, token);
+                cookies.set(getTokenCookieName(), token, cookieOptions);
                 setToken(token);
 
                 toast.success("Conta criada com sucesso! Você já está logado.");

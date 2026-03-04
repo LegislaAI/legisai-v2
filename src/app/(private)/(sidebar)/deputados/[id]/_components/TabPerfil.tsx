@@ -843,6 +843,8 @@ export function TabPerfil({ data }: { data: DeputadoPageData }) {
                     </p>
                     <p className="mt-1 text-sm font-bold text-gray-900">
                       {politician.placeOfBirth}
+                      {biografia?.ufNascimento?.trim() &&
+                        ` - ${biografia.ufNascimento.trim()}`}
                     </p>
                   </div>
                 )}

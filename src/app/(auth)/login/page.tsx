@@ -6,18 +6,23 @@ import { ArrowRight, CheckCircle, Eye, EyeOff } from "lucide-react";
 import Link from "next/link";
 import { useSearchParams } from "next/navigation";
 import { useState } from "react";
-import { useForm } from "react-hook-form";
+import { Resolver, useForm } from "react-hook-form";
 import { toast } from "sonner";
 import * as z from "zod";
 
 import { LoginPayload } from "@/@types/v2/auth";
 import RegisterModal from "@/components/RegisterModal";
 import { useApiContext } from "@/context/ApiContext";
+import {
+  getTokenCookieName,
+  getTokenCookieOptions,
+} from "@/lib/auth-cookies";
 import { useCookies } from "next-client-cookies";
 
 const loginSchema = z.object({
   email: z.string().email("E-mail inválido"),
   password: z.string().min(6, "A senha deve ter no mínimo 6 caracteres"),
+  rememberMe: z.boolean().default(true),
 });
 
 type LoginFormData = z.infer<typeof loginSchema>;
@@ -67,7 +72,8 @@ export default function Login2Page() {
     handleSubmit,
     formState: { errors, isSubmitting },
   } = useForm<LoginFormData>({
-    resolver: zodResolver(loginSchema),
+    resolver: zodResolver(loginSchema) as Resolver<LoginFormData>,
+    defaultValues: { rememberMe: true },
   });
 
   const onSubmit = async (data: LoginFormData) => {
@@ -78,13 +84,12 @@ export default function Login2Page() {
       };
 
       const response = await PostAPI("/user/signin", payload, false);
-      console.log(response);
       if (response.status === 200) {
         const token = response.body.accessToken;
-        const cookieName =
-          process.env.NEXT_PUBLIC_USER_TOKEN || "legisai-token";
+        const rememberMe = data.rememberMe ?? true;
+        const cookieOptions = getTokenCookieOptions(rememberMe);
 
-        cookies.set(cookieName, token);
+        cookies.set(getTokenCookieName(), token, cookieOptions);
         setToken(token);
 
         toast.success("Login realizado com sucesso!");
@@ -199,6 +204,22 @@ export default function Login2Page() {
                     {errors.password.message}
                   </p>
                 )}
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="rememberMe"
+                  {...register("rememberMe")}
+                  className="h-4 w-4 rounded border-slate-300 text-legis-dark focus:ring-legis-dark/50"
+                  disabled={isSubmitting}
+                />
+                <label
+                  htmlFor="rememberMe"
+                  className="text-sm font-medium text-slate-700"
+                >
+                  Lembrar de mim
+                </label>
               </div>
 
               <button
