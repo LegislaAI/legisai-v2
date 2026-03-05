@@ -7,6 +7,9 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/v2/components/ui/tooltip";
+import { useSignatureContext } from "@/context/SignatureContext";
+import { canAccessTramitacoes } from "@/lib/plan-access";
+import type { PlanLevel } from "@/@types/signature";
 import type { ApexOptions } from "apexcharts";
 import {
   BookOpen,
@@ -125,6 +128,8 @@ function KPICard({
 }
 
 export function TabAtuacao({ data }: { data: DeputadoPageData }) {
+  const { activeSignature } = useSignatureContext();
+  const planLevel: PlanLevel = activeSignature?.signaturePlan?.level ?? 4;
   const {
     politician,
     presenca,
@@ -668,6 +673,7 @@ export function TabAtuacao({ data }: { data: DeputadoPageData }) {
                   </Tooltip>
                 </div>
                 <div className="flex flex-wrap gap-2">
+                  {canAccessTramitacoes(planLevel) && (
                   <Button
                     variant="outline"
                     className="h-8 rounded-lg border-secondary/30 bg-secondary/5 text-xs font-bold text-secondary hover:bg-secondary hover:text-white"
@@ -679,6 +685,7 @@ export function TabAtuacao({ data }: { data: DeputadoPageData }) {
                   >
                     Buscar na LegisAI
                   </Button>
+                  )}
                   {profile.createdProposalsUrl && (
                     <a
                       href={profile.createdProposalsUrl}

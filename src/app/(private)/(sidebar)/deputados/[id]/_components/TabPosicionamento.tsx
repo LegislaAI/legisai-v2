@@ -3,6 +3,9 @@
 import { CustomPagination } from "@/components/ui/CustomPagination";
 import { Button } from "@/components/v2/components/ui/Button";
 import { TooltipProvider } from "@/components/v2/components/ui/tooltip";
+import { useSignatureContext } from "@/context/SignatureContext";
+import { canAccessTramitacoes } from "@/lib/plan-access";
+import type { PlanLevel } from "@/@types/signature";
 import { cn } from "@/lib/utils";
 import type { ApexOptions } from "apexcharts";
 import {
@@ -187,6 +190,8 @@ function ProposicaoCard({ prop }: { prop: ProposicaoDeputado }) {
 }
 
 export function TabPosicionamento({ data }: { data: DeputadoPageData }) {
+  const { activeSignature } = useSignatureContext();
+  const planLevel: PlanLevel = activeSignature?.signaturePlan?.level ?? 4;
   const {
     politician,
     proposicoesResumo,
@@ -702,7 +707,7 @@ export function TabPosicionamento({ data }: { data: DeputadoPageData }) {
                 }
               />
               <div className="flex flex-wrap items-center gap-2">
-                {politician && (
+                {politician && canAccessTramitacoes(planLevel) && (
                   <Button
                     variant="outline"
                     className="border-secondary/30 bg-secondary/5 text-secondary hover:bg-secondary h-9 rounded-xl text-xs font-bold hover:text-white"

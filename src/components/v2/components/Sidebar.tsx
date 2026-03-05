@@ -8,7 +8,10 @@ import {
 } from "@/components/v2/components/ui/tooltip";
 import { useApiContext } from "@/context/ApiContext";
 import { useLoadingContext } from "@/context/LoadingContext";
+import { useSignatureContext } from "@/context/SignatureContext";
 import { useSidebarContext } from "@/context/SidebarContext2";
+import { isMenuItemVisibleForLevel } from "@/lib/plan-access";
+import type { PlanLevel } from "@/@types/signature";
 import { cn } from "@/lib/utils";
 import {
   Award,
@@ -86,6 +89,11 @@ export function Sidebar() {
   const { handleNavigation } = useLoadingContext();
   const { isMobileOpen, isDesktopExpanded, closeMobileSidebar } =
     useSidebarContext();
+  const { activeSignature } = useSignatureContext();
+  const planLevel: PlanLevel = activeSignature?.signaturePlan?.level ?? 4;
+  const visibleMenuItems = menuItems.filter((item) =>
+    isMenuItemVisibleForLevel(item.href, planLevel)
+  );
 
   const isExpanded = isDesktopExpanded || isMobileOpen;
 
@@ -123,7 +131,7 @@ export function Sidebar() {
 
       <nav className="flex w-full flex-1 flex-col gap-2 overflow-y-auto px-3 py-4">
         <TooltipProvider>
-          {menuItems.map((item) => {
+          {visibleMenuItems.map((item) => {
             const isActive =
               pathname === item.href ||
               (item.href !== "/" && pathname.startsWith(item.href + "/")) ||

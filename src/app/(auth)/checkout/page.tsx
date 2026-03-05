@@ -27,7 +27,7 @@ import {
   QrCode,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { Suspense, useEffect, useState } from "react";
+import { Suspense, useCallback, useEffect, useRef, useState } from "react";
 import { useForm } from "react-hook-form";
 import toast from "react-hot-toast";
 import * as z from "zod";
@@ -54,7 +54,7 @@ type PaymentMethod = "card" | "pix";
 function CheckoutContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { PostAPI } = useApiContext();
+  const { PostAPI, GetAPI } = useApiContext();
   const { plans, checkSubscription } = useSignatureContext();
   const { user } = useUserContext();
 
@@ -102,6 +102,36 @@ function CheckoutContent() {
       }
     }
   }, [planId, plans, router]);
+
+  // Polling: verifica se o pagamento PIX foi confirmado (webhook) e redireciona para a home
+  const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const checkPaymentConfirmed = useCallback(async () => {
+    try {
+      const res = await GetAPI("/signature/active", true);
+      if (res.status === 200 && res.body?.signature?.status === "active") {
+        if (pollIntervalRef.current) {
+          clearInterval(pollIntervalRef.current);
+          pollIntervalRef.current = null;
+        }
+        await checkSubscription();
+        toast.success("Pagamento confirmado!");
+        router.push("/");
+      }
+    } catch {
+      // Ignora erro (ex.: sem assinatura ainda)
+    }
+  }, [GetAPI, checkSubscription, router]);
+
+  useEffect(() => {
+    if (!pixPayload?.payment) return;
+    pollIntervalRef.current = setInterval(checkPaymentConfirmed, 4000);
+    return () => {
+      if (pollIntervalRef.current) {
+        clearInterval(pollIntervalRef.current);
+        pollIntervalRef.current = null;
+      }
+    };
+  }, [pixPayload?.payment, checkPaymentConfirmed]);
 
   const calculatePrice = () => {
     if (!plan) return { monthly: 0, total: 0 };
@@ -274,10 +304,7 @@ function CheckoutContent() {
             Cartão de Crédito
           </button>
           <button
-            onClick={() => {
-              setPaymentMethod("pix");
-              if (!pixPayload) generatePix();
-            }}
+            onClick={() => setPaymentMethod("pix")}
             className={`flex flex-1 items-center justify-center gap-2 rounded-xl border p-4 transition-all ${
               paymentMethod === "pix"
                 ? "border-secondary bg-secondary/5 text-secondary font-medium"
@@ -557,18 +584,34 @@ function CheckoutContent() {
                       Escaneie o QR Code ou copie a chave acima para pagar no
                       app do seu banco.
                     </p>
+                    {pixPayload.payment.expirationDate && (
+                      <p className="text-xs text-gray-500">
+                        Validade do QR Code: até{" "}
+                        {new Date(
+                          pixPayload.payment.expirationDate
+                        ).toLocaleString("pt-BR", {
+                          dateStyle: "short",
+                          timeStyle: "short",
+                        })}
+                      </p>
+                    )}
                     <p className="text-xs text-gray-400">
-                      Após o pagamento, clique no botão abaixo para confirmar.
+                      Após o pagamento, a página será atualizada automaticamente
+                      e você será redirecionado.
                     </p>
-                    <Button onClick={handlePixPaymentMade} className="w-full">
-                      Pagamento já realizado
+                    <Button
+                      onClick={handlePixPaymentMade}
+                      variant="outline"
+                      className="w-full"
+                    >
+                      Já paguei, atualizar agora
                     </Button>
                   </div>
                 </>
               ) : (
                 <div className="flex flex-col items-center gap-4 py-12">
-                  <p className="text-gray-500">
-                    Erro ao gerar PIX. Tente novamente.
+                  <p className="text-gray-500 text-center">
+                    Clique no botão abaixo para gerar o QR Code PIX.
                   </p>
                   <Button onClick={generatePix}>Gerar PIX</Button>
                 </div>

@@ -6,34 +6,16 @@ import { Card } from "@/components/v2/components/ui/Card";
 import { useSignatureContext } from "@/context/SignatureContext";
 import { Check, Loader2 } from "lucide-react";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
 
 export default function PlansPage() {
   const router = useRouter();
   const { plans, isLoading } = useSignatureContext();
-  const [isYearly, setIsYearly] = useState(true);
 
   const handleSelectPlan = (plan: SignaturePlan) => {
-    router.push(`/checkout?planId=${plan.id}&yearly=${isYearly}`);
+    router.push(`/checkout?planId=${plan.id}&yearly=false`);
   };
 
-  const calculatePrice = (plan: SignaturePlan, yearly: boolean) => {
-    const basePrice = plan.pixPrice;
-    if (yearly) {
-      const annualPrice = basePrice * 12;
-      const discountedPrice = annualPrice * (1 - plan.yearlyDiscount / 100);
-      return {
-        monthly: discountedPrice / 12,
-        total: discountedPrice,
-        savings: annualPrice - discountedPrice,
-      };
-    }
-    return {
-      monthly: basePrice,
-      total: basePrice,
-      savings: 0,
-    };
-  };
+  const monthlyPrice = (plan: SignaturePlan) => plan.creditCardPrice;
 
   if (isLoading) {
     return (
@@ -44,54 +26,19 @@ export default function PlansPage() {
   }
 
   return (
-    <div className="animate-fade-in w-full max-w-4xl px-4">
+    <div className="animate-fade-in w-full max-w-6xl px-4">
       <div className="mb-10 text-center">
         <h2 className="text-dark text-3xl font-bold">Escolha o seu plano</h2>
         <p className="mt-2 text-gray-500">
           Desbloqueie todo o potencial da inteligência artificial jurídica.
         </p>
-
-        {/* Toggle Anual/Mensal */}
-        <div className="bg-surface mt-6 inline-flex items-center gap-3 rounded-full p-1">
-          <button
-            onClick={() => setIsYearly(false)}
-            className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
-              !isYearly
-                ? "text-secondary bg-white shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            Mensal
-          </button>
-          <button
-            onClick={() => setIsYearly(true)}
-            className={`rounded-full px-4 py-2 text-sm font-medium transition-all ${
-              isYearly
-                ? "text-secondary bg-white shadow-sm"
-                : "text-gray-500 hover:text-gray-700"
-            }`}
-          >
-            Anual
-            <span className="ml-1 text-xs font-semibold text-green-600">
-              Economize
-            </span>
-          </button>
-        </div>
       </div>
 
-      <div
-        className={`grid gap-8 ${
-          plans.length === 1
-            ? "mx-auto max-w-md grid-cols-1"
-            : plans.length === 2
-              ? "grid-cols-1 md:grid-cols-2"
-              : "grid-cols-1 md:grid-cols-2 lg:grid-cols-3"
-        }`}
-      >
+      <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-4">
         {plans
           .filter((p) => p.status === "active")
           .map((plan, index) => {
-            const pricing = calculatePrice(plan, isYearly);
+            const price = monthlyPrice(plan);
             const isHighlighted =
               index === plans.length - 1 || plans.length === 1;
 
@@ -118,25 +65,12 @@ export default function PlansPage() {
                 <div className="mb-6">
                   <span className="text-dark text-4xl font-bold">
                     R${" "}
-                    {pricing.monthly.toLocaleString("pt-BR", {
+                    {price.toLocaleString("pt-BR", {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })}
                   </span>
                   <span className="text-sm text-gray-500">/mês</span>
-
-                  {isYearly && pricing.savings > 0 && (
-                    <div className="mt-2">
-                      <span className="rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-600">
-                        Economia de R${" "}
-                        {pricing.savings.toLocaleString("pt-BR", {
-                          minimumFractionDigits: 2,
-                          maximumFractionDigits: 2,
-                        })}
-                        /ano
-                      </span>
-                    </div>
-                  )}
                 </div>
 
                 <ul className="mb-8 flex-1 space-y-3">

@@ -4,6 +4,9 @@ import { BackButton } from "@/components/v2/components/ui/BackButton";
 import { Card } from "@/components/v2/components/ui/Card";
 import { PropositionRelatedSection } from "@/components/v2/components/ui/PropositionRelatedSection";
 import { useApiContext } from "@/context/ApiContext";
+import { useSignatureContext } from "@/context/SignatureContext";
+import { canAccessTramitacoes } from "@/lib/plan-access";
+import type { PlanLevel } from "@/@types/signature";
 import { cn } from "@/lib/utils";
 import * as Tabs from "@radix-ui/react-tabs";
 import { ArrowUpRight, Building2, Calendar, FileText, List, Play, Sparkles, User, Users } from "lucide-react";
@@ -65,6 +68,8 @@ export default function PropositionDetailPage() {
   const params = useParams();
   const id = params?.id as string;
   const { GetAPI } = useApiContext();
+  const { activeSignature } = useSignatureContext();
+  const planLevel: PlanLevel = activeSignature?.signaturePlan?.level ?? 4;
   const [proposition, setProposition] = useState<PropositionDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeTab, setActiveTab] = useState<string>("overview");
@@ -186,6 +191,7 @@ export default function PropositionDetailPage() {
                     Câmara <ArrowUpRight className="h-4 w-4" />
                   </a>
                 )}
+                {canAccessTramitacoes(planLevel) && (
                 <button
                   onClick={() => {
                     const propositionName = `${proposition.typeAcronym} ${proposition.number}/${proposition.year}`;
@@ -199,6 +205,7 @@ Detalhe o resumo do texto, matérias correlatas, todo o histórico de tramitaç�
                   <Sparkles className="h-4 w-4" />
                   Usar IA Agora
                 </button>
+                )}
               </div>
             </div>
           </div>

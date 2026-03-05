@@ -1,3 +1,5 @@
+export type PlanLevel = 1 | 2 | 3 | 4;
+
 export interface SignaturePlan {
   id: string;
   name: string;
@@ -7,6 +9,7 @@ export interface SignaturePlan {
   userQuantity: number;
   yearlyDiscount: number;
   status: "active" | "inactive" | "expired";
+  level: PlanLevel;
 }
 
 export interface UserSignature {

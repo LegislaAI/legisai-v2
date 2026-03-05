@@ -6,6 +6,7 @@ import {
   AvatarImage,
 } from "@/components/v2/components/ui/avatar";
 import { Button } from "@/components/v2/components/ui/Button";
+import { useSignatureContext } from "@/context/SignatureContext";
 import { useSidebarContext } from "@/context/SidebarContext2";
 import { useUserContext } from "@/context/UserContext";
 import { cn } from "@/lib/utils";
@@ -15,13 +16,15 @@ import { usePathname } from "next/navigation";
 export function Header() {
   const pathname = usePathname();
   const { user } = useUserContext();
+  const { activeSignature } = useSignatureContext();
   const { isDesktopExpanded, toggleDesktopSidebar, toggleMobileSidebar } =
     useSidebarContext();
+  const planName = activeSignature?.signaturePlan?.name ?? "—";
 
   const getTitle = () => {
     if (pathname === "/") return "Home";
     if (pathname === "/tramitacoes") return "Tramitação e Informações";
-    if (pathname === "/plenaplenariory") return "Plenários / Sessões";
+    if (pathname === "/plenario" || pathname.startsWith("/plenario/")) return "Plenários / Sessões";
     if (pathname === "/noticias") return "Novidades e Notícias";
     if (pathname === "/ai") return "Inteligência Artificial";
     if (pathname === "/perfil") return "Meu Perfil";
@@ -68,7 +71,7 @@ export function Header() {
         <div className="flex items-center gap-3">
           <div className="hidden text-right md:block">
             <p className="text-dark text-sm font-medium">{user?.name}</p>
-            <p className="text-xs text-gray-500">Plano Pro</p>
+            <p className="text-xs text-gray-500">{planName}</p>
           </div>
           <Avatar>
             <AvatarImage src="" />
