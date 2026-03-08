@@ -1,32 +1,39 @@
 "use client";
 
 import {
-  ArrowRight,
-  BarChart3,
-  Briefcase,
-  Calendar,
-  CalendarCheck,
-  CalendarDays,
-  CheckCircle2,
-  FileText,
-  Info,
-  Mic2,
-  Receipt,
-  Scale,
-  Sparkles,
-  User,
-  Vote,
-  Wallet,
-} from "lucide-react";
-import type { DeputadoPageData } from "./useDeputadoPage";
-import { SkeletonLoader } from "./SkeletonLoader";
+    Select,
+    SelectContent,
+    SelectItem,
+    SelectTrigger,
+    SelectValue,
+} from "@/components/v2/components/ui/select";
+import {
+    Tooltip,
+    TooltipContent,
+    TooltipProvider,
+    TooltipTrigger,
+} from "@/components/v2/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import {
-  Tooltip,
-  TooltipContent,
-  TooltipProvider,
-  TooltipTrigger,
-} from "@/components/v2/components/ui/tooltip";
+    ArrowRight,
+    BarChart3,
+    Briefcase,
+    Calendar,
+    CalendarCheck,
+    CalendarDays,
+    CheckCircle2,
+    FileText,
+    Info,
+    Mic2,
+    Receipt,
+    Scale,
+    Sparkles,
+    User,
+    Vote,
+    Wallet,
+} from "lucide-react";
+import { SkeletonLoader } from "./SkeletonLoader";
+import type { DeputadoPageData } from "./useDeputadoPage";
 
 const CARD_3D =
   "relative overflow-hidden rounded-2xl border border-gray-100/80 bg-white shadow-[0_2px_12px_-4px_rgba(0,0,0,0.06)] transition-all duration-300 hover:border-[#749c5b]/20 hover:shadow-[0_8px_32px_-8px_rgba(116,156,91,0.2)] hover:-translate-y-0.5";
@@ -201,6 +208,8 @@ export function TabOverview({
     loadingBio,
     socialLinks,
     selectedYear,
+    setSelectedYear,
+    availableYears,
   } = data;
 
   if (!politician) return null;
@@ -287,6 +296,27 @@ export function TabOverview({
             <p className="mt-2 max-w-xl text-sm text-gray-600">
               Resumo da atividade parlamentar. Passe o mouse nos indicadores para mais detalhes e use os atalhos para aprofundar em cada área.
             </p>
+            <div className="mt-4 flex flex-wrap items-center gap-3">
+              <span className="text-sm font-medium text-gray-600">Período:</span>
+              <Select
+                value={selectedYear}
+                onValueChange={(v) => setSelectedYear(v)}
+              >
+                <SelectTrigger className="h-9 w-[120px] rounded-lg border-gray-200 bg-white/90 shadow-sm">
+                  <SelectValue placeholder="Ano" />
+                </SelectTrigger>
+                <SelectContent>
+                  {availableYears.map((y) => (
+                    <SelectItem key={y} value={y}>
+                      {y}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+              <span className="text-xs text-gray-500">
+                Jan–Dez {selectedYear}
+              </span>
+            </div>
             {totalContadores > 0 && (
               <div className="mt-6 inline-flex items-baseline gap-2 rounded-xl bg-white/80 px-4 py-2 shadow-sm ring-1 ring-gray-100">
                 <span className="text-3xl font-extrabold text-[#749c5b]">

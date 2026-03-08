@@ -165,11 +165,6 @@ export function DeputadoHeader({
                     Legislaturas: {todasLegislaturas.sort((a, b) => b - a).join(", ")}
                   </p>
                 )}
-                {politician.positions?.[0] && (
-                  <p className="mt-0.5 text-sm text-gray-700">
-                    {politician.positions[0].position}
-                  </p>
-                )}
               </div>
             </div>
             <div className="flex flex-wrap items-center gap-2">

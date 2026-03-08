@@ -20,6 +20,16 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useEffect, useState } from "react";
 
+interface ReportProposition {
+  id: string;
+  number: number;
+  year: number;
+  type: { id: string; name: string; acronym: string };
+  description: string;
+  url: string;
+  report?: string;
+}
+
 interface Proposition {
   id: string;
   number: number;
@@ -41,6 +51,7 @@ interface Proposition {
   title: string;
   regime: string;
   sequence: number;
+  reportProposition?: ReportProposition;
 }
 
 interface PropositionDetails {
@@ -333,10 +344,73 @@ export function PropositionsTab({ eventId }: PropositionsTabProps) {
                         </a>
                       </div>
                     )}
+
+                    {proposition.reportProposition && (
+                      <div className="rounded-lg border border-[#749c5b]/30 bg-[#749c5b]/5 p-4 mt-4">
+                        <h4 className="text-xs font-bold uppercase text-[#749c5b] mb-2 flex items-center gap-2">
+                          <FileText size={14} />
+                          Parecer do Relator
+                        </h4>
+                        <p className="text-sm font-medium text-[#1a1d1f] mb-1">
+                          {proposition.reportProposition.type.acronym}{" "}
+                          {proposition.reportProposition.number}/
+                          {proposition.reportProposition.year}
+                        </p>
+                        <p className="text-sm text-[#1a1d1f] leading-relaxed">
+                          {proposition.reportProposition.report ||
+                            proposition.reportProposition.description ||
+                            "Sem descrição disponível"}
+                        </p>
+                        {proposition.reportProposition.url && (
+                          <div className="flex justify-end pt-2 mt-2 border-t border-[#749c5b]/20">
+                            <a
+                              href={proposition.reportProposition.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 text-sm font-medium text-[#749c5b] hover:underline"
+                            >
+                              Ver inteiro teor do parecer <ExternalLink size={14} />
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 ) : (
-                  <div className="text-sm text-gray-500 py-4 text-center">
-                    Não foi possível carregar os detalhes da proposta.
+                  <div className="space-y-4">
+                    <div className="text-sm text-gray-500 py-4 text-center">
+                      Não foi possível carregar os detalhes da proposta.
+                    </div>
+                    {proposition.reportProposition && (
+                      <div className="rounded-lg border border-[#749c5b]/30 bg-[#749c5b]/5 p-4">
+                        <h4 className="text-xs font-bold uppercase text-[#749c5b] mb-2 flex items-center gap-2">
+                          <FileText size={14} />
+                          Parecer do Relator
+                        </h4>
+                        <p className="text-sm font-medium text-[#1a1d1f] mb-1">
+                          {proposition.reportProposition.type.acronym}{" "}
+                          {proposition.reportProposition.number}/
+                          {proposition.reportProposition.year}
+                        </p>
+                        <p className="text-sm text-[#1a1d1f] leading-relaxed">
+                          {proposition.reportProposition.report ||
+                            proposition.reportProposition.description ||
+                            "Sem descrição disponível"}
+                        </p>
+                        {proposition.reportProposition.url && (
+                          <div className="flex justify-end pt-2 mt-2 border-t border-[#749c5b]/20">
+                            <a
+                              href={proposition.reportProposition.url}
+                              target="_blank"
+                              rel="noopener noreferrer"
+                              className="flex items-center gap-2 text-sm font-medium text-[#749c5b] hover:underline"
+                            >
+                              Ver inteiro teor do parecer <ExternalLink size={14} />
+                            </a>
+                          </div>
+                        )}
+                      </div>
+                    )}
                   </div>
                 )}
               </AccordionContent>

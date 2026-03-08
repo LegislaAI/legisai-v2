@@ -3,11 +3,14 @@ import {
   ArrowRight,
   ChevronLeft,
   ChevronRight,
-  UsersRound
+  Search,
+  UsersRound,
+  X,
 } from "lucide-react";
 import { useEffect, useState } from "react";
 
 import { useApiContext } from "@/context/ApiContext";
+import { useDebounce } from "@/hooks/useDebounce";
 import { useRouter } from "next/navigation";
 
 // --- TIPOS ---
@@ -28,16 +31,21 @@ export default function CommissionsPage() {
   const { GetAPI } = useApiContext();
   const [activeTab, setActiveTab] = useState<CommissionType>("PERMANENT");
   const [currentPage, setCurrentPage] = useState(1);
+  const [searchTerm, setSearchTerm] = useState("");
   const [loading, setLoading] = useState(true);
   const [commissions, setCommissions] = useState<Commission[]>([]);
   const [totalPages, setTotalPages] = useState(0);
 
-  // Fetch commissions from API
+  const debouncedSearch = useDebounce(searchTerm, 400);
+
   useEffect(() => {
     async function fetchCommissions() {
       setLoading(true);
-      const queryParams = `?page=${currentPage}&type=${activeTab}`;
-      const response = await GetAPI(`/department${queryParams}`, true);
+      const params = new URLSearchParams();
+      params.set("page", String(currentPage));
+      params.set("type", activeTab);
+      if (debouncedSearch.trim()) params.set("query", debouncedSearch.trim());
+      const response = await GetAPI(`/department?${params.toString()}`, true);
       if (response.status === 200) {
         setCommissions(response.body.departments || []);
         setTotalPages(response.body.pages || 0);
@@ -47,14 +55,11 @@ export default function CommissionsPage() {
 
     window.scrollTo({ top: 0, behavior: "smooth" });
     fetchCommissions();
-  }, [currentPage, activeTab, GetAPI]);
+  }, [currentPage, activeTab, debouncedSearch, GetAPI]);
 
-  // Reset to page 1 when filter changes
   useEffect(() => {
-    if (currentPage !== 1) {
-      setCurrentPage(1);
-    }
-  }, [activeTab]);
+    if (currentPage !== 1) setCurrentPage(1);
+  }, [activeTab, debouncedSearch]);
 
   const handleTabChange = (tab: CommissionType) => {
     setActiveTab(tab);
@@ -112,6 +117,32 @@ export default function CommissionsPage() {
               </button>
             ))}
           </div>
+
+          <div className="relative mt-4">
+            <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+            <input
+              type="text"
+              placeholder="Buscar comissão por nome ou sigla..."
+              className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-3 pl-11 pr-4 text-sm transition-all placeholder:text-gray-400 focus:border-[#749c5b] focus:bg-white focus:outline-none focus:ring-2 focus:ring-[#749c5b]/20 sm:max-w-md"
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+            />
+            {debouncedSearch && (
+              <button
+                type="button"
+                onClick={() => setSearchTerm("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-600"
+                aria-label="Limpar busca"
+              >
+                <X size={16} />
+              </button>
+            )}
+          </div>
+          {debouncedSearch && (
+            <p className="mt-2 text-sm text-gray-600">
+              Buscando por &ldquo;{debouncedSearch}&rdquo;
+            </p>
+          )}
         </div>
 
         {/* --- LISTA DE COMISSÕES --- */}
@@ -130,7 +161,6 @@ export default function CommissionsPage() {
               {commissions.map((commission) => (
                 <div
                   key={commission.id}
-                  onClick={() => console.log("commission", commission)}
                   className="group relative overflow-hidden rounded-xl border border-gray-100 bg-white p-6 shadow-sm transition-all hover:border-[#749c5b]/30 hover:shadow-md"
                 >
                   {/* Barra decorativa lateral */}
@@ -182,8 +212,9 @@ export default function CommissionsPage() {
                 Nenhuma comissão encontrada
               </h3>
               <p className="mx-auto mt-2 max-w-xs text-sm text-[#6f767e]">
-                Não encontramos comissões do tipo selecionado. Tente selecionar
-                outro filtro.
+                {debouncedSearch
+                  ? `Nenhum resultado para "${debouncedSearch}". Tente outro termo ou limpe a busca.`
+                  : "Não encontramos comissões do tipo selecionado. Tente selecionar outro filtro."}
               </p>
             </div>
           )}

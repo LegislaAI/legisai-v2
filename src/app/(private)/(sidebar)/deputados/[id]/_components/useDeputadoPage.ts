@@ -3,24 +3,24 @@
 import { PoliticianDetailsProps } from "@/@types/v2/politician";
 import { useApiContext } from "@/context/ApiContext";
 import { generatePoliticianReport } from "@/utils/pdfGenerator";
-import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { ApexOptions } from "apexcharts";
-import type {
-  AgendaResumo,
-  Contadores,
-  DespesaCEAP,
-  DespesasResumoCEAP,
-  DiscursosResumo,
-  EventoAgenda,
-  HistoricoResponse,
-  Presenca,
-  ProposicaoDeputado,
-  ProposicoesResumo,
-  TemasResponse,
-  VotacoesIndicadores,
-} from "./types";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { MONTHS, START_YEAR } from "./constants";
-import type { SocialLink } from "./types";
+import type {
+    AgendaResumo,
+    Contadores,
+    DespesaCEAP,
+    DespesasResumoCEAP,
+    DiscursosResumo,
+    EventoAgenda,
+    HistoricoResponse,
+    Presenca,
+    ProposicaoDeputado,
+    ProposicoesResumo,
+    SocialLink,
+    TemasResponse,
+    VotacoesIndicadores,
+} from "./types";
 
 export function useDeputadoPage(id: string | undefined) {
   const { GetAPI } = useApiContext();
@@ -332,10 +332,15 @@ export function useDeputadoPage(id: string | undefined) {
 
   const fetchProposicoesResumo = useCallback(async () => {
     if (!id) return;
-    const res = await GetAPI(`/politician/${id}/proposicoes/resumo`, true);
+    const dataInicio = `${selectedYear}-01-01`;
+    const dataFim = `${selectedYear}-12-31`;
+    const res = await GetAPI(
+      `/politician/${id}/proposicoes/resumo?dataInicio=${dataInicio}&dataFim=${dataFim}`,
+      true,
+    );
     if (res.status === 200 && res.body) setProposicoesResumo(res.body);
     else setProposicoesResumo(null);
-  }, [id, GetAPI]);
+  }, [id, selectedYear, GetAPI]);
 
   const fetchProposicoes = useCallback(async () => {
     if (!id) return;
@@ -393,7 +398,12 @@ export function useDeputadoPage(id: string | undefined) {
     if (!id) return;
     setLoadingContadores(true);
     try {
-      const res = await GetAPI(`/politician/${id}/contadores`, true);
+      const dataInicio = `${selectedYear}-01-01`;
+      const dataFim = `${selectedYear}-12-31`;
+      const res = await GetAPI(
+        `/politician/${id}/contadores?dataInicio=${dataInicio}&dataFim=${dataFim}`,
+        true,
+      );
       if (res.status === 200 && res.body) setContadores(res.body);
       else setContadores(null);
     } catch {
@@ -401,7 +411,7 @@ export function useDeputadoPage(id: string | undefined) {
     } finally {
       setLoadingContadores(false);
     }
-  }, [id, GetAPI]);
+  }, [id, selectedYear, GetAPI]);
 
   const fetchPresenca = useCallback(async () => {
     if (!id) return;
@@ -445,7 +455,12 @@ export function useDeputadoPage(id: string | undefined) {
     if (!id) return;
     setLoadingTemas(true);
     try {
-      const res = await GetAPI(`/politician/${id}/temas`, true);
+      const dataInicio = `${selectedYear}-01-01`;
+      const dataFim = `${selectedYear}-12-31`;
+      const res = await GetAPI(
+        `/politician/${id}/temas?dataInicio=${dataInicio}&dataFim=${dataFim}`,
+        true,
+      );
       if (res.status === 200 && res.body) setTemas(res.body);
       else setTemas(null);
     } catch {
@@ -453,7 +468,7 @@ export function useDeputadoPage(id: string | undefined) {
     } finally {
       setLoadingTemas(false);
     }
-  }, [id, GetAPI]);
+  }, [id, selectedYear, GetAPI]);
 
   // (orchestrated via wave-based loading below)
 
@@ -584,11 +599,17 @@ export function useDeputadoPage(id: string | undefined) {
     let cancelled = false;
 
     (async () => {
-      await Promise.allSettled([fetchDetails(), fetchPresenca()]);
+      await Promise.allSettled([
+        fetchDetails(),
+        fetchPresenca(),
+        fetchContadores(),
+        fetchProposicoesResumo(),
+      ]);
       if (cancelled) return;
       await Promise.allSettled([
         fetchVotacoesIndicadores(),
         fetchDiscursosResumo(),
+        fetchTemas(),
       ]);
     })();
 
