@@ -97,7 +97,8 @@ export async function executeToolCalls(
 
 registerTool({
   name: "vectorSearch",
-  description: "search laws in vector database",
+  description:
+    "Busca proposições no banco vetorial. Para buscar exclusivamente Projetos de Lei, você DEVE preencher o parâmetro 'type' com 'PL'. Se o usuário busca proposições de um autor específico, coloque apenas palavras-chave do tema no 'searchParam' (ou deixe vazio/genérico como 'projeto') e use obrigatoriamente o parâmetro 'authorId'.",
   parameters: {
     type: "object",
     properties: {
@@ -188,7 +189,8 @@ registerTool({
 
 registerTool({
   name: "fetchAuthors",
-  description: "search author list",
+  description:
+    "Busca lista de autores (parlamentares) por nome. Use esta função IMEDIATAMENTE quando o usuário mencionar qualquer nome de político, mesmo que seja apenas o primeiro nome ou apelido. Não peça o nome completo ao usuário antes de tentar usar esta função.",
   parameters: {
     type: "object",
     properties: {

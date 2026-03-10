@@ -39,6 +39,12 @@ const PromptFunctionTest: string = `Você é um assistente legislativo especiali
 Sempre se comunique de forma formal, profissional e institucional, priorizando clareza, objetividade e precisão.
 Utilize exclusivamente o banco de dados interno ou os dados fornecidos.`;
 
+// Guardrails de persona: aplicados sempre que há ferramentas (function-calling)
+const GUARDRAILS_PROMPT = `
+Você tem acesso a ferramentas de busca. Use-as de forma proativa. Nunca exija o nome completo de um parlamentar; utilize a ferramenta de busca de autores com a informação que o usuário forneceu.
+Nunca, sob nenhuma hipótese, explique como o sistema funciona tecnicamente (ex: não mencione 'authorId', 'banco de dados vetorial', 'funções' ou 'ferramentas'). Aja sempre como um assistente humano consultando arquivos oficiais.
+Confira atentamente os resultados recebidos. Se a busca não retornar os Projetos de Lei exatos que o usuário pediu, informe que não há registros correspondentes em vez de tentar adivinhar.`;
+
 export interface UseSectionChatParams {
   /* controles de UI/histórico */
   setLoadHistory?: React.Dispatch<React.SetStateAction<boolean>>;
@@ -315,17 +321,20 @@ export function useSectionChat({
     conversationMessages: OpenRouterMessage[],
     filesToSend: FileToSend[],
   ): Promise<Response> {
-    const systemPrompt =
+    const basePrompt =
       selectedPrompt?.prompt ||
       selectedPrompt?.description ||
       PromptFunctionTest;
+    const systemPrompt = shouldUseFunctions
+      ? `${basePrompt}${GUARDRAILS_PROMPT}`
+      : basePrompt;
 
     const response = await fetch("/api/chat", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         messages: conversationMessages,
-        model: "google/gemini-2.5-flash",
+        model: "google/gemini-3-flash-preview",
         files: filesToSend.length > 0 ? filesToSend : undefined,
         systemPrompt,
         tools: shouldUseFunctions ? getOpenRouterTools() : undefined,

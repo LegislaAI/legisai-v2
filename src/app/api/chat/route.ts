@@ -60,7 +60,7 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "API Key ausente" }, { status: 500 });
     }
 
-    const modelId = model || "google/gemini-2.5-flash";
+    const modelId = model || "google/gemini-3-flash-preview";
 
     // DETECÇÃO DE CAPACIDADES
     const isGemini = modelId.includes("gemini");
