@@ -630,10 +630,28 @@ export function useSectionChat({
     }
   }
 
+  /**
+   * Adiciona uma troca usuário + assistente apenas no front (sem chamar a API).
+   * Atualiza messages (UI) e conversationHistoryRef para a próxima chamada da IA ter contexto.
+   */
+  function addLocalExchange(userContent: string, assistantContent: string) {
+    setMessages((prev) => [
+      ...prev,
+      { role: "user", content: userContent },
+      { role: "ai", content: assistantContent },
+    ]);
+    conversationHistoryRef.current.push({ role: "user", content: userContent });
+    conversationHistoryRef.current.push({
+      role: "assistant",
+      content: assistantContent,
+    });
+  }
+
   /* ─────────────────────────────── EXPORT ─────────────────────────────── */
   return {
     messages,
     setMessages,
+    addLocalExchange,
     loading,
     chatId,
     inputMessage,
