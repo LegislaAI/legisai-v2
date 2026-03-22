@@ -25,7 +25,6 @@ import {
   FileText,
   Info,
   LayoutList,
-  MapPin,
   Mic2,
   Search,
   Sparkles,
@@ -35,6 +34,7 @@ import {
 } from "lucide-react";
 import moment from "moment";
 import { SessionSummaryReport } from "./components/SessionSummaryReport";
+import { preprocessSessionText, SessionParagraph } from "./components/SessionParagraph";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
 
@@ -133,6 +133,8 @@ interface EventDetailsAPI {
 
   EventProposition: EventProposition[];
   voting: EventVoting[];
+  aiOverviewSummary: string | null;
+  aiOverviewGeneratedAt: string | null;
   createdAt: string;
   updatedAt: string;
 }
@@ -167,6 +169,48 @@ const StatusBadge = ({ status }: { status: string }) => {
     </span>
   );
 };
+
+/** Horário em pt-BR estilo “14h” ou “14h12” (sem dois-pontos). Usa UTC como no restante da página. */
+function formatHoraBr(iso: string | undefined | null) {
+  if (!iso) return "—";
+  const m = moment(iso.replace("Z", "")).utc();
+  const mm = m.minutes();
+  const hh = m.hours();
+  if (mm === 0) return `${hh}h`;
+  return `${hh}h${String(mm).padStart(2, "0")}`;
+}
+
+/** Data estilo “Qui, 19 mar 2026” (UTC, alinhado aos demais blocos). */
+function formatDataLinhaSessao(iso: string | undefined | null) {
+  if (!iso) return "—";
+  const m = moment(iso.replace("Z", "")).utc();
+  const dias = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+  const meses = [
+    "jan",
+    "fev",
+    "mar",
+    "abr",
+    "mai",
+    "jun",
+    "jul",
+    "ago",
+    "set",
+    "out",
+    "nov",
+    "dez",
+  ];
+  return `${dias[m.day()]}, ${m.date()} ${meses[m.month()]} ${m.year()}`;
+}
+
+function formatDuracaoSessao(start: string, end: string) {
+  const mins = moment(end.replace("Z", ""))
+    .utc()
+    .diff(moment(start.replace("Z", "")).utc(), "minutes");
+  if (mins < 0) return "—";
+  const h = Math.floor(mins / 60);
+  const min = mins % 60;
+  return `${h}h${String(min).padStart(2, "0")}`;
+}
 
 export default function DeliberativeSessionScreen() {
   const pathname = usePathname();
@@ -251,7 +295,7 @@ export default function DeliberativeSessionScreen() {
   const [sessaoTextoPage, setSessaoTextoPage] = useState(1);
   const [sessaoTextoSearch, setSessaoTextoSearch] = useState("");
   const [sessaoTextoModoLeitura, setSessaoTextoModoLeitura] = useState(false);
-  const SESSÃO_TEXTO_PARAGRAPHS_PER_PAGE = 18;
+  const SESSÃO_TEXTO_PARAGRAPHS_PER_PAGE = 30;
 
   // Format countdown time
   const formatCountdown = (milliseconds: number): string => {
@@ -325,6 +369,9 @@ export default function DeliberativeSessionScreen() {
         setEventDetails(response.body);
         setOrderPropositions(response.body?.EventProposition || []);
         setVotesList(response.body?.voting || []);
+        if (response.body?.aiOverviewSummary) {
+          setSessionSummary(response.body.aiOverviewSummary);
+        }
 
         // Calculate countdown if event is in the future
         // Treat dates from database as local time (ignore UTC indicator)
@@ -627,6 +674,21 @@ export default function DeliberativeSessionScreen() {
 
   const quorumCount = eventDetails?.politicians?.length || 0;
   const propCount = eventDetails?.EventProposition?.length || 0;
+
+  const contextoInstitucional = eventDetails
+    ? [eventDetails.department?.name, eventDetails.local, eventDetails.eventType?.description]
+        .filter((s): s is string => Boolean(s && String(s).trim()))
+        .join(" · ")
+    : "";
+
+  const situacaoLower = (eventDetails?.situation || "").toLowerCase();
+  const ordemDiaResumo =
+    situacaoLower.includes("encerr") || situacaoLower.includes("finaliz")
+      ? "Encerrada"
+      : propCount === 0
+        ? "Sem itens na pauta"
+        : `${propCount} ${propCount === 1 ? "item" : "itens"} na pauta`;
+
   const findIfRelactorIsPresent = (id: string) =>
     eventDetails?.politicians?.find(
       (politician) => politician.politicianId === id,
@@ -722,113 +784,165 @@ export default function DeliberativeSessionScreen() {
               {/* Background decorativo sutil */}
               <div className="pointer-events-none absolute top-0 right-0 -mt-16 -mr-16 h-64 w-64 rounded-full bg-[#749c5b] opacity-5 blur-3xl"></div>
 
-              <div className="relative z-10 mb-6 flex flex-col items-start justify-between gap-4 md:flex-row">
-                <div className="space-y-2">
-                  <div className="flex items-center gap-3">
-                    <div className="flex items-center gap-2 text-sm font-bold tracking-wider text-[#749c5b] uppercase">
-                      <MapPin size={16} />
-                      {eventDetails?.local || "Local não informado"}
-                    </div>
-                    <StatusBadge status={eventDetails?.situation || ""} />
-                    <button
-                      onClick={handleExportPDF}
-                      className="flex items-center gap-2 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-semibold text-gray-600 transition-colors hover:bg-gray-50"
-                      title="Exportar Relatório em PDF"
+              <div className="relative z-10 flex flex-col gap-6 lg:flex-row lg:items-start lg:justify-between">
+                <div className="min-w-0 flex-1 space-y-4">
+                  <div className="border-l-4 border-[#749c5b] pl-4">
+                    <h1
+                      className="line-clamp-3 text-2xl leading-tight font-bold tracking-tight text-[#1a1d1f] md:text-3xl lg:text-2xl"
+                      title={
+                        eventDetails?.description || eventDetails?.eventType?.name
+                      }
                     >
-                      <Download size={14} />
-                      Exportar
-                    </button>
+                      {eventDetails?.description || eventDetails?.eventType?.name}
+                    </h1>
                   </div>
-                  <h1
-                    className="line-clamp-2 overflow-hidden text-2xl leading-tight font-bold md:text-4xl"
-                    title={
-                      eventDetails?.description || eventDetails?.eventType?.name
-                    }
-                  >
-                    {eventDetails?.description || eventDetails?.eventType?.name}
-                  </h1>
-                  <p className="max-w-2xl text-sm text-gray-400 md:text-base">
-                    {eventDetails?.eventType?.description}
-                  </p>
-                </div>
 
-                {/* Card de Transmissão */}
-                <div className="w-full min-w-[280px] rounded-lg border border-white/10 bg-white/10 p-4 backdrop-blur-sm md:w-auto">
-                  <div className="mb-3 flex items-center gap-3">
-                    <div className="h-2 w-2 animate-pulse rounded-full bg-red-500" />
-                    <span className="text-xs font-bold tracking-wider uppercase">
-                      Status
+                  {contextoInstitucional ? (
+                    <p className="text-sm leading-relaxed text-gray-500 md:text-base">
+                      {contextoInstitucional}
+                    </p>
+                  ) : null}
+
+                  <div className="flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-gray-600 md:text-[15px]">
+                    <span className="inline-flex items-center gap-1.5 font-medium text-[#1a1d1f]">
+                      <Calendar
+                        size={16}
+                        className="shrink-0 text-[#749c5b]"
+                        aria-hidden
+                      />
+                      {formatDataLinhaSessao(eventDetails?.startDate)}
                     </span>
-                  </div>
-                  {eventDetails?.videoUrl ? (
-                    <a
-                      href={eventDetails?.videoUrl}
-                      target="_blank"
-                      rel="noreferrer"
-                      className="flex w-full items-center justify-center gap-2 rounded bg-[#749c5b] px-4 py-2 text-sm font-semibold text-white transition-colors hover:bg-[#658a4e]"
-                    >
-                      <Video size={16} />
-                      Acessar Transmissão
-                    </a>
-                  ) : (
-                    <button
-                      disabled
-                      className="flex w-full cursor-not-allowed items-center justify-center gap-2 rounded bg-gray-300 px-4 py-2 text-sm font-semibold text-gray-500"
-                    >
-                      <Video size={16} />
-                      Sem Transmissão
-                    </button>
-                  )}
-                </div>
-              </div>
-
-              {/* Stats Grid */}
-              <div className="grid grid-cols-2 gap-4 border-t border-gray-100 pt-6 md:grid-cols-4 md:gap-8">
-                <div>
-                  <span className="mb-1 block text-xs text-gray-400 uppercase">
-                    Data
-                  </span>
-                  <span className="flex items-center gap-2 font-semibold">
-                    <Calendar size={16} className="text-[#749c5b]" />
-                    {moment(eventDetails?.startDate).format("DD/MM/YYYY")}
-                  </span>
-                </div>
-                <div>
-                  <span className="mb-1 block text-xs text-gray-400 uppercase">
-                    Horário
-                  </span>
-                  <span className="flex items-center gap-2 font-semibold">
-                    <Clock size={16} className="text-[#749c5b]" />
+                    <span className="text-gray-300" aria-hidden>
+                      ·
+                    </span>
                     {timeLeft > 0 && eventDetails ? (
-                      <span className="text-[#749c5b]">
-                        {formatCountdown(timeLeft)}
+                      <span className="font-semibold text-[#749c5b]">
+                        abertura em {formatCountdown(timeLeft)}
                       </span>
                     ) : (
                       <>
-                        {moment(eventDetails?.startDate).utc().format("HH:mm")}
-                        {eventDetails?.endDate &&
-                          ` - ${moment(eventDetails?.endDate).utc().format("HH:mm")}`}
+                        <span>
+                          início {formatHoraBr(eventDetails?.startDate)}
+                        </span>
+                        {eventDetails?.endDate ? (
+                          <>
+                            <span className="text-gray-300">·</span>
+                            <span>
+                              encerramento {formatHoraBr(eventDetails.endDate)}
+                            </span>
+                            <span className="text-gray-300">·</span>
+                            <span className="font-medium text-[#1a1d1f]">
+                              duração{" "}
+                              {formatDuracaoSessao(
+                                eventDetails.startDate,
+                                eventDetails.endDate,
+                              )}
+                            </span>
+                          </>
+                        ) : (
+                          <>
+                            <span className="text-gray-300">·</span>
+                            <span className="italic text-gray-400">
+                              encerramento não registrado
+                            </span>
+                          </>
+                        )}
                       </>
                     )}
-                  </span>
+                  </div>
+
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="text-sm font-semibold text-[#1a1d1f]">
+                      {eventDetails?.department?.acronym ||
+                        eventDetails?.department?.name ||
+                        "Sessão"}
+                    </span>
+                    <StatusBadge status={eventDetails?.situation || "—"} />
+                  </div>
+
+                  <p className="text-sm leading-relaxed text-gray-600">
+                    <span className="text-gray-400">Modalidade:</span> Presencial
+                    <span className="mx-2 text-gray-300">·</span>
+                    <span className="text-gray-400">Ordem do Dia:</span>{" "}
+                    {ordemDiaResumo}
+                  </p>
+
+                  <div className="flex flex-col gap-3 sm:flex-row sm:flex-wrap">
+                    <div className="flex min-w-[200px] flex-1 items-center gap-3 rounded-xl border border-gray-100 bg-gradient-to-br from-[#749c5b]/[0.07] to-white px-4 py-3 shadow-sm">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#749c5b]/15 text-[#749c5b]">
+                        <Users size={20} strokeWidth={2} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium tracking-wide text-gray-500 uppercase">
+                          Quórum
+                        </p>
+                        <p className="text-lg font-bold tabular-nums text-[#1a1d1f]">
+                          {quorumCount}{" "}
+                          <span className="text-sm font-semibold text-gray-600">
+                            Parlamentares
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                    <div className="flex min-w-[200px] flex-1 items-center gap-3 rounded-xl border border-gray-100 bg-gradient-to-br from-slate-50 to-white px-4 py-3 shadow-sm">
+                      <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-slate-200/80 text-slate-700">
+                        <FileText size={20} strokeWidth={2} />
+                      </div>
+                      <div>
+                        <p className="text-xs font-medium tracking-wide text-gray-500 uppercase">
+                          Proposição
+                        </p>
+                        <p className="text-lg font-bold tabular-nums text-[#1a1d1f]">
+                          {propCount}{" "}
+                          <span className="text-sm font-semibold text-gray-600">
+                            {propCount === 1 ? "Item" : "Itens"}
+                          </span>
+                        </p>
+                      </div>
+                    </div>
+                  </div>
                 </div>
-                <div>
-                  <span className="mb-1 block text-xs text-gray-400 uppercase">
-                    Quórum (Lista)
-                  </span>
-                  <span className="flex items-center gap-2 font-semibold">
-                    <Users size={16} className="text-[#749c5b]" />
-                    {quorumCount} Parlamentares
-                  </span>
-                </div>
-                <div>
-                  <span className="mb-1 block text-xs text-gray-400 uppercase">
-                    Proposições
-                  </span>
-                  <span className="flex items-center gap-2 font-semibold">
-                    <FileText size={16} className="text-[#749c5b]" />
-                    {propCount} Itens
-                  </span>
+
+                <div className="flex w-full shrink-0 flex-col gap-3 sm:flex-row sm:items-stretch lg:w-auto lg:min-w-[280px] lg:flex-col">
+                  <button
+                    type="button"
+                    onClick={handleExportPDF}
+                    className="inline-flex items-center justify-center gap-2 rounded-xl border border-gray-200 bg-white px-4 py-3 text-sm font-semibold text-gray-700 shadow-sm transition-colors hover:bg-gray-50"
+                    title="Exportar Relatório em PDF"
+                  >
+                    <Download size={18} />
+                    Exportar PDF
+                  </button>
+                  <div className="flex flex-1 flex-col rounded-xl border border-gray-200 bg-gradient-to-b from-white to-gray-50/90 p-4 shadow-sm">
+                    <div className="mb-3 flex items-center gap-2">
+                      <div
+                        className={`h-2 w-2 rounded-full ${eventDetails?.videoUrl ? "animate-pulse bg-red-500" : "bg-gray-400"}`}
+                      />
+                      <span className="text-xs font-bold tracking-wider text-gray-500 uppercase">
+                        Transmissão
+                      </span>
+                    </div>
+                    {eventDetails?.videoUrl ? (
+                      <a
+                        href={eventDetails.videoUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="flex w-full flex-1 items-center justify-center gap-2 rounded-lg bg-[#749c5b] px-4 py-3 text-sm font-semibold text-white transition-colors hover:bg-[#658a4e]"
+                      >
+                        <Video size={18} />
+                        Acessar transmissão
+                      </a>
+                    ) : (
+                      <button
+                        type="button"
+                        disabled
+                        className="flex w-full flex-1 cursor-not-allowed items-center justify-center gap-2 rounded-lg bg-gray-200 px-4 py-3 text-sm font-semibold text-gray-500"
+                      >
+                        <Video size={18} />
+                        Sem transmissão
+                      </button>
+                    )}
+                  </div>
                 </div>
               </div>
             </div>
@@ -2527,7 +2641,7 @@ export default function DeliberativeSessionScreen() {
                   );
                 }
 
-                const paragraphs = fullTextForSession!
+                const paragraphs = preprocessSessionText(fullTextForSession!)
                   .split(/\n\n+/)
                   .map((p) => p.trim())
                   .filter(Boolean);
@@ -2548,7 +2662,7 @@ export default function DeliberativeSessionScreen() {
                     const res = await fetch("/api/plenary/session-summary", {
                       method: "POST",
                       headers: { "Content-Type": "application/json" },
-                      body: JSON.stringify({ text: fullTextForSession }),
+                      body: JSON.stringify({ text: fullTextForSession, eventId: eventDetails?.id }),
                     });
                     const data = await res.json();
                     if (res.ok && data.summary) setSessionSummary(data.summary);
@@ -2591,15 +2705,16 @@ export default function DeliberativeSessionScreen() {
                             Visão geral da sessão
                           </h3>
                           <p className="text-xs text-[#6f767e] mt-1">
-                            Pontos relevantes, temas, valores e ações importantes extraídos por IA (Open Router).
+                            Pontos relevantes, temas, valores e ações importantes extraídos por IA (Legis AI - Legis Dados).
                           </p>
-                          {!sessionSummary && !loadingSessionSummary && (
+                          {/* TODO: remover condição temporária — voltar para {!sessionSummary && !loadingSessionSummary && ...} */}
+                          {!loadingSessionSummary && (
                             <button
                               onClick={handleGenerateSummary}
                               className="mt-4 flex items-center gap-2 rounded-lg bg-[#749c5b] px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-[#64944b] active:scale-[0.98]"
                             >
                               <Sparkles size={16} />
-                              Gerar visão geral
+                              {sessionSummary ? "Regenerar visão geral" : "Gerar visão geral"}
                             </button>
                           )}
                         </div>
@@ -2700,38 +2815,16 @@ export default function DeliberativeSessionScreen() {
                           >
                             {pageParagraphs.map((paragraph, idx) => {
                               const globalIndex = start + idx;
-                              const highlight = sessaoTextoSearch.trim() && paragraph.toLowerCase().includes(sessaoTextoSearch.trim().toLowerCase());
-                              const firstLine = paragraph.split("\n")[0] ?? "";
-                              const looksLikeSpeaker =
-                                (firstLine.trim().endsWith(":") &&
-                                  firstLine.length < 120 &&
-                                  /^[\p{L}\s.-]+(\s*\([A-Za-z0-9]+\))?\s*:\s*$/u.test(firstLine.trim())) ||
-                                /^\d{1,2}h?\d{0,2}\s*[-–]\s*.+/.test(firstLine.trim());
+                              const highlight = !!(sessaoTextoSearch.trim() && paragraph.toLowerCase().includes(sessaoTextoSearch.trim().toLowerCase()));
                               return (
-                                <p
+                                <SessionParagraph
                                   key={`${globalIndex}-${paragraph.slice(0, 30)}`}
-                                  className={cn(
-                                    "rounded-lg px-3 py-2 transition-colors duration-200 animate-in fade-in slide-in-from-bottom-1",
-                                    sessaoTextoModoLeitura ? "text-stone-700" : "text-sm leading-relaxed text-gray-700",
-                                    highlight
-                                      ? "bg-amber-50 text-[#1a1d1f] border border-amber-200/60"
-                                      : "odd:bg-gray-50/50",
-                                    looksLikeSpeaker && "border-l-4 border-l-[#749c5b]/50 pl-4 font-medium text-[#1a1d1f]"
-                                  )}
-                                  style={{ animationDelay: `${idx * 30}ms`, animationFillMode: "backwards" }}
-                                >
-                                  {sessaoTextoSearch.trim() ? (
-                                    paragraph.split(new RegExp(`(${sessaoTextoSearch.trim().replace(/[.*+?^${}()|[\]\\]/g, "\\$&")})`, "gi")).map((part, i) =>
-                                      part.toLowerCase() === sessaoTextoSearch.trim().toLowerCase() ? (
-                                        <mark key={i} className="bg-amber-200/80 text-[#1a1d1f] rounded px-0.5">{part}</mark>
-                                      ) : (
-                                        <span key={i}>{part}</span>
-                                      )
-                                    )
-                                  ) : (
-                                    paragraph
-                                  )}
-                                </p>
+                                  text={paragraph}
+                                  searchTerm={sessaoTextoSearch}
+                                  readingMode={sessaoTextoModoLeitura}
+                                  isHighlighted={highlight}
+                                  animationDelay={idx * 30}
+                                />
                               );
                             })}
                           </div>

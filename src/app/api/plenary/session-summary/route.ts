@@ -4,41 +4,58 @@ import { getAuthToken } from "@/lib/auth";
 
 const MAX_CHARS = 200_000; // ~30k tokens para contexto seguro no Gemini Flash
 
-const SYSTEM_PROMPT = `Você é um Cientista Político Sênior e Analista Legislativo estritamente neutro e imparcial. Sua função é analisar a transcrição completa de uma sessão plenária (contendo falas, oradores e horários) e produzir um relatório de inteligência detalhado. 
+/**
+ * Prompt do relatório de sessão (Visão geral IA).
+ * Cada seção usa ### para que o parser do frontend consiga separar em cards.
+ */
+const SYSTEM_PROMPT = `
+Você é analista legislativo: neutro, imparcial, baseado exclusivamente no texto. Nunca invente informações.
 
-Você não possui viés político (nem de esquerda, nem de direita, nem de centro) e sua análise deve ser baseada puramente em fatos, táticas discursivas e dinâmicas de poder observáveis no texto.
+Gere um relatório em Markdown usando EXATAMENTE os títulos abaixo (com ### e os emojis indicados). Não adicione outros títulos ###.
 
-Analise a transcrição fornecida e gere um relatório utilizando EXATAMENTE a estrutura, os títulos e a formatação em Markdown abaixo:
+### 📊 Contexto e clima
+- Descreva o tom geral do debate (tenso, apático, colaborativo, obstrucionista…).
+- Identifique o que de fato concentrou a atenção, independentemente da pauta oficial.
 
-### 📊 Contexto e Clima da Sessão
-- **Temperatura do Debate:** Descreva o clima geral da sessão (ex: tenso, apático, colaborativo, obstrucionista).
-- **Foco Principal:** Qual foi o verdadeiro centro das atenções, independentemente da pauta oficial.
+### ⚔️ Dinâmicas de poder
+- Convergências ou sinais de alinhamento entre grupos/partidos.
+- Obstrução ou manobras (questões de ordem, requerimentos protelatórios, etc.).
+- Embates diretos: cite os **[Oradores]** envolvidos e o núcleo do embate.
 
-### ⚔️ Dinâmicas de Poder e Articulações
-*Analise as movimentações políticas e estratégias de bastidor que transpareceram nas falas.*
-- **Alianças e Conchavos:** Identifique convergências inesperadas entre blocos/partidos ou sinais de acordos prévios.
-- **Obstrução e Manobras:** Liste táticas usadas para atrasar ou acelerar a sessão (ex: excesso de questões de ordem, discursos de enrolação, requerimentos protelatórios).
-- **Embates Diretos e Ataques:** Destaque conflitos abertos entre parlamentares, citando os **[Oradores]** envolvidos e o motivo central do ataque.
+### 🗣️ Discursos e posicionamentos
+- Linhas de argumento da situação e da oposição.
+- Menções a pressões externas (Executivo, Judiciário, mídia, lobbies), se houver.
+- Falas fora do tom usual ou com peso político significativo (orador e horário aproximado, se constar).
 
-### 🗣️ Análise de Discursos e Posicionamentos
-*Mapeie como os diferentes espectros ou grupos se posicionaram em relação aos temas.*
-- **Narrativas Dominantes:** Quais foram os argumentos centrais usados pela Situação e pela Oposição?
-- **Pressão Externa:** Houve menção a pressões de lobbies, opinião pública, mídia ou outros poderes (Executivo/Judiciário)?
-- **Quebras de Decoro ou Falas Críticas:** Registre falas que saíram do tom institucional ou que carregam peso político significativo (inclua o horário aproximado ou o orador).
+### ⚙️ Pauta e resultados
+- O que foi aprovado, rejeitado ou adiado.
+- Procedimentos relevantes: urgências, pedidos de vista, encaminhamentos.
 
-### ⚙️ Evolução da Pauta e Ações Práticas
-*Foque na engrenagem legislativa e no que de fato teve efeito prático.*
-- **Decisões e Votações:** O que foi aprovado, rejeitado ou adiado.
-- **Destaques Burocráticos:** Pedidos de vista, requerimentos de urgência ou encaminhamentos relevantes para o futuro da pauta.
+### 🔬 Dimensões da sessão
+Avalie cada dimensão com um grau e uma justificativa curta apoiada na transcrição:
+- **Conflito:** Baixo · Moderado · Alto · Indeterminado
+- **Efetividade deliberativa:** Alta · Parcial · Baixa · Nenhuma
+- **Fluidez:** Fluida · Interrompida · Fragmentada · Travada
+- **Debate vs. entregas:** compare a intensidade da discussão com os resultados concretos
 
-### 📌 Notas do Analista (Opcional)
-- Adicione qualquer observação crítica sobre circunstâncias anômalas da sessão que um estrategista político precisaria saber.
+### 💡 Insights analíticos
+Liste de 3 a 5 insights. Para cada um:
+1. **Título curto**
+2. **Tipo** — escolha um: dinâmica de conflito · sinal de acordo · fricção procedimental · efetividade deliberativa · gestão de pauta · lideranças · predomínio discursivo · ritmo da sessão · sinal institucional · perspectiva para próximas sessões
+3. **Interpretação** — até 3 frases explicando o que o padrão *significa* (não repita fatos da seção anterior).
+4. **Evidência** — trecho ou fato rastreável na transcrição.
 
-**Regras de Formatação:**
-1. Seja analítico, não apenas descritivo. Explique o *porquê* por trás das ações.
-2. Use **negrito** para destacar nomes de **parlamentares**, **partidos/blocos**, e **projetos de lei**.
-3. Utilize *bullet points* (\`-\`) para todas as listagens.
-4. Jamais invente informações. Se uma seção não tiver dados suficientes na transcrição, escreva: "Sem ocorrências relevantes nesta sessão".`;
+### 📌 Síntese final
+2 a 3 frases respondendo: "O que esta sessão revela em termos analíticos?" Integre dimensões e insights; não repita lista de fatos.
+
+---
+Regras de formatação:
+- Use **negrito** para nomes de parlamentares, partidos/blocos e projetos de lei.
+- Use listas com hífen (\`-\`) para todas as listagens.
+- Se uma seção não tiver dados, escreva: *Sem ocorrências relevantes nesta sessão.*
+- Priorize interpretação sobre descrição. Exclua frases genéricas e repetições.
+- Não atribua intenção psicológica, não declare vitória/derrota partidária sem evidência, não trate suposição como fato.
+`.trim();
 
 export async function POST(req: Request) {
   try {
@@ -46,14 +63,14 @@ export async function POST(req: Request) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
-    const { text } = await req.json();
+    const { text, eventId } = await req.json();
     const apiKey =
       process.env.OPENROUTER_API_KEY ||
       process.env.NEXT_PUBLIC_OPENROUTER_API_KEY;
 
     if (!apiKey) {
       return NextResponse.json(
-        { error: "Chave da API Open Router ausente" },
+        { error: "Chave da API ausente" },
         { status: 500 }
       );
     }
@@ -108,6 +125,19 @@ export async function POST(req: Request) {
     const summary =
       data.choices?.[0]?.message?.content?.trim() ||
       "*Não foi possível gerar o resumo.*";
+
+    if (eventId && typeof eventId === "string") {
+      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+      if (apiUrl) {
+        fetch(`${apiUrl}/event/${eventId}/ai-overview-summary`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ summary }),
+        }).catch((err) =>
+          console.error("Error IA Sobrecarregada - Legis Dados:", err)
+        );
+      }
+    }
 
     return NextResponse.json({ summary });
   } catch (e) {
