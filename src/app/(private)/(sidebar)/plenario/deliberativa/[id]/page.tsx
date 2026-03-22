@@ -2707,14 +2707,13 @@ export default function DeliberativeSessionScreen() {
                           <p className="text-xs text-[#6f767e] mt-1">
                             Pontos relevantes, temas, valores e ações importantes extraídos por IA (Legis AI - Legis Dados).
                           </p>
-                          {/* TODO: remover condição temporária — voltar para {!sessionSummary && !loadingSessionSummary && ...} */}
-                          {!loadingSessionSummary && (
+                          {!sessionSummary && !loadingSessionSummary && (
                             <button
                               onClick={handleGenerateSummary}
                               className="mt-4 flex items-center gap-2 rounded-lg bg-[#749c5b] px-4 py-2.5 text-sm font-medium text-white shadow-sm transition-all hover:bg-[#64944b] active:scale-[0.98]"
                             >
                               <Sparkles size={16} />
-                              {sessionSummary ? "Regenerar visão geral" : "Gerar visão geral"}
+                              Gerar visão geral
                             </button>
                           )}
                         </div>
