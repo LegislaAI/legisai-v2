@@ -826,7 +826,7 @@ export function TabPerfil({ data }: { data: DeputadoPageData }) {
                       Nascimento
                     </p>
                     <p className="mt-1 text-sm font-bold text-gray-900">
-                      {new Date(politician.birthDate).toLocaleDateString(
+                      {new Date(politician.birthDate + "T12:00:00").toLocaleDateString(
                         "pt-BR",
                         { dateStyle: "long" },
                       )}

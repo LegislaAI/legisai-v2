@@ -1,36 +1,36 @@
 "use client";
 
 import {
-    Select,
-    SelectContent,
-    SelectItem,
-    SelectTrigger,
-    SelectValue,
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
 } from "@/components/v2/components/ui/select";
 import {
-    Tooltip,
-    TooltipContent,
-    TooltipProvider,
-    TooltipTrigger,
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
 } from "@/components/v2/components/ui/tooltip";
 import { cn } from "@/lib/utils";
 import {
-    ArrowRight,
-    BarChart3,
-    Briefcase,
-    Calendar,
-    CalendarCheck,
-    CalendarDays,
-    CheckCircle2,
-    FileText,
-    Info,
-    Mic2,
-    Receipt,
-    Scale,
-    Sparkles,
-    User,
-    Vote,
-    Wallet,
+  ArrowRight,
+  BarChart3,
+  Briefcase,
+  Calendar,
+  CalendarCheck,
+  CalendarDays,
+  CheckCircle2,
+  FileText,
+  Info,
+  Mic2,
+  Receipt,
+  Scale,
+  Sparkles,
+  User,
+  Vote,
+  Wallet,
 } from "lucide-react";
 import { SkeletonLoader } from "./SkeletonLoader";
 import type { DeputadoPageData } from "./useDeputadoPage";
@@ -47,7 +47,10 @@ function SectionTitle({
   subtitle,
   accentColor = "#749c5b",
 }: {
-  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
+  icon: React.ComponentType<{
+    className?: string;
+    style?: React.CSSProperties;
+  }>;
   title: string;
   subtitle?: string;
   accentColor?: string;
@@ -66,9 +69,7 @@ function SectionTitle({
         <h3 className="text-[15px] font-bold tracking-tight text-gray-900">
           {title}
         </h3>
-        {subtitle && (
-          <p className="text-[11px] text-gray-400">{subtitle}</p>
-        )}
+        {subtitle && <p className="text-[11px] text-gray-400">{subtitle}</p>}
       </div>
     </div>
   );
@@ -111,7 +112,10 @@ function NavigateButton({
     return (
       <Tooltip>
         <TooltipTrigger asChild>{btn}</TooltipTrigger>
-        <TooltipContent side="top" className="border-gray-200 bg-white text-xs shadow-lg">
+        <TooltipContent
+          side="top"
+          className="border-gray-200 bg-white text-xs shadow-lg"
+        >
           {tooltip}
         </TooltipContent>
       </Tooltip>
@@ -129,7 +133,10 @@ function MiniKPI({
 }: {
   value: string | number;
   label: string;
-  icon: React.ComponentType<{ className?: string; style?: React.CSSProperties }>;
+  icon: React.ComponentType<{
+    className?: string;
+    style?: React.CSSProperties;
+  }>;
   color: string;
   tooltip?: string;
 }) {
@@ -142,16 +149,14 @@ function MiniKPI({
         <Icon className="h-4 w-4" style={{ color }} />
       </div>
       <div className="min-w-0 flex-1">
-        <p className="text-lg font-extrabold leading-tight" style={{ color }}>
+        <p className="text-lg leading-tight font-extrabold" style={{ color }}>
           {value}
         </p>
-        <p className="text-[10px] font-semibold uppercase tracking-widest text-gray-400">
+        <p className="text-[10px] font-semibold tracking-widest text-gray-400 uppercase">
           {label}
         </p>
       </div>
-      {tooltip && (
-        <Info className="h-3.5 w-3.5 shrink-0 text-gray-300" />
-      )}
+      {tooltip && <Info className="h-3.5 w-3.5 shrink-0 text-gray-300" />}
     </div>
   );
   if (tooltip) {
@@ -160,7 +165,10 @@ function MiniKPI({
         <TooltipTrigger asChild>
           <div className="cursor-help">{content}</div>
         </TooltipTrigger>
-        <TooltipContent side="top" className="max-w-[240px] border-gray-200 bg-white text-xs shadow-lg">
+        <TooltipContent
+          side="top"
+          className="max-w-[240px] border-gray-200 bg-white text-xs shadow-lg"
+        >
           {tooltip}
         </TooltipContent>
       </Tooltip>
@@ -221,12 +229,19 @@ export function TabOverview({
 
   const temasTop = temas?.temas?.slice(0, 4) ?? [];
   const totalContadores = contadores
-    ? contadores.eventos + contadores.proposicoes + contadores.discursos + contadores.votacoes
+    ? contadores.eventos +
+      contadores.proposicoes +
+      contadores.discursos +
+      contadores.votacoes
     : 0;
   const activityBreakdown = contadores
     ? [
         { label: "Eventos", value: contadores.eventos, color: "#749c5b" },
-        { label: "Proposições", value: contadores.proposicoes, color: "#4E9F3D" },
+        {
+          label: "Proposições",
+          value: contadores.proposicoes,
+          color: "#4E9F3D",
+        },
         { label: "Discursos", value: contadores.discursos, color: "#2d5a3d" },
         { label: "Votações", value: contadores.votacoes, color: "#8ab86e" },
       ]
@@ -248,7 +263,8 @@ export function TabOverview({
           gradient: "linear-gradient(135deg, #749c5b, #4E9F3D)",
           iconBg: "#749c5b18",
           textColor: "#749c5b",
-          tooltip: "Participações em sessões plenárias, reuniões de comissões e outros eventos oficiais.",
+          tooltip:
+            "Participações em sessões plenárias, reuniões de comissões e outros eventos oficiais.",
         },
         {
           value: contadores.proposicoes,
@@ -257,7 +273,8 @@ export function TabOverview({
           gradient: "linear-gradient(135deg, #4E9F3D, #2d5a3d)",
           iconBg: "#4E9F3D18",
           textColor: "#4E9F3D",
-          tooltip: "Projetos de lei, PECs e outras proposições de autoria ou coautoria do deputado.",
+          tooltip:
+            "Projetos de lei, PECs e outras proposições de autoria ou coautoria do deputado.",
         },
         {
           value: contadores.discursos,
@@ -266,7 +283,8 @@ export function TabOverview({
           gradient: "linear-gradient(135deg, #7c3aed, #8b5cf6)",
           iconBg: "#7c3aed18",
           textColor: "#7c3aed",
-          tooltip: "Pronunciamentos e falas registradas em plenário e comissões.",
+          tooltip:
+            "Pronunciamentos e falas registradas em plenário e comissões.",
         },
         {
           value: contadores.votacoes,
@@ -288,16 +306,21 @@ export function TabOverview({
           <div className="relative z-10">
             <div className="mb-2 flex items-center gap-2 text-[#749c5b]">
               <Sparkles className="h-5 w-5" />
-              <span className="text-xs font-bold uppercase tracking-widest">Visão geral</span>
+              <span className="text-xs font-bold tracking-widest uppercase">
+                Visão geral
+              </span>
             </div>
             <h2 className="text-2xl font-extrabold tracking-tight text-gray-900 sm:text-3xl">
               Atuação em números
             </h2>
             <p className="mt-2 max-w-xl text-sm text-gray-600">
-              Resumo da atividade parlamentar. Passe o mouse nos indicadores para mais detalhes e use os atalhos para aprofundar em cada área.
+              Resumo da atividade parlamentar. Passe o mouse nos indicadores
+              para mais detalhes e use os atalhos para aprofundar em cada área.
             </p>
             <div className="mt-4 flex flex-wrap items-center gap-3">
-              <span className="text-sm font-medium text-gray-600">Período:</span>
+              <span className="text-sm font-medium text-gray-600">
+                Período:
+              </span>
               <Select
                 value={selectedYear}
                 onValueChange={(v) => setSelectedYear(v)}
@@ -322,7 +345,7 @@ export function TabOverview({
                 <span className="text-3xl font-extrabold text-[#749c5b]">
                   {totalContadores.toLocaleString("pt-BR")}
                 </span>
-                <span className="text-xs font-semibold uppercase tracking-wider text-gray-500">
+                <span className="text-xs font-semibold tracking-wider text-gray-500 uppercase">
                   registros no período
                 </span>
               </div>
@@ -349,14 +372,20 @@ export function TabOverview({
                           className="flex h-11 w-11 items-center justify-center rounded-xl"
                           style={{ background: kpi.iconBg }}
                         >
-                          <kpi.icon className="h-5 w-5" style={{ color: kpi.textColor }} />
+                          <kpi.icon
+                            className="h-5 w-5"
+                            style={{ color: kpi.textColor }}
+                          />
                         </div>
                         <Info className="h-4 w-4 text-gray-300" />
                       </div>
-                      <p className="text-3xl font-extrabold tracking-tight" style={{ color: kpi.textColor }}>
+                      <p
+                        className="text-3xl font-extrabold tracking-tight"
+                        style={{ color: kpi.textColor }}
+                      >
                         {kpi.value.toLocaleString?.() ?? kpi.value}
                       </p>
-                      <p className="mt-1 text-xs font-semibold uppercase tracking-widest text-gray-400">
+                      <p className="mt-1 text-xs font-semibold tracking-widest text-gray-400 uppercase">
                         {kpi.label}
                       </p>
                       <div
@@ -366,7 +395,10 @@ export function TabOverview({
                     </div>
                   </div>
                 </TooltipTrigger>
-                <TooltipContent side="top" className="max-w-[260px] border-gray-200 bg-white text-xs shadow-lg">
+                <TooltipContent
+                  side="top"
+                  className="max-w-[260px] border-gray-200 bg-white text-xs shadow-lg"
+                >
                   {kpi.tooltip}
                 </TooltipContent>
               </Tooltip>
@@ -391,24 +423,35 @@ export function TabOverview({
                       <Info className="h-4 w-4" />
                     </span>
                   </TooltipTrigger>
-                  <TooltipContent side="left" className="max-w-[240px] border-gray-200 bg-white text-xs shadow-lg">
-                    Proporção de cada tipo de atividade em relação ao total. Mostra onde o deputado mais atua.
+                  <TooltipContent
+                    side="left"
+                    className="max-w-[240px] border-gray-200 bg-white text-xs shadow-lg"
+                  >
+                    Proporção de cada tipo de atividade em relação ao total.
+                    Mostra onde o deputado mais atua.
                   </TooltipContent>
                 </Tooltip>
               </div>
             </div>
             <div className="space-y-4 px-6 pb-6">
               {activityBreakdown.map((item) => {
-                const pct = totalContadores > 0 ? (item.value / totalContadores) * 100 : 0;
+                const pct =
+                  totalContadores > 0
+                    ? (item.value / totalContadores) * 100
+                    : 0;
                 return (
                   <Tooltip key={item.label}>
                     <TooltipTrigger asChild>
                       <div className="cursor-help space-y-1.5 rounded-lg p-2 transition-colors hover:bg-gray-50/50">
                         <div className="flex items-center justify-between text-xs">
-                          <span className="font-semibold text-gray-700">{item.label}</span>
+                          <span className="font-semibold text-gray-700">
+                            {item.label}
+                          </span>
                           <span className="font-bold text-gray-900">
                             {item.value.toLocaleString("pt-BR")}{" "}
-                            <span className="font-normal text-gray-400">({pct.toFixed(1)}%)</span>
+                            <span className="font-normal text-gray-400">
+                              ({pct.toFixed(1)}%)
+                            </span>
                           </span>
                         </div>
                         <div className="h-2.5 w-full overflow-hidden rounded-full bg-gray-100">
@@ -422,8 +465,14 @@ export function TabOverview({
                         </div>
                       </div>
                     </TooltipTrigger>
-                    <TooltipContent side="top" className="max-w-[220px] border-gray-200 bg-white text-xs shadow-lg">
-                      <strong>{item.label}:</strong> {item.value.toLocaleString("pt-BR")} de {totalContadores.toLocaleString("pt-BR")} ({pct.toFixed(1)}% do total).
+                    <TooltipContent
+                      side="top"
+                      className="max-w-[220px] border-gray-200 bg-white text-xs shadow-lg"
+                    >
+                      <strong>{item.label}:</strong>{" "}
+                      {item.value.toLocaleString("pt-BR")} de{" "}
+                      {totalContadores.toLocaleString("pt-BR")} (
+                      {pct.toFixed(1)}% do total).
                     </TooltipContent>
                   </Tooltip>
                 );
@@ -432,238 +481,244 @@ export function TabOverview({
           </div>
         )}
 
-      {/* ═══════ Resumo por área — 2x2 ═══════ */}
-      <div className="grid gap-6 lg:grid-cols-2">
-        {/* ────── AGENDA ────── */}
-        <div className={cn(CARD_3D, "flex flex-col")}>
-          <div className={cn(GLASS_HEADER, "px-6 pt-5 pb-4")}>
-            <SectionTitle
-              icon={CalendarDays}
-              title="Agenda"
-              subtitle="Eventos e compromissos parlamentares"
-            />
-          </div>
-          <div className="flex flex-1 flex-col px-6 pb-5">
-            {loadingAgenda ? (
-              <div className="space-y-3">
-                <SkeletonLoader className="h-12 w-full rounded-xl" />
-                <SkeletonLoader className="h-12 w-full rounded-xl" />
-              </div>
-            ) : agendaResumo ? (
-              <div className="flex flex-1 flex-col gap-4">
-                <div className="grid grid-cols-2 gap-3">
-                  <MiniKPI
-                    value={agendaResumo.countHoje}
-                    label="Eventos hoje"
-                    icon={CalendarCheck}
-                    color="#749c5b"
-                    tooltip="Quantidade de eventos (sessões, comissões) agendados para hoje."
-                  />
-                  <MiniKPI
-                    value={agendaResumo.countProximos7Dias}
-                    label="Próx. 7 dias"
-                    icon={CalendarDays}
-                    color="#4E9F3D"
-                    tooltip="Eventos nos próximos 7 dias. Veja a aba Agenda para o calendário completo."
-                  />
+        {/* ═══════ Resumo por área — 2x2 ═══════ */}
+        <div className="grid gap-6 lg:grid-cols-2">
+          {/* ────── AGENDA ────── */}
+          <div className={cn(CARD_3D, "flex flex-col")}>
+            <div className={cn(GLASS_HEADER, "px-6 pt-5 pb-4")}>
+              <SectionTitle
+                icon={CalendarDays}
+                title="Agenda"
+                subtitle="Eventos e compromissos parlamentares"
+              />
+            </div>
+            <div className="flex flex-1 flex-col px-6 pb-5">
+              {loadingAgenda ? (
+                <div className="space-y-3">
+                  <SkeletonLoader className="h-12 w-full rounded-xl" />
+                  <SkeletonLoader className="h-12 w-full rounded-xl" />
                 </div>
-                <NavigateButton
-                  label="Ver agenda completa"
-                  onClick={() => onNavigateTab("agenda")}
-                  tooltip="Abre a aba Agenda com calendário e lista de eventos."
-                />
-              </div>
-            ) : (
-              <div className="flex flex-1 flex-col">
-                <div className="flex flex-1 flex-col items-center justify-center py-6 text-center">
-                  <Calendar className="mb-2 h-8 w-8 text-gray-200" />
-                  <p className="text-sm text-gray-400">
-                    Sem dados de agenda disponíveis.
-                  </p>
-                </div>
-                <NavigateButton
-                  label="Ver agenda"
-                  onClick={() => onNavigateTab("agenda")}
-                />
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* ────── POSICIONAMENTO ────── */}
-        <div className={cn(CARD_3D, "flex flex-col")}>
-          <div className={cn(GLASS_HEADER, "px-6 pt-5 pb-4")}>
-            <SectionTitle
-              icon={Scale}
-              title="Posicionamento"
-              subtitle="Proposições, votações e temas de atuação"
-              accentColor="#2563eb"
-            />
-          </div>
-          <div className="flex flex-1 flex-col px-6 pb-5">
-            {loadingVotacoes || loadingTemas ? (
-              <div className="space-y-3">
-                <SkeletonLoader className="h-12 w-full rounded-xl" />
-                <SkeletonLoader className="h-12 w-full rounded-xl" />
-              </div>
-            ) : (
-              <div className="flex flex-1 flex-col gap-4">
-                <div className="grid grid-cols-2 gap-3">
-                  <MiniKPI
-                    value={proposicoesResumo?.total ?? "—"}
-                    label="Proposições"
-                    icon={FileText}
-                    color="#749c5b"
-                    tooltip="Total de proposições (autoria e coautoria) no período. Gráficos e lista na aba Posicionamento."
+              ) : agendaResumo ? (
+                <div className="flex flex-1 flex-col gap-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <MiniKPI
+                      value={agendaResumo.countHoje}
+                      label="Eventos hoje"
+                      icon={CalendarCheck}
+                      color="#749c5b"
+                      tooltip="Quantidade de eventos (sessões, comissões) agendados para hoje."
+                    />
+                    <MiniKPI
+                      value={agendaResumo.countProximos7Dias}
+                      label="Próx. 7 dias"
+                      icon={CalendarDays}
+                      color="#4E9F3D"
+                      tooltip="Eventos nos próximos 7 dias. Veja a aba Agenda para o calendário completo."
+                    />
+                  </div>
+                  <NavigateButton
+                    label="Ver agenda completa"
+                    onClick={() => onNavigateTab("agenda")}
+                    tooltip="Abre a aba Agenda com calendário e lista de eventos."
                   />
                 </div>
-
-                {temasTop.length > 0 && (
-                  <div className="rounded-xl bg-gray-50/60 p-3">
-                    <p className="mb-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                      Principais temas
+              ) : (
+                <div className="flex flex-1 flex-col">
+                  <div className="flex flex-1 flex-col items-center justify-center py-6 text-center">
+                    <Calendar className="mb-2 h-8 w-8 text-gray-200" />
+                    <p className="text-sm text-gray-400">
+                      Sem dados de agenda disponíveis.
                     </p>
-                    <div className="flex flex-wrap gap-1.5">
-                      {temasTop.map((t, i) => (
-                        <span
-                          key={t.cod_tema}
-                          className="rounded-full px-2.5 py-1 text-[11px] font-bold"
-                          style={{
-                            background: `${["#749c5b", "#4E9F3D", "#2d5a3d", "#8ab86e"][i % 4]}15`,
-                            color: ["#749c5b", "#4E9F3D", "#2d5a3d", "#8ab86e"][i % 4],
-                          }}
-                        >
-                          {t.tema_nome.length > 25
-                            ? t.tema_nome.slice(0, 23) + "…"
-                            : t.tema_nome}
-                        </span>
-                      ))}
-                    </div>
                   </div>
-                )}
-
-                <NavigateButton
-                  label="Ver posicionamento completo"
-                  onClick={() => onNavigateTab("posicionamento")}
-                  accentColor="#2563eb"
-                  tooltip="Abre a aba Posicionamento com gráficos e lista de proposições."
-                />
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* ────── DESPESAS E FINANCEIRO ────── */}
-        <div className={cn(CARD_3D, "flex flex-col")}>
-          <div className={cn(GLASS_HEADER, "px-6 pt-5 pb-4")}>
-            <SectionTitle
-              icon={Receipt}
-              title="Despesas e Financeiro"
-              subtitle={`Gastos e cotas parlamentares (${selectedYear})`}
-              accentColor="#d97706"
-            />
-          </div>
-          <div className="flex flex-1 flex-col px-6 pb-5">
-            {loadingCeapResumo ? (
-              <div className="space-y-3">
-                <SkeletonLoader className="h-12 w-full rounded-xl" />
-                <SkeletonLoader className="h-12 w-full rounded-xl" />
-              </div>
-            ) : (
-              <div className="flex flex-1 flex-col gap-4">
-                <div className="grid grid-cols-2 gap-3">
-                  <MiniKPI
-                    value={formatBRL(usedParlamentary)}
-                    label="Cota Parl."
-                    icon={Wallet}
-                    color="#749c5b"
-                    tooltip="Valor utilizado da cota para exercício da atividade parlamentar (indemnização)."
-                  />
-                  <MiniKPI
-                    value={ceapResumo ? formatBRL(ceapResumo.total) : "—"}
-                    label="Total CEAP"
-                    icon={Receipt}
-                    color="#d97706"
-                    tooltip="Total de despesas com a Cota para Exercício da Atividade Parlamentar no ano selecionado."
+                  <NavigateButton
+                    label="Ver agenda"
+                    onClick={() => onNavigateTab("agenda")}
                   />
                 </div>
+              )}
+            </div>
+          </div>
 
-                {usedParlamentary + unusedParlamentary > 0 && (
-                  <div className="rounded-xl bg-gray-50/60 p-3">
-                    <div className="mb-2 flex items-center justify-between">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                        Utilização da cota
+          {/* ────── POSICIONAMENTO ────── */}
+          <div className={cn(CARD_3D, "flex flex-col")}>
+            <div className={cn(GLASS_HEADER, "px-6 pt-5 pb-4")}>
+              <SectionTitle
+                icon={Scale}
+                title="Posicionamento"
+                subtitle="Proposições, votações e temas de atuação"
+                accentColor="#2563eb"
+              />
+            </div>
+            <div className="flex flex-1 flex-col px-6 pb-5">
+              {loadingVotacoes || loadingTemas ? (
+                <div className="space-y-3">
+                  <SkeletonLoader className="h-12 w-full rounded-xl" />
+                  <SkeletonLoader className="h-12 w-full rounded-xl" />
+                </div>
+              ) : (
+                <div className="flex flex-1 flex-col gap-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <MiniKPI
+                      value={proposicoesResumo?.total ?? "—"}
+                      label="Proposições"
+                      icon={FileText}
+                      color="#749c5b"
+                      tooltip="Total de proposições (autoria e coautoria) no período. Gráficos e lista na aba Posicionamento."
+                    />
+                  </div>
+
+                  {temasTop.length > 0 && (
+                    <div className="rounded-xl bg-gray-50/60 p-3">
+                      <p className="mb-2 text-[10px] font-bold tracking-widest text-gray-400 uppercase">
+                        Principais temas
                       </p>
-                      <span className="text-xs font-extrabold text-[#749c5b]">
-                        {Math.round(
-                          (usedParlamentary /
-                            (usedParlamentary + unusedParlamentary)) *
-                            100,
-                        )}
-                        %
-                      </span>
+                      <div className="flex flex-wrap gap-1.5">
+                        {temasTop.map((t, i) => (
+                          <span
+                            key={t.cod_tema}
+                            className="rounded-full px-2.5 py-1 text-[11px] font-bold"
+                            style={{
+                              background: `${["#749c5b", "#4E9F3D", "#2d5a3d", "#8ab86e"][i % 4]}15`,
+                              color: [
+                                "#749c5b",
+                                "#4E9F3D",
+                                "#2d5a3d",
+                                "#8ab86e",
+                              ][i % 4],
+                            }}
+                          >
+                            {t.tema_nome.length > 25
+                              ? t.tema_nome.slice(0, 23) + "…"
+                              : t.tema_nome}
+                          </span>
+                        ))}
+                      </div>
                     </div>
-                    <div className="h-2.5 w-full overflow-hidden rounded-full bg-gray-200">
-                      <div
-                        className="h-full rounded-full bg-gradient-to-r from-[#749c5b] to-[#4E9F3D] transition-all duration-500"
-                        style={{ width: `${Math.min(100, Math.round(cotaPct))}%` }}
-                      />
-                    </div>
-                  </div>
-                )}
+                  )}
 
-                <NavigateButton
-                  label="Ver despesas detalhadas"
-                  onClick={() => onNavigateTab("despesas-financeiro")}
-                  accentColor="#d97706"
-                  tooltip="Abre a aba Despesas e Financeiro com detalhamento e lista de despesas."
-                />
-              </div>
-            )}
-          </div>
-        </div>
-
-        {/* ────── ATUAÇÃO PARLAMENTAR ────── */}
-        <div className={cn(CARD_3D, "flex flex-col")}>
-          <div className={cn(GLASS_HEADER, "px-6 pt-5 pb-4")}>
-            <SectionTitle
-              icon={User}
-              title="Atuação Parlamentar"
-              subtitle="Presença, discursos e participações"
-              accentColor="#059669"
-            />
-          </div>
-          <div className="flex flex-1 flex-col px-6 pb-5">
-            {loadingPresenca || loadingDiscursos ? (
-              <div className="space-y-3">
-                <SkeletonLoader className="h-12 w-full rounded-xl" />
-                <SkeletonLoader className="h-12 w-full rounded-xl" />
-              </div>
-            ) : (
-              <div className="flex flex-1 flex-col gap-4">
-                <div className="grid grid-cols-2 gap-3">
-                  <MiniKPI
-                    value={
-                      presencaRate != null
-                        ? `${presencaRate.toFixed(0)}%`
-                        : "—"
-                    }
-                    label="Presença"
-                    icon={CheckCircle2}
-                    color="#059669"
-                    tooltip="Taxa de presença em sessões deliberativas e reuniões de comissões no período."
-                  />
-                  <MiniKPI
-                    value={discursosResumo?.total ?? profile?.speeches ?? "—"}
-                    label="Discursos"
-                    icon={Mic2}
-                    color="#7c3aed"
-                    tooltip="Total de pronunciamentos e discursos registrados em plenário e comissões."
+                  <NavigateButton
+                    label="Ver posicionamento completo"
+                    onClick={() => onNavigateTab("posicionamento")}
+                    accentColor="#2563eb"
+                    tooltip="Abre a aba Posicionamento com gráficos e lista de proposições."
                   />
                 </div>
+              )}
+            </div>
+          </div>
 
-                {presenca &&
-                  presenca.presencas + presenca.ausencias > 0 && (
+          {/* ────── DESPESAS E FINANCEIRO ────── */}
+          <div className={cn(CARD_3D, "flex flex-col")}>
+            <div className={cn(GLASS_HEADER, "px-6 pt-5 pb-4")}>
+              <SectionTitle
+                icon={Receipt}
+                title="Despesas e Financeiro"
+                subtitle={`Gastos e cotas parlamentares (${selectedYear})`}
+                accentColor="#d97706"
+              />
+            </div>
+            <div className="flex flex-1 flex-col px-6 pb-5">
+              {loadingCeapResumo ? (
+                <div className="space-y-3">
+                  <SkeletonLoader className="h-12 w-full rounded-xl" />
+                  <SkeletonLoader className="h-12 w-full rounded-xl" />
+                </div>
+              ) : (
+                <div className="flex flex-1 flex-col gap-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <MiniKPI
+                      value={formatBRL(usedParlamentary)}
+                      label="Cota Parl."
+                      icon={Wallet}
+                      color="#749c5b"
+                      tooltip="Valor utilizado da cota para exercício da atividade parlamentar (indemnização)."
+                    />
+                    <MiniKPI
+                      value={ceapResumo ? formatBRL(ceapResumo.total) : "—"}
+                      label="Total CEAP"
+                      icon={Receipt}
+                      color="#d97706"
+                      tooltip="Total de despesas com a Cota para Exercício da Atividade Parlamentar no ano selecionado."
+                    />
+                  </div>
+
+                  {usedParlamentary + unusedParlamentary > 0 && (
+                    <div className="rounded-xl bg-gray-50/60 p-3">
+                      <div className="mb-2 flex items-center justify-between">
+                        <p className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">
+                          Utilização da cota
+                        </p>
+                        <span className="text-xs font-extrabold text-[#749c5b]">
+                          {Math.round(
+                            (usedParlamentary /
+                              (usedParlamentary + unusedParlamentary)) *
+                              100,
+                          )}
+                          %
+                        </span>
+                      </div>
+                      <div className="h-2.5 w-full overflow-hidden rounded-full bg-gray-200">
+                        <div
+                          className="h-full rounded-full bg-gradient-to-r from-[#749c5b] to-[#4E9F3D] transition-all duration-500"
+                          style={{
+                            width: `${Math.min(100, Math.round(cotaPct))}%`,
+                          }}
+                        />
+                      </div>
+                    </div>
+                  )}
+
+                  <NavigateButton
+                    label="Ver despesas detalhadas"
+                    onClick={() => onNavigateTab("despesas-financeiro")}
+                    accentColor="#d97706"
+                    tooltip="Abre a aba Despesas e Financeiro com detalhamento e lista de despesas."
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+
+          {/* ────── ATUAÇÃO PARLAMENTAR ────── */}
+          <div className={cn(CARD_3D, "flex flex-col")}>
+            <div className={cn(GLASS_HEADER, "px-6 pt-5 pb-4")}>
+              <SectionTitle
+                icon={User}
+                title="Atuação Parlamentar"
+                subtitle="Presença, discursos e participações"
+                accentColor="#059669"
+              />
+            </div>
+            <div className="flex flex-1 flex-col px-6 pb-5">
+              {loadingPresenca || loadingDiscursos ? (
+                <div className="space-y-3">
+                  <SkeletonLoader className="h-12 w-full rounded-xl" />
+                  <SkeletonLoader className="h-12 w-full rounded-xl" />
+                </div>
+              ) : (
+                <div className="flex flex-1 flex-col gap-4">
+                  <div className="grid grid-cols-2 gap-3">
+                    <MiniKPI
+                      value={
+                        presencaRate != null
+                          ? `${presencaRate.toFixed(0)}%`
+                          : "—"
+                      }
+                      label="Presença"
+                      icon={CheckCircle2}
+                      color="#059669"
+                      tooltip="Taxa de presença em sessões deliberativas e reuniões de comissões no período."
+                    />
+                    <MiniKPI
+                      value={discursosResumo?.total ?? profile?.speeches ?? "—"}
+                      label="Discursos"
+                      icon={Mic2}
+                      color="#7c3aed"
+                      tooltip="Total de pronunciamentos e discursos registrados em plenário e comissões."
+                    />
+                  </div>
+
+                  {presenca && presenca.presencas + presenca.ausencias > 0 && (
                     <div className="rounded-xl bg-gradient-to-r from-emerald-50 to-emerald-50/30 p-3">
                       <div className="flex items-center justify-between text-xs">
                         <span className="font-semibold text-emerald-700">
@@ -684,119 +739,118 @@ export function TabOverview({
                     </div>
                   )}
 
+                  <NavigateButton
+                    label="Ver atuação completa"
+                    onClick={() => onNavigateTab("atuacao")}
+                    accentColor="#059669"
+                    tooltip="Abre a aba Atuação com presença, discursos e votações."
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+
+        {/* ═══════ Resumo do perfil ═══════ */}
+        <div className={cn(CARD_3D, "flex flex-col")}>
+          <div className={cn(GLASS_HEADER, "px-6 pt-5 pb-4")}>
+            <SectionTitle
+              icon={Briefcase}
+              title="Perfil em resumo"
+              subtitle="Dados pessoais, profissões e redes — detalhes na aba Perfil"
+              accentColor="#2d5a3d"
+            />
+          </div>
+          <div className="flex flex-1 flex-col px-6 pb-5">
+            {loadingBio ? (
+              <div className="space-y-3">
+                <SkeletonLoader className="h-10 w-full rounded-xl" />
+                <SkeletonLoader className="h-10 w-3/4 rounded-xl" />
+              </div>
+            ) : (
+              <div className="flex flex-1 flex-col gap-4">
+                <div className="grid gap-3 sm:grid-cols-3">
+                  {politician.fullName &&
+                    politician.fullName.trim() !== politician.name?.trim() && (
+                      <div className="rounded-xl bg-gray-50/80 p-3">
+                        <p className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">
+                          Nome civil
+                        </p>
+                        <p className="mt-0.5 text-sm font-bold text-gray-800">
+                          {politician.fullName}
+                        </p>
+                      </div>
+                    )}
+                  {politician.birthDate && (
+                    <div className="rounded-xl bg-gray-50/80 p-3">
+                      <p className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">
+                        Nascimento
+                      </p>
+                      <p className="mt-0.5 text-sm font-bold text-gray-800">
+                        {new Date(
+                          politician.birthDate + "T12:00:00",
+                        ).toLocaleDateString("pt-BR", { dateStyle: "long" })}
+                      </p>
+                    </div>
+                  )}
+                  {politician.placeOfBirth && (
+                    <div className="rounded-xl bg-gray-50/80 p-3">
+                      <p className="text-[10px] font-bold tracking-widest text-gray-400 uppercase">
+                        Naturalidade
+                      </p>
+                      <p className="mt-0.5 text-sm font-bold text-gray-800">
+                        {politician.placeOfBirth}
+                        {data.biografia?.ufNascimento?.trim() &&
+                          ` - ${data.biografia.ufNascimento.trim()}`}
+                      </p>
+                    </div>
+                  )}
+                </div>
+
+                {profissoes.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {profissoes.slice(0, 4).map((p, i) => (
+                      <span
+                        key={i}
+                        className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#2d5a3d]/10 to-[#2d5a3d]/5 px-3 py-1.5 text-xs font-bold text-[#2d5a3d]"
+                      >
+                        {p.titulo}
+                      </span>
+                    ))}
+                    {profissoes.length > 4 && (
+                      <span className="rounded-full bg-gray-100 px-3 py-1.5 text-xs font-bold text-gray-500">
+                        +{profissoes.length - 4}
+                      </span>
+                    )}
+                  </div>
+                )}
+
+                {socialLinks.length > 0 && (
+                  <div className="flex flex-wrap gap-2">
+                    {socialLinks.map((s) => (
+                      <a
+                        key={s.label}
+                        href={s.url!}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-600 shadow-sm transition-all hover:border-[#2d5a3d]/30 hover:bg-[#2d5a3d]/5 hover:text-[#2d5a3d]"
+                      >
+                        {s.label}
+                      </a>
+                    ))}
+                  </div>
+                )}
+
                 <NavigateButton
-                  label="Ver atuação completa"
-                  onClick={() => onNavigateTab("atuacao")}
-                  accentColor="#059669"
-                  tooltip="Abre a aba Atuação com presença, discursos e votações."
+                  label="Ver perfil completo"
+                  onClick={() => onNavigateTab("perfil")}
+                  accentColor="#2d5a3d"
+                  tooltip="Abre a aba Perfil com biografia, contato e histórico."
                 />
               </div>
             )}
           </div>
         </div>
-      </div>
-
-      {/* ═══════ Resumo do perfil ═══════ */}
-      <div className={cn(CARD_3D, "flex flex-col")}>
-        <div className={cn(GLASS_HEADER, "px-6 pt-5 pb-4")}>
-          <SectionTitle
-            icon={Briefcase}
-            title="Perfil em resumo"
-            subtitle="Dados pessoais, profissões e redes — detalhes na aba Perfil"
-            accentColor="#2d5a3d"
-          />
-        </div>
-        <div className="flex flex-1 flex-col px-6 pb-5">
-          {loadingBio ? (
-            <div className="space-y-3">
-              <SkeletonLoader className="h-10 w-full rounded-xl" />
-              <SkeletonLoader className="h-10 w-3/4 rounded-xl" />
-            </div>
-          ) : (
-            <div className="flex flex-1 flex-col gap-4">
-              <div className="grid gap-3 sm:grid-cols-3">
-                {politician.fullName &&
-                  politician.fullName.trim() !== politician.name?.trim() && (
-                    <div className="rounded-xl bg-gray-50/80 p-3">
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                        Nome civil
-                      </p>
-                      <p className="mt-0.5 text-sm font-bold text-gray-800">
-                        {politician.fullName}
-                      </p>
-                    </div>
-                  )}
-                {politician.birthDate && (
-                  <div className="rounded-xl bg-gray-50/80 p-3">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                      Nascimento
-                    </p>
-                    <p className="mt-0.5 text-sm font-bold text-gray-800">
-                      {new Date(politician.birthDate).toLocaleDateString(
-                        "pt-BR",
-                        { dateStyle: "long" },
-                      )}
-                    </p>
-                  </div>
-                )}
-                {politician.placeOfBirth && (
-                  <div className="rounded-xl bg-gray-50/80 p-3">
-                    <p className="text-[10px] font-bold uppercase tracking-widest text-gray-400">
-                      Naturalidade
-                    </p>
-                    <p className="mt-0.5 text-sm font-bold text-gray-800">
-                      {politician.placeOfBirth}
-                      {data.biografia?.ufNascimento?.trim() &&
-                        ` - ${data.biografia.ufNascimento.trim()}`}
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {profissoes.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {profissoes.slice(0, 4).map((p, i) => (
-                    <span
-                      key={i}
-                      className="inline-flex items-center gap-1.5 rounded-full bg-gradient-to-r from-[#2d5a3d]/10 to-[#2d5a3d]/5 px-3 py-1.5 text-xs font-bold text-[#2d5a3d]"
-                    >
-                      {p.titulo}
-                    </span>
-                  ))}
-                  {profissoes.length > 4 && (
-                    <span className="rounded-full bg-gray-100 px-3 py-1.5 text-xs font-bold text-gray-500">
-                      +{profissoes.length - 4}
-                    </span>
-                  )}
-                </div>
-              )}
-
-              {socialLinks.length > 0 && (
-                <div className="flex flex-wrap gap-2">
-                  {socialLinks.map((s) => (
-                    <a
-                      key={s.label}
-                      href={s.url!}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-xs font-bold text-gray-600 shadow-sm transition-all hover:border-[#2d5a3d]/30 hover:bg-[#2d5a3d]/5 hover:text-[#2d5a3d]"
-                    >
-                      {s.label}
-                    </a>
-                  ))}
-                </div>
-              )}
-
-              <NavigateButton
-                label="Ver perfil completo"
-                onClick={() => onNavigateTab("perfil")}
-                accentColor="#2d5a3d"
-                tooltip="Abre a aba Perfil com biografia, contato e histórico."
-              />
-            </div>
-          )}
-        </div>
-      </div>
       </div>
     </TooltipProvider>
   );

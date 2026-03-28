@@ -206,7 +206,7 @@ export function DeputadoHeader({
             {politician.birthDate && (
               <span className="flex items-center gap-2">
                 <Calendar className="h-5 w-5 text-gray-700" />
-                {new Date(politician.birthDate).toLocaleDateString("pt-BR")}
+                {new Date(politician.birthDate + "T12:00:00").toLocaleDateString("pt-BR")}
               </span>
             )}
             {politician.placeOfBirth && (
