@@ -32,6 +32,9 @@ import {
   Vote,
   Wallet,
 } from "lucide-react";
+import { useState } from "react";
+import { EventosDetailModal } from "./EventosDetailModal";
+import { ProposicoesDetailModal } from "./ProposicoesDetailModal";
 import { SkeletonLoader } from "./SkeletonLoader";
 import type { DeputadoPageData } from "./useDeputadoPage";
 
@@ -218,7 +221,12 @@ export function TabOverview({
     selectedYear,
     setSelectedYear,
     availableYears,
+    fetchEventosModal,
+    fetchProposicoesModal,
   } = data;
+
+  const [eventosModalOpen, setEventosModalOpen] = useState(false);
+  const [proposicoesModalOpen, setProposicoesModalOpen] = useState(false);
 
   if (!politician) return null;
 
@@ -264,7 +272,8 @@ export function TabOverview({
           iconBg: "#749c5b18",
           textColor: "#749c5b",
           tooltip:
-            "Participações em sessões plenárias, reuniões de comissões e outros eventos oficiais.",
+            "Participações em sessões plenárias, reuniões de comissões e outros eventos oficiais. Clique para ver detalhes.",
+          onClick: () => setEventosModalOpen(true),
         },
         {
           value: contadores.proposicoes,
@@ -274,7 +283,8 @@ export function TabOverview({
           iconBg: "#4E9F3D18",
           textColor: "#4E9F3D",
           tooltip:
-            "Projetos de lei, PECs e outras proposições de autoria ou coautoria do deputado.",
+            "Projetos de lei, PECs e outras proposições de autoria ou coautoria do deputado. Clique para ver detalhes.",
+          onClick: () => setProposicoesModalOpen(true),
         },
         {
           value: contadores.discursos,
@@ -365,7 +375,10 @@ export function TabOverview({
             {kpiItems.map((kpi) => (
               <Tooltip key={kpi.label}>
                 <TooltipTrigger asChild>
-                  <div className={cn(CARD_3D, "cursor-help p-0")}>
+                  <div
+                    className={cn(CARD_3D, "p-0", kpi.onClick ? "cursor-pointer" : "cursor-help")}
+                    onClick={kpi.onClick}
+                  >
                     <div className="relative p-5">
                       <div className="mb-3 flex items-start justify-between">
                         <div
@@ -852,6 +865,21 @@ export function TabOverview({
           </div>
         </div>
       </div>
+
+      <EventosDetailModal
+        open={eventosModalOpen}
+        onOpenChange={setEventosModalOpen}
+        politicianId={politician.id?.toString() ?? ""}
+        selectedYear={selectedYear}
+        fetchEventos={fetchEventosModal}
+      />
+      <ProposicoesDetailModal
+        open={proposicoesModalOpen}
+        onOpenChange={setProposicoesModalOpen}
+        politicianId={politician.id?.toString() ?? ""}
+        selectedYear={selectedYear}
+        fetchProposicoes={fetchProposicoesModal}
+      />
     </TooltipProvider>
   );
 }

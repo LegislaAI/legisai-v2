@@ -542,6 +542,84 @@ export function useDeputadoPage(id: string | undefined) {
 
   // (ceapResumo + ceapDespesas orchestrated via wave-based loading below)
 
+  const fetchEventosModal = useCallback(
+    async (params: {
+      dataInicio: string;
+      dataFim: string;
+      page: number;
+      pageSize: number;
+      situacao?: string;
+      tipoEvento?: string;
+      orgao?: string;
+      orderBy?: string;
+      orderDir?: string;
+    }) => {
+      if (!id)
+        return { eventos: [] as EventoAgenda[], total: 0, pages: 0 };
+      const qs = new URLSearchParams();
+      qs.set("dataInicio", params.dataInicio);
+      qs.set("dataFim", params.dataFim);
+      qs.set("page", String(params.page));
+      qs.set("pageSize", String(params.pageSize));
+      if (params.situacao) qs.set("situacao", params.situacao);
+      if (params.tipoEvento) qs.set("tipoEvento", params.tipoEvento);
+      if (params.orgao) qs.set("orgao", params.orgao);
+      if (params.orderBy) qs.set("orderBy", params.orderBy);
+      if (params.orderDir) qs.set("orderDir", params.orderDir);
+      const res = await GetAPI(
+        `/politician/${id}/eventos?${qs.toString()}`,
+        true,
+      );
+      if (res.status === 200 && res.body) {
+        return {
+          eventos: (res.body.eventos ?? []) as EventoAgenda[],
+          total: (res.body.total ?? 0) as number,
+          pages: (res.body.pages ?? 0) as number,
+        };
+      }
+      return { eventos: [] as EventoAgenda[], total: 0, pages: 0 };
+    },
+    [id, GetAPI],
+  );
+
+  const fetchProposicoesModal = useCallback(
+    async (params: {
+      dataInicio: string;
+      dataFim: string;
+      page: number;
+      pageSize: number;
+      typeId?: string;
+      situationId?: string;
+      orderBy?: string;
+      orderDir?: string;
+    }) => {
+      if (!id)
+        return { proposicoes: [] as ProposicaoDeputado[], total: 0, pages: 0 };
+      const qs = new URLSearchParams();
+      qs.set("dataInicio", params.dataInicio);
+      qs.set("dataFim", params.dataFim);
+      qs.set("page", String(params.page));
+      qs.set("pageSize", String(params.pageSize));
+      if (params.typeId) qs.set("typeId", params.typeId);
+      if (params.situationId) qs.set("situationId", params.situationId);
+      if (params.orderBy) qs.set("orderBy", params.orderBy);
+      if (params.orderDir) qs.set("orderDir", params.orderDir);
+      const res = await GetAPI(
+        `/politician/${id}/proposicoes?${qs.toString()}`,
+        true,
+      );
+      if (res.status === 200 && res.body) {
+        return {
+          proposicoes: (res.body.proposicoes ?? []) as ProposicaoDeputado[],
+          total: (res.body.total ?? 0) as number,
+          pages: (res.body.pages ?? 0) as number,
+        };
+      }
+      return { proposicoes: [] as ProposicaoDeputado[], total: 0, pages: 0 };
+    },
+    [id, GetAPI],
+  );
+
   // ─── WAVE-BASED INITIAL LOAD ──────────────────────────────────────
   // Wave 1 loads header data first (critical for first paint),
   // then all remaining data loads in parallel.
@@ -827,6 +905,8 @@ export function useDeputadoPage(id: string | undefined) {
     socialLinks,
 
     fetchError,
+    fetchEventosModal,
+    fetchProposicoesModal,
   };
 }
 
