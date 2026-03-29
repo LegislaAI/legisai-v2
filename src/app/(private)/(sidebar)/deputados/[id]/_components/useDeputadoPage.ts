@@ -543,8 +543,8 @@ export function useDeputadoPage(id: string | undefined) {
   // (ceapResumo + ceapDespesas orchestrated via wave-based loading below)
 
   // ─── WAVE-BASED INITIAL LOAD ──────────────────────────────────────
-  // Prevents thundering herd: instead of 17 simultaneous API calls,
-  // requests are staggered in 3 priority waves.
+  // Wave 1 loads header data first (critical for first paint),
+  // then all remaining data loads in parallel.
   const initialLoadDoneRef = useRef(false);
   const prevYearRef = useRef(selectedYear);
 
@@ -558,7 +558,7 @@ export function useDeputadoPage(id: string | undefined) {
       await Promise.allSettled([fetchDetails(), fetchContadores()]);
       if (cancelled) return;
 
-      // Wave 2: Agenda & events (visible tab content)
+      // Wave 2: Everything else in parallel
       await Promise.allSettled([
         fetchHistorico(),
         fetchAgendaResumo(),
@@ -566,11 +566,6 @@ export function useDeputadoPage(id: string | undefined) {
         fetchCalendarEvents(),
         fetchPastEvents(),
         fetchUpcomingEvents(),
-      ]);
-      if (cancelled) return;
-
-      // Wave 3: Remaining tabs (loaded in background)
-      await Promise.allSettled([
         fetchProposicoesResumo(),
         fetchProposicoes(),
         fetchBiografia(),
@@ -593,29 +588,21 @@ export function useDeputadoPage(id: string | undefined) {
 
   // ─── YEAR-CHANGE REFETCHES (only year-dependent endpoints) ───────
   useEffect(() => {
-    if (!id || !initialLoadDoneRef.current) return;
+    if (!id) return;
     if (prevYearRef.current === selectedYear) return;
     prevYearRef.current = selectedYear;
-    let cancelled = false;
 
-    (async () => {
-      await Promise.allSettled([
-        fetchDetails(),
-        fetchPresenca(),
-        fetchContadores(),
-        fetchProposicoesResumo(),
-      ]);
-      if (cancelled) return;
-      await Promise.allSettled([
-        fetchVotacoesIndicadores(),
-        fetchDiscursosResumo(),
-        fetchTemas(),
-      ]);
-    })();
-
-    return () => {
-      cancelled = true;
-    };
+    Promise.allSettled([
+      fetchDetails(),
+      fetchPresenca(),
+      fetchContadores(),
+      fetchProposicoesResumo(),
+      fetchVotacoesIndicadores(),
+      fetchDiscursosResumo(),
+      fetchTemas(),
+      fetchCeapResumo(),
+      fetchCeapDespesas(),
+    ]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedYear]);
 
