@@ -48,9 +48,7 @@ interface ProposicoesDetailModalProps {
   onOpenChange: (open: boolean) => void;
   politicianId: string;
   selectedYear: string;
-  fetchProposicoes: (
-    params: FetchParams,
-  ) => Promise<{
+  fetchProposicoes: (params: FetchParams) => Promise<{
     proposicoes: ProposicaoDeputado[];
     total: number;
     pages: number;
@@ -113,8 +111,10 @@ export function ProposicoesDetailModal({
   const [situacoes, setSituacoes] = useState<string[]>([]);
   const optionsLoaded = useRef(false);
 
-  const handleFilterTipo = (v: string) => setFilterTipo(v === "__all__" ? "" : v);
-  const handleFilterSituacao = (v: string) => setFilterSituacao(v === "__all__" ? "" : v);
+  const handleFilterTipo = (v: string) =>
+    setFilterTipo(v === "__all__" ? "" : v);
+  const handleFilterSituacao = (v: string) =>
+    setFilterSituacao(v === "__all__" ? "" : v);
 
   /* ── data fetching ─────────────────────────────────────── */
 
@@ -135,7 +135,9 @@ export function ProposicoesDetailModal({
           params.orderBy = sortField;
           params.orderDir = sortDir;
         }
+        console.log("params: ", params);
         const result = await fetchProposicoes(params);
+        console.log("result: ", result);
         setProposicoes(result.proposicoes);
         setTotal(result.total);
         setPages(result.pages);
@@ -147,7 +149,15 @@ export function ProposicoesDetailModal({
         setLoading(false);
       }
     },
-    [politicianId, selectedYear, fetchProposicoes, filterTipo, filterSituacao, sortField, sortDir],
+    [
+      politicianId,
+      selectedYear,
+      fetchProposicoes,
+      filterTipo,
+      filterSituacao,
+      sortField,
+      sortDir,
+    ],
   );
 
   /* Load filter options on first open */
@@ -235,7 +245,8 @@ export function ProposicoesDetailModal({
   /* ── Pagination window ─────────────────────────────────── */
   const pageNumbers = useMemo(() => {
     const maxVisible = 5;
-    if (pages <= maxVisible) return Array.from({ length: pages }, (_, i) => i + 1);
+    if (pages <= maxVisible)
+      return Array.from({ length: pages }, (_, i) => i + 1);
     let start: number;
     if (page <= 3) start = 1;
     else if (page >= pages - 2) start = pages - maxVisible + 1;
@@ -280,7 +291,10 @@ export function ProposicoesDetailModal({
               )}
             </div>
 
-            <Select value={filterTipo || "__all__"} onValueChange={handleFilterTipo}>
+            <Select
+              value={filterTipo || "__all__"}
+              onValueChange={handleFilterTipo}
+            >
               <SelectTrigger className="h-8 w-[140px] truncate rounded-lg border-gray-200 bg-white text-xs shadow-sm [&>span]:truncate">
                 <SelectValue placeholder="Tipo" />
               </SelectTrigger>
@@ -294,7 +308,10 @@ export function ProposicoesDetailModal({
               </SelectContent>
             </Select>
 
-            <Select value={filterSituacao || "__all__"} onValueChange={handleFilterSituacao}>
+            <Select
+              value={filterSituacao || "__all__"}
+              onValueChange={handleFilterSituacao}
+            >
               <SelectTrigger className="h-8 w-[200px] truncate rounded-lg border-gray-200 bg-white text-xs shadow-sm [&>span]:truncate">
                 <SelectValue placeholder="Situação" />
               </SelectTrigger>
@@ -336,7 +353,9 @@ export function ProposicoesDetailModal({
               <FileText className="mb-3 h-10 w-10 text-gray-200" />
               <p className="text-sm font-medium text-gray-400">
                 Nenhuma proposição encontrada
-                {activeFilterCount > 0 ? " com os filtros selecionados." : " no período."}
+                {activeFilterCount > 0
+                  ? " com os filtros selecionados."
+                  : " no período."}
               </p>
               {activeFilterCount > 0 && (
                 <button
@@ -400,10 +419,10 @@ export function ProposicoesDetailModal({
                         {p.sigla_tipo}
                       </span>
                     </td>
-                    <td className="px-4 py-3 font-semibold text-gray-800 whitespace-nowrap">
+                    <td className="px-4 py-3 font-semibold whitespace-nowrap text-gray-800">
                       {p.numero}
                     </td>
-                    <td className="px-4 py-3 text-gray-600 whitespace-nowrap">
+                    <td className="px-4 py-3 whitespace-nowrap text-gray-600">
                       {p.ano}
                     </td>
                     <td className="max-w-[300px] px-4 py-3">
@@ -510,7 +529,7 @@ function SortableHeader({
   return (
     <th
       className={cn(
-        "select-none px-4 py-3 text-left text-[11px] font-bold tracking-wider text-gray-500 uppercase",
+        "px-4 py-3 text-left text-[11px] font-bold tracking-wider text-gray-500 uppercase select-none",
         className,
       )}
     >
