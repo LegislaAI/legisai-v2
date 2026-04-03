@@ -376,7 +376,11 @@ export function TabOverview({
               <Tooltip key={kpi.label}>
                 <TooltipTrigger asChild>
                   <div
-                    className={cn(CARD_3D, "p-0", kpi.onClick ? "cursor-pointer" : "cursor-help")}
+                    className={cn(
+                      CARD_3D,
+                      "p-0",
+                      kpi.onClick ? "cursor-pointer" : "cursor-help",
+                    )}
                     onClick={kpi.onClick}
                   >
                     <div className="relative p-5">

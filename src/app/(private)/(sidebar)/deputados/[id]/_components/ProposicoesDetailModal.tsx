@@ -62,12 +62,21 @@ const PAGE_SIZE = 10;
 
 /* ── Helpers ───────────────────────────────────────────────── */
 
-function formatDate(iso: string): string {
-  return new Date(iso).toLocaleDateString("pt-BR", {
+/** Apresentação: DD/MM/YYYY - HH:MM (24h, fuso local). */
+function formatPresentationDateTime(iso: string): string {
+  const d = new Date(iso);
+  if (Number.isNaN(d.getTime())) return "—";
+  const dateStr = d.toLocaleDateString("pt-BR", {
     day: "2-digit",
-    month: "short",
+    month: "2-digit",
     year: "numeric",
   });
+  const timeStr = d.toLocaleTimeString("pt-BR", {
+    hour: "2-digit",
+    minute: "2-digit",
+    hour12: false,
+  });
+  return `${dateStr} - ${timeStr}`;
 }
 
 function nextSortDir(current: SortDir): SortDir {
@@ -435,7 +444,7 @@ export function ProposicoesDetailModal({
                     </td>
                     <td className="px-4 py-3 whitespace-nowrap">
                       <span className="text-gray-600">
-                        {formatDate(p.dt_apresentacao)}
+                        {formatPresentationDateTime(p.dt_apresentacao)}
                       </span>
                     </td>
                     <td className="max-w-[180px] px-4 py-3">
