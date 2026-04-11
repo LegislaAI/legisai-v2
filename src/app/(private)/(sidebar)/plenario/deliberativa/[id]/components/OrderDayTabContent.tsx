@@ -16,6 +16,47 @@ interface OrderDayTabContentProps {
   findRelactorName: (id: string) => string | undefined;
 }
 
+function getStatusStyles(categoria: string) {
+  switch (categoria) {
+    case "ja_apreciado":
+      return {
+        bg: "bg-emerald-600",
+        bgLight: "bg-emerald-50",
+        border: "border-emerald-600",
+        borderLight: "border-emerald-200",
+        text: "text-emerald-700",
+        ring: "ring-emerald-300",
+        dot: "bg-emerald-600",
+        badge: "bg-emerald-50 text-emerald-700 border-emerald-200",
+        label: "Apreciado",
+      };
+    case "em_apreciacao":
+      return {
+        bg: "bg-amber-500",
+        bgLight: "bg-amber-50",
+        border: "border-amber-500",
+        borderLight: "border-amber-200",
+        text: "text-amber-700",
+        ring: "ring-amber-300",
+        dot: "bg-amber-500",
+        badge: "bg-amber-50 text-amber-700 border-amber-200",
+        label: "Em apreciação",
+      };
+    default:
+      return {
+        bg: "bg-slate-400",
+        bgLight: "bg-slate-50",
+        border: "border-slate-400",
+        borderLight: "border-slate-200",
+        text: "text-slate-600",
+        ring: "ring-slate-300",
+        dot: "bg-slate-400",
+        badge: "bg-slate-50 text-slate-600 border-slate-200",
+        label: "Não apreciado",
+      };
+  }
+}
+
 export function OrderDayTabContent({
   orderPropositions,
   selectedProposition,
@@ -26,24 +67,29 @@ export function OrderDayTabContent({
   findIfRelactorIsPresent,
   findRelactorName,
 }: OrderDayTabContentProps) {
+  const toggleSelection = (prop: EventProposition) => {
+    setSelectedProposition(
+      prop.id === selectedProposition?.id ? null : prop,
+    );
+  };
+
   return (
     <div className="space-y-6">
-      {/* Main Box: Index Selector with Toggle */}
       {orderPropositions.length > 0 && (
-        <div className="rounded-xl border border-gray-100 bg-[#fefcf8] p-6 shadow-sm">
-          {/* Header with Toggle Buttons */}
-          <div className="mb-4 flex items-center justify-between border-b border-gray-200 pb-4">
+        <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+          {/* Header */}
+          <div className="mb-5 flex items-center justify-between">
             <h3 className="text-lg font-bold text-[#1a1d1f]">
               Índice das Proposições
             </h3>
-            <div className="flex gap-2">
+            <div className="flex gap-1 rounded-lg bg-gray-100 p-1">
               <button
                 onClick={() => setIndexViewMode("numeric")}
                 className={cn(
-                  "rounded-lg px-4 py-2 text-sm font-medium transition-all",
+                  "rounded-md px-4 py-1.5 text-sm font-medium transition-all",
                   indexViewMode === "numeric"
-                    ? "bg-[#3e5f48] text-white shadow-md"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200",
+                    ? "bg-[#3e5f48] text-white shadow-sm"
+                    : "text-gray-600 hover:text-gray-800",
                 )}
               >
                 Índice Numérico
@@ -51,10 +97,10 @@ export function OrderDayTabContent({
               <button
                 onClick={() => setIndexViewMode("proposition")}
                 className={cn(
-                  "rounded-lg px-4 py-2 text-sm font-medium transition-all",
+                  "rounded-md px-4 py-1.5 text-sm font-medium transition-all",
                   indexViewMode === "proposition"
-                    ? "bg-[#3e5f48] text-white shadow-md"
-                    : "bg-gray-100 text-gray-600 hover:bg-gray-200",
+                    ? "bg-[#3e5f48] text-white shadow-sm"
+                    : "text-gray-600 hover:text-gray-800",
                 )}
               >
                 Índice por Proposição
@@ -62,207 +108,224 @@ export function OrderDayTabContent({
             </div>
           </div>
 
-          {/* Index Display Area */}
+          {/* Numeric Index View */}
           {indexViewMode === "numeric" ? (
-            // Numeric Index View
-            <div className="flex w-full gap-2 overflow-x-auto p-4">
-              {orderPropositions.map((item, index) => (
-                <button
-                  key={index}
-                  onClick={() => {
-                    if (item.id === selectedProposition?.id) {
-                      setSelectedProposition(null);
-                    } else {
-                      setSelectedProposition(item);
-                    }
-                  }}
-                  className={cn(
-                    "group relative flex h-12 w-12 flex-shrink-0 cursor-pointer flex-col items-center justify-center rounded-lg border font-bold transition-all",
-                    selectedProposition?.id === item.id
-                      ? "border-secondary bg-secondary ring-secondary scale-110 text-white ring-2 ring-offset-2"
-                      : getCategoriaPorCodigo(
-                            item.proposition?.situationId || "",
-                          ) === "ja_apreciado"
-                        ? "border-[#3e5f48] bg-[#3e5f48] text-white"
-                        : getCategoriaPorCodigo(
-                              item.proposition?.situationId || "",
-                            ) === "em_apreciacao"
-                          ? "border-[#d4a017] bg-[#d4a017] text-white"
-                          : "border-[#4a6b7c] bg-[#4a6b7c] text-white hover:bg-[#3b5563]",
-                  )}
-                >
-                  <span className="text-lg">{index + 1}</span>
+            <div className="flex flex-wrap gap-3 py-2">
+              {orderPropositions.map((item, index) => {
+                const categoria = getCategoriaPorCodigo(
+                  item.proposition?.situationId || "",
+                );
+                const status = getStatusStyles(categoria);
+                const isSelected = selectedProposition?.id === item.id;
+                const hasRelator =
+                  item.reporterId &&
+                  findIfRelactorIsPresent(item.reporterId);
 
-                  {item.reporterId &&
-                    findIfRelactorIsPresent(item.reporterId) && (
-                      <div className="absolute right-1/2 -bottom-2 translate-x-1/2 rounded-full bg-white p-0.5 shadow-sm">
-                        <Users size={10} className="text-[#3e5f48]" />
-                      </div>
+                return (
+                  <button
+                    key={index}
+                    onClick={() => toggleSelection(item)}
+                    className={cn(
+                      "relative flex flex-col items-center gap-0.5 rounded-2xl border-2 px-3.5 py-2 transition-all",
+                      isSelected
+                        ? cn(status.bgLight, status.border, "ring-2", status.ring, "shadow-md")
+                        : cn(status.bgLight, status.borderLight, "hover:shadow-sm", `hover:${status.border}`),
                     )}
-                </button>
-              ))}
+                  >
+                    <span
+                      className={cn(
+                        "text-lg font-bold",
+                        isSelected ? status.text : "text-gray-700",
+                      )}
+                    >
+                      {index + 1}
+                    </span>
+                    <span
+                      className={cn(
+                        "h-1.5 w-5 rounded-full",
+                        status.dot,
+                      )}
+                    />
+                    {hasRelator && (
+                      <span className="absolute -top-1.5 -right-1.5 rounded-full bg-white p-0.5 shadow">
+                        <Users size={10} className="text-[#3e5f48]" />
+                      </span>
+                    )}
+                  </button>
+                );
+              })}
             </div>
           ) : (
-            // Proposition Name Index View
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5">
-              {orderPropositions.map((prop, idx) => (
-                <button
-                  onClick={() => {
-                    if (prop.id === selectedProposition?.id) {
-                      setSelectedProposition(null);
-                    } else {
-                      setSelectedProposition(prop);
-                    }
-                  }}
-                  key={idx}
-                  className={cn(
-                    "relative cursor-pointer rounded-md border px-3 py-2 text-center text-sm font-bold shadow-sm transition-all",
-                    selectedProposition?.id === prop.id
-                      ? "border-secondary bg-secondary ring-secondary scale-105 text-white ring-2 ring-offset-2"
-                      : getCategoriaPorCodigo(
-                            prop.proposition?.situationId || "",
-                          ) === "ja_apreciado"
-                        ? "border-[#3e5f48] bg-[#3e5f48] text-white"
-                        : getCategoriaPorCodigo(
-                              prop.proposition?.situationId || "",
-                            ) === "em_apreciacao"
-                          ? "border-[#d4a017] bg-[#d4a017] text-white"
-                          : "border-[#4a6b7c] bg-[#4a6b7c] text-white hover:bg-[#3b5563]",
-                  )}
-                >
-                  {prop.title}
-                  {prop.reporterId &&
-                    findIfRelactorIsPresent(prop.reporterId) && (
-                      <div className="absolute right-1/2 -bottom-2 translate-x-1/2 rounded-full bg-white p-0.5 shadow-sm">
-                        <Users size={10} className="text-[#3e5f48]" />
-                      </div>
+            /* Proposition Name Index View */
+            <div className="grid grid-cols-1 gap-2 md:grid-cols-2">
+              {orderPropositions.map((prop, idx) => {
+                const categoria = getCategoriaPorCodigo(
+                  prop.proposition?.situationId || "",
+                );
+                const status = getStatusStyles(categoria);
+                const isSelected = selectedProposition?.id === prop.id;
+                const hasRelator =
+                  prop.reporterId &&
+                  findIfRelactorIsPresent(prop.reporterId);
+
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => toggleSelection(prop)}
+                    className={cn(
+                      "flex items-center gap-3 rounded-xl border-2 px-3.5 py-2.5 text-left transition-all",
+                      isSelected
+                        ? cn(status.bgLight, status.border, "ring-2", status.ring, "shadow-md")
+                        : cn(status.bgLight, status.borderLight, "hover:shadow-sm", `hover:${status.border}`),
                     )}
-                </button>
-              ))}
+                  >
+                    {/* Number pill */}
+                    <span
+                      className={cn(
+                        "flex h-7 w-7 shrink-0 items-center justify-center rounded-lg text-xs font-bold text-white",
+                        status.bg,
+                      )}
+                    >
+                      {idx + 1}
+                    </span>
+
+                    {/* Name + status */}
+                    <div className="min-w-0 flex-1">
+                      <span className="block truncate text-sm font-semibold text-[#1a1d1f]">
+                        {prop.title}
+                      </span>
+                      <span className={cn("text-[10px] font-medium", status.text)}>
+                        {status.label}
+                      </span>
+                    </div>
+
+                    {/* Relator */}
+                    {hasRelator && (
+                      <Users size={14} className="shrink-0 text-[#3e5f48]" />
+                    )}
+                  </button>
+                );
+              })}
             </div>
           )}
 
           {/* Legenda */}
-          <div className="mt-4 flex flex-wrap gap-4 text-xs font-medium text-gray-600">
+          <div className="mt-4 flex flex-wrap gap-4 border-t border-gray-100 pt-3 text-xs font-medium text-gray-500">
             <div className="flex items-center gap-1.5">
-              <div className="h-3 w-3 rounded-full bg-[#4a6b7c]"></div>
-              <span>não apreciado</span>
+              <div className="h-3 w-3 rounded-full bg-slate-400" />
+              <span>Não apreciado</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="h-3 w-3 rounded-full bg-[#d4a017]"></div>
-              <span>em apreciação</span>
+              <div className="h-3 w-3 rounded-full bg-amber-500" />
+              <span>Em apreciação</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <div className="h-3 w-3 rounded-full bg-[#3e5f48]"></div>
-              <span>já apreciado</span>
+              <div className="h-3 w-3 rounded-full bg-emerald-600" />
+              <span>Já apreciado</span>
             </div>
             <div className="flex items-center gap-1.5">
-              <Users size={12} className="text-gray-500" />
-              <span>relator presente</span>
+              <Users size={12} className="text-gray-400" />
+              <span>Relator presente</span>
             </div>
           </div>
         </div>
       )}
 
-      {/* Description Card - Shows when a proposition is selected */}
+      {/* Proposition Detail Card */}
       {selectedProposition && (
-        <div className="overflow-hidden rounded-lg border border-[#3e5f48] bg-[#eef5f0] shadow-md">
-          <div className="bg-[#3e5f48] px-4 py-2 text-center text-sm font-bold tracking-wider text-white uppercase">
-            Matéria Sobre a Mesa
+        <div className="overflow-hidden rounded-xl border border-gray-200 bg-white shadow-sm">
+          <div className="border-b border-gray-100 bg-[#3e5f48] px-6 py-3">
+            <div className="flex items-center justify-between">
+              <h4 className="text-sm font-bold tracking-wide text-white">
+                {selectedProposition.title}
+              </h4>
+              {(() => {
+                const cat = getCategoriaPorCodigo(
+                  selectedProposition.proposition?.situationId || "",
+                );
+                const status = getStatusStyles(cat);
+                return (
+                  <span className="rounded-full bg-white/20 px-2.5 py-0.5 text-[10px] font-bold text-white">
+                    {status.label}
+                  </span>
+                );
+              })()}
+            </div>
           </div>
-          <div className="space-y-4 p-6">
-            <h4 className="text-lg font-bold text-[#1a1d1f] underline decoration-gray-300 underline-offset-4">
-              {selectedProposition.title}
-            </h4>
-            <p className="text-sm leading-relaxed text-gray-700">
-              {selectedProposition.proposition?.description}
-            </p>
 
-            {/* Additional Details */}
+          <div className="space-y-4 p-6">
+            {selectedProposition.proposition?.description && (
+              <p className="text-sm leading-relaxed text-gray-600">
+                {selectedProposition.proposition.description}
+              </p>
+            )}
+
             {(selectedProposition.proposition?.situationDescription ||
               selectedProposition.topic ||
               selectedProposition.regime ||
               (selectedProposition.reporterId &&
-                findIfRelactorIsPresent(
-                  selectedProposition.reporterId,
-                ))) && (
-              <div className="space-y-3 rounded border border-gray-200 bg-white p-4 text-sm text-gray-600 shadow-sm">
-                {selectedProposition.proposition
-                  ?.situationDescription && (
+                findIfRelactorIsPresent(selectedProposition.reporterId))) && (
+              <div className="grid grid-cols-2 gap-3 rounded-lg border border-gray-100 bg-gray-50 p-4 lg:grid-cols-4">
+                {selectedProposition.proposition?.situationDescription && (
                   <div>
-                    <span className="block font-bold text-gray-700">
-                      Situação:
-                    </span>
-                    <span className="text-gray-600">
-                      {
-                        selectedProposition.proposition
-                          .situationDescription
-                      }
-                    </span>
+                    <p className="text-[10px] font-bold tracking-wider text-gray-400 uppercase">
+                      Situação
+                    </p>
+                    <p className="mt-0.5 text-sm font-medium text-gray-700">
+                      {selectedProposition.proposition.situationDescription}
+                    </p>
                   </div>
                 )}
-
                 {selectedProposition.topic && (
                   <div>
-                    <span className="block font-bold text-gray-700">
-                      Tópico:
-                    </span>
-                    <span className="text-gray-600">
+                    <p className="text-[10px] font-bold tracking-wider text-gray-400 uppercase">
+                      Tópico
+                    </p>
+                    <p className="mt-0.5 text-sm font-medium text-gray-700">
                       {selectedProposition.topic}
-                    </span>
+                    </p>
                   </div>
                 )}
-
                 {selectedProposition.regime && (
                   <div>
-                    <span className="block font-bold text-gray-700">
-                      Regime:
-                    </span>
-                    <span className="text-gray-600">
+                    <p className="text-[10px] font-bold tracking-wider text-gray-400 uppercase">
+                      Regime
+                    </p>
+                    <p className="mt-0.5 text-sm font-medium text-gray-700">
                       {selectedProposition.regime}
-                    </span>
+                    </p>
                   </div>
                 )}
-
                 {selectedProposition.reporterId &&
-                  findIfRelactorIsPresent(
-                    selectedProposition.reporterId,
-                  ) && (
+                  findIfRelactorIsPresent(selectedProposition.reporterId) && (
                     <div>
-                      <span className="block font-bold text-gray-700">
-                        Relator:
-                      </span>
-                      <span className="text-gray-600">
-                        {findRelactorName(
-                          selectedProposition.reporterId,
-                        )}
-                      </span>
+                      <p className="text-[10px] font-bold tracking-wider text-[#3e5f48] uppercase">
+                        Relator
+                      </p>
+                      <p className="mt-0.5 text-sm font-medium text-gray-700">
+                        {findRelactorName(selectedProposition.reporterId)}
+                      </p>
                     </div>
                   )}
               </div>
             )}
 
-            {/* Action Button - Link to Full Proposition */}
             {selectedProposition.proposition?.fullPropositionUrl && (
-              <div className="pt-2">
-                <a
-                  href={
-                    selectedProposition.proposition.fullPropositionUrl
-                  }
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 rounded-lg bg-[#749c5b] px-6 py-3 text-sm font-semibold text-white transition-all hover:bg-[#5f7d4a] hover:shadow-lg"
-                >
-                  <ExternalLink size={16} />
-                  Ver Detalhes Completos
-                </a>
-              </div>
+              <a
+                href={selectedProposition.proposition.fullPropositionUrl}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 rounded-lg bg-[#749c5b] px-5 py-2.5 text-sm font-semibold text-white transition-all hover:bg-[#5f7d4a] hover:shadow-md"
+              >
+                <ExternalLink size={15} />
+                Ver Detalhes Completos
+              </a>
             )}
           </div>
         </div>
       )}
 
-      {/* Empty State - When no proposition is selected */}
+      {/* Empty State */}
       {!selectedProposition && orderPropositions.length > 0 && (
         <div className="rounded-lg border-2 border-dashed border-gray-300 bg-gray-50 p-8 text-center">
           <p className="text-sm text-gray-500">

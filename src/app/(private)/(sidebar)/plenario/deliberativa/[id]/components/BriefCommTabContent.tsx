@@ -5,7 +5,6 @@ import {
   ChevronDown,
   Clock,
   FileText,
-  Info,
   Mic2,
 } from "lucide-react";
 import { BrevesComunicacoesResponse } from "./types";
@@ -47,14 +46,57 @@ export function BriefCommTabContent({
       <div className="space-y-6">
         {/* Summary card */}
         {brevesComunicacoes.summary && (
-          <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
-            <h3 className="mb-3 flex items-center gap-2 text-lg font-bold text-[#1a1d1f]">
-              <Info className="text-[#749c5b]" size={20} />
-              Resumo
+          <div className="rounded-xl border border-[#749c5b]/20 bg-[#749c5b]/5 p-6 shadow-sm">
+            <h3 className="mb-4 flex items-center gap-2 text-lg font-bold text-[#1a1d1f]">
+              <div className="rounded-lg bg-[#749c5b]/15 p-1.5">
+                <FileText className="text-[#749c5b]" size={18} />
+              </div>
+              Resumo das Breves Comunicações
             </h3>
-            <p className="text-sm leading-relaxed text-gray-600">
-              {brevesComunicacoes.summary}
-            </p>
+            <div className="space-y-1 text-sm leading-relaxed text-gray-700">
+              {brevesComunicacoes.summary.split('\n').map((line, i) => {
+                const trimmed = line.trim();
+                if (!trimmed) return null;
+
+                // Section headers (bold text like **Temas principais:**)
+                const headerMatch = trimmed.match(/^\*\*(.+?)\*\*$/);
+                if (headerMatch) {
+                  return (
+                    <p key={i} className="mt-3 mb-1 text-xs font-bold tracking-wide text-[#749c5b] uppercase first:mt-0">
+                      {headerMatch[1]}
+                    </p>
+                  );
+                }
+
+                // Bullet points
+                if (trimmed.startsWith('- ')) {
+                  const content = trimmed.slice(2);
+                  // Render inline bold
+                  const parts = content.split(/\*\*(.+?)\*\*/g);
+                  return (
+                    <div key={i} className="flex gap-2 pl-1">
+                      <span className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#749c5b]/60" />
+                      <p>
+                        {parts.map((part, j) =>
+                          j % 2 === 1 ? (
+                            <strong key={j} className="font-semibold text-[#1a1d1f]">{part}</strong>
+                          ) : (
+                            <span key={j}>{part}</span>
+                          )
+                        )}
+                      </p>
+                    </div>
+                  );
+                }
+
+                // Regular text (fallback for old-format summaries)
+                return (
+                  <p key={i} className="text-gray-600">
+                    {trimmed}
+                  </p>
+                );
+              })}
+            </div>
           </div>
         )}
 
