@@ -1,4 +1,3 @@
-// c:\Users\Gabriel\Desktop\AdvSpace\adv-space\src\app\(dashboard)\(apps)\chat\AudioPlayer\index.tsx
 import { cn } from "@/lib/utils";
 import "./styles/audio.css";
 
