@@ -64,6 +64,13 @@ export interface EventProposition {
   proposition: PropositionDetails | null;
 }
 
+export type VotingCompletenessStatus =
+  | "pending"
+  | "metadata_only"
+  | "votes_loaded"
+  | "complete"
+  | "partial";
+
 export interface EventVoting {
   id: string;
   uri: string;
@@ -77,6 +84,7 @@ export interface EventVoting {
   negativeVotes: number;
   totalVotes: number;
   otherVotes?: number;
+  completenessStatus?: VotingCompletenessStatus;
 }
 
 export interface EventDetailsAPI {

@@ -4,6 +4,7 @@ import { VoteDetailsProps } from "@/@types/proposition";
 import { VotingOrientationsCard } from "@/components/v2/components/ui/VotingOrientationsCard";
 import { cn } from "@/lib/utils";
 import {
+  AlertTriangle,
   ArrowUpDown,
   Check,
   ChevronDown,
@@ -71,6 +72,33 @@ const STATE_OPTIONS = [
 ];
 
 const PARTY_LABELS: Record<string, string> = { SOLIDARIEDADE: "SOLID." };
+
+/**
+ * Resolve o estado visual de uma votação combinando totalVotes com
+ * completenessStatus do backend. Garante que "0 votos" só seja apresentado
+ * como "Votação Simbólica" quando o pipeline confirma — caso contrário,
+ * sinaliza dados pendentes/parciais para não confundir o usuário.
+ */
+function getVoteDisplayState(
+  vote: EventVoting,
+): "nominal" | "symbolic_complete" | "pending" | "partial" {
+  if (vote.totalVotes > 0) return "nominal";
+  // 0 votos individuais — depende do completenessStatus.
+  switch (vote.completenessStatus) {
+    case "partial":
+      return "partial";
+    case "pending":
+    case "metadata_only":
+      return "pending";
+    case "complete":
+    case "votes_loaded":
+    default:
+      // Quando o status é desconhecido (registro antigo) caímos no
+      // comportamento legado de assumir simbólica — a inferência implícita
+      // que existia antes dessa feature.
+      return "symbolic_complete";
+  }
+}
 
 export function VotingTabContent({
   loadingVotes,
@@ -169,7 +197,10 @@ export function VotingTabContent({
       ) : (
         sortedAndFilteredVotes.map((vote) => {
           const isExpanded = selectedVote?.id === vote.id;
-          const isSymbolic = vote.totalVotes === 0;
+          const displayState = getVoteDisplayState(vote);
+          const isSymbolic = displayState !== "nominal";
+          const isPending = displayState === "pending";
+          const isPartial = displayState === "partial";
 
           return (
             <div
@@ -200,7 +231,23 @@ export function VotingTabContent({
                     )}
                   </div>
                   <div className="flex items-center gap-3">
-                    {isSymbolic ? (
+                    {isPending ? (
+                      <span
+                        className="flex items-center gap-1 rounded-full bg-amber-100 px-3 py-1 text-xs font-bold text-amber-800"
+                        title="Os votos individuais ainda não foram processados pelo sistema. Volte mais tarde ou aguarde o próximo ciclo de sincronização."
+                      >
+                        <AlertTriangle size={12} />
+                        Votos pendentes
+                      </span>
+                    ) : isPartial ? (
+                      <span
+                        className="flex items-center gap-1 rounded-full bg-red-100 px-3 py-1 text-xs font-bold text-red-700"
+                        title="Parte do processamento falhou. Os dados exibidos podem estar incompletos."
+                      >
+                        <AlertTriangle size={12} />
+                        Dados parciais
+                      </span>
+                    ) : isSymbolic ? (
                       <span className="rounded-full bg-blue-100 px-3 py-1 text-xs font-bold text-blue-700">
                         Votação Simbólica
                       </span>
@@ -761,19 +808,49 @@ export function VotingTabContent({
                     </div>
                   </div>
 
-                  {/* Aviso de votação simbólica */}
-                  <div className="rounded-lg bg-blue-50 p-4 text-center">
-                    <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
-                      <Info size={20} className="text-blue-600" />
+                  {/* Aviso variante por estado de completude */}
+                  {isPending ? (
+                    <div className="rounded-lg bg-amber-50 p-4 text-center">
+                      <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-amber-100">
+                        <AlertTriangle size={20} className="text-amber-700" />
+                      </div>
+                      <h4 className="font-bold text-amber-900">
+                        Votos pendentes
+                      </h4>
+                      <p className="mt-1 text-sm text-amber-800">
+                        Os votos individuais desta votação ainda não foram
+                        processados pelo sistema. Aguarde o próximo ciclo de
+                        sincronização.
+                      </p>
                     </div>
-                    <h4 className="font-bold text-blue-900">
-                      Votação Simbólica
-                    </h4>
-                    <p className="mt-1 text-sm text-blue-700">
-                      Esta votação foi aprovada simbolicamente, sem
-                      registro individual de votos.
-                    </p>
-                  </div>
+                  ) : isPartial ? (
+                    <div className="rounded-lg bg-red-50 p-4 text-center">
+                      <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-red-100">
+                        <AlertTriangle size={20} className="text-red-700" />
+                      </div>
+                      <h4 className="font-bold text-red-900">
+                        Dados parciais
+                      </h4>
+                      <p className="mt-1 text-sm text-red-700">
+                        Parte do processamento desta votação falhou. Os dados
+                        exibidos podem estar incompletos. Tente novamente mais
+                        tarde.
+                      </p>
+                    </div>
+                  ) : (
+                    <div className="rounded-lg bg-blue-50 p-4 text-center">
+                      <div className="mx-auto mb-2 flex h-10 w-10 items-center justify-center rounded-full bg-blue-100">
+                        <Info size={20} className="text-blue-600" />
+                      </div>
+                      <h4 className="font-bold text-blue-900">
+                        Votação Simbólica
+                      </h4>
+                      <p className="mt-1 text-sm text-blue-700">
+                        Esta votação foi aprovada simbolicamente, sem
+                        registro individual de votos.
+                      </p>
+                    </div>
+                  )}
                 </div>
               )}
             </div>
