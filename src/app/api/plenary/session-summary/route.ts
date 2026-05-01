@@ -64,9 +64,7 @@ export async function POST(req: Request) {
     }
 
     const { text, eventId } = await req.json();
-    const apiKey =
-      process.env.OPENROUTER_API_KEY ||
-      process.env.NEXT_PUBLIC_OPENROUTER_API_KEY;
+    const apiKey = process.env.OPENROUTER_API_KEY;
 
     if (!apiKey) {
       return NextResponse.json(

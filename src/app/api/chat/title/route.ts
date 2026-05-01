@@ -9,8 +9,7 @@ export async function POST(req: Request) {
     }
 
     const { messages } = await req.json();
-    // Support both env var naming conventions observed in the project
-    const apiKey = process.env.OPENROUTER_API_KEY || process.env.NEXT_PUBLIC_OPENROUTER_API_KEY;
+    const apiKey = process.env.OPENROUTER_API_KEY;
 
     if (!apiKey) {
       return NextResponse.json({ error: "API Key missing" }, { status: 500 });

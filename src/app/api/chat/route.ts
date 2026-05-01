@@ -55,7 +55,7 @@ export async function POST(req: Request) {
 
     const { messages, model, files, systemPrompt, tools } = await req.json();
 
-    const apiKey = process.env.NEXT_PUBLIC_OPENROUTER_API_KEY;
+    const apiKey = process.env.OPENROUTER_API_KEY;
     if (!apiKey) {
       return NextResponse.json({ error: "API Key ausente" }, { status: 500 });
     }
