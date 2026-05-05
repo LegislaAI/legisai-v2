@@ -201,6 +201,8 @@ export function TabPosicionamento({ data }: { data: DeputadoPageData }) {
     setProposicoesPage,
     proposicoesPages,
     votacoesIndicadores,
+    alinhamento,
+    presencaDetalhada,
     temas,
     loadingTemas,
     presenca,
@@ -453,13 +455,20 @@ export function TabPosicionamento({ data }: { data: DeputadoPageData }) {
             textColor="#2563eb"
           />
           <KPICard
-            value="—"
-            label="Alinhamento"
+            value={
+              alinhamento?.alinhamentoPct != null
+                ? `${alinhamento.alinhamentoPct.toFixed(1)}%`
+                : "—"
+            }
+            label={
+              alinhamento?.partidoSigla
+                ? `Alinhamento (${alinhamento.partidoSigla})`
+                : "Alinhamento"
+            }
             icon={TrendingUp}
-            gradient="linear-gradient(90deg, #6b7280, #9ca3af)"
-            iconBg="#6b728018"
-            textColor="#6b7280"
-            comingSoon
+            gradient="linear-gradient(90deg, #2563eb, #60a5fa)"
+            iconBg="#2563eb18"
+            textColor="#2563eb"
           />
           <KPICard
             value={temasTop.length > 0 ? temasTop.length : "—"}
@@ -530,6 +539,50 @@ export function TabPosicionamento({ data }: { data: DeputadoPageData }) {
                       </p>
                     </div>
                   )}
+
+                  {presencaDetalhada?.perCommittee &&
+                    presencaDetalhada.perCommittee.length > 0 && (
+                      <div className="space-y-2 rounded-xl border border-gray-100 bg-white p-3">
+                        <div className="flex items-center justify-between">
+                          <p className="text-[10px] font-bold tracking-widest text-gray-500 uppercase">
+                            Presença por comissão
+                          </p>
+                          <span className="text-[10px] text-gray-400">
+                            {presencaDetalhada.perCommittee.length} órgãos
+                          </span>
+                        </div>
+                        <div className="space-y-1.5">
+                          {presencaDetalhada.perCommittee
+                            .slice(0, 6)
+                            .map((c) => {
+                              const color =
+                                c.percentage >= 75
+                                  ? "bg-emerald-500"
+                                  : c.percentage >= 50
+                                    ? "bg-amber-500"
+                                    : "bg-rose-500";
+                              return (
+                                <div key={c.departmentId} className="space-y-0.5">
+                                  <div className="flex items-baseline justify-between gap-2">
+                                    <span className="truncate text-[11px] font-semibold text-gray-700">
+                                      {c.sigla || c.nome}
+                                    </span>
+                                    <span className="shrink-0 text-[10px] tabular-nums text-gray-500">
+                                      {c.present}/{c.total} · {c.percentage.toFixed(0)}%
+                                    </span>
+                                  </div>
+                                  <div className="h-1.5 w-full overflow-hidden rounded-full bg-gray-100">
+                                    <div
+                                      className={`h-full ${color} transition-all`}
+                                      style={{ width: `${Math.min(100, c.percentage)}%` }}
+                                    />
+                                  </div>
+                                </div>
+                              );
+                            })}
+                        </div>
+                      </div>
+                    )}
 
                   {contadores && (
                     <div className="grid grid-cols-2 gap-3">

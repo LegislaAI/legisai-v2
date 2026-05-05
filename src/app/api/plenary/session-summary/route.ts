@@ -5,8 +5,7 @@ import { getAuthToken } from "@/lib/auth";
 const MAX_CHARS = 200_000; // ~30k tokens para contexto seguro no Gemini Flash
 
 /**
- * Prompt do relatório de sessão (Visão geral IA).
- * Cada seção usa ### para que o parser do frontend consiga separar em cards.
+ * Prompt do relatório de sessão (Visão geral IA — Markdown).
  */
 const SYSTEM_PROMPT = `
 Você é analista legislativo: neutro, imparcial, baseado exclusivamente no texto. Nunca invente informações.
@@ -57,13 +56,100 @@ Regras de formatação:
 - Não atribua intenção psicológica, não declare vitória/derrota partidária sem evidência, não trate suposição como fato.
 `.trim();
 
+/**
+ * Prompt do dashboard estruturado (formato JSON).
+ * Gera um objeto consumível pelo frontend sem precisar parsear Markdown.
+ */
+const SYSTEM_PROMPT_JSON = `
+Você é analista legislativo: neutro, imparcial, baseado exclusivamente no texto. Nunca invente.
+
+Gere APENAS um objeto JSON válido (sem markdown, sem comentários, sem texto fora do JSON) seguindo este schema:
+
+{
+  "meta": {
+    "tom": "string curta — ex: 'tenso', 'colaborativo', 'apático'",
+    "duracaoEstimada": "string — ex: '4h12min' ou null se não inferível",
+    "oradoresUnicos": número aproximado de oradores distintos
+  },
+  "resumoExecutivo": "2-3 frases. O que esta sessão revelou.",
+  "principaisDecisoes": [
+    {
+      "titulo": "ex: 'PL 123/2024 aprovado em turno único'",
+      "tipo": "Aprovação | Rejeição | Adiamento | Vista | Retirada | Outro",
+      "tema": "ex: 'Reforma tributária' — área temática",
+      "detalhe": "1-2 frases descrevendo o resultado e contexto"
+    }
+  ],
+  "embates": [
+    {
+      "tema": "núcleo do embate em 1 frase",
+      "atores": ["Nome Sobrenome (PARTIDO-UF)"],
+      "resumo": "1-2 frases. O que estava em jogo."
+    }
+  ],
+  "destaquesDiscursos": [
+    {
+      "deputado": "Nome Sobrenome",
+      "partido": "PARTIDO-UF ou null",
+      "trecho": "frase curta representativa do discurso"
+    }
+  ],
+  "dimensoes": {
+    "conflito": "Baixo | Moderado | Alto | Indeterminado",
+    "efetividade": "Alta | Parcial | Baixa | Nenhuma",
+    "fluidez": "Fluida | Interrompida | Fragmentada | Travada",
+    "justificativa": "1-2 frases explicando os graus acima"
+  },
+  "insights": [
+    {
+      "titulo": "string curta",
+      "tipo": "dinâmica de conflito | sinal de acordo | fricção procedimental | efetividade deliberativa | gestão de pauta | lideranças | predomínio discursivo | ritmo da sessão | sinal institucional | perspectiva para próximas sessões",
+      "interpretacao": "até 3 frases. O que o padrão SIGNIFICA.",
+      "evidencia": "trecho ou fato rastreável na transcrição"
+    }
+  ],
+  "sinteseFinal": "2-3 frases. Leitura analítica integrando dimensões e insights."
+}
+
+Regras:
+- 3-5 itens em "principaisDecisoes", "embates", "destaquesDiscursos" e "insights" (use [] vazio se não houver).
+- Liste APENAS arrays e strings — sem campos extras.
+- Se não houver dado para um campo string, use string vazia "".
+- Resposta = APENAS JSON. Nada antes, nada depois. Sem \`\`\`json.
+`.trim();
+
+function tryParseJson(raw: string): Record<string, unknown> | null {
+  // Remove cercas de código se vierem
+  const cleaned = raw
+    .replace(/^```(?:json)?\s*/i, "")
+    .replace(/\s*```\s*$/i, "")
+    .trim();
+  try {
+    return JSON.parse(cleaned);
+  } catch {
+    // tentativa de recuperar: pegar do primeiro { ao último }
+    const first = cleaned.indexOf("{");
+    const last = cleaned.lastIndexOf("}");
+    if (first === -1 || last === -1 || last <= first) return null;
+    try {
+      return JSON.parse(cleaned.slice(first, last + 1));
+    } catch {
+      return null;
+    }
+  }
+}
+
 export async function POST(req: Request) {
   try {
     if (!getAuthToken(req)) {
       return NextResponse.json({ error: "Não autorizado" }, { status: 401 });
     }
 
-    const { text, eventId } = await req.json();
+    const body = await req.json();
+    const { text, eventId } = body;
+    const format: "markdown" | "json" =
+      body.format === "json" ? "json" : "markdown";
+
     const apiKey =
       process.env.OPENROUTER_API_KEY ||
       process.env.NEXT_PUBLIC_OPENROUTER_API_KEY;
@@ -84,8 +170,15 @@ export async function POST(req: Request) {
 
     const truncated =
       text.length > MAX_CHARS
-        ? text.slice(0, MAX_CHARS) + "\n\n[... texto truncado por limite de caracteres ...]"
+        ? text.slice(0, MAX_CHARS) +
+          "\n\n[... texto truncado por limite de caracteres ...]"
         : text;
+
+    const isJson = format === "json";
+    const systemPrompt = isJson ? SYSTEM_PROMPT_JSON : SYSTEM_PROMPT;
+    const userPrompt = isJson
+      ? `Analise a transcrição abaixo e gere o JSON conforme o schema. Resposta = APENAS o JSON.\n\n---\n\nTEXTO DA SESSÃO:\n\n${truncated}`
+      : `Analise a transcrição abaixo e gere o relatório conforme a estrutura definida.\n\n---\n\nTEXTO DA SESSÃO:\n\n${truncated}`;
 
     const response = await fetch(
       "https://openrouter.ai/api/v1/chat/completions",
@@ -100,14 +193,12 @@ export async function POST(req: Request) {
         body: JSON.stringify({
           model: "google/gemini-2.0-flash-001",
           messages: [
-            { role: "system", content: SYSTEM_PROMPT },
-            {
-              role: "user",
-              content: `Analise a transcrição abaixo e gere o relatório conforme a estrutura definida.\n\n---\n\nTEXTO DA SESSÃO:\n\n${truncated}`,
-            },
+            { role: "system", content: systemPrompt },
+            { role: "user", content: userPrompt },
           ],
           stream: false,
           temperature: 0.3,
+          ...(isJson && { response_format: { type: "json_object" } }),
         }),
       }
     );
@@ -122,24 +213,45 @@ export async function POST(req: Request) {
     }
 
     const data = await response.json();
-    const summary =
+    const raw =
       data.choices?.[0]?.message?.content?.trim() ||
-      "*Não foi possível gerar o resumo.*";
+      (isJson ? "" : "*Não foi possível gerar o resumo.*");
 
-    if (eventId && typeof eventId === "string") {
-      const apiUrl = process.env.NEXT_PUBLIC_API_URL;
-      if (apiUrl) {
-        fetch(`${apiUrl}/event/${eventId}/ai-overview-summary`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ summary }),
-        }).catch((err) =>
-          console.error("Error IA Sobrecarregada - Legis Dados:", err)
+    const apiUrl = process.env.NEXT_PUBLIC_API_URL;
+
+    if (isJson) {
+      const parsed = tryParseJson(raw);
+      if (!parsed) {
+        return NextResponse.json(
+          { error: "IA retornou JSON inválido", raw },
+          { status: 422 }
         );
       }
+
+      if (eventId && typeof eventId === "string" && apiUrl) {
+        fetch(`${apiUrl}/event/${eventId}/ai-dashboard`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ aiDashboardJson: parsed }),
+        }).catch((err) =>
+          console.error("Falha ao salvar aiDashboardJson:", err)
+        );
+      }
+
+      return NextResponse.json({ dashboard: parsed });
     }
 
-    return NextResponse.json({ summary });
+    if (eventId && typeof eventId === "string" && apiUrl) {
+      fetch(`${apiUrl}/event/${eventId}/ai-overview-summary`, {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ summary: raw }),
+      }).catch((err) =>
+        console.error("Error IA Sobrecarregada - Legis Dados:", err)
+      );
+    }
+
+    return NextResponse.json({ summary: raw });
   } catch (e) {
     console.error("Session summary error:", e);
     return NextResponse.json(

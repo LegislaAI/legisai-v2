@@ -10,21 +10,30 @@ import {
   Users,
 } from "lucide-react";
 import moment from "moment";
+import { StructuredDashboard } from "./StructuredDashboard";
 import { BrevesComunicacoesResponse, EventDetailsAPI } from "./types";
 
 interface OverviewTabContentProps {
   eventDetails: EventDetailsAPI | null;
   brevesComunicacoes: BrevesComunicacoesResponse | null;
   setActiveTab: (tab: string) => void;
+  fullTextForSession?: string | null;
 }
 
 export function OverviewTabContent({
   eventDetails,
   brevesComunicacoes,
   setActiveTab,
+  fullTextForSession,
 }: OverviewTabContentProps) {
   return (
     <div className="space-y-6">
+      {/* Dashboard analítico estruturado (IA — gerado sob demanda) */}
+      <StructuredDashboard
+        eventDetails={eventDetails}
+        fullTextForSession={fullTextForSession ?? null}
+      />
+
       {/* Stats Cards Row */}
       <div className="grid grid-cols-2 gap-4 md:grid-cols-4">
         {/* Propositions Count */}

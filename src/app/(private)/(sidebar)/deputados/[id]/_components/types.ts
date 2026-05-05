@@ -73,6 +73,43 @@ export interface VotacoesIndicadores {
   dataFim: string;
 }
 
+export interface AlinhamentoPartido {
+  alinhamentoPct: number | null;
+  votosAlinhados: number;
+  votosDivergentes: number;
+  votosComOrientacao: number;
+  totalVotos: number;
+  partidoSigla: string | null;
+  dataInicio: string;
+  dataFim: string;
+}
+
+export interface PresencaDetalhada extends Presenca {
+  ausenciasPlenario?: number;
+  ausenciasComissao?: number;
+  overall?: {
+    percentage: number;
+    totalPresent: number;
+    totalAbsent: number;
+    totalEvents: number;
+  };
+  plenario?: {
+    total: number;
+    present: number;
+    absent: number;
+    percentage: number;
+  };
+  perCommittee?: Array<{
+    departmentId: string;
+    sigla: string;
+    nome: string;
+    total: number;
+    present: number;
+    absent: number;
+    percentage: number;
+  }>;
+}
+
 export interface TemaItem {
   cod_tema: string;
   tema_nome: string;
@@ -100,11 +137,31 @@ export interface DespesaCEAP {
   mes?: number;
   tipoDespesa?: string;
   descricao?: string;
+  codDocumento?: number;
+  tipoDocumento?: string;
+  numDocumento?: string;
   dataDocumento?: string;
   valorDocumento?: number;
   valorLiquido?: number;
+  valorGlosa?: number;
   nomeFornecedor?: string;
+  cnpjCpfFornecedor?: string;
   urlDocumento?: string;
+}
+
+export interface FornecedorCEAP {
+  cnpjCpf: string | null;
+  nome: string;
+  valorTotal: number;
+  valorGlosa: number;
+  count: number;
+}
+
+export interface FornecedoresResponse {
+  fornecedores: FornecedorCEAP[];
+  total: number;
+  ano: number;
+  mes: number | null;
 }
 
 export interface DiscursosResumo {

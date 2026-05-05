@@ -946,6 +946,14 @@ export default function DeliberativeSessionScreen() {
                 eventDetails={eventDetails}
                 brevesComunicacoes={brevesComunicacoes}
                 setActiveTab={setActiveTab}
+                fullTextForSession={
+                  transcricaoCompleta?.fullText ??
+                  (brevesComunicacoes?.speakers
+                    ?.map((s) => s.transcription?.trim() || s.speechSummary?.trim() || "")
+                    .filter(Boolean)
+                    .join("\n\n") ||
+                    null)
+                }
               />
             </Tabs.Content>
 

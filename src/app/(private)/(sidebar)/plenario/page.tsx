@@ -20,6 +20,7 @@ import { DateRange } from "react-day-picker";
 import { Calendar } from "@/components/ui/calendar";
 import { useApiContext } from "@/context/ApiContext";
 import { useRouter } from "next/navigation";
+import { WeeklyInsightsStrip } from "./_components/WeeklyInsightsStrip";
 
 // --- TIPOS ---
 type MainPlenaryTab = "pauta" | "sessoes";
@@ -275,6 +276,9 @@ export default function SessionListScreen() {
             ))}
           </div>
         </div>
+
+        {/* --- INSIGHTS DA SEMANA (Backend: GET /event/weekly-insights) --- */}
+        {mainTab === "pauta" && <WeeklyInsightsStrip />}
 
         {/* --- CONTEÚDO: PAUTA DA SEMANA --- */}
         {mainTab === "pauta" && (

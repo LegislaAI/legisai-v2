@@ -172,8 +172,10 @@ export function TabDespesasFinanceiro({ data }: { data: DeputadoPageData }) {
     setCeapPage,
     ceapResumo,
     despesasCeap,
+    ceapFornecedores,
     loadingCeapResumo,
     loadingCeapDespesas,
+    loadingCeapFornecedores,
     ceapHasMore,
   } = data;
 
@@ -609,6 +611,80 @@ export function TabDespesasFinanceiro({ data }: { data: DeputadoPageData }) {
                     />
                   </div>
                 )}
+
+                {/* Top Fornecedores */}
+                {(loadingCeapFornecedores ||
+                  (ceapFornecedores?.fornecedores?.length ?? 0) > 0) && (
+                  <div className="mt-6">
+                    <h4 className="mb-3 flex items-center gap-2 text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                      <BarChart3 className="h-3 w-3" />
+                      Top Fornecedores ({ceapAno})
+                    </h4>
+                    {loadingCeapFornecedores ? (
+                      <div className="space-y-2">
+                        {[1, 2, 3, 4, 5].map((i) => (
+                          <SkeletonLoader
+                            key={i}
+                            className="h-10 w-full rounded-lg"
+                          />
+                        ))}
+                      </div>
+                    ) : (
+                      <div className="space-y-2">
+                        {ceapFornecedores!.fornecedores.map((f, i) => {
+                          const totalAno =
+                            ceapFornecedores!.fornecedores.reduce(
+                              (s, x) => s + x.valorTotal,
+                              0,
+                            ) || 1;
+                          const pct = (f.valorTotal / totalAno) * 100;
+                          return (
+                            <div
+                              key={`${f.cnpjCpf ?? "x"}-${i}`}
+                              className="rounded-lg border border-gray-100 bg-gray-50/40 p-3"
+                            >
+                              <div className="flex items-baseline justify-between gap-3">
+                                <div className="min-w-0">
+                                  <p
+                                    className="truncate text-xs font-semibold text-gray-800"
+                                    title={f.nome}
+                                  >
+                                    {f.nome}
+                                  </p>
+                                  {f.cnpjCpf && (
+                                    <p className="text-[10px] tabular-nums text-gray-400">
+                                      {f.cnpjCpf}
+                                    </p>
+                                  )}
+                                </div>
+                                <div className="shrink-0 text-right">
+                                  <p className="text-xs font-bold text-gray-900">
+                                    {formatBRL(f.valorTotal)}
+                                  </p>
+                                  <p className="text-[10px] text-gray-400">
+                                    {f.count}{" "}
+                                    {f.count === 1 ? "doc." : "docs."}
+                                  </p>
+                                </div>
+                              </div>
+                              <div className="mt-1.5 h-1 w-full overflow-hidden rounded-full bg-gray-100">
+                                <div
+                                  className="h-full bg-secondary transition-all"
+                                  style={{ width: `${Math.min(100, pct)}%` }}
+                                />
+                              </div>
+                              {f.valorGlosa > 0 && (
+                                <p className="mt-1 text-[10px] text-rose-600">
+                                  Glosa: {formatBRL(f.valorGlosa)}
+                                </p>
+                              )}
+                            </div>
+                          );
+                        })}
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
             ) : (
               <div className="flex flex-col items-center justify-center py-16 text-center">
@@ -656,6 +732,9 @@ export function TabDespesasFinanceiro({ data }: { data: DeputadoPageData }) {
                           <th className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-widest text-gray-400">
                             Valor
                           </th>
+                          <th className="px-4 py-3 text-right text-[10px] font-bold uppercase tracking-widest text-gray-400">
+                            Glosa
+                          </th>
                           <th className="px-4 py-3 text-center text-[10px] font-bold uppercase tracking-widest text-gray-400">
                             Doc.
                           </th>
@@ -698,6 +777,11 @@ export function TabDespesasFinanceiro({ data }: { data: DeputadoPageData }) {
                                   d.valorLiquido ?? d.valorDocumento ?? 0,
                                 ),
                               )}
+                            </td>
+                            <td className="whitespace-nowrap px-4 py-3 text-right text-xs font-medium text-rose-600">
+                              {d.valorGlosa && Number(d.valorGlosa) > 0
+                                ? formatBRL(Number(d.valorGlosa))
+                                : "—"}
                             </td>
                             <td className="px-4 py-3 text-center">
                               {d.urlDocumento ? (
