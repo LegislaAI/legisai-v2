@@ -2,6 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import {
+  BarChart3,
   BookOpen,
   ChevronLeft,
   ChevronRight,
@@ -12,6 +13,8 @@ import {
   Sparkles,
   X,
 } from "lucide-react";
+import Link from "next/link";
+import { useParams } from "next/navigation";
 import { Dispatch, SetStateAction } from "react";
 import {
   preprocessSessionText,
@@ -21,6 +24,35 @@ import { SessionSummaryReport } from "./SessionSummaryReport";
 import { BrevesComunicacoesResponse, EventDetailsAPI } from "./types";
 
 const PARAGRAPHS_PER_PAGE = 30;
+
+function DashboardCTA() {
+  const params = useParams();
+  const id = params?.id as string;
+  return (
+    <Link
+      href={`/plenario/deliberativa/${id}/dashboard`}
+      className="mb-5 flex items-center justify-between gap-4 rounded-xl border border-[#749c5b]/30 bg-gradient-to-r from-[#749c5b]/10 via-emerald-50 to-white p-4 transition-all hover:shadow-md"
+    >
+      <div className="flex items-center gap-3">
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-[#749c5b] text-white">
+          <BarChart3 className="h-5 w-5" />
+        </div>
+        <div>
+          <p className="text-sm font-semibold text-[#1a1d1f]">
+            Dashboard completo da IA
+          </p>
+          <p className="text-xs text-[#6f767e]">
+            Gráficos, tabelas, citações destacadas, blocos da sessão e
+            cenários previstos
+          </p>
+        </div>
+      </div>
+      <span className="rounded-lg bg-[#749c5b] px-3 py-1.5 text-xs font-semibold text-white">
+        Abrir →
+      </span>
+    </Link>
+  );
+}
 
 interface SessaoTextoTabContentProps {
   loadingTranscricao: boolean;
@@ -240,7 +272,10 @@ export function SessaoTextoTabContent({
               </div>
             )}
             {sessionSummary && !loadingSessionSummary && (
-              <SessionSummaryReport content={sessionSummary} />
+              <>
+                <DashboardCTA />
+                <SessionSummaryReport content={sessionSummary} />
+              </>
             )}
             {!sessionSummary && !loadingSessionSummary && (
               <p className="text-sm text-[#6f767e]">

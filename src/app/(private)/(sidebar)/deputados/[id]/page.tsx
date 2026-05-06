@@ -21,6 +21,8 @@ import {
   TabOverview,
   TabPerfil,
   TabPosicionamento,
+  TabPresencas,
+  TabProposicoes,
   useDeputadoPage,
 } from "./_components";
 
@@ -125,6 +127,20 @@ export default function DeputadoDetalhesPage2() {
                 className="animate-in fade-in slide-in-from-bottom-2 duration-300"
               >
                 <TabAgenda data={data} />
+              </Tabs.Content>
+
+              <Tabs.Content
+                value="proposicoes"
+                className="animate-in fade-in slide-in-from-bottom-2 space-y-6 duration-300"
+              >
+                <TabProposicoes />
+              </Tabs.Content>
+
+              <Tabs.Content
+                value="presencas"
+                className="animate-in fade-in slide-in-from-bottom-2 space-y-6 duration-300"
+              >
+                <TabPresencas />
               </Tabs.Content>
 
               <Tabs.Content

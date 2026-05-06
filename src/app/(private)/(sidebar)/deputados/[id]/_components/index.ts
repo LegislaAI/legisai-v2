@@ -6,6 +6,8 @@ export { TabAgenda } from "./TabAgenda";
 export { TabPosicionamento } from "./TabPosicionamento";
 export { TabDespesasFinanceiro } from "./TabDespesasFinanceiro";
 export { TabAtuacao } from "./TabAtuacao";
+export { TabPresencas } from "./TabPresencas";
+export { TabProposicoes } from "./TabProposicoes";
 export { TabPerfil } from "./TabPerfil";
 export { useDeputadoPage } from "./useDeputadoPage";
 export type { DeputadoPageData } from "./useDeputadoPage";

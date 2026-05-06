@@ -20,9 +20,17 @@ import { DateRange } from "react-day-picker";
 import { Calendar } from "@/components/ui/calendar";
 import { useApiContext } from "@/context/ApiContext";
 import { useRouter } from "next/navigation";
+import { ComissoesGeraisSection } from "./_components/ComissoesGeraisSection";
+import { PrazosRegimentaisSection } from "./_components/PrazosRegimentaisSection";
+import { InsightsBanner } from "./_components/InsightsBanner";
+import { Hourglass, Users } from "lucide-react";
 
 // --- TIPOS ---
-type MainPlenaryTab = "pauta" | "sessoes";
+type MainPlenaryTab =
+  | "pauta"
+  | "sessoes"
+  | "comissoes-gerais"
+  | "prazos-regimentais";
 type SessionType = "solene" | "deliberativa";
 type ApiEventType = "SOLEMN" | "DELIBERATIVE";
 type SessoesSubView = "hoje" | "resultados";
@@ -244,12 +252,15 @@ export default function SessionListScreen() {
   return (
     <div className="min-h-screen bg-[#f4f4f4] p-6 font-sans text-[#1a1d1f]">
       <div className="mx-auto space-y-8">
-        {/* --- CABEÇALHO E ABAS PRINCIPAIS (Pauta | Sessões | Sessão em texto) --- */}
+        {/* Banner de insights da semana — sempre visível acima */}
+        <InsightsBanner />
+
+        {/* --- CABEÇALHO E ABAS PRINCIPAIS (Pauta | Sessões | Comissões Gerais | Prazos Regimentais) --- */}
         <div className="overflow-hidden rounded-xl border border-gray-100 bg-white p-4 shadow-sm">
           <h1 className="mb-2 text-3xl font-bold text-[#1a1d1f]">Plenário</h1>
           <p className="mb-4 text-gray-700">
-            Acompanhe a pauta da semana, pesquise sessões e acesse o registro em
-            texto quando disponível.
+            Acompanhe a pauta da semana, pesquise sessões, monitore comissões
+            gerais e prazos regimentais.
           </p>
           <div className="flex flex-wrap gap-2 border-b border-gray-200 pb-2">
             {[
@@ -259,6 +270,16 @@ export default function SessionListScreen() {
                 icon: FileText,
               },
               { id: "sessoes" as const, label: "Sessões", icon: CalendarIcon },
+              {
+                id: "comissoes-gerais" as const,
+                label: "Comissões Gerais",
+                icon: Users,
+              },
+              {
+                id: "prazos-regimentais" as const,
+                label: "Prazos Regimentais",
+                icon: Hourglass,
+              },
             ].map(({ id, label, icon: Icon }) => (
               <button
                 key={id}
@@ -714,6 +735,12 @@ export default function SessionListScreen() {
             </div>
           </>
         )}
+
+        {/* --- CONTEÚDO: COMISSÕES GERAIS --- */}
+        {mainTab === "comissoes-gerais" && <ComissoesGeraisSection />}
+
+        {/* --- CONTEÚDO: PRAZOS REGIMENTAIS --- */}
+        {mainTab === "prazos-regimentais" && <PrazosRegimentaisSection />}
       </div>
     </div>
   );

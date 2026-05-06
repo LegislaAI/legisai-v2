@@ -2,8 +2,10 @@ import {
   BarChart3,
   Briefcase,
   Calendar,
+  CheckSquare,
   FileText,
   Receipt,
+  ScrollText,
   User,
 } from "lucide-react";
 
@@ -30,6 +32,8 @@ export const HISTORICO_PAGE_SIZES = [5, 10, 20];
 export const TABS = [
   { id: "overview", label: "Visão geral", icon: BarChart3 },
   { id: "agenda", label: "Agenda", icon: Calendar },
+  { id: "proposicoes", label: "Proposições", icon: ScrollText },
+  { id: "presencas", label: "Presenças", icon: CheckSquare },
   { id: "posicionamento", label: "Posicionamento", icon: FileText },
   { id: "despesas-financeiro", label: "Despesas e Financeiro", icon: Receipt },
   { id: "atuacao", label: "Atuação parlamentar", icon: User },
