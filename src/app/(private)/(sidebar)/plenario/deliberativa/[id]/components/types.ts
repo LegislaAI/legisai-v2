@@ -97,8 +97,48 @@ export interface EventDetailsAPI {
   voting: EventVoting[];
   aiOverviewSummary: string | null;
   aiOverviewGeneratedAt: string | null;
+  aiDashboardJson: AiDashboardJson | null;
+  aiDashboardGeneratedAt: string | null;
   createdAt: string;
   updatedAt: string;
+}
+
+export interface AiDashboardJson {
+  meta?: {
+    tom?: string;
+    duracaoEstimada?: string | null;
+    oradoresUnicos?: number;
+  };
+  resumoExecutivo?: string;
+  principaisDecisoes?: Array<{
+    titulo: string;
+    tipo: string;
+    tema: string;
+    detalhe: string;
+  }>;
+  embates?: Array<{
+    tema: string;
+    atores: string[];
+    resumo: string;
+  }>;
+  destaquesDiscursos?: Array<{
+    deputado: string;
+    partido: string | null;
+    trecho: string;
+  }>;
+  dimensoes?: {
+    conflito?: string;
+    efetividade?: string;
+    fluidez?: string;
+    justificativa?: string;
+  };
+  insights?: Array<{
+    titulo: string;
+    tipo: string;
+    interpretacao: string;
+    evidencia: string;
+  }>;
+  sinteseFinal?: string;
 }
 
 export interface BrevesComunicacoesResponse {

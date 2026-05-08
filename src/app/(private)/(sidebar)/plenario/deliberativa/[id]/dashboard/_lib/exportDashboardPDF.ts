@@ -1,10 +1,22 @@
 import jsPDF from "jspdf";
 import autoTable from "jspdf-autotable";
-import type { SessionDashboardData } from "./mockSessionDashboard";
+import type { AiDashboardJson } from "../../components/types";
 
 type Doc = jsPDF & { lastAutoTable?: { finalY: number } };
 
-export function exportDashboardPDF(data: SessionDashboardData) {
+interface ExportArgs {
+  titulo: string;
+  geradoEm?: string | null;
+  eventId: string;
+  dashboard: AiDashboardJson;
+}
+
+export function exportDashboardPDF({
+  titulo,
+  geradoEm,
+  eventId,
+  dashboard,
+}: ExportArgs) {
   const doc = new jsPDF() as Doc;
 
   // Cabeçalho
@@ -16,44 +28,51 @@ export function exportDashboardPDF(data: SessionDashboardData) {
   doc.text("Dashboard de IA — Sessão Plenária", 14, 15);
   doc.setFontSize(10);
   doc.setFont("helvetica", "normal");
-  doc.text(data.meta.titulo, 14, 22);
+  doc.text(titulo, 14, 22);
 
   doc.setTextColor(60, 60, 60);
   doc.setFontSize(9);
-  doc.text(
-    `Gerado em ${new Date(data.meta.geradoEm).toLocaleString("pt-BR")} | Duração: ${Math.floor(data.meta.duracaoMinutos / 60)}h${data.meta.duracaoMinutos % 60}m`,
-    14,
-    34,
-  );
+  const sub: string[] = [];
+  if (geradoEm) sub.push(`Gerado em ${new Date(geradoEm).toLocaleString("pt-BR")}`);
+  if (dashboard.meta?.duracaoEstimada)
+    sub.push(`Duração: ${dashboard.meta.duracaoEstimada}`);
+  if (dashboard.meta?.tom) sub.push(`Tom: ${dashboard.meta.tom}`);
+  doc.text(sub.join(" | "), 14, 34);
 
-  // Síntese
-  doc.setTextColor(0);
-  doc.setFontSize(13);
-  doc.setFont("helvetica", "bold");
-  doc.text("Síntese executiva", 14, 44);
-  doc.setFontSize(10);
-  doc.setFont("helvetica", "normal");
-  const sinteseLines = doc.splitTextToSize(data.sintese, 180);
-  doc.text(sinteseLines, 14, 50);
-  let y = 50 + sinteseLines.length * 5 + 4;
+  let y = 44;
 
-  // KPIs
+  // Síntese executiva
+  if (dashboard.resumoExecutivo) {
+    doc.setTextColor(0);
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "bold");
+    doc.text("Síntese executiva", 14, y);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    const lines = doc.splitTextToSize(dashboard.resumoExecutivo, 180);
+    doc.text(lines, 14, y + 6);
+    y += 6 + lines.length * 5 + 4;
+  }
+
+  // KPIs derivados
   doc.setFontSize(13);
   doc.setFont("helvetica", "bold");
   doc.text("Indicadores", 14, y);
-  y += 6;
+  y += 4;
   autoTable(doc, {
     startY: y,
     head: [["Indicador", "Valor"]],
     body: [
-      ["Intervenções totais", String(data.kpis.totalIntervencoes)],
-      ["Deputados únicos", String(data.kpis.deputadosUnicos)],
-      ["Sentimento médio", data.kpis.sentimentoMedio.toFixed(2)],
-      ["Tópicos distintos", String(data.kpis.topicosDistintos)],
+      ["Decisões registradas", String(dashboard.principaisDecisoes?.length ?? 0)],
+      ["Embates", String(dashboard.embates?.length ?? 0)],
+      ["Insights", String(dashboard.insights?.length ?? 0)],
       [
-        "Duração total",
-        `${Math.floor(data.kpis.minutosTotais / 60)}h${data.kpis.minutosTotais % 60}m`,
+        "Oradores únicos",
+        dashboard.meta?.oradoresUnicos != null
+          ? String(dashboard.meta.oradoresUnicos)
+          : "—",
       ],
+      ["Duração estimada", dashboard.meta?.duracaoEstimada ?? "—"],
     ],
     theme: "grid",
     headStyles: { fillColor: [116, 156, 91], textColor: 255 },
@@ -61,121 +80,176 @@ export function exportDashboardPDF(data: SessionDashboardData) {
   });
   y = (doc.lastAutoTable?.finalY ?? y) + 8;
 
-  // Tópicos
-  doc.setFontSize(13);
-  doc.setFont("helvetica", "bold");
-  doc.text("Principais tópicos", 14, y);
-  y += 4;
-  autoTable(doc, {
-    startY: y,
-    head: [["Tópico", "Menções", "Sentimento"]],
-    body: data.topicos.map((t) => [
-      t.nome,
-      String(t.mencoes),
-      t.sentimentoAssoc.toFixed(2),
-    ]),
-    theme: "striped",
-    headStyles: { fillColor: [116, 156, 91], textColor: 255 },
-    styles: { fontSize: 8 },
-  });
-  y = (doc.lastAutoTable?.finalY ?? y) + 8;
-
-  // Tempos de fala
-  if (y > 220) {
-    doc.addPage();
-    y = 20;
-  }
-  doc.setFontSize(13);
-  doc.setFont("helvetica", "bold");
-  doc.text("Tempo de fala — top 10", 14, y);
-  y += 4;
-  autoTable(doc, {
-    startY: y,
-    head: [["Deputado", "Partido/UF", "Tempo (min)"]],
-    body: data.temposFala
-      .slice(0, 10)
-      .map((d) => [
-        d.deputado,
-        `${d.partido}-${d.uf}`,
-        (d.segundos / 60).toFixed(1),
-      ]),
-    theme: "striped",
-    headStyles: { fillColor: [116, 156, 91], textColor: 255 },
-    styles: { fontSize: 8 },
-  });
-  y = (doc.lastAutoTable?.finalY ?? y) + 8;
-
-  // Citações
-  doc.addPage();
-  y = 20;
-  doc.setFontSize(13);
-  doc.setFont("helvetica", "bold");
-  doc.text("Citações em destaque", 14, y);
-  y += 8;
-  doc.setFont("helvetica", "italic");
-  doc.setFontSize(10);
-  for (const c of data.citacoesDestaque) {
-    if (y > 270) {
+  // Dimensões
+  if (dashboard.dimensoes) {
+    if (y > 240) {
       doc.addPage();
       y = 20;
     }
-    const lines = doc.splitTextToSize(`"${c.frase}"`, 180);
-    doc.text(lines, 14, y);
-    y += lines.length * 5 + 1;
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(8);
-    doc.setTextColor(100);
-    doc.text(`— ${c.autor} (${c.partido}) | ${c.contexto}`, 14, y);
-    doc.setFont("helvetica", "italic");
-    doc.setFontSize(10);
-    doc.setTextColor(0);
-    y += 8;
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "bold");
+    doc.text("Dimensões qualitativas", 14, y);
+    y += 4;
+    autoTable(doc, {
+      startY: y,
+      head: [["Dimensão", "Avaliação"]],
+      body: [
+        ["Conflito", dashboard.dimensoes.conflito ?? "—"],
+        ["Efetividade", dashboard.dimensoes.efetividade ?? "—"],
+        ["Fluidez", dashboard.dimensoes.fluidez ?? "—"],
+      ],
+      theme: "striped",
+      headStyles: { fillColor: [116, 156, 91], textColor: 255 },
+      styles: { fontSize: 9 },
+    });
+    y = (doc.lastAutoTable?.finalY ?? y) + 4;
+    if (dashboard.dimensoes.justificativa) {
+      doc.setFontSize(9);
+      doc.setFont("helvetica", "italic");
+      doc.setTextColor(100);
+      const lines = doc.splitTextToSize(dashboard.dimensoes.justificativa, 180);
+      doc.text(lines, 14, y);
+      y += lines.length * 4.5 + 4;
+      doc.setTextColor(0);
+      doc.setFont("helvetica", "normal");
+    }
   }
 
-  // Blocos
-  doc.addPage();
-  y = 20;
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(13);
-  doc.text("Blocos da sessão", 14, y);
-  y += 4;
-  autoTable(doc, {
-    startY: y,
-    head: [["Título", "Período", "Resumo"]],
-    body: data.blocos.map((b) => [
-      b.titulo,
-      `${b.inicioMin}–${b.fimMin}min`,
-      b.resumoExecutivo,
-    ]),
-    theme: "grid",
-    headStyles: { fillColor: [116, 156, 91], textColor: 255 },
-    styles: { fontSize: 8, cellPadding: 3 },
-    columnStyles: { 0: { cellWidth: 50 }, 1: { cellWidth: 25 }, 2: { cellWidth: 105 } },
-  });
-  y = (doc.lastAutoTable?.finalY ?? y) + 8;
+  // Decisões
+  if (dashboard.principaisDecisoes?.length) {
+    if (y > 220) {
+      doc.addPage();
+      y = 20;
+    }
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "bold");
+    doc.text("Principais decisões", 14, y);
+    y += 4;
+    autoTable(doc, {
+      startY: y,
+      head: [["Título", "Tipo", "Tema", "Detalhe"]],
+      body: dashboard.principaisDecisoes.map((d) => [
+        d.titulo,
+        d.tipo,
+        d.tema,
+        d.detalhe,
+      ]),
+      theme: "grid",
+      headStyles: { fillColor: [116, 156, 91], textColor: 255 },
+      styles: { fontSize: 8, cellPadding: 3 },
+      columnStyles: {
+        0: { cellWidth: 50 },
+        1: { cellWidth: 28 },
+        2: { cellWidth: 28 },
+        3: { cellWidth: 74 },
+      },
+    });
+    y = (doc.lastAutoTable?.finalY ?? y) + 8;
+  }
 
-  // Previsões
-  if (y > 240) {
+  // Embates
+  if (dashboard.embates?.length) {
+    if (y > 220) {
+      doc.addPage();
+      y = 20;
+    }
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "bold");
+    doc.text("Embates", 14, y);
+    y += 4;
+    autoTable(doc, {
+      startY: y,
+      head: [["Tema", "Atores", "Resumo"]],
+      body: dashboard.embates.map((e) => [
+        e.tema,
+        e.atores?.join(" × ") ?? "",
+        e.resumo,
+      ]),
+      theme: "grid",
+      headStyles: { fillColor: [220, 38, 38], textColor: 255 },
+      styles: { fontSize: 8, cellPadding: 3 },
+      columnStyles: { 0: { cellWidth: 50 }, 1: { cellWidth: 50 }, 2: { cellWidth: 80 } },
+    });
+    y = (doc.lastAutoTable?.finalY ?? y) + 8;
+  }
+
+  // Destaques de discursos
+  if (dashboard.destaquesDiscursos?.length) {
     doc.addPage();
     y = 20;
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "bold");
+    doc.text("Destaques de discursos", 14, y);
+    y += 8;
+    doc.setFont("helvetica", "italic");
+    doc.setFontSize(10);
+    for (const c of dashboard.destaquesDiscursos) {
+      if (y > 270) {
+        doc.addPage();
+        y = 20;
+      }
+      const lines = doc.splitTextToSize(`"${c.trecho}"`, 180);
+      doc.text(lines, 14, y);
+      y += lines.length * 5 + 1;
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(8);
+      doc.setTextColor(100);
+      doc.text(
+        `— ${c.deputado}${c.partido ? ` (${c.partido})` : ""}`,
+        14,
+        y,
+      );
+      doc.setFont("helvetica", "italic");
+      doc.setFontSize(10);
+      doc.setTextColor(0);
+      y += 8;
+    }
   }
-  doc.setFont("helvetica", "bold");
-  doc.setFontSize(13);
-  doc.text("Cenários e previsões", 14, y);
-  y += 4;
-  autoTable(doc, {
-    startY: y,
-    head: [["Cenário", "Probabilidade", "Racional"]],
-    body: data.previsoes.map((p) => [
-      p.cenario,
-      `${Math.round(p.probabilidade * 100)}%`,
-      p.racional,
-    ]),
-    theme: "grid",
-    headStyles: { fillColor: [116, 156, 91], textColor: 255 },
-    styles: { fontSize: 8 },
-    columnStyles: { 0: { cellWidth: 70 }, 1: { cellWidth: 25 }, 2: { cellWidth: 85 } },
-  });
+
+  // Insights
+  if (dashboard.insights?.length) {
+    doc.addPage();
+    y = 20;
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "bold");
+    doc.text("Insights analíticos", 14, y);
+    y += 4;
+    autoTable(doc, {
+      startY: y,
+      head: [["Título", "Tipo", "Interpretação", "Evidência"]],
+      body: dashboard.insights.map((it) => [
+        it.titulo,
+        it.tipo,
+        it.interpretacao,
+        it.evidencia,
+      ]),
+      theme: "grid",
+      headStyles: { fillColor: [245, 158, 11], textColor: 255 },
+      styles: { fontSize: 8, cellPadding: 3 },
+      columnStyles: {
+        0: { cellWidth: 45 },
+        1: { cellWidth: 25 },
+        2: { cellWidth: 55 },
+        3: { cellWidth: 55 },
+      },
+    });
+    y = (doc.lastAutoTable?.finalY ?? y) + 8;
+  }
+
+  // Síntese final
+  if (dashboard.sinteseFinal) {
+    if (y > 240) {
+      doc.addPage();
+      y = 20;
+    }
+    doc.setFontSize(13);
+    doc.setFont("helvetica", "bold");
+    doc.text("Síntese final", 14, y);
+    doc.setFontSize(10);
+    doc.setFont("helvetica", "normal");
+    const lines = doc.splitTextToSize(dashboard.sinteseFinal, 180);
+    doc.text(lines, 14, y + 6);
+  }
 
   // Rodapé com paginação
   const pageCount = doc.getNumberOfPages();
@@ -192,6 +266,6 @@ export function exportDashboardPDF(data: SessionDashboardData) {
   }
 
   doc.save(
-    `dashboard-sessao-${data.meta.eventId}-${new Date().toISOString().slice(0, 10)}.pdf`,
+    `dashboard-sessao-${eventId}-${new Date().toISOString().slice(0, 10)}.pdf`,
   );
 }

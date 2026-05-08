@@ -2,115 +2,156 @@
 
 import dynamic from "next/dynamic";
 import type { ApexOptions } from "apexcharts";
-import type { SessionDashboardData } from "../_lib/mockSessionDashboard";
+import type { AiDashboardJson } from "../../components/types";
 
 const ReactApexChart = dynamic(() => import("react-apexcharts"), {
   ssr: false,
 });
 
-const PALETTE = ["#749c5b", "#4E9F3D", "#2d5a3d", "#5a8c4a", "#8ab86e"];
+const PALETTE = ["#749c5b", "#4E9F3D", "#2d5a3d", "#5a8c4a", "#8ab86e", "#a8d18d", "#c4e4ad"];
 
-function sentimentColor(score: number): string {
-  if (score > 0.2) return "#4E9F3D";
-  if (score > 0) return "#8ab86e";
-  if (score > -0.2) return "#f59e0b";
-  if (score > -0.4) return "#f97316";
-  return "#dc2626";
+// Conversão dos rótulos qualitativos do schema (alto/parcial/fluida…) em 0–100
+// para visualização em radial. Ver StructuredDashboard.tsx (oficial) — mesma lógica.
+export function dimensionScore(
+  key: "conflito" | "efetividade" | "fluidez",
+  value?: string,
+): number {
+  const v = (value ?? "").toLowerCase();
+  if (key === "conflito") {
+    if (v.includes("alto")) return 85;
+    if (v.includes("moderado")) return 55;
+    if (v.includes("baixo")) return 20;
+  }
+  if (key === "efetividade") {
+    if (v.includes("alta")) return 85;
+    if (v.includes("parcial") || v.includes("moderada")) return 55;
+    if (v.includes("baixa")) return 20;
+  }
+  if (key === "fluidez") {
+    if (v.includes("fluida")) return 85;
+    if (v.includes("interrompida")) return 55;
+    if (v.includes("fragmentada") || v.includes("travada")) return 20;
+  }
+  return 0;
 }
 
-export function SentimentTimelineChart({
-  data,
+function dimensionHex(score: number): string {
+  if (score >= 70) return "#10b981";
+  if (score >= 40) return "#f59e0b";
+  return "#ef4444";
+}
+
+export function DimensoesRadialChart({
+  dimensoes,
 }: {
-  data: SessionDashboardData["sentimento"];
+  dimensoes: NonNullable<AiDashboardJson["dimensoes"]>;
 }) {
   const series = [
-    {
-      name: "Sentimento",
-      data: data.porTrecho.map((t) => ({ x: t.minuto, y: t.score })),
-    },
+    dimensionScore("conflito", dimensoes.conflito),
+    dimensionScore("efetividade", dimensoes.efetividade),
+    dimensionScore("fluidez", dimensoes.fluidez),
   ];
+  const colors = series.map(dimensionHex);
 
   const options: ApexOptions = {
-    chart: {
-      type: "area",
-      toolbar: { show: false },
-      zoom: { enabled: false },
-      animations: { enabled: true },
-    },
-    stroke: { curve: "smooth", width: 3, colors: ["#749c5b"] },
-    fill: {
-      type: "gradient",
-      gradient: {
-        shadeIntensity: 1,
-        opacityFrom: 0.4,
-        opacityTo: 0.05,
-        stops: [0, 100],
-        colorStops: [
-          { offset: 0, color: "#749c5b", opacity: 0.4 },
-          { offset: 100, color: "#749c5b", opacity: 0.05 },
-        ],
-      },
-    },
-    xaxis: {
-      type: "numeric",
-      title: { text: "Minuto da sessão", style: { fontSize: "11px", fontWeight: 500 } },
-      labels: { formatter: (v) => `${Math.round(Number(v))}'` },
-    },
-    yaxis: {
-      min: -1,
-      max: 1,
-      title: { text: "Sentimento", style: { fontSize: "11px", fontWeight: 500 } },
-      labels: { formatter: (v) => v.toFixed(1) },
-    },
-    grid: { borderColor: "#f1f5f9", strokeDashArray: 4 },
-    annotations: {
-      yaxis: [
-        {
-          y: 0,
-          borderColor: "#94a3b8",
-          strokeDashArray: 4,
-          label: { text: "Neutro", style: { color: "#64748b", background: "transparent" } },
-        },
-      ],
-      points: data.porTrecho.map((t) => ({
-        x: t.minuto,
-        y: t.score,
-        marker: {
-          size: 5,
-          fillColor: sentimentColor(t.score),
-          strokeColor: "#fff",
-          strokeWidth: 2,
-        },
-        label: {
-          text: t.label,
-          offsetY: t.score > 0 ? -15 : 25,
-          style: {
-            background: "#1f2937",
-            color: "#fff",
-            fontSize: "10px",
-            padding: { left: 6, right: 6, top: 3, bottom: 3 },
+    chart: { type: "radialBar", sparkline: { enabled: true } },
+    colors,
+    plotOptions: {
+      radialBar: {
+        track: { background: "#f3f4f6", margin: 6 },
+        dataLabels: {
+          name: { fontSize: "11px", color: "#6f767e", offsetY: 4 },
+          value: {
+            fontSize: "16px",
+            color: "#1a1d1f",
+            fontWeight: 600,
+            offsetY: -4,
+            formatter: (v) => `${Math.round(Number(v))}%`,
+          },
+          total: {
+            show: true,
+            label: "Sessão",
+            color: "#1a1d1f",
+            fontSize: "12px",
+            fontWeight: 600,
+            formatter: () => {
+              const avg = series.reduce((a, b) => a + b, 0) / Math.max(series.length, 1);
+              return `${Math.round(avg)}%`;
+            },
           },
         },
-      })),
+        hollow: { size: "40%" },
+      },
     },
-    tooltip: { theme: "dark", y: { formatter: (v) => v.toFixed(2) } },
+    labels: ["Conflito", "Efetividade", "Fluidez"],
+    legend: {
+      show: true,
+      position: "bottom",
+      fontSize: "11px",
+      labels: { colors: "#1a1d1f" },
+      markers: { size: 5 },
+    },
+    stroke: { lineCap: "round" },
   };
 
   return (
-    <ReactApexChart options={options} series={series} type="area" height={320} />
+    <ReactApexChart options={options} series={series} type="radialBar" height={300} />
   );
 }
 
-export function SpeakingTimeBarChart({
-  data,
+export function DecisoesPorTipoChart({
+  decisoes,
 }: {
-  data: SessionDashboardData["temposFala"];
+  decisoes: NonNullable<AiDashboardJson["principaisDecisoes"]>;
 }) {
-  const top10 = [...data].slice(0, 10);
+  const counts = new Map<string, number>();
+  for (const d of decisoes) {
+    counts.set(d.tipo, (counts.get(d.tipo) ?? 0) + 1);
+  }
+  const labels = Array.from(counts.keys());
+  const series = Array.from(counts.values());
+
+  const options: ApexOptions = {
+    chart: { type: "donut" },
+    labels,
+    colors: PALETTE.slice(0, labels.length),
+    legend: { position: "bottom", fontSize: "11px" },
+    dataLabels: {
+      style: { fontSize: "12px", fontWeight: 600 },
+      formatter: (val) => `${Math.round(Number(val))}%`,
+    },
+    plotOptions: {
+      pie: {
+        donut: {
+          labels: {
+            show: true,
+            total: {
+              show: true,
+              label: "Total",
+              color: "#1a1d1f",
+              fontSize: "12px",
+              formatter: () => `${decisoes.length}`,
+            },
+            value: { color: "#1a1d1f", fontSize: "20px", fontWeight: 700 },
+          },
+        },
+      },
+    },
+    stroke: { width: 2, colors: ["#fff"] },
+  };
+
+  return <ReactApexChart options={options} series={series} type="donut" height={300} />;
+}
+
+export function EmbatesAtoresChart({
+  embates,
+}: {
+  embates: NonNullable<AiDashboardJson["embates"]>;
+}) {
   const series = [
     {
-      name: "Tempo (min)",
-      data: top10.map((d) => +(d.segundos / 60).toFixed(1)),
+      name: "Atores envolvidos",
+      data: embates.map((e) => e.atores?.length ?? 0),
     },
   ];
 
@@ -120,86 +161,81 @@ export function SpeakingTimeBarChart({
       bar: {
         horizontal: true,
         borderRadius: 6,
-        barHeight: "70%",
+        barHeight: "65%",
         distributed: true,
       },
     },
     dataLabels: {
       enabled: true,
-      formatter: (v) => `${v} min`,
+      formatter: (v) => `${v}`,
       style: { fontSize: "11px", colors: ["#1a1d1f"], fontWeight: 600 },
-      offsetX: 30,
+      offsetX: 14,
     },
-    colors: top10.map((_, i) => PALETTE[i % PALETTE.length]),
+    colors: embates.map((_, i) => PALETTE[i % PALETTE.length]),
     legend: { show: false },
     xaxis: {
-      categories: top10.map((d) => `${d.deputado.replace("Dep. ", "")} (${d.partido}-${d.uf})`),
+      categories: embates.map((e) =>
+        e.tema.length > 48 ? e.tema.slice(0, 45) + "…" : e.tema,
+      ),
       labels: { style: { fontSize: "11px" } },
-    },
-    grid: { borderColor: "#f1f5f9", strokeDashArray: 4 },
-    tooltip: { theme: "dark", y: { formatter: (v) => `${v} minutos` } },
-  };
-
-  return (
-    <ReactApexChart options={options} series={series} type="bar" height={400} />
-  );
-}
-
-export function TopicsBubbleChart({
-  data,
-}: {
-  data: SessionDashboardData["topicos"];
-}) {
-  const series = [
-    {
-      name: "Tópicos",
-      data: data.map((t, i) => ({
-        x: i + 1,
-        y: t.mencoes,
-        z: Math.abs(t.sentimentoAssoc) * 100 + 20,
-        nome: t.nome,
-        sentimento: t.sentimentoAssoc,
-      })),
-    },
-  ];
-
-  const options: ApexOptions = {
-    chart: { type: "bubble", toolbar: { show: false } },
-    dataLabels: { enabled: false },
-    fill: { opacity: 0.85 },
-    colors: data.map((t) => sentimentColor(t.sentimentoAssoc)),
-    plotOptions: { bubble: { zScaling: true } },
-    xaxis: {
-      title: { text: "Tópicos", style: { fontSize: "11px", fontWeight: 500 } },
-      labels: {
-        formatter: (v) => {
-          const idx = parseInt(v) - 1;
-          return data[idx]?.nome.split(" ").slice(0, 2).join(" ") ?? "";
-        },
-        rotate: -30,
-        style: { fontSize: "10px" },
-      },
-      tickAmount: data.length,
-    },
-    yaxis: {
-      title: { text: "Menções", style: { fontSize: "11px", fontWeight: 500 } },
     },
     grid: { borderColor: "#f1f5f9", strokeDashArray: 4 },
     tooltip: {
       theme: "dark",
-      custom: ({ seriesIndex, dataPointIndex, w }) => {
-        const point = w.config.series[seriesIndex].data[dataPointIndex];
-        return `<div style="padding: 8px;">
-          <strong>${point.nome}</strong><br/>
-          ${point.y} menções<br/>
-          Sentimento: ${point.sentimento.toFixed(2)}
-        </div>`;
-      },
+      y: { formatter: (v) => `${v} ator${Number(v) === 1 ? "" : "es"}` },
     },
-    legend: { show: false },
   };
 
   return (
-    <ReactApexChart options={options} series={series} type="bubble" height={340} />
+    <ReactApexChart
+      options={options}
+      series={series}
+      type="bar"
+      height={Math.max(220, embates.length * 60)}
+    />
   );
+}
+
+export function InsightsPorTipoChart({
+  insights,
+}: {
+  insights: NonNullable<AiDashboardJson["insights"]>;
+}) {
+  const counts = new Map<string, number>();
+  for (const it of insights) {
+    counts.set(it.tipo, (counts.get(it.tipo) ?? 0) + 1);
+  }
+  const labels = Array.from(counts.keys());
+  const series = Array.from(counts.values());
+
+  const options: ApexOptions = {
+    chart: { type: "donut" },
+    labels,
+    colors: ["#f59e0b", "#fbbf24", "#fcd34d", "#fde68a", "#fef3c7"].slice(0, labels.length),
+    legend: { position: "bottom", fontSize: "11px" },
+    dataLabels: {
+      style: { fontSize: "12px", fontWeight: 600 },
+      formatter: (val) => `${Math.round(Number(val))}%`,
+    },
+    plotOptions: {
+      pie: {
+        donut: {
+          labels: {
+            show: true,
+            total: {
+              show: true,
+              label: "Insights",
+              color: "#1a1d1f",
+              fontSize: "12px",
+              formatter: () => `${insights.length}`,
+            },
+            value: { color: "#1a1d1f", fontSize: "20px", fontWeight: 700 },
+          },
+        },
+      },
+    },
+    stroke: { width: 2, colors: ["#fff"] },
+  };
+
+  return <ReactApexChart options={options} series={series} type="donut" height={300} />;
 }
