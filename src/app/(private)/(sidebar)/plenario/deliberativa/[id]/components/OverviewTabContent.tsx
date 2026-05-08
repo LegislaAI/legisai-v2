@@ -32,6 +32,7 @@ export function OverviewTabContent({
       <StructuredDashboard
         eventDetails={eventDetails}
         fullTextForSession={fullTextForSession ?? null}
+        brevesComunicacoes={brevesComunicacoes}
       />
 
       {/* Stats Cards Row */}

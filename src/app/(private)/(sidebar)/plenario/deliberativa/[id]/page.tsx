@@ -388,7 +388,9 @@ export default function DeliberativeSessionScreen() {
     async function fetchBrevesComunicacoes() {
       const eventId = pathname.split("/").pop();
       const tabNeedsBreves =
-        activeTab === "brief_comm" || activeTab === "sessao_texto";
+        activeTab === "brief_comm" ||
+        activeTab === "sessao_texto" ||
+        activeTab === "overview";
       if (!eventId || !tabNeedsBreves || brevesComunicacoes) return;
 
       setLoadingBreves(true);
@@ -409,14 +411,16 @@ export default function DeliberativeSessionScreen() {
     fetchBrevesComunicacoes();
   }, [pathname, activeTab]);
 
-  // Transcrição completa (original Escriba) quando aba Sessão em texto está ativa
+  // Transcrição completa (original Escriba) — necessária na Visão Geral (para gerar dashboard IA)
+  // e na aba Sessão em texto. Cacheada após o primeiro fetch para evitar requisições duplicadas.
   useEffect(() => {
     async function fetchTranscricaoCompleta() {
       const eventId = pathname.split("/").pop();
-      if (!eventId || activeTab !== "sessao_texto") return;
+      const tabNeedsTranscricao =
+        activeTab === "sessao_texto" || activeTab === "overview";
+      if (!eventId || !tabNeedsTranscricao || transcricaoCompleta) return;
 
       setLoadingTranscricao(true);
-      setTranscricaoCompleta(null);
       try {
         const response = await GetAPI(
           `/event/${eventId}/transcricao-completa`,
