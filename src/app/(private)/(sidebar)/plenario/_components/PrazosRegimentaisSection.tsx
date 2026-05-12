@@ -1,354 +1,263 @@
 "use client";
 
-import { Card } from "@/components/v2/components/ui/Card";
 import { cn } from "@/lib/utils";
-import {
-  AlertTriangle,
-  Clock,
-  ExternalLink,
-  Filter,
-  Hourglass,
-  Search,
-  TimerReset,
-} from "lucide-react";
-import { useMemo, useState } from "react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
 
-type StatusPrazo = "em_curso" | "vencido" | "cumprido";
-type TipoPrazo = "comissao" | "plenario" | "emendas" | "outro";
-
-interface PrazoRegimental {
-  id: string;
-  identificador: string;
-  tipoPrazo: TipoPrazo;
-  descricao: string;
-  dataInicio: string;
-  dataFim: string;
-  diasUteisRestantes: number;
-  status: StatusPrazo;
-  fonteUrl: string;
+interface SessaoCalendario {
+  codReuniao: number;
+  contaPrazo: 0 | 1 | null;
+  dataSessao: string;
+  txtDescricao: string;
 }
 
-// MOCK — substituir por GetAPI(`/plenario/prazos?...`) quando o backend entregar
-// (ver BACKEND_TODO.md, Tarefa 4)
-const MOCK_PRAZOS: PrazoRegimental[] = [
-  {
-    id: "pr-1",
-    identificador: "PEC 32/2024",
-    tipoPrazo: "comissao",
-    descricao: "Prazo da CCJC para apreciação da admissibilidade",
-    dataInicio: "2026-04-15",
-    dataFim: "2026-05-05",
-    diasUteisRestantes: 2,
-    status: "em_curso",
-    fonteUrl: "https://www.camara.leg.br/plenario/contagem-de-prazos",
-  },
-  {
-    id: "pr-2",
-    identificador: "PLP 108/2024",
-    tipoPrazo: "plenario",
-    descricao: "Prazo regimental de pauta no Plenário",
-    dataInicio: "2026-04-22",
-    dataFim: "2026-05-12",
-    diasUteisRestantes: 7,
-    status: "em_curso",
-    fonteUrl: "https://www.camara.leg.br/plenario/contagem-de-prazos",
-  },
-  {
-    id: "pr-3",
-    identificador: "PL 4567/2025",
-    tipoPrazo: "emendas",
-    descricao: "Prazo para apresentação de emendas em comissão",
-    dataInicio: "2026-04-28",
-    dataFim: "2026-05-06",
-    diasUteisRestantes: 3,
-    status: "em_curso",
-    fonteUrl: "https://www.camara.leg.br/plenario/contagem-de-prazos",
-  },
-  {
-    id: "pr-4",
-    identificador: "MPV 1.245/2026",
-    tipoPrazo: "plenario",
-    descricao: "Prazo de vigência da MP – urgência constitucional",
-    dataInicio: "2026-03-08",
-    dataFim: "2026-05-07",
-    diasUteisRestantes: 4,
-    status: "em_curso",
-    fonteUrl: "https://www.camara.leg.br/plenario/contagem-de-prazos",
-  },
-  {
-    id: "pr-5",
-    identificador: "PDL 789/2024",
-    tipoPrazo: "comissao",
-    descricao: "Prazo da CCJC – constitucionalidade",
-    dataInicio: "2026-04-01",
-    dataFim: "2026-04-30",
-    diasUteisRestantes: -2,
-    status: "vencido",
-    fonteUrl: "https://www.camara.leg.br/plenario/contagem-de-prazos",
-  },
-  {
-    id: "pr-6",
-    identificador: "PL 1234/2025",
-    tipoPrazo: "comissao",
-    descricao: "Prazo da CFT para parecer",
-    dataInicio: "2026-04-10",
-    dataFim: "2026-05-20",
-    diasUteisRestantes: 12,
-    status: "em_curso",
-    fonteUrl: "https://www.camara.leg.br/plenario/contagem-de-prazos",
-  },
-  {
-    id: "pr-7",
-    identificador: "PEC 18/2025",
-    tipoPrazo: "comissao",
-    descricao: "Prazo da Comissão Especial – mérito",
-    dataInicio: "2026-04-05",
-    dataFim: "2026-05-15",
-    diasUteisRestantes: 9,
-    status: "em_curso",
-    fonteUrl: "https://www.camara.leg.br/plenario/contagem-de-prazos",
-  },
+interface CalendarioResponse {
+  mes: number;
+  ano: number;
+  sessoes: SessaoCalendario[];
+  diasValidos: string[];
+}
+
+const MESES_PT = [
+  "Janeiro",
+  "Fevereiro",
+  "Março",
+  "Abril",
+  "Maio",
+  "Junho",
+  "Julho",
+  "Agosto",
+  "Setembro",
+  "Outubro",
+  "Novembro",
+  "Dezembro",
 ];
 
-function urgenciaColor(d: number, status: StatusPrazo): {
-  bg: string;
-  text: string;
-  border: string;
-  Icon: React.ComponentType<{ className?: string }>;
-} {
-  if (status === "vencido")
-    return {
-      bg: "bg-red-50",
-      text: "text-red-700",
-      border: "border-red-200",
-      Icon: AlertTriangle,
-    };
-  if (status === "cumprido")
-    return {
-      bg: "bg-gray-50",
-      text: "text-gray-600",
-      border: "border-gray-200",
-      Icon: Clock,
-    };
-  if (d <= 3)
-    return {
-      bg: "bg-red-50",
-      text: "text-red-700",
-      border: "border-red-200",
-      Icon: AlertTriangle,
-    };
-  if (d <= 7)
-    return {
-      bg: "bg-amber-50",
-      text: "text-amber-700",
-      border: "border-amber-200",
-      Icon: Hourglass,
-    };
-  return {
-    bg: "bg-emerald-50",
-    text: "text-emerald-700",
-    border: "border-emerald-200",
-    Icon: TimerReset,
-  };
-}
-
-function tipoLabel(t: TipoPrazo) {
-  return {
-    comissao: "Comissão",
-    plenario: "Plenário",
-    emendas: "Emendas",
-    outro: "Outro",
-  }[t];
-}
-
 export function PrazosRegimentaisSection() {
-  const [filter, setFilter] = useState<"all" | StatusPrazo>("all");
-  const [tipoFilter, setTipoFilter] = useState<"all" | TipoPrazo>("all");
-  const [search, setSearch] = useState("");
+  const today = useMemo(() => new Date(), []);
+  const [mes, setMes] = useState(today.getMonth() + 1);
+  const [ano, setAno] = useState(today.getFullYear());
+  const [data, setData] = useState<CalendarioResponse | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
-  const filtered = useMemo(
-    () =>
-      MOCK_PRAZOS.filter((p) => {
-        if (filter !== "all" && p.status !== filter) return false;
-        if (tipoFilter !== "all" && p.tipoPrazo !== tipoFilter) return false;
-        if (
-          search.trim() &&
-          !p.identificador
-            .toLowerCase()
-            .includes(search.toLowerCase().trim()) &&
-          !p.descricao.toLowerCase().includes(search.toLowerCase().trim())
-        )
-          return false;
-        return true;
-      }).sort((a, b) => a.diasUteisRestantes - b.diasUteisRestantes),
-    [filter, tipoFilter, search],
+  useEffect(() => {
+    let active = true;
+    setLoading(true);
+    setError(null);
+    fetch(`/api/camara-plenario/calendario/${mes}/${ano}`, {
+      headers: { Accept: "application/json" },
+    })
+      .then(async (res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return (await res.json()) as CalendarioResponse;
+      })
+      .then((body) => {
+        if (active) setData(body);
+      })
+      .catch((err) => {
+        if (active) setError(err?.message ?? "Falha ao carregar calendário");
+      })
+      .finally(() => active && setLoading(false));
+    return () => {
+      active = false;
+    };
+  }, [mes, ano]);
+
+  const validSet = useMemo(
+    () => new Set(data?.diasValidos ?? []),
+    [data?.diasValidos],
   );
+  const sessoesPorDia = useMemo(() => {
+    const map = new Map<string, SessaoCalendario[]>();
+    (data?.sessoes ?? []).forEach((s) => {
+      const arr = map.get(s.dataSessao) ?? [];
+      arr.push(s);
+      map.set(s.dataSessao, arr);
+    });
+    return map;
+  }, [data?.sessoes]);
 
-  const proximos = filtered.filter(
-    (p) => p.status === "em_curso" && p.diasUteisRestantes <= 7,
-  ).length;
+  const firstWeekday = new Date(ano, mes - 1, 1).getDay();
+  const daysInMonth = new Date(ano, mes, 0).getDate();
+  const cells: (number | null)[] = [
+    ...Array.from({ length: firstWeekday }, () => null),
+    ...Array.from({ length: daysInMonth }, (_, i) => i + 1),
+  ];
+  while (cells.length % 7 !== 0) cells.push(null);
+
+  const todayISO = today.toISOString().slice(0, 10);
+
+  function step(delta: number) {
+    let nm = mes + delta;
+    let na = ano;
+    if (nm < 1) {
+      nm = 12;
+      na -= 1;
+    } else if (nm > 12) {
+      nm = 1;
+      na += 1;
+    }
+    setMes(nm);
+    setAno(na);
+  }
 
   return (
-    <div className="space-y-5">
-      <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
-        <h2 className="mb-2 text-xl font-bold text-[#1a1d1f]">
-          Prazos Regimentais
-        </h2>
-        <p className="mb-5 text-sm text-[#6f767e]">
-          Contagem de prazos de tramitação em dias úteis (excluindo recesso
-          parlamentar e feriados nacionais). Fonte:{" "}
-          <a
-            href="https://www.camara.leg.br/plenario/contagem-de-prazos"
-            target="_blank"
-            rel="noreferrer"
-            className="text-[#749c5b] hover:underline"
-          >
-            camara.leg.br/plenario/contagem-de-prazos
-          </a>
-        </p>
+    <div className="rounded-xl border border-gray-100 bg-white p-6 shadow-sm">
+      <h2 className="text-xl font-bold text-[#1a1d1f]">Contagem de Prazos</h2>
+      <h3 className="mt-1 text-base font-semibold text-[#1a1d1f]">
+        Datas Válidas para Contar Prazos
+      </h3>
+      <p className="mt-2 text-sm text-[#6f767e]">
+        O calendário abaixo mostra os dias em que houve sessão válida para
+        contar os prazos do processo legislativo.
+      </p>
 
-        <div className="flex flex-wrap items-center gap-3">
-          <div className="relative min-w-[240px] flex-1">
-            <Search className="pointer-events-none absolute top-1/2 left-3 h-4 w-4 -translate-y-1/2 text-gray-400" />
-            <input
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              placeholder="Buscar por matéria…"
-              className="h-10 w-full rounded-lg border border-gray-200 bg-white pl-9 pr-3 text-sm placeholder-gray-400 focus:border-[#749c5b] focus:outline-none"
-            />
+      <div className="mt-6 grid gap-8 lg:grid-cols-[auto_1fr] lg:items-start">
+        <div className="w-full max-w-[360px]">
+          <div className="mb-2 flex items-center justify-between">
+            <button
+              type="button"
+              onClick={() => step(-1)}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 text-gray-600 hover:bg-gray-50"
+              aria-label="Mês anterior"
+            >
+              <ChevronLeft className="h-4 w-4" />
+            </button>
+            <div className="text-sm font-semibold uppercase tracking-wide text-[#1a1d1f]">
+              {MESES_PT[mes - 1]} {ano}
+            </div>
+            <button
+              type="button"
+              onClick={() => step(1)}
+              className="inline-flex h-8 w-8 items-center justify-center rounded-md border border-gray-200 text-gray-600 hover:bg-gray-50"
+              aria-label="Próximo mês"
+            >
+              <ChevronRight className="h-4 w-4" />
+            </button>
           </div>
-          <div className="flex items-center gap-1 rounded-xl border border-gray-200 bg-gray-50 p-1">
-            <Filter className="ml-2 h-4 w-4 text-gray-400" />
-            {(["all", "em_curso", "vencido", "cumprido"] as const).map((s) => (
-              <button
-                key={s}
-                onClick={() => setFilter(s)}
-                className={cn(
-                  "rounded-lg px-3 py-1.5 text-xs font-medium transition-all",
-                  filter === s
-                    ? "bg-white text-[#749c5b] shadow-sm"
-                    : "text-gray-600 hover:text-gray-900",
-                )}
-              >
-                {s === "all"
-                  ? "Todos"
-                  : s === "em_curso"
-                    ? "Em curso"
-                    : s === "vencido"
-                      ? "Vencidos"
-                      : "Cumpridos"}
-              </button>
-            ))}
-          </div>
-          <div className="flex items-center gap-1 rounded-xl border border-gray-200 bg-gray-50 p-1">
-            {(["all", "comissao", "plenario", "emendas"] as const).map((t) => (
-              <button
-                key={t}
-                onClick={() => setTipoFilter(t)}
-                className={cn(
-                  "rounded-lg px-3 py-1.5 text-xs font-medium transition-all",
-                  tipoFilter === t
-                    ? "bg-white text-[#749c5b] shadow-sm"
-                    : "text-gray-600 hover:text-gray-900",
-                )}
-              >
-                {t === "all" ? "Todos os tipos" : tipoLabel(t as TipoPrazo)}
-              </button>
-            ))}
-          </div>
-        </div>
 
-        {proximos > 0 && (
-          <div className="mt-4 flex items-center gap-2 rounded-lg border border-amber-200 bg-amber-50 px-3 py-2 text-sm text-amber-800">
-            <AlertTriangle className="h-4 w-4 shrink-0" />
-            <span>
-              <strong>{proximos}</strong> matéria{proximos === 1 ? "" : "s"}{" "}
-              com prazo regimental vencendo em até 7 dias úteis
-            </span>
-          </div>
-        )}
-      </div>
-
-      <Card className="overflow-hidden p-0">
-        <div className="grid grid-cols-12 gap-4 border-b border-gray-100 bg-gray-50 px-4 py-2.5 text-xs font-semibold uppercase tracking-wide text-gray-500">
-          <div className="col-span-2">Matéria</div>
-          <div className="col-span-1">Tipo</div>
-          <div className="col-span-4">Descrição do prazo</div>
-          <div className="col-span-2 text-center">Início → Fim</div>
-          <div className="col-span-2 text-center">Dias úteis</div>
-          <div className="col-span-1 text-right" />
-        </div>
-
-        {filtered.length === 0 ? (
-          <div className="px-4 py-12 text-center text-sm text-gray-500">
-            Nenhum prazo encontrado para o filtro atual.
-          </div>
-        ) : (
-          filtered.map((p) => {
-            const u = urgenciaColor(p.diasUteisRestantes, p.status);
-            return (
-              <div
-                key={p.id}
-                className="grid grid-cols-12 items-center gap-4 border-b border-gray-100 px-4 py-3 text-sm transition-colors last:border-b-0 hover:bg-gray-50"
-              >
-                <div className="col-span-2">
-                  <p className="font-semibold text-gray-900">
-                    {p.identificador}
-                  </p>
+          <div className="rounded-lg border border-gray-200 bg-gray-50/50 p-3">
+            <div className="grid grid-cols-7 gap-1 text-center text-[11px] font-semibold uppercase text-gray-400">
+              {["D", "S", "T", "Q", "Q", "S", "S"].map((d, i) => (
+                <div key={i} className="py-1.5">
+                  {d}
                 </div>
-                <div className="col-span-1">
-                  <span className="rounded-md border border-gray-200 bg-white px-1.5 py-0.5 text-xs text-gray-600">
-                    {tipoLabel(p.tipoPrazo)}
-                  </span>
-                </div>
-                <div className="col-span-4 text-sm text-gray-700">
-                  {p.descricao}
-                </div>
-                <div className="col-span-2 text-center text-xs text-gray-500 tabular-nums">
-                  {new Date(p.dataInicio).toLocaleDateString("pt-BR")} →{" "}
-                  {new Date(p.dataFim).toLocaleDateString("pt-BR")}
-                </div>
-                <div className="col-span-2 text-center">
-                  <span
+              ))}
+            </div>
+            <div className="grid grid-cols-7 gap-1">
+              {cells.map((day, idx) => {
+                if (day === null) return <div key={idx} className="h-9" />;
+                const iso = `${ano}-${String(mes).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+                const valido = validSet.has(iso);
+                const temSessao = sessoesPorDia.has(iso);
+                const isToday = iso === todayISO;
+                return (
+                  <div
+                    key={idx}
+                    title={
+                      valido
+                        ? "Sessão válida para contar prazo"
+                        : temSessao
+                          ? "Sessão sem efeito para contagem"
+                          : ""
+                    }
                     className={cn(
-                      "inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-semibold",
-                      u.bg,
-                      u.text,
-                      u.border,
+                      "flex h-9 items-center justify-center rounded-md text-sm tabular-nums transition-colors",
+                      valido
+                        ? "bg-[#749c5b]/10 font-bold text-[#363636] ring-1 ring-inset ring-[#749c5b]/40"
+                        : "font-normal text-[#5f5f5e]",
+                      isToday && "outline outline-2 outline-amber-400",
                     )}
                   >
-                    <u.Icon className="h-3.5 w-3.5" />
-                    {p.status === "vencido"
-                      ? `Vencido há ${Math.abs(p.diasUteisRestantes)}d`
-                      : p.status === "cumprido"
-                        ? "Cumprido"
-                        : `${p.diasUteisRestantes}d restantes`}
-                  </span>
-                </div>
-                <div className="col-span-1 text-right">
-                  <a
-                    href={p.fonteUrl}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center text-[#749c5b] hover:opacity-70"
-                    aria-label="Ver na Câmara"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                  </a>
-                </div>
-              </div>
-            );
-          })
-        )}
-      </Card>
+                    {day}
+                  </div>
+                );
+              })}
+            </div>
+          </div>
 
-      <p className="text-center text-xs text-gray-400">
-        Dados de demonstração — engine de prazos e scraper pendentes (ver{" "}
-        <code className="rounded bg-gray-100 px-1 py-0.5 text-[10px]">
-          BACKEND_TODO.md
-        </code>
-        , Tarefa 4 — recesso parlamentar 22/12–02/02 e 18/07–31/07).
-      </p>
+          <p className="mt-3 text-[11px] font-semibold uppercase tracking-wide text-gray-400">
+            Legenda:
+          </p>
+          <div className="mt-1 space-y-1.5 text-xs text-gray-600">
+            <div className="flex items-center gap-2">
+              <span className="inline-flex h-6 w-6 items-center justify-center rounded-md bg-[#749c5b]/10 text-[10px] font-bold text-[#363636] ring-1 ring-inset ring-[#749c5b]/40">
+                00
+              </span>
+              Data com sessão válida para contar prazo
+            </div>
+            <div className="flex items-center gap-2">
+              <span className="inline-flex h-6 w-6 items-center justify-center rounded-md text-[10px] text-[#5f5f5e]">
+                00
+              </span>
+              Data sem sessão válida para contar prazo
+            </div>
+          </div>
+
+          {loading && (
+            <div className="mt-3 flex items-center gap-2 text-xs text-[#6f767e]">
+              <div className="h-3 w-3 animate-spin rounded-full border-2 border-[#749c5b] border-t-transparent" />
+              Carregando dados oficiais da Câmara…
+            </div>
+          )}
+          {error && (
+            <div className="mt-3 rounded-md border border-red-200 bg-red-50 px-3 py-2 text-xs text-red-700">
+              Não foi possível carregar o calendário ({error}).
+            </div>
+          )}
+        </div>
+
+        <div className="space-y-4 text-sm leading-relaxed text-[#1a1d1f]">
+          <p>
+            Cada etapa do processo legislativo tem um prazo máximo para
+            acontecer. Alguns prazos são contados em dias corridos; outros,
+            fixados por mês; mas dezenas deles são definidos em número de
+            sessões que ocorrem no Plenário.
+          </p>
+
+          <p className="font-semibold">
+            Como exemplo, a ocorrência de cinco sessões no Plenário é o prazo
+            máximo para que:
+          </p>
+          <ul className="ml-5 list-disc space-y-1 text-[#3a3a3a]">
+            <li>
+              os líderes partidários indiquem os integrantes das comissões
+            </li>
+            <li>
+              os deputados sugiram mudanças nas propostas em análise nas
+              comissões
+            </li>
+            <li>
+              os deputados peçam a separação de propostas que tramitam juntas
+            </li>
+          </ul>
+
+          <p>
+            Apenas uma sessão é contada por dia, e nem todas as sessões valem
+            para a contagem de prazos.
+          </p>
+
+          <p className="font-semibold">Não valem as:</p>
+          <ul className="ml-5 list-disc space-y-1 text-[#3a3a3a]">
+            <li>Sessões solenes</li>
+            <li>Sessões extraordinárias transformadas em comissão geral</li>
+            <li>Sessões preparatórias</li>
+          </ul>
+
+          <p className="pt-2 text-xs text-gray-500">
+            Fonte:{" "}
+            <a
+              href="https://www.camara.leg.br/plenario/contagem-de-prazos"
+              target="_blank"
+              rel="noreferrer"
+              className="text-[#749c5b] hover:underline"
+            >
+              camara.leg.br/plenario/contagem-de-prazos
+            </a>
+          </p>
+        </div>
+      </div>
     </div>
   );
 }

@@ -24,6 +24,7 @@ import { ComissoesGeraisSection } from "./_components/ComissoesGeraisSection";
 import { PrazosRegimentaisSection } from "./_components/PrazosRegimentaisSection";
 import { InsightsBanner } from "./_components/InsightsBanner";
 import { Hourglass, Users } from "lucide-react";
+import { WeeklyInsightsStrip } from "./_components/WeeklyInsightsStrip";
 
 // --- TIPOS ---
 type MainPlenaryTab =
@@ -296,6 +297,9 @@ export default function SessionListScreen() {
             ))}
           </div>
         </div>
+
+        {/* --- INSIGHTS DA SEMANA (Backend: GET /event/weekly-insights) --- */}
+        {mainTab === "pauta" && <WeeklyInsightsStrip />}
 
         {/* --- CONTEÚDO: PAUTA DA SEMANA --- */}
         {mainTab === "pauta" && (

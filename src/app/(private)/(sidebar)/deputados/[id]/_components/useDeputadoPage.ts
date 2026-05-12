@@ -8,13 +8,16 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { MONTHS, START_YEAR } from "./constants";
 import type {
     AgendaResumo,
+    AlinhamentoPartido,
     Contadores,
     DespesaCEAP,
     DespesasResumoCEAP,
     DiscursosResumo,
+    FornecedoresResponse,
     EventoAgenda,
     HistoricoResponse,
     Presenca,
+    PresencaDetalhada,
     ProposicaoDeputado,
     ProposicoesResumo,
     SocialLink,
@@ -81,12 +84,20 @@ export function useDeputadoPage(id: string | undefined) {
 
   const [contadores, setContadores] = useState<Contadores | null>(null);
   const [presenca, setPresenca] = useState<Presenca | null>(null);
+  const [presencaDetalhada, setPresencaDetalhada] =
+    useState<PresencaDetalhada | null>(null);
   const [votacoesIndicadores, setVotacoesIndicadores] =
     useState<VotacoesIndicadores | null>(null);
+  const [alinhamento, setAlinhamento] = useState<AlinhamentoPartido | null>(
+    null,
+  );
   const [temas, setTemas] = useState<TemasResponse | null>(null);
   const [loadingContadores, setLoadingContadores] = useState(false);
   const [loadingPresenca, setLoadingPresenca] = useState(false);
+  const [loadingPresencaDetalhada, setLoadingPresencaDetalhada] =
+    useState(false);
   const [loadingVotacoes, setLoadingVotacoes] = useState(false);
+  const [loadingAlinhamento, setLoadingAlinhamento] = useState(false);
   const [loadingTemas, setLoadingTemas] = useState(false);
 
   const [ceapResumo, setCeapResumo] = useState<DespesasResumoCEAP | null>(null);
@@ -94,8 +105,11 @@ export function useDeputadoPage(id: string | undefined) {
   const [ceapPage, setCeapPage] = useState(1);
   const [ceapAno, setCeapAno] = useState(selectedYear);
   const [ceapHasMore, setCeapHasMore] = useState(false);
+  const [ceapFornecedores, setCeapFornecedores] =
+    useState<FornecedoresResponse | null>(null);
   const [loadingCeapResumo, setLoadingCeapResumo] = useState(false);
   const [loadingCeapDespesas, setLoadingCeapDespesas] = useState(false);
+  const [loadingCeapFornecedores, setLoadingCeapFornecedores] = useState(false);
 
   const [pastEvents, setPastEvents] = useState<EventoAgenda[]>([]);
   const [pastEventsPage, setPastEventsPage] = useState(1);
@@ -451,6 +465,44 @@ export function useDeputadoPage(id: string | undefined) {
     }
   }, [id, selectedYear, GetAPI]);
 
+  const fetchAlinhamento = useCallback(async () => {
+    if (!id) return;
+    setLoadingAlinhamento(true);
+    try {
+      const dataInicio = `${selectedYear}-01-01`;
+      const dataFim = `${selectedYear}-12-31`;
+      const res = await GetAPI(
+        `/politician/${id}/votacoes/alinhamento-partido?dataInicio=${dataInicio}&dataFim=${dataFim}`,
+        true,
+      );
+      if (res.status === 200 && res.body) setAlinhamento(res.body);
+      else setAlinhamento(null);
+    } catch {
+      setAlinhamento(null);
+    } finally {
+      setLoadingAlinhamento(false);
+    }
+  }, [id, selectedYear, GetAPI]);
+
+  const fetchPresencaDetalhada = useCallback(async () => {
+    if (!id) return;
+    setLoadingPresencaDetalhada(true);
+    try {
+      const dataInicio = `${selectedYear}-01-01`;
+      const dataFim = `${selectedYear}-12-31`;
+      const res = await GetAPI(
+        `/politician/${id}/presenca/detalhada?dataInicio=${dataInicio}&dataFim=${dataFim}`,
+        true,
+      );
+      if (res.status === 200 && res.body) setPresencaDetalhada(res.body);
+      else setPresencaDetalhada(null);
+    } catch {
+      setPresencaDetalhada(null);
+    } finally {
+      setLoadingPresencaDetalhada(false);
+    }
+  }, [id, selectedYear, GetAPI]);
+
   const fetchTemas = useCallback(async () => {
     if (!id) return;
     setLoadingTemas(true);
@@ -534,6 +586,23 @@ export function useDeputadoPage(id: string | undefined) {
       setLoadingCeapDespesas(false);
     }
   }, [id, ceapAno, ceapPage, GetAPI]);
+
+  const fetchCeapFornecedores = useCallback(async () => {
+    if (!id) return;
+    setLoadingCeapFornecedores(true);
+    try {
+      const res = await GetAPI(
+        `/politician/${id}/despesas/fornecedores?ano=${ceapAno}&limit=10`,
+        true,
+      );
+      if (res.status === 200 && res.body) setCeapFornecedores(res.body);
+      else setCeapFornecedores(null);
+    } catch {
+      setCeapFornecedores(null);
+    } finally {
+      setLoadingCeapFornecedores(false);
+    }
+  }, [id, ceapAno, GetAPI]);
 
   useEffect(() => {
     setCeapAno(selectedYear);
@@ -648,7 +717,9 @@ export function useDeputadoPage(id: string | undefined) {
         fetchProposicoes(),
         fetchBiografia(),
         fetchPresenca(),
+        fetchPresencaDetalhada(),
         fetchVotacoesIndicadores(),
+        fetchAlinhamento(),
         fetchTemas(),
         fetchDiscursosResumo(),
         fetchCeapResumo(),
@@ -673,13 +744,16 @@ export function useDeputadoPage(id: string | undefined) {
     Promise.allSettled([
       fetchDetails(),
       fetchPresenca(),
+      fetchPresencaDetalhada(),
       fetchContadores(),
       fetchProposicoesResumo(),
       fetchVotacoesIndicadores(),
+      fetchAlinhamento(),
       fetchDiscursosResumo(),
       fetchTemas(),
       fetchCeapResumo(),
       fetchCeapDespesas(),
+      fetchCeapFornecedores(),
     ]);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedYear]);
@@ -876,15 +950,20 @@ export function useDeputadoPage(id: string | undefined) {
 
     contadores,
     presenca,
+    presencaDetalhada,
     votacoesIndicadores,
+    alinhamento,
     temas,
     loadingContadores,
     loadingPresenca,
+    loadingPresencaDetalhada,
     loadingVotacoes,
+    loadingAlinhamento,
     loadingTemas,
 
     ceapResumo,
     despesasCeap,
+    ceapFornecedores,
     ceapPage,
     setCeapPage,
     ceapAno,
@@ -892,6 +971,7 @@ export function useDeputadoPage(id: string | undefined) {
     ceapHasMore,
     loadingCeapResumo,
     loadingCeapDespesas,
+    loadingCeapFornecedores,
 
     discursosResumo,
     loadingDiscursos,
