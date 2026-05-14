@@ -1,0 +1,13 @@
+{
+	"folders": [
+		{
+			"path": "../legis-api"
+		},
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"prisma.pinToPrisma6": true
+	}
+}

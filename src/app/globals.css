@@ -174,3 +174,60 @@
 .swiper-slide {
   max-width: fit-content;
 }
+
+/* ── Print stylesheet — gerar dossiê PDF via window.print() ── */
+@media print {
+  /* Esconde elementos não-essenciais: navegação, sidebar, botões, rail */
+  nav,
+  aside,
+  header[role="banner"],
+  .print\:hidden,
+  [data-print="hide"] {
+    display: none !important;
+  }
+
+  /* Layout simplificado para impressão */
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Mostra todas as abas (Radix usa data-state="inactive" para esconder) */
+  [data-state="inactive"][role="tabpanel"] {
+    display: block !important;
+    animation: none !important;
+  }
+
+  /* Esconde o painel de tabs (lista) */
+  [role="tablist"] {
+    display: none !important;
+  }
+
+  /* Quebra elegante entre Cards */
+  .shadow-sm,
+  .shadow,
+  .shadow-md,
+  .shadow-lg,
+  .shadow-xl {
+    box-shadow: none !important;
+  }
+
+  /* Limita largura do conteúdo */
+  main,
+  article,
+  section {
+    max-width: 100% !important;
+    width: 100% !important;
+  }
+
+  /* Cores legíveis em P&B */
+  a {
+    color: inherit !important;
+    text-decoration: none !important;
+  }
+
+  /* Quebra de página antes de cada Card de aba (visual mais limpo) */
+  [role="tabpanel"] > .border-gray-100 {
+    page-break-inside: avoid;
+  }
+}

@@ -134,6 +134,8 @@ export function TabAtuacao({ data }: { data: DeputadoPageData }) {
     politician,
     presenca,
     loadingPresenca,
+    presencaDetalhada,
+    loadingPresencaDetalhada,
     discursosResumo,
     loadingDiscursos,
     profile,
@@ -146,10 +148,21 @@ export function TabAtuacao({ data }: { data: DeputadoPageData }) {
       ? (presenca.presencas / (presenca.presencas + presenca.ausencias)) * 100
       : null;
 
+  const plenarioPresent = presencaDetalhada?.plenario?.present ?? 0;
+  const plenarioAbsent = presencaDetalhada?.plenario?.absent ?? 0;
+  const comissoesPresent =
+    presencaDetalhada?.perCommittee?.reduce((s, c) => s + (c.present ?? 0), 0) ?? 0;
+  const comissoesAbsent =
+    presencaDetalhada?.perCommittee?.reduce((s, c) => s + (c.absent ?? 0), 0) ?? 0;
+  const outrasPresent = Math.max(
+    0,
+    (presenca?.presencas ?? 0) - plenarioPresent - comissoesPresent,
+  );
+
   const profileValues = profile
     ? [
-        Number(profile.plenaryPresence) || 0,
-        Number(profile.committeesPresence) || 0,
+        plenarioPresent,
+        comissoesPresent,
         Number(profile.createdProposals) || 0,
         Number(profile.speeches) || 0,
         Number(profile.rollCallVotes) || 0,
@@ -157,12 +170,7 @@ export function TabAtuacao({ data }: { data: DeputadoPageData }) {
     : [];
   const hasRadarData = profileValues.some((v) => v > 0);
 
-  const plenaryJust = Number(profile?.plenaryJustifiedAbsences) || 0;
-  const plenaryUnjust = Number(profile?.plenaryUnjustifiedAbsences) || 0;
-  const committeeJust = Number(profile?.committeesJustifiedAbsences) || 0;
-  const committeeUnjust = Number(profile?.committeesUnjustifiedAbsences) || 0;
-  const hasAbsenceData =
-    plenaryJust + plenaryUnjust + committeeJust + committeeUnjust > 0;
+  const hasAbsenceData = plenarioAbsent + comissoesAbsent > 0;
 
   const radialOptions: ApexOptions = {
     chart: { type: "radialBar", fontFamily: "inherit" },
@@ -231,14 +239,14 @@ export function TabAtuacao({ data }: { data: DeputadoPageData }) {
         barHeight: "55%",
       },
     },
-    colors: ["#f59e0b", "#ef4444"],
+    colors: ["#059669", "#ef4444"],
     dataLabels: {
       enabled: true,
       style: { fontSize: "12px", fontWeight: "700" },
       formatter: (val: number) => (val > 0 ? String(val) : ""),
     },
     xaxis: {
-      categories: ["Plenário", "Comissões"],
+      categories: ["Plenário", "Comissões", "Outras"],
       labels: { show: false },
       axisBorder: { show: false },
       axisTicks: { show: false },
@@ -263,7 +271,7 @@ export function TabAtuacao({ data }: { data: DeputadoPageData }) {
       markers: { size: 6, shape: "circle" as const },
     },
     tooltip: {
-      y: { formatter: (val: number) => `${val} falta(s)` },
+      y: { formatter: (val: number) => `${val}` },
     },
   };
 
@@ -330,8 +338,8 @@ export function TabAtuacao({ data }: { data: DeputadoPageData }) {
         opacity: 0.08,
       },
     },
-    colors: ["#059669", "#f59e0b", "#ef4444"],
-    labels: ["Presenças", "Faltas Justif.", "Faltas Injustif."],
+    colors: ["#059669", "#ef4444"],
+    labels: ["Presenças", "Ausências"],
     legend: {
       position: "bottom",
       fontSize: "11px",
@@ -370,10 +378,9 @@ export function TabAtuacao({ data }: { data: DeputadoPageData }) {
     stroke: { width: 3, colors: ["#fff"] },
   };
 
-  const plenaryTotal = Number(profile?.plenaryPresence) || 0;
   const plenaryDonutSeries =
-    plenaryTotal + plenaryJust + plenaryUnjust > 0
-      ? [plenaryTotal, plenaryJust, plenaryUnjust]
+    plenarioPresent + plenarioAbsent > 0
+      ? [plenarioPresent, plenarioAbsent]
       : [];
 
   return (
@@ -392,7 +399,7 @@ export function TabAtuacao({ data }: { data: DeputadoPageData }) {
             textColor="#059669"
           />
           <KPICard
-            value={profile?.plenaryPresence ?? "—"}
+            value={presencaDetalhada?.plenario ? plenarioPresent : "—"}
             label="Plenário"
             icon={User}
             gradient="linear-gradient(90deg, #749c5b, #4E9F3D)"
@@ -400,7 +407,11 @@ export function TabAtuacao({ data }: { data: DeputadoPageData }) {
             textColor="#749c5b"
           />
           <KPICard
-            value={profile?.committeesPresence ?? "—"}
+            value={
+              presencaDetalhada?.perCommittee && presencaDetalhada.perCommittee.length > 0
+                ? comissoesPresent
+                : "—"
+            }
             label="Comissões"
             icon={Briefcase}
             gradient="linear-gradient(90deg, #2563eb, #3b82f6)"
@@ -492,58 +503,66 @@ export function TabAtuacao({ data }: { data: DeputadoPageData }) {
             <div className={`${GLASS_HEADER} px-6 pt-5 pb-3`}>
               <SectionTitle
                 icon={XCircle}
-                title="Detalhamento de Faltas"
-                subtitle="Justificadas vs. injustificadas"
+                title="Presenças e Ausências por Órgão"
+                subtitle="Plenário vs. comissões no período"
                 accentColor="#ef4444"
               />
             </div>
             <div className="px-4 pb-4">
-              {loadingPresenca ? (
+              {loadingPresencaDetalhada ? (
                 <div className="flex items-center justify-center py-16">
                   <SkeletonLoader className="h-40 w-full rounded-xl" />
                 </div>
-              ) : hasAbsenceData ? (
+              ) : hasAbsenceData || plenarioPresent + comissoesPresent + outrasPresent > 0 ? (
                 <>
                   <ReactApexChart
                     options={absenceBarOptions}
                     series={[
                       {
-                        name: "Justificadas",
-                        data: [plenaryJust, committeeJust],
+                        name: "Presenças",
+                        data: [plenarioPresent, comissoesPresent, outrasPresent],
                       },
                       {
-                        name: "Injustificadas",
-                        data: [plenaryUnjust, committeeUnjust],
+                        name: "Ausências",
+                        data: [plenarioAbsent, comissoesAbsent, 0],
                       },
                     ]}
                     type="bar"
-                    height={180}
+                    height={210}
                     width="100%"
                   />
                   <div className="mt-2 grid grid-cols-2 gap-3">
-                    <div className="rounded-xl bg-amber-50 p-3 text-center">
-                      <span className="text-xl font-extrabold text-amber-600">
-                        {plenaryJust + committeeJust}
+                    <div className="rounded-xl bg-emerald-50 p-3 text-center">
+                      <span className="text-xl font-extrabold text-emerald-600">
+                        {plenarioPresent + comissoesPresent + outrasPresent}
                       </span>
-                      <p className="text-[10px] font-bold uppercase tracking-widest text-amber-400">
-                        Justificadas
+                      <p className="text-[10px] font-bold uppercase tracking-widest text-emerald-400">
+                        Presenças
                       </p>
                     </div>
                     <div className="rounded-xl bg-red-50 p-3 text-center">
                       <span className="text-xl font-extrabold text-red-600">
-                        {plenaryUnjust + committeeUnjust}
+                        {plenarioAbsent + comissoesAbsent}
                       </span>
                       <p className="text-[10px] font-bold uppercase tracking-widest text-red-400">
-                        Injustificadas
+                        Ausências
                       </p>
                     </div>
                   </div>
+                  {outrasPresent > 0 && (
+                    <p className="mt-2 text-[10px] leading-relaxed text-gray-400">
+                      <strong>Outras</strong>: presenças em audiências públicas,
+                      sessões solenes ou reuniões fora da janela de membership
+                      formal — entram no total mas não em plenário/comissão
+                      deliberativa.
+                    </p>
+                  )}
                 </>
               ) : (
                 <div className="flex flex-col items-center justify-center py-16 text-center">
                   <CheckCircle2 className="mb-3 h-10 w-10 text-emerald-200" />
                   <p className="text-sm font-medium text-gray-400">
-                    Sem dados detalhados de faltas.
+                    Sem dados detalhados por órgão.
                   </p>
                 </div>
               )}
@@ -572,8 +591,8 @@ export function TabAtuacao({ data }: { data: DeputadoPageData }) {
             </div>
             <div className="grid grid-cols-5 gap-0 border-t border-gray-100">
               {[
-                { label: "Plenário", val: profile.plenaryPresence, color: "#749c5b" },
-                { label: "Comissões", val: profile.committeesPresence, color: "#2563eb" },
+                { label: "Plenário", val: plenarioPresent, color: "#749c5b" },
+                { label: "Comissões", val: comissoesPresent, color: "#2563eb" },
                 { label: "Props.", val: profile.createdProposals, color: "#d97706" },
                 { label: "Disc.", val: profile.speeches, color: "#7c3aed" },
                 { label: "Votações", val: profile.rollCallVotes, color: "#059669" },
@@ -604,7 +623,7 @@ export function TabAtuacao({ data }: { data: DeputadoPageData }) {
               <SectionTitle
                 icon={User}
                 title={`Composição Plenário (${profile.year})`}
-                subtitle="Presenças vs. faltas justificadas e injustificadas"
+                subtitle="Presenças vs. ausências em sessões plenárias"
                 accentColor="#059669"
               />
             </div>
@@ -818,7 +837,7 @@ export function TabAtuacao({ data }: { data: DeputadoPageData }) {
         )}
 
         {/* ═══════ Sem dados ═══════ */}
-        {!profile && !loadingPresenca && !loadingDiscursos && (
+        {!profile && !loadingPresenca && !loadingPresencaDetalhada && !loadingDiscursos && (
           <div className={CARD_3D}>
             <div className="flex flex-col items-center justify-center py-20 text-center">
               <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-gray-100">
