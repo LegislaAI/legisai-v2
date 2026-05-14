@@ -164,6 +164,7 @@ export default function PropositionsListPage() {
       if (hasOpinion) qs.set("hasOpinion", "true");
       if (hasRequirement) qs.set("hasRequirement", "true");
       if (hasDispatch) qs.set("hasDispatch", "true");
+      if (debouncedSearch) qs.set("q", debouncedSearch);
       const res = await GetAPI(`/proposition?${qs.toString()}`, true);
       if (res.status === 200 && res.body) {
         setPropositions(res.body.propositions ?? []);
@@ -192,6 +193,7 @@ export default function PropositionsListPage() {
     hasOpinion,
     hasRequirement,
     hasDispatch,
+    debouncedSearch,
   ]);
 
   useEffect(() => {
@@ -219,6 +221,7 @@ export default function PropositionsListPage() {
     hasOpinion,
     hasRequirement,
     hasDispatch,
+    debouncedSearch,
   ]);
 
   // Serializa filtros na URL para permitir compartilhamento
@@ -400,19 +403,9 @@ export default function PropositionsListPage() {
     URL.revokeObjectURL(url);
   };
 
-  const filteredPropositions = useMemo(
-    () =>
-      propositions.filter((p) => {
-        if (!debouncedSearch) return true;
-        const lower = debouncedSearch.toLowerCase();
-        return (
-          p.description?.toLowerCase().includes(lower) ||
-          `${p.typeAcronym} ${p.number}/${p.year}`.toLowerCase().includes(lower) ||
-          (p.authors ?? []).some((a) => a.name?.toLowerCase().includes(lower))
-        );
-      }),
-    [propositions, debouncedSearch]
-  );
+  // Busca textual agora é server-side via parâmetro `q` (PropositionService.fetch).
+  // Mantemos o nome `filteredPropositions` para minimizar diff nos consumidores.
+  const filteredPropositions = propositions;
 
   const hasActiveFilters = !!(
     typeId ||
