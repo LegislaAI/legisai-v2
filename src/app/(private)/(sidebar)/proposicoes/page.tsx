@@ -3,13 +3,8 @@
 import { CustomPagination } from "@/components/ui/CustomPagination";
 import { Card } from "@/components/v2/components/ui/Card";
 import { EmptyState } from "@/components/v2/components/ui/EmptyState";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/v2/components/ui/select";
+import { DatePicker } from "@/components/v2/components/ui/date-picker";
+import { SearchableSelect } from "@/components/v2/components/ui/searchable-select";
 import { useApiContext } from "@/context/ApiContext";
 import { useDebounce } from "@/hooks/useDebounce";
 import {
@@ -477,47 +472,32 @@ export default function PropositionsListPage() {
 
         {/* Filtros rápidos */}
         <div className="mt-4 flex flex-wrap items-center gap-3">
-          <Select value={typeId || "all"} onValueChange={(v) => setTypeId(v === "all" ? "" : v)}>
-            <SelectTrigger className="h-9 w-full rounded-lg border-gray-200 bg-gray-50/50 text-xs sm:w-[170px]">
-              <SelectValue placeholder="Todos os tipos" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os tipos</SelectItem>
-              {types.map((t) => (
-                <SelectItem key={t.id} value={t.id}>
-                  {t.acronym || t.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <SearchableSelect
+            value={typeId}
+            onValueChange={setTypeId}
+            options={types.map((t) => ({ value: t.id, label: t.acronym || t.name }))}
+            placeholder="Todos os tipos"
+            searchPlaceholder="Buscar tipo..."
+            className="bg-gray-50/50 sm:w-[170px]"
+          />
 
-          <Select value={situationId || "all"} onValueChange={(v) => setSituationId(v === "all" ? "" : v)}>
-            <SelectTrigger className="h-9 w-full rounded-lg border-gray-200 bg-gray-50/50 text-xs sm:w-[180px]">
-              <SelectValue placeholder="Todas as situações" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todas as situações</SelectItem>
-              {situations.map((s) => (
-                <SelectItem key={s.id} value={s.id}>
-                  {s.name}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <SearchableSelect
+            value={situationId}
+            onValueChange={setSituationId}
+            options={situations.map((s) => ({ value: s.id, label: s.name }))}
+            placeholder="Todas as situações"
+            searchPlaceholder="Buscar situação..."
+            className="bg-gray-50/50 sm:w-[180px]"
+          />
 
-          <Select value={regime || "all"} onValueChange={(v) => setRegime(v === "all" ? "" : v)}>
-            <SelectTrigger className="h-9 w-full rounded-lg border-gray-200 bg-gray-50/50 text-xs sm:w-[160px]">
-              <SelectValue placeholder="Todos os regimes" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="all">Todos os regimes</SelectItem>
-              {REGIME_OPTIONS.map((r) => (
-                <SelectItem key={r.value} value={r.value}>
-                  {r.label}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <SearchableSelect
+            value={regime}
+            onValueChange={setRegime}
+            options={REGIME_OPTIONS}
+            placeholder="Todos os regimes"
+            searchPlaceholder="Buscar regime..."
+            className="bg-gray-50/50 sm:w-[160px]"
+          />
 
           <button
             type="button"
@@ -631,41 +611,36 @@ export default function PropositionsListPage() {
                   <label className="mb-1 block text-[11px] font-medium text-gray-500">
                     Apresentação — de
                   </label>
-                  <input
-                    type="date"
+                  <DatePicker
                     value={presentedFrom}
-                    onChange={(e) => setPresentedFrom(e.target.value)}
-                    className="h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs"
+                    onValueChange={setPresentedFrom}
+                    placeholder="dd/mm/aaaa"
+                    toDate={presentedTo ? new Date(presentedTo) : undefined}
                   />
                 </div>
                 <div>
                   <label className="mb-1 block text-[11px] font-medium text-gray-500">
                     Apresentação — até
                   </label>
-                  <input
-                    type="date"
+                  <DatePicker
                     value={presentedTo}
-                    onChange={(e) => setPresentedTo(e.target.value)}
-                    className="h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs"
+                    onValueChange={setPresentedTo}
+                    placeholder="dd/mm/aaaa"
+                    fromDate={presentedFrom ? new Date(presentedFrom) : undefined}
                   />
                 </div>
                 <div className="sm:col-span-2">
                   <label className="mb-1 block text-[11px] font-medium text-gray-500">
                     Tema
                   </label>
-                  <Select value={themeId || "all"} onValueChange={(v) => setThemeId(v === "all" ? "" : v)}>
-                    <SelectTrigger className="h-9 w-full rounded-lg border-gray-200 bg-white text-xs">
-                      <SelectValue placeholder="Todos os temas" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos os temas</SelectItem>
-                      {themes.map((t) => (
-                        <SelectItem key={t.id} value={t.id}>
-                          {t.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <SearchableSelect
+                    value={themeId}
+                    onValueChange={setThemeId}
+                    options={themes.map((t) => ({ value: t.id, label: t.name }))}
+                    placeholder="Todos os temas"
+                    searchPlaceholder="Buscar tema..."
+                    className="bg-white"
+                  />
                 </div>
               </div>
             </div>
@@ -680,53 +655,38 @@ export default function PropositionsListPage() {
                   <label className="mb-1 block text-[11px] font-medium text-gray-500">
                     Partido
                   </label>
-                  <Select value={partyAcronym || "all"} onValueChange={(v) => setPartyAcronym(v === "all" ? "" : v)}>
-                    <SelectTrigger className="h-9 w-full rounded-lg border-gray-200 bg-white text-xs">
-                      <SelectValue placeholder="Todos os partidos" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos os partidos</SelectItem>
-                      {parties.map((p) => (
-                        <SelectItem key={p} value={p}>
-                          {p}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <SearchableSelect
+                    value={partyAcronym}
+                    onValueChange={setPartyAcronym}
+                    options={parties.map((p) => ({ value: p, label: p }))}
+                    placeholder="Todos os partidos"
+                    searchPlaceholder="Buscar partido..."
+                    className="bg-white"
+                  />
                 </div>
                 <div>
                   <label className="mb-1 block text-[11px] font-medium text-gray-500">UF</label>
-                  <Select value={uf || "all"} onValueChange={(v) => setUf(v === "all" ? "" : v)}>
-                    <SelectTrigger className="h-9 w-full rounded-lg border-gray-200 bg-white text-xs">
-                      <SelectValue placeholder="Todas as UFs" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todas as UFs</SelectItem>
-                      {ufs.map((u) => (
-                        <SelectItem key={u} value={u}>
-                          {u}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <SearchableSelect
+                    value={uf}
+                    onValueChange={setUf}
+                    options={ufs.map((u) => ({ value: u, label: u }))}
+                    placeholder="Todas as UFs"
+                    searchPlaceholder="Buscar UF..."
+                    className="bg-white"
+                  />
                 </div>
                 <div>
                   <label className="mb-1 block text-[11px] font-medium text-gray-500">
                     Tipo de autor
                   </label>
-                  <Select value={authorTypeId || "all"} onValueChange={(v) => setAuthorTypeId(v === "all" ? "" : v)}>
-                    <SelectTrigger className="h-9 w-full rounded-lg border-gray-200 bg-white text-xs">
-                      <SelectValue placeholder="Todos os tipos" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="all">Todos os tipos</SelectItem>
-                      {authorTypes.map((at) => (
-                        <SelectItem key={at.id} value={at.id}>
-                          {at.name}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
+                  <SearchableSelect
+                    value={authorTypeId}
+                    onValueChange={setAuthorTypeId}
+                    options={authorTypes.map((at) => ({ value: at.id, label: at.name }))}
+                    placeholder="Todos os tipos"
+                    searchPlaceholder="Buscar tipo..."
+                    className="bg-white"
+                  />
                 </div>
               </div>
             </div>
@@ -982,14 +942,20 @@ function PropositionCard({ prop, onClick }: { prop: Proposition; onClick: () => 
           </div>
           <p className="mt-0.5 text-[11px] font-medium text-gray-500">{prop.type?.name}</p>
 
-          <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          <div className="mt-2 flex min-w-0 flex-wrap items-center gap-1.5">
             {situation && (
-              <span className="inline-flex shrink-0 items-center rounded-md bg-secondary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-secondary">
+              <span
+                className="inline-flex max-w-full items-center truncate rounded-md bg-secondary/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-secondary"
+                title={situation}
+              >
                 {situation}
               </span>
             )}
             {prop.regime && (
-              <span className={`inline-flex shrink-0 items-center rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${regimeTone}`}>
+              <span
+                className={`inline-flex max-w-full items-center truncate rounded-md px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide ${regimeTone}`}
+                title={prop.regime}
+              >
                 {prop.regime}
               </span>
             )}
@@ -1006,28 +972,28 @@ function PropositionCard({ prop, onClick }: { prop: Proposition; onClick: () => 
           {/* Faixa 3 — metadados processuais */}
           <div className="mt-3 grid gap-1.5 text-[11px] text-gray-500">
             {author && (
-              <div className="flex items-center gap-1.5">
-                <User size={11} className="text-gray-400" />
-                <span className="truncate">{author}</span>
+              <div className="flex min-w-0 items-center gap-1.5">
+                <User size={11} className="shrink-0 text-gray-400" />
+                <span className="min-w-0 flex-1 truncate">{author}</span>
               </div>
             )}
-            <div className="flex items-center gap-1.5">
-              <Calendar size={11} className="text-gray-400" />
-              <span>Apresentada em {presentation}</span>
+            <div className="flex min-w-0 items-center gap-1.5">
+              <Calendar size={11} className="shrink-0 text-gray-400" />
+              <span className="min-w-0 flex-1 truncate">Apresentada em {presentation}</span>
             </div>
             {lastMove && (
-              <div className="flex items-center gap-1.5">
-                <Clock size={11} className="text-gray-400" />
-                <span className="truncate">
+              <div className="flex min-w-0 items-center gap-1.5">
+                <Clock size={11} className="shrink-0 text-gray-400" />
+                <span className="min-w-0 flex-1 truncate">
                   Última ação: {lastMove}
                   {prop.movementDescription ? ` — ${prop.movementDescription}` : ""}
                 </span>
               </div>
             )}
             {!author && (
-              <div className="flex items-center gap-1.5 text-gray-400">
-                <User size={11} />
-                <span className="italic">Sem autoria integrada</span>
+              <div className="flex min-w-0 items-center gap-1.5 text-gray-400">
+                <User size={11} className="shrink-0" />
+                <span className="min-w-0 flex-1 truncate italic">Sem autoria integrada</span>
               </div>
             )}
           </div>

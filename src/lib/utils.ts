@@ -146,6 +146,39 @@ export const formatTime = (time: number | Date | string): string => {
   return formattedTime;
 };
 
+/**
+ * Fuso horário canônico para formatação de datas vindas da API da Câmara.
+ * Forçar `America/Sao_Paulo` evita o bug do tzdata local do browser/SO aplicar
+ * historical DST brasileiro (Brasil aboliu DST em 2019, mas tzdata antigo ainda
+ * pode aplicar +1h em datas históricas). Backend já armazena em UTC; aqui
+ * convertemos para BRT determinístico no display.
+ */
+export const BRT_TIMEZONE = "America/Sao_Paulo";
+
+/** Formata data (dd/mm/aaaa) fixando fuso BRT, independente do fuso do cliente. */
+export function formatBrazilDate(
+  input: string | number | Date | null | undefined
+): string {
+  if (!input) return "";
+  const d = input instanceof Date ? input : new Date(input);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleDateString("pt-BR", { timeZone: BRT_TIMEZONE });
+}
+
+/** Formata hora (HH:mm) fixando fuso BRT. Útil para timestamps de tramitação. */
+export function formatBrazilTime(
+  input: string | number | Date | null | undefined
+): string {
+  if (!input) return "";
+  const d = input instanceof Date ? input : new Date(input);
+  if (Number.isNaN(d.getTime())) return "";
+  return d.toLocaleTimeString("pt-BR", {
+    timeZone: BRT_TIMEZONE,
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 // object check
 export function isObjectNotEmpty(obj: object): boolean {
   if (typeof obj !== "object" || obj === null) {

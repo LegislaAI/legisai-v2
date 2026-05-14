@@ -21,7 +21,7 @@ import { useApiContext } from "@/context/ApiContext";
 import { useSignatureContext } from "@/context/SignatureContext";
 import { canAccessTramitacoes } from "@/lib/plan-access";
 import type { PlanLevel } from "@/@types/signature";
-import { cn } from "@/lib/utils";
+import { cn, formatBrazilDate, formatBrazilTime } from "@/lib/utils";
 import * as Tabs from "@radix-ui/react-tabs";
 import {
   ArrowUpRight,
@@ -109,6 +109,12 @@ type PropositionDetail = {
   regime?: string;
   type: { id: string; name: string; acronym: string };
   situation: { id: string; name: string } | null;
+  mainProposition?: {
+    id: string;
+    typeAcronym: string;
+    number: number;
+    year: number;
+  } | null;
   authors?: Author[];
   themes?: Theme[] | { theme: Theme }[];
   processes?: Process[];
@@ -324,11 +330,22 @@ Detalhe o resumo do texto, matérias correlatas, todo o histórico de tramitaç�
                     {proposition.typeAcronym} {proposition.number}/{proposition.year}
                   </h1>
                   <p className="mt-1 text-base text-gray-800">{proposition.type.name}</p>
-                  <div className="mt-3 flex flex-wrap gap-1.5">
+                  <div className="mt-3 flex flex-wrap items-center gap-1.5">
                     {proposition.situationDescription && (
                       <span className="inline-flex items-center rounded-full bg-secondary/10 px-3 py-1 text-[11px] font-bold uppercase tracking-tight text-secondary">
                         {proposition.situationDescription}
                       </span>
+                    )}
+                    {proposition.mainProposition && (
+                      <Link
+                        href={`/proposicoes/${proposition.mainProposition.id}`}
+                        className="inline-flex items-center gap-1.5 rounded-full border border-secondary/30 bg-white px-3 py-1 text-[11px] font-semibold uppercase tracking-tight text-secondary transition-colors hover:bg-secondary/10"
+                        title="Ir para a proposição principal"
+                      >
+                        <Link2 className="h-3 w-3" />
+                        {proposition.mainProposition.typeAcronym}{" "}
+                        {proposition.mainProposition.number}/{proposition.mainProposition.year}
+                      </Link>
                     )}
                     {proposition.regime && (
                       <span
@@ -437,7 +454,7 @@ Detalhe o resumo do texto, matérias correlatas, todo o histórico de tramitaç�
                 label="Última ação"
                 value={
                   proposition.lastMovementDate
-                    ? new Date(proposition.lastMovementDate).toLocaleDateString("pt-BR")
+                    ? formatBrazilDate(proposition.lastMovementDate)
                     : undefined
                 }
                 hint={proposition.movementDescription}
@@ -515,7 +532,7 @@ Detalhe o resumo do texto, matérias correlatas, todo o histórico de tramitaç�
                   <KV label="Situação atual" value={proposition.situationDescription || proposition.situation?.name} />
                   <KV
                     label="Apresentação"
-                    value={new Date(proposition.presentationDate).toLocaleDateString("pt-BR")}
+                    value={formatBrazilDate(proposition.presentationDate)}
                   />
                 </div>
               </Card>
@@ -665,7 +682,7 @@ Detalhe o resumo do texto, matérias correlatas, todo o histórico de tramitaç�
                     label="Última ação legislativa"
                     value={
                       proposition.lastMovementDate
-                        ? `${new Date(proposition.lastMovementDate).toLocaleDateString("pt-BR")}${proposition.movementDescription ? ` — ${proposition.movementDescription}` : ""}`
+                        ? `${formatBrazilDate(proposition.lastMovementDate)}${proposition.movementDescription ? ` — ${proposition.movementDescription}` : ""}`
                         : undefined
                     }
                   />
@@ -740,14 +757,8 @@ Detalhe o resumo do texto, matérias correlatas, todo o histórico de tramitaç�
                 </h3>
                 {lastProcess ? (
                   <div className="grid grid-cols-1 gap-x-6 gap-y-3 text-sm sm:grid-cols-2">
-                    <KV label="Data" value={new Date(lastProcess.date).toLocaleDateString("pt-BR")} />
-                    <KV
-                      label="Hora"
-                      value={new Date(lastProcess.date).toLocaleTimeString("pt-BR", {
-                        hour: "2-digit",
-                        minute: "2-digit",
-                      })}
-                    />
+                    <KV label="Data" value={formatBrazilDate(lastProcess.date)} />
+                    <KV label="Hora" value={formatBrazilTime(lastProcess.date)} />
                     <KV label="Órgão" value={lastProcess.agencyAcronym} />
                     <KV label="Fase" value={lastProcess.processingDescription} />
                     <div className="sm:col-span-2">
@@ -789,12 +800,9 @@ Detalhe o resumo do texto, matérias correlatas, todo o histórico de tramitaç�
                         <div className="flex-1 pb-2">
                           <div className="flex flex-wrap items-center justify-between gap-2">
                             <span className="text-sm font-semibold text-gray-900">
-                              {new Date(proc.date).toLocaleDateString("pt-BR")}
+                              {formatBrazilDate(proc.date)}
                               <span className="ml-2 text-xs font-normal text-gray-400">
-                                {new Date(proc.date).toLocaleTimeString("pt-BR", {
-                                  hour: "2-digit",
-                                  minute: "2-digit",
-                                })}
+                                {formatBrazilTime(proc.date)}
                               </span>
                             </span>
                             <span className="inline-flex rounded bg-gray-100 px-2 py-0.5 text-xs font-medium text-gray-600">
@@ -924,7 +932,7 @@ Detalhe o resumo do texto, matérias correlatas, todo o histórico de tramitaç�
                               {evt.title || evt.event.description}
                             </h4>
                             <p className="mt-1 text-xs font-medium text-secondary">
-                              {new Date(evt.event.startDate).toLocaleDateString("pt-BR")}
+                              {formatBrazilDate(evt.event.startDate)}
                             </p>
                           </div>
                         </div>
@@ -986,7 +994,7 @@ Detalhe o resumo do texto, matérias correlatas, todo o histórico de tramitaç�
                 label="Última ação"
                 value={
                   proposition.lastMovementDate
-                    ? new Date(proposition.lastMovementDate).toLocaleDateString("pt-BR")
+                    ? formatBrazilDate(proposition.lastMovementDate)
                     : undefined
                 }
               />

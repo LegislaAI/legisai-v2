@@ -48,6 +48,19 @@ const BRANCH_INFO: Record<
   string,
   { label: string; icon: typeof Folder; tone: string; description: string }
 > = {
+  "Tramitando em Conjunto Com": {
+    label: "Tramita em conjunto com",
+    icon: Link2,
+    tone: "bg-indigo-50 text-indigo-700 border-indigo-100",
+    description:
+      "Esta matéria tramita em conjunto sob o processo decisório da proposição principal.",
+  },
+  "Tramitando em Conjunto": {
+    label: "Tramita em conjunto",
+    icon: Link2,
+    tone: "bg-indigo-50 text-indigo-700 border-indigo-100",
+    description: "Matérias apensadas a esta sob o processo decisório conjunto.",
+  },
   Apensada: {
     label: "Apensadas",
     icon: GitBranch,
