@@ -158,16 +158,16 @@ export function Section1() {
   const observerTarget = useRef<HTMLDivElement>(null);
 
   const START_YEAR = 2019;
+  const CURRENT_YEAR = new Date().getFullYear();
   const availableYears = useMemo(() => {
-    const currentYear = new Date().getFullYear();
     const years: string[] = [];
-    for (let year = currentYear; year >= START_YEAR; year--) {
+    for (let year = CURRENT_YEAR; year >= START_YEAR; year--) {
       years.push(year.toString());
     }
     return years;
-  }, []);
+  }, [CURRENT_YEAR]);
 
-  const DEFAULT_YEAR = "2025";
+  const DEFAULT_YEAR = String(CURRENT_YEAR);
   useEffect(() => {
     const savedYear = cookies.get("selectedYear");
     if (savedYear && availableYears.includes(savedYear)) {
