@@ -1,20 +1,17 @@
 "use client";
 
+import type { PlanLevel } from "@/@types/signature";
 import { Header } from "@/components/v2/components/Header";
-import { Sidebar } from "@/components/v2/components/Sidebar";
 import { MobileToolbar } from "@/components/v2/components/MobileToolbar";
+import { Sidebar } from "@/components/v2/components/Sidebar";
 import { PoliticianContextProvider } from "@/context/PoliticianContext";
-import { useSignatureContext } from "@/context/SignatureContext";
 import {
   SidebarContextProvider,
   useSidebarContext,
 } from "@/context/SidebarContext2";
-import { canAccessRoute } from "@/lib/plan-access";
-import type { PlanLevel } from "@/@types/signature";
+import { useSignatureContext } from "@/context/SignatureContext";
 import { cn } from "@/lib/utils";
 import { usePathname, useRouter } from "next/navigation";
-import { useEffect } from "react";
-import { toast } from "sonner";
 
 function LayoutContent({ children }: { children: React.ReactNode }) {
   const { isDesktopExpanded } = useSidebarContext();
@@ -25,19 +22,19 @@ function LayoutContent({ children }: { children: React.ReactNode }) {
   const level: PlanLevel | null = activeSignature?.signaturePlan?.level ?? null;
   const effectiveLevel: PlanLevel = level ?? 4;
 
-  useEffect(() => {
-    if (isLoading) return;
+  // useEffect(() => {
+  //   if (isLoading) return;
 
-    if (!isSubscribed) {
-      router.replace("/plans");
-      return;
-    }
+  //   if (!isSubscribed) {
+  //     router.replace("/plans");
+  //     return;
+  //   }
 
-    if (!canAccessRoute(pathname, effectiveLevel)) {
-      toast.error("Recurso não disponível no seu plano.");
-      router.replace("/");
-    }
-  }, [isLoading, isSubscribed, pathname, effectiveLevel, router]);
+  //   if (!canAccessRoute(pathname, effectiveLevel)) {
+  //     toast.error("Recurso não disponível no seu plano.");
+  //     router.replace("/");
+  //   }
+  // }, [isLoading, isSubscribed, pathname, effectiveLevel, router]);
 
   // Só exibe sidebar e conteúdo após validar assinatura/plano (evita flash do menu completo)
   if (isLoading) {

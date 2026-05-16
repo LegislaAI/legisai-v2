@@ -3,8 +3,11 @@
 import { CustomPagination } from "@/components/ui/CustomPagination";
 import { Card } from "@/components/v2/components/ui/Card";
 import { EmptyState } from "@/components/v2/components/ui/EmptyState";
-import { DatePicker } from "@/components/v2/components/ui/date-picker";
+import { DateRangePicker } from "@/components/v2/components/ui/date-range-picker";
+import { MultiSelect } from "@/components/v2/components/ui/multi-select";
+import { RadioGroup } from "@/components/v2/components/ui/radio-group";
 import { SearchableSelect } from "@/components/v2/components/ui/searchable-select";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/v2/components/ui/tabs";
 import { useApiContext } from "@/context/ApiContext";
 import { useDebounce } from "@/hooks/useDebounce";
 import {
@@ -16,7 +19,6 @@ import {
   Clock,
   Download,
   FileText,
-  Filter,
   Link2,
   Search,
   Share2,
@@ -26,7 +28,7 @@ import {
   X,
 } from "lucide-react";
 import { useRouter, useSearchParams } from "next/navigation";
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 type Ref = { id: string; name: string; acronym?: string };
 
@@ -67,11 +69,17 @@ type Proposition = {
   counters?: Counters;
 };
 
-const REGIME_OPTIONS = [
-  { value: "Ordinário", label: "Ordinário" },
-  { value: "Prioridade", label: "Prioridade" },
-  { value: "Urgência", label: "Urgência" },
+type Mode = "basic" | "advanced";
+type Tramitacao = "" | "sim" | "nao";
+type SearchInField = "ementa" | "indexacao";
+
+const TRAMITACAO_OPTIONS: { value: Tramitacao; label: string }[] = [
+  { value: "", label: "Todas" },
+  { value: "sim", label: "Sim" },
+  { value: "nao", label: "Não" },
 ];
+
+const DEPUTADO_AUTHOR_TYPE_HINTS = ["deputado", "deputada"];
 
 function getRegimeTone(regime?: string) {
   if (!regime) return "bg-gray-100 text-gray-600";
@@ -81,28 +89,45 @@ function getRegimeTone(regime?: string) {
   return "bg-slate-100 text-slate-700";
 }
 
+function csv(values: string[]): string {
+  return values.join(",");
+}
+function fromCsv(value: string | null | undefined): string[] {
+  if (!value) return [];
+  return value.split(",").map((s) => s.trim()).filter(Boolean);
+}
+
 export default function PropositionsListPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { GetAPI } = useApiContext();
 
-  const [types, setTypes] = useState<Ref[]>([]);
+  // ── References ──
+  const [tiposPrincipais, setTiposPrincipais] = useState<Ref[]>([]);
+  const [tiposAcessorios, setTiposAcessorios] = useState<Ref[]>([]);
+  const [allTypes, setAllTypes] = useState<Ref[]>([]);
   const [themes, setThemes] = useState<Ref[]>([]);
   const [situations, setSituations] = useState<Ref[]>([]);
   const [authorTypes, setAuthorTypes] = useState<Ref[]>([]);
   const [parties, setParties] = useState<string[]>([]);
   const [ufs, setUfs] = useState<string[]>([]);
+  const [orgaos, setOrgaos] = useState<string[]>([]);
 
+  // ── Results ──
   const [propositions, setPropositions] = useState<Proposition[]>([]);
   const [pages, setPages] = useState(0);
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [loadingRefs, setLoadingRefs] = useState(true);
 
+  // ── Mode tab ──
+  const [mode, setMode] = useState<Mode>(
+    (searchParams.get("mode") as Mode) === "advanced" ? "advanced" : "basic"
+  );
+
+  // ── Compartilhado (existente) ──
   const [page, setPage] = useState(() => Number(searchParams.get("page")) || 1);
-  const [typeId, setTypeId] = useState<string>(searchParams.get("typeId") ?? "");
   const [themeId, setThemeId] = useState<string>(searchParams.get("themeId") ?? "");
   const [situationId, setSituationId] = useState<string>(searchParams.get("situationId") ?? "");
-  const [regime, setRegime] = useState<string>(searchParams.get("regime") ?? "");
   const [presentedFrom, setPresentedFrom] = useState<string>(searchParams.get("presentedFrom") ?? "");
   const [presentedTo, setPresentedTo] = useState<string>(searchParams.get("presentedTo") ?? "");
   const [partyAcronym, setPartyAcronym] = useState<string>(searchParams.get("partyAcronym") ?? "");
@@ -114,188 +139,394 @@ export default function PropositionsListPage() {
   const [hasRequirement, setHasRequirement] = useState<boolean>(searchParams.get("hasRequirement") === "true");
   const [hasDispatch, setHasDispatch] = useState<boolean>(searchParams.get("hasDispatch") === "true");
   const [searchTerm, setSearchTerm] = useState(searchParams.get("q") ?? "");
-  const [showAdvanced, setShowAdvanced] = useState(false);
+
+  // ── Novos: básica + avançada compartilham ──
+  const [typeIds, setTypeIds] = useState<string[]>(
+    // Compat: aceita typeIds (CSV) e typeId (single legacy)
+    fromCsv(searchParams.get("typeIds")).length
+      ? fromCsv(searchParams.get("typeIds"))
+      : searchParams.get("typeId")
+        ? [searchParams.get("typeId") as string]
+        : []
+  );
+  const [numero, setNumero] = useState<string>(searchParams.get("numero") ?? "");
+  const [ano, setAno] = useState<string>(searchParams.get("ano") ?? "");
+  const [authorName, setAuthorName] = useState<string>(searchParams.get("authorName") ?? "");
+  const [inTramitacao, setInTramitacao] = useState<Tramitacao>(
+    (searchParams.get("inTramitacao") as Tramitacao) ?? ""
+  );
+
+  // ── Novos: avançada apenas ──
+  const [recebidaNoOrgao, setRecebidaNoOrgao] = useState<string>(searchParams.get("recebidaNoOrgao") ?? "");
+  const [noOrgaoAtual, setNoOrgaoAtual] = useState<string>(searchParams.get("noOrgaoAtual") ?? "");
+  const [allWords, setAllWords] = useState<string>(searchParams.get("allWords") ?? "");
+  const [exactPhrase, setExactPhrase] = useState<string>(searchParams.get("exactPhrase") ?? "");
+  const [anyWord, setAnyWord] = useState<string>(searchParams.get("anyWord") ?? "");
+  const [noneOfWords, setNoneOfWords] = useState<string>(searchParams.get("noneOfWords") ?? "");
+  const [searchIn, setSearchIn] = useState<SearchInField[]>(() => {
+    const arr = fromCsv(searchParams.get("searchIn"));
+    return (arr.length ? arr : ["ementa", "indexacao"]).filter(
+      (s): s is SearchInField => s === "ementa" || s === "indexacao"
+    );
+  });
+  const [relatorName, setRelatorName] = useState<string>(searchParams.get("relatorName") ?? "");
+  const [relatorParty, setRelatorParty] = useState<string>(searchParams.get("relatorParty") ?? "");
+  const [relatorUf, setRelatorUf] = useState<string>(searchParams.get("relatorUf") ?? "");
+  const [relatorOrgao, setRelatorOrgao] = useState<string>(searchParams.get("relatorOrgao") ?? "");
+  const [relatorFrom, setRelatorFrom] = useState<string>(searchParams.get("relatorFrom") ?? "");
+  const [relatorTo, setRelatorTo] = useState<string>(searchParams.get("relatorTo") ?? "");
+  const [tramitacaoExpression, setTramitacaoExpression] = useState<string>(
+    searchParams.get("tramitacaoExpression") ?? ""
+  );
+  const [tramitacaoOrgao, setTramitacaoOrgao] = useState<string>(searchParams.get("tramitacaoOrgao") ?? "");
+  const [tramitacaoFrom, setTramitacaoFrom] = useState<string>(searchParams.get("tramitacaoFrom") ?? "");
+  const [tramitacaoTo, setTramitacaoTo] = useState<string>(searchParams.get("tramitacaoTo") ?? "");
+
+  // ── Adicionais (mai/2026) — só na avançada ──
+  const [lastMovementFrom, setLastMovementFrom] = useState<string>(searchParams.get("lastMovementFrom") ?? "");
+  const [lastMovementTo, setLastMovementTo] = useState<string>(searchParams.get("lastMovementTo") ?? "");
+  const [regime, setRegime] = useState<string>(searchParams.get("regime") ?? "");
+  const [apreciacao, setApreciacao] = useState<string>(searchParams.get("apreciacao") ?? "");
+  type TramitConjunto = "" | "principal" | "apensada" | "independente";
+  const [tramitandoEmConjunto, setTramitandoEmConjunto] = useState<TramitConjunto>(
+    (searchParams.get("tramitandoEmConjunto") as TramitConjunto) ?? ""
+  );
+
+  // ── Refs: regimes e apreciações servidas pelo backend ──
+  const [regimes, setRegimes] = useState<string[]>([]);
+  const [apreciacoes, setApreciacoes] = useState<{ value: string; label: string }[]>([]);
+
   const [copied, setCopied] = useState(false);
   const [savedSearches, setSavedSearches] = useState<SavedSearch[]>([]);
   const [showSaved, setShowSaved] = useState(false);
 
+  // Busca manual: `appliedQs` é o snapshot dos filtros que foram efetivamente
+  // aplicados no último clique em "Buscar" (ou a URL inicial). Pagination usa
+  // este snapshot, então editar filtros em draft sem aplicar não afeta a página
+  // que será buscada. `dirty` reativa o botão quando há mudanças não aplicadas.
+  const [appliedQs, setAppliedQs] = useState<URLSearchParams>(() => {
+    const qs = new URLSearchParams(searchParams.toString());
+    qs.delete("page");
+    return qs;
+  });
+  const [dirty, setDirty] = useState(false);
+
   const debouncedSearch = useDebounce(searchTerm, 400);
+  const debouncedAuthorName = useDebounce(authorName, 400);
+  const debouncedAllWords = useDebounce(allWords, 400);
+  const debouncedExactPhrase = useDebounce(exactPhrase, 400);
+  const debouncedAnyWord = useDebounce(anyWord, 400);
+  const debouncedNoneOfWords = useDebounce(noneOfWords, 400);
+  const debouncedRelatorName = useDebounce(relatorName, 400);
+  const debouncedTramitacaoExpression = useDebounce(tramitacaoExpression, 400);
+  const debouncedNumero = useDebounce(numero, 400);
+  const debouncedAno = useDebounce(ano, 400);
+
+  // ── Validation ──
+  const hasBasicFilters = !!(
+    debouncedSearch ||
+    typeIds.length ||
+    debouncedNumero ||
+    debouncedAno ||
+    debouncedAuthorName ||
+    uf ||
+    inTramitacao
+  );
+  const hasAdvancedFilters = !!(
+    typeIds.length ||
+    debouncedNumero ||
+    debouncedAno ||
+    recebidaNoOrgao ||
+    presentedFrom ||
+    presentedTo ||
+    inTramitacao ||
+    situationId ||
+    noOrgaoAtual ||
+    debouncedAllWords ||
+    debouncedExactPhrase ||
+    debouncedAnyWord ||
+    debouncedNoneOfWords ||
+    authorTypeId ||
+    debouncedAuthorName ||
+    partyAcronym ||
+    uf ||
+    debouncedRelatorName ||
+    relatorParty ||
+    relatorUf ||
+    relatorOrgao ||
+    relatorFrom ||
+    relatorTo ||
+    debouncedTramitacaoExpression ||
+    tramitacaoOrgao ||
+    tramitacaoFrom ||
+    tramitacaoTo ||
+    lastMovementFrom ||
+    lastMovementTo ||
+    regime ||
+    apreciacao ||
+    tramitandoEmConjunto
+  );
+  const canSearch = mode === "basic" ? hasBasicFilters : hasAdvancedFilters;
+
+  // ── Author type "deputado" detection (habilita Partido/UF condicional) ──
+  const selectedAuthorType = authorTypes.find((a) => a.id === authorTypeId);
+  const isDeputadoAuthorType = useMemo(() => {
+    if (!selectedAuthorType) return false;
+    const name = (selectedAuthorType.name || "").toLowerCase();
+    return DEPUTADO_AUTHOR_TYPE_HINTS.some((h) => name.includes(h));
+  }, [selectedAuthorType]);
 
   const fetchReferences = useCallback(async () => {
     setLoadingRefs(true);
     try {
       const res = await GetAPI("/proposition/references", true);
       if (res.status === 200 && res.body) {
-        setTypes(res.body.types ?? []);
+        setAllTypes(res.body.types ?? []);
+        setTiposPrincipais(res.body.tiposPrincipais ?? res.body.types ?? []);
+        setTiposAcessorios(res.body.tiposAcessorios ?? []);
         setThemes(res.body.themes ?? []);
         setSituations(res.body.situations ?? []);
         setAuthorTypes(res.body.authorTypes ?? []);
         setParties(res.body.parties ?? []);
         setUfs(res.body.ufs ?? []);
+        setOrgaos(res.body.orgaos ?? []);
+        setRegimes(res.body.regimes ?? []);
+        setApreciacoes(res.body.apreciacoes ?? []);
       }
     } catch {
-      setTypes([]);
+      setAllTypes([]);
+      setTiposPrincipais([]);
+      setTiposAcessorios([]);
       setThemes([]);
       setSituations([]);
       setAuthorTypes([]);
       setParties([]);
       setUfs([]);
+      setOrgaos([]);
+      setRegimes([]);
+      setApreciacoes([]);
     } finally {
       setLoadingRefs(false);
     }
   }, [GetAPI]);
 
-  const fetchPropositions = useCallback(async () => {
-    setLoading(true);
-    try {
-      const qs = new URLSearchParams();
-      qs.set("page", String(page));
-      if (typeId) qs.set("typeId", typeId);
+  const buildQueryString = useCallback(() => {
+    const qs = new URLSearchParams();
+    if (mode === "advanced") qs.set("mode", "advanced");
+    qs.set("page", String(page));
+    // Compartilhados
+    if (debouncedSearch && mode === "basic") qs.set("q", debouncedSearch);
+    if (typeIds.length) qs.set("typeIds", csv(typeIds));
+    if (debouncedNumero) qs.set("numero", debouncedNumero);
+    if (debouncedAno) qs.set("ano", debouncedAno);
+    if (debouncedAuthorName) qs.set("authorName", debouncedAuthorName);
+    if (inTramitacao) qs.set("inTramitacao", inTramitacao);
+    if (uf) qs.set("uf", uf);
+    // Advanced only
+    if (mode === "advanced") {
       if (themeId) qs.set("themeId", themeId);
       if (situationId) qs.set("situationId", situationId);
-      if (regime) qs.set("regime", regime);
       if (presentedFrom) qs.set("presentedFrom", presentedFrom);
       if (presentedTo) qs.set("presentedTo", presentedTo);
-      if (partyAcronym) qs.set("partyAcronym", partyAcronym);
-      if (uf) qs.set("uf", uf);
+      if (recebidaNoOrgao) qs.set("recebidaNoOrgao", recebidaNoOrgao);
+      if (noOrgaoAtual) qs.set("noOrgaoAtual", noOrgaoAtual);
+      if (debouncedAllWords) qs.set("allWords", debouncedAllWords);
+      if (debouncedExactPhrase) qs.set("exactPhrase", debouncedExactPhrase);
+      if (debouncedAnyWord) qs.set("anyWord", debouncedAnyWord);
+      if (debouncedNoneOfWords) qs.set("noneOfWords", debouncedNoneOfWords);
+      if (searchIn.length && searchIn.length < 2) qs.set("searchIn", csv(searchIn));
       if (authorTypeId) qs.set("authorTypeId", authorTypeId);
+      if (isDeputadoAuthorType) {
+        if (partyAcronym) qs.set("partyAcronym", partyAcronym);
+      }
+      if (debouncedRelatorName) qs.set("relatorName", debouncedRelatorName);
+      if (relatorParty) qs.set("relatorParty", relatorParty);
+      if (relatorUf) qs.set("relatorUf", relatorUf);
+      if (relatorOrgao) qs.set("relatorOrgao", relatorOrgao);
+      if (relatorFrom) qs.set("relatorFrom", relatorFrom);
+      if (relatorTo) qs.set("relatorTo", relatorTo);
+      if (debouncedTramitacaoExpression) qs.set("tramitacaoExpression", debouncedTramitacaoExpression);
+      if (tramitacaoOrgao) qs.set("tramitacaoOrgao", tramitacaoOrgao);
+      if (tramitacaoFrom) qs.set("tramitacaoFrom", tramitacaoFrom);
+      if (tramitacaoTo) qs.set("tramitacaoTo", tramitacaoTo);
+      if (lastMovementFrom) qs.set("lastMovementFrom", lastMovementFrom);
+      if (lastMovementTo) qs.set("lastMovementTo", lastMovementTo);
+      if (regime) qs.set("regime", regime);
+      if (apreciacao) qs.set("apreciacao", apreciacao);
+      if (tramitandoEmConjunto) qs.set("tramitandoEmConjunto", tramitandoEmConjunto);
       if (hasAttached) qs.set("hasAttached", "true");
       if (hasAmendment) qs.set("hasAmendment", "true");
       if (hasOpinion) qs.set("hasOpinion", "true");
       if (hasRequirement) qs.set("hasRequirement", "true");
       if (hasDispatch) qs.set("hasDispatch", "true");
-      if (debouncedSearch) qs.set("q", debouncedSearch);
-      const res = await GetAPI(`/proposition?${qs.toString()}`, true);
-      if (res.status === 200 && res.body) {
-        setPropositions(res.body.propositions ?? []);
-        setPages(res.body.pages ?? 0);
-      }
-    } catch {
-      setPropositions([]);
-      setPages(0);
-    } finally {
-      setLoading(false);
     }
+    return qs;
   }, [
-    GetAPI,
+    mode,
     page,
-    typeId,
+    debouncedSearch,
+    typeIds,
+    debouncedNumero,
+    debouncedAno,
+    debouncedAuthorName,
+    inTramitacao,
+    uf,
     themeId,
     situationId,
-    regime,
     presentedFrom,
     presentedTo,
-    partyAcronym,
-    uf,
+    recebidaNoOrgao,
+    noOrgaoAtual,
+    debouncedAllWords,
+    debouncedExactPhrase,
+    debouncedAnyWord,
+    debouncedNoneOfWords,
+    searchIn,
     authorTypeId,
+    isDeputadoAuthorType,
+    partyAcronym,
+    debouncedRelatorName,
+    relatorParty,
+    relatorUf,
+    relatorOrgao,
+    relatorFrom,
+    relatorTo,
+    debouncedTramitacaoExpression,
+    tramitacaoOrgao,
+    tramitacaoFrom,
+    tramitacaoTo,
+    lastMovementFrom,
+    lastMovementTo,
+    regime,
+    apreciacao,
+    tramitandoEmConjunto,
     hasAttached,
     hasAmendment,
     hasOpinion,
     hasRequirement,
     hasDispatch,
-    debouncedSearch,
   ]);
 
   useEffect(() => {
     fetchReferences();
   }, [fetchReferences]);
 
+  // Fetch dispara apenas quando o snapshot aplicado muda (Buscar) ou ao paginar.
+  // Filtros em draft não disparam request — ficam pendentes até o usuário aplicar.
   useEffect(() => {
-    fetchPropositions();
-  }, [fetchPropositions]);
+    const hasFilters = Array.from(appliedQs.keys()).some(
+      (k) => k !== "mode" && appliedQs.get(k)
+    );
+    if (!hasFilters) {
+      setPropositions([]);
+      setPages(0);
+      return;
+    }
+    let aborted = false;
+    const run = async () => {
+      setLoading(true);
+      try {
+        const params = new URLSearchParams(appliedQs);
+        params.set("page", String(page));
+        const res = await GetAPI(`/proposition?${params.toString()}`, true);
+        if (aborted) return;
+        if (res.status === 200 && res.body) {
+          setPropositions(res.body.propositions ?? []);
+          setPages(res.body.pages ?? 0);
+        }
+      } catch {
+        if (!aborted) {
+          setPropositions([]);
+          setPages(0);
+        }
+      } finally {
+        if (!aborted) setLoading(false);
+      }
+    };
+    run();
+    return () => {
+      aborted = true;
+    };
+  }, [appliedQs, page, GetAPI]);
 
+  // Marca filtros como "sujos" quando o usuário edita algo após o último Buscar.
+  // Usa ref para pular o render inicial (URL já carrega o estado aplicado).
+  const isFirstFilterRender = useRef(true);
   useEffect(() => {
-    setPage(1);
+    if (isFirstFilterRender.current) {
+      isFirstFilterRender.current = false;
+      return;
+    }
+    setDirty(true);
   }, [
-    typeId,
+    mode,
+    debouncedSearch,
+    typeIds,
+    debouncedNumero,
+    debouncedAno,
+    debouncedAuthorName,
+    inTramitacao,
+    uf,
     themeId,
     situationId,
-    regime,
     presentedFrom,
     presentedTo,
-    partyAcronym,
-    uf,
+    recebidaNoOrgao,
+    noOrgaoAtual,
+    debouncedAllWords,
+    debouncedExactPhrase,
+    debouncedAnyWord,
+    debouncedNoneOfWords,
+    searchIn,
     authorTypeId,
+    partyAcronym,
+    debouncedRelatorName,
+    relatorParty,
+    relatorUf,
+    relatorOrgao,
+    relatorFrom,
+    relatorTo,
+    debouncedTramitacaoExpression,
+    tramitacaoOrgao,
+    tramitacaoFrom,
+    tramitacaoTo,
+    lastMovementFrom,
+    lastMovementTo,
+    regime,
+    apreciacao,
+    tramitandoEmConjunto,
     hasAttached,
     hasAmendment,
     hasOpinion,
     hasRequirement,
     hasDispatch,
-    debouncedSearch,
   ]);
 
-  // Serializa filtros na URL para permitir compartilhamento
+  // Aplica os filtros atuais: snapshot dos filtros vira o estado "aplicado"
+  // e dispara a busca via efeito. Reseta para página 1 sempre.
+  const handleSearch = useCallback(() => {
+    if (!canSearch) return;
+    const qs = buildQueryString();
+    qs.delete("page");
+    setAppliedQs(qs);
+    setPage(1);
+    setDirty(false);
+  }, [canSearch, buildQueryString]);
+
+  // Limpa Partido quando authorType deixa de ser deputado
   useEffect(() => {
-    const qs = new URLSearchParams();
+    if (!isDeputadoAuthorType && partyAcronym) {
+      setPartyAcronym("");
+    }
+  }, [isDeputadoAuthorType, partyAcronym]);
+
+  // Serializa o estado APLICADO na URL. Draft não vaza.
+  useEffect(() => {
+    const qs = new URLSearchParams(appliedQs);
     if (page > 1) qs.set("page", String(page));
-    if (typeId) qs.set("typeId", typeId);
-    if (themeId) qs.set("themeId", themeId);
-    if (situationId) qs.set("situationId", situationId);
-    if (regime) qs.set("regime", regime);
-    if (presentedFrom) qs.set("presentedFrom", presentedFrom);
-    if (presentedTo) qs.set("presentedTo", presentedTo);
-    if (partyAcronym) qs.set("partyAcronym", partyAcronym);
-    if (uf) qs.set("uf", uf);
-    if (authorTypeId) qs.set("authorTypeId", authorTypeId);
-    if (hasAttached) qs.set("hasAttached", "true");
-    if (hasAmendment) qs.set("hasAmendment", "true");
-    if (hasOpinion) qs.set("hasOpinion", "true");
-    if (hasRequirement) qs.set("hasRequirement", "true");
-    if (hasDispatch) qs.set("hasDispatch", "true");
-    if (searchTerm) qs.set("q", searchTerm);
     const next = qs.toString();
     router.replace(`/proposicoes${next ? `?${next}` : ""}`, { scroll: false });
-  }, [
-    page,
-    typeId,
-    themeId,
-    situationId,
-    regime,
-    presentedFrom,
-    presentedTo,
-    partyAcronym,
-    uf,
-    authorTypeId,
-    hasAttached,
-    hasAmendment,
-    hasOpinion,
-    hasRequirement,
-    hasDispatch,
-    searchTerm,
-    router,
-  ]);
-
-  const handlePropositionClick = (id: string) => {
-    router.push(`/proposicoes/${id}`);
-  };
-
-  const clearAllFilters = () => {
-    setSearchTerm("");
-    setTypeId("");
-    setThemeId("");
-    setSituationId("");
-    setRegime("");
-    setPresentedFrom("");
-    setPresentedTo("");
-    setPartyAcronym("");
-    setUf("");
-    setAuthorTypeId("");
-    setHasAttached(false);
-    setHasAmendment(false);
-    setHasOpinion(false);
-    setHasRequirement(false);
-    setHasDispatch(false);
-  };
-
-  const handleShare = async () => {
-    try {
-      await navigator.clipboard.writeText(window.location.href);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 1800);
-    } catch {
-      /* noop */
-    }
-  };
+  }, [appliedQs, page, router]);
 
   // Carrega pesquisas salvas do localStorage uma vez na montagem
   useEffect(() => {
@@ -319,13 +550,71 @@ export default function PropositionsListPage() {
     }
   };
 
+  const handlePropositionClick = (id: string) => {
+    router.push(`/proposicoes/${id}`);
+  };
+
+  const clearAllFilters = () => {
+    setSearchTerm("");
+    setTypeIds([]);
+    setThemeId("");
+    setSituationId("");
+    setPresentedFrom("");
+    setPresentedTo("");
+    setPartyAcronym("");
+    setUf("");
+    setAuthorTypeId("");
+    setHasAttached(false);
+    setHasAmendment(false);
+    setHasOpinion(false);
+    setHasRequirement(false);
+    setHasDispatch(false);
+    setNumero("");
+    setAno("");
+    setAuthorName("");
+    setInTramitacao("");
+    setRecebidaNoOrgao("");
+    setNoOrgaoAtual("");
+    setAllWords("");
+    setExactPhrase("");
+    setAnyWord("");
+    setNoneOfWords("");
+    setSearchIn(["ementa", "indexacao"]);
+    setRelatorName("");
+    setRelatorParty("");
+    setRelatorUf("");
+    setRelatorOrgao("");
+    setRelatorFrom("");
+    setRelatorTo("");
+    setTramitacaoExpression("");
+    setTramitacaoOrgao("");
+    setTramitacaoFrom("");
+    setTramitacaoTo("");
+    setLastMovementFrom("");
+    setLastMovementTo("");
+    setRegime("");
+    setApreciacao("");
+    setTramitandoEmConjunto("");
+  };
+
+  const handleShare = async () => {
+    try {
+      await navigator.clipboard.writeText(window.location.href);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1800);
+    } catch {
+      /* noop */
+    }
+  };
+
   const handleSaveSearch = () => {
-    if (!hasActiveFilters) return;
+    if (!canSearch) return;
     const suggested = buildSearchLabel({
-      typeName: activeTypeName,
-      themeName: activeThemeName,
-      situationName: activeSituationName,
-      regime,
+      typeNames: typeIds
+        .map((id) => allTypes.find((t) => t.id === id)?.acronym || allTypes.find((t) => t.id === id)?.name)
+        .filter((v): v is string => Boolean(v)),
+      themeName: themes.find((t) => t.id === themeId)?.name,
+      situationName: situations.find((s) => s.id === situationId)?.name,
       partyAcronym,
       uf,
       query: searchTerm,
@@ -342,9 +631,7 @@ export default function PropositionsListPage() {
   };
 
   const handleApplySaved = (s: SavedSearch) => {
-    router.replace(`/proposicoes${s.query ? `?${s.query}` : ""}`);
     setShowSaved(false);
-    // Recarrega para reaplicar o estado a partir da URL
     if (typeof window !== "undefined") {
       window.location.assign(`/proposicoes${s.query ? `?${s.query}` : ""}`);
     }
@@ -378,20 +665,16 @@ export default function PropositionsListPage() {
       p.type?.name,
       p.number,
       p.year,
-      p.presentationDate
-        ? new Date(p.presentationDate).toLocaleDateString("pt-BR")
-        : "",
+      p.presentationDate ? new Date(p.presentationDate).toLocaleDateString("pt-BR") : "",
       p.situation?.name ?? p.situationDescription ?? "",
       p.regime ?? "",
-      p.lastMovementDate
-        ? new Date(p.lastMovementDate).toLocaleDateString("pt-BR")
-        : "",
+      p.lastMovementDate ? new Date(p.lastMovementDate).toLocaleDateString("pt-BR") : "",
       p.authors?.[0]?.name ?? "",
       p.description ?? "",
       p.fullPropositionUrl ?? "",
     ]);
-    const csv = [header, ...rows].map((r) => r.map(escape).join(";")).join("\r\n");
-    const blob = new Blob([`﻿${csv}`], { type: "text/csv;charset=utf-8;" });
+    const csvStr = [header, ...rows].map((r) => r.map(escape).join(";")).join("\r\n");
+    const blob = new Blob([`﻿${csvStr}`], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     const stamp = new Date().toISOString().slice(0, 10);
@@ -403,39 +686,21 @@ export default function PropositionsListPage() {
     URL.revokeObjectURL(url);
   };
 
-  // Busca textual agora é server-side via parâmetro `q` (PropositionService.fetch).
-  // Mantemos o nome `filteredPropositions` para minimizar diff nos consumidores.
-  const filteredPropositions = propositions;
+  const typeAcronymById = useMemo(() => {
+    const map = new Map<string, string>();
+    allTypes.forEach((t) => map.set(t.id, t.acronym || t.name));
+    return map;
+  }, [allTypes]);
 
-  const hasActiveFilters = !!(
-    typeId ||
-    themeId ||
-    situationId ||
-    regime ||
-    presentedFrom ||
-    presentedTo ||
-    partyAcronym ||
-    uf ||
-    authorTypeId ||
-    hasAttached ||
-    hasAmendment ||
-    hasOpinion ||
-    hasRequirement ||
-    hasDispatch ||
-    debouncedSearch
-  );
-
-  const activeTypeName = types.find((t) => t.id === typeId)?.acronym || types.find((t) => t.id === typeId)?.name;
-  const activeThemeName = themes.find((t) => t.id === themeId)?.name;
-  const activeSituationName = situations.find((t) => t.id === situationId)?.name;
-
+  // ─────────────────────────────────────────────────────────────────────────
+  // RENDER
+  // ─────────────────────────────────────────────────────────────────────────
   return (
     <div className="min-h-screen w-full font-sans text-[#1a1d1f] pb-20">
       {/* ── HERO ── */}
       <div className="relative mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-[#5a8a42] via-secondary to-[#8bb574] p-8 text-white shadow-xl md:p-10">
         <div className="pointer-events-none absolute -right-16 -top-16 h-64 w-64 rounded-full bg-white/10 blur-2xl" />
         <div className="pointer-events-none absolute -bottom-20 -left-20 h-72 w-72 rounded-full bg-white/5 blur-3xl" />
-
         <div className="relative z-10">
           <div className="flex items-center gap-3">
             <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-white/20 backdrop-blur-sm">
@@ -450,204 +715,389 @@ export default function PropositionsListPage() {
         </div>
       </div>
 
-      {/* ── BARRA DE BUSCA + AÇÕES RÁPIDAS ── */}
-      <div className="sticky top-0 z-20 mb-6 rounded-2xl border border-gray-200/60 bg-white/85 p-5 shadow-md backdrop-blur-xl">
-        <div className="relative">
-          <Search className="absolute left-4 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
-          <input
-            type="text"
-            placeholder="Busque por número, ementa, autor, relator, comissão, palavra-chave ou legislação citada"
-            className="w-full rounded-xl border border-gray-200 bg-gray-50/50 py-3 pl-11 pr-4 text-sm transition-all placeholder:text-gray-400 focus:border-secondary focus:bg-white focus:outline-none focus:ring-2 focus:ring-secondary/20"
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
+      {/* ── TABS + AÇÕES ── */}
+      <Tabs
+        value={mode}
+        onValueChange={(v) => setMode(v as Mode)}
+        className="mb-6"
+      >
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <TabsList>
+            <TabsTrigger value="basic">Pesquisa Básica</TabsTrigger>
+            <TabsTrigger value="advanced">Pesquisa Avançada</TabsTrigger>
+          </TabsList>
+          <ActionBar
+            canSearch={canSearch}
+            dirty={dirty}
+            loading={loading}
+            hasResults={propositions.length > 0}
+            copied={copied}
+            savedSearches={savedSearches}
+            showSaved={showSaved}
+            onSearch={handleSearch}
+            onToggleSaved={() => setShowSaved((v) => !v)}
+            onApplySaved={handleApplySaved}
+            onDeleteSaved={handleDeleteSaved}
+            onClearAll={clearAllFilters}
+            onShare={handleShare}
+            onExportCsv={handleExportCsv}
+            onSave={handleSaveSearch}
           />
         </div>
 
-        {/* Filtros rápidos */}
-        <div className="mt-4 flex flex-wrap items-center gap-3">
-          <SearchableSelect
-            value={typeId}
-            onValueChange={setTypeId}
-            options={types.map((t) => ({ value: t.id, label: t.acronym || t.name }))}
-            placeholder="Todos os tipos"
-            searchPlaceholder="Buscar tipo..."
-            className="bg-gray-50/50 sm:w-[170px]"
-          />
-
-          <SearchableSelect
-            value={situationId}
-            onValueChange={setSituationId}
-            options={situations.map((s) => ({ value: s.id, label: s.name }))}
-            placeholder="Todas as situações"
-            searchPlaceholder="Buscar situação..."
-            className="bg-gray-50/50 sm:w-[180px]"
-          />
-
-          <SearchableSelect
-            value={regime}
-            onValueChange={setRegime}
-            options={REGIME_OPTIONS}
-            placeholder="Todos os regimes"
-            searchPlaceholder="Buscar regime..."
-            className="bg-gray-50/50 sm:w-[160px]"
-          />
-
-          <button
-            type="button"
-            onClick={() => setShowAdvanced((v) => !v)}
-            className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 text-xs font-medium text-gray-700 transition-colors hover:bg-gray-50"
-          >
-            <Filter size={13} />
-            {showAdvanced ? "Ocultar filtros" : "Mais filtros"}
-          </button>
-
-          <div className="ml-auto flex items-center gap-2">
-            {hasActiveFilters && (
-              <button
-                type="button"
-                onClick={clearAllFilters}
-                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50"
-              >
-                <X size={13} />
-                Limpar filtros
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={handleShare}
-              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50"
-              title="Copia a URL com filtros aplicados"
-            >
-              <Share2 size={13} />
-              {copied ? "Copiado!" : "Compartilhar"}
-            </button>
-            <button
-              type="button"
-              onClick={handleExportCsv}
-              disabled={!propositions.length}
-              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-              title="Exporta a página atual em CSV"
-            >
-              <Download size={13} />
-              Exportar CSV
-            </button>
-            <button
-              type="button"
-              onClick={handleSaveSearch}
-              disabled={!hasActiveFilters}
-              className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-              title="Salva os filtros atuais neste dispositivo"
-            >
-              <BookmarkPlus size={13} />
-              Salvar
-            </button>
-            <div className="relative">
-              <button
-                type="button"
-                onClick={() => setShowSaved((v) => !v)}
-                disabled={!savedSearches.length}
-                className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
-              >
-                <Bookmark size={13} />
-                Salvas
-                {savedSearches.length > 0 && (
-                  <span className="rounded-full bg-secondary/10 px-1.5 text-[10px] font-bold text-secondary">
-                    {savedSearches.length}
-                  </span>
-                )}
-              </button>
-              {showSaved && savedSearches.length > 0 && (
-                <div className="absolute right-0 z-30 mt-2 max-h-80 w-72 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-lg">
-                  <p className="px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-gray-500">
-                    Pesquisas neste dispositivo
-                  </p>
-                  {savedSearches.map((s) => (
-                    <div
-                      key={s.id}
-                      className="group flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-gray-50"
-                    >
-                      <Star size={12} className="shrink-0 text-amber-400" />
-                      <button
-                        type="button"
-                        onClick={() => handleApplySaved(s)}
-                        className="min-w-0 flex-1 truncate text-left text-xs font-medium text-gray-800"
-                        title={s.name}
-                      >
-                        {s.name}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => handleDeleteSaved(s.id)}
-                        className="opacity-0 transition-opacity group-hover:opacity-100"
-                        title="Excluir"
-                      >
-                        <Trash2 size={12} className="text-gray-400 hover:text-red-500" />
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* Filtros avançados */}
-        {showAdvanced && (
-          <div className="mt-4 space-y-4 rounded-xl border border-gray-100 bg-gray-50/40 p-4">
-            {/* Bloco — Período + Tema */}
-            <div>
-              <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-gray-500">
-                Período & tema
-              </p>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
-                <div>
-                  <label className="mb-1 block text-[11px] font-medium text-gray-500">
-                    Apresentação — de
-                  </label>
-                  <DatePicker
-                    value={presentedFrom}
-                    onValueChange={setPresentedFrom}
-                    placeholder="dd/mm/aaaa"
-                    toDate={presentedTo ? new Date(presentedTo) : undefined}
-                  />
-                </div>
-                <div>
-                  <label className="mb-1 block text-[11px] font-medium text-gray-500">
-                    Apresentação — até
-                  </label>
-                  <DatePicker
-                    value={presentedTo}
-                    onValueChange={setPresentedTo}
-                    placeholder="dd/mm/aaaa"
-                    fromDate={presentedFrom ? new Date(presentedFrom) : undefined}
-                  />
-                </div>
-                <div className="sm:col-span-2">
-                  <label className="mb-1 block text-[11px] font-medium text-gray-500">
-                    Tema
-                  </label>
-                  <SearchableSelect
-                    value={themeId}
-                    onValueChange={setThemeId}
-                    options={themes.map((t) => ({ value: t.id, label: t.name }))}
-                    placeholder="Todos os temas"
-                    searchPlaceholder="Buscar tema..."
-                    className="bg-white"
+        {/* ── PESQUISA BÁSICA ── */}
+        <TabsContent value="basic">
+          <Card className="border-gray-100 p-5 shadow-sm">
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="md:col-span-2">
+                <FieldLabel>Assunto</FieldLabel>
+                <div className="relative">
+                  <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+                  <input
+                    type="text"
+                    placeholder="Buscar por número, ementa, autor, relator ou palavra-chave"
+                    className="h-9 w-full rounded-lg border border-gray-200 bg-white pl-10 pr-3 text-xs text-gray-900 transition-colors placeholder:text-gray-400 focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/20"
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
                   />
                 </div>
               </div>
-            </div>
 
-            {/* Bloco — Autoria */}
-            <div className="border-t border-gray-100 pt-4">
-              <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-gray-500">
-                Autoria
-              </p>
-              <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+              <div>
+                <FieldLabel>Tipos mais pesquisados</FieldLabel>
+                <MultiSelect
+                  values={typeIds.filter((id) => tiposPrincipais.some((t) => t.id === id))}
+                  onValuesChange={(next) => {
+                    // Substitui só a porção "principal" no array final
+                    const acessorios = typeIds.filter((id) => !tiposPrincipais.some((t) => t.id === id));
+                    setTypeIds([...next, ...acessorios]);
+                  }}
+                  options={tiposPrincipais.map((t) => ({ value: t.id, label: t.acronym || t.name }))}
+                  placeholder="PEC, PL, MPV…"
+                />
+              </div>
+              <div>
+                <FieldLabel>Outros tipos (acessórias)</FieldLabel>
+                <MultiSelect
+                  values={typeIds.filter((id) => tiposAcessorios.some((t) => t.id === id))}
+                  onValuesChange={(next) => {
+                    const principais = typeIds.filter((id) => tiposPrincipais.some((t) => t.id === id));
+                    setTypeIds([...principais, ...next]);
+                  }}
+                  options={tiposAcessorios.map((t) => ({ value: t.id, label: t.acronym || t.name }))}
+                  placeholder="ADD, ANEXO, APJ…"
+                />
+              </div>
+
+              <div>
+                <FieldLabel>Número</FieldLabel>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={numero}
+                  onChange={(e) => setNumero(e.target.value.replace(/\D/g, ""))}
+                  placeholder="Ex.: 5490"
+                  className="h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-900 focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/20"
+                />
+              </div>
+              <div>
+                <FieldLabel>Ano</FieldLabel>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  value={ano}
+                  onChange={(e) => setAno(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                  placeholder="Ex.: 2024"
+                  className="h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-900 focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/20"
+                />
+              </div>
+
+              <div>
+                <FieldLabel>Autor</FieldLabel>
+                <input
+                  type="text"
+                  value={authorName}
+                  onChange={(e) => setAuthorName(e.target.value)}
+                  placeholder="Nome do autor (deputado ou não)"
+                  className="h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-900 focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/20"
+                />
+              </div>
+              <div>
+                <FieldLabel>UF</FieldLabel>
+                <SearchableSelect
+                  value={uf}
+                  onValueChange={setUf}
+                  options={ufs.map((u) => ({ value: u, label: u }))}
+                  placeholder="Todas as UFs"
+                  searchPlaceholder="Buscar UF..."
+                  className="bg-white"
+                />
+              </div>
+
+              <div className="md:col-span-2">
+                <FieldLabel>Em tramitação</FieldLabel>
+                <RadioGroup<Tramitacao>
+                  value={inTramitacao}
+                  onValueChange={setInTramitacao}
+                  options={TRAMITACAO_OPTIONS}
+                />
+              </div>
+            </div>
+            <ValidationHint canSearch={canSearch} mode="basic" />
+          </Card>
+        </TabsContent>
+
+        {/* ── PESQUISA AVANÇADA ── */}
+        <TabsContent value="advanced">
+          <div className="space-y-3">
+            {/* IDENTIFICAÇÃO */}
+            <Card className="border-gray-100 p-5 shadow-sm">
+              <BlockTitle>Identificação</BlockTitle>
+              <div className="grid gap-4 md:grid-cols-2">
                 <div>
-                  <label className="mb-1 block text-[11px] font-medium text-gray-500">
-                    Partido
-                  </label>
+                  <FieldLabel>Tipos mais pesquisados</FieldLabel>
+                  <MultiSelect
+                    values={typeIds.filter((id) => tiposPrincipais.some((t) => t.id === id))}
+                    onValuesChange={(next) => {
+                      const acessorios = typeIds.filter((id) => !tiposPrincipais.some((t) => t.id === id));
+                      setTypeIds([...next, ...acessorios]);
+                    }}
+                    options={tiposPrincipais.map((t) => ({ value: t.id, label: t.acronym || t.name }))}
+                    placeholder="PEC, PL, MPV…"
+                  />
+                </div>
+                <div>
+                  <FieldLabel>Outros tipos (acessórias)</FieldLabel>
+                  <MultiSelect
+                    values={typeIds.filter((id) => tiposAcessorios.some((t) => t.id === id))}
+                    onValuesChange={(next) => {
+                      const principais = typeIds.filter((id) => tiposPrincipais.some((t) => t.id === id));
+                      setTypeIds([...principais, ...next]);
+                    }}
+                    options={tiposAcessorios.map((t) => ({ value: t.id, label: t.acronym || t.name }))}
+                    placeholder="ADD, ANEXO, APJ…"
+                  />
+                </div>
+                <div>
+                  <FieldLabel>Número</FieldLabel>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={numero}
+                    onChange={(e) => setNumero(e.target.value.replace(/\D/g, ""))}
+                    placeholder="Ex.: 5490"
+                    className="h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-900 focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/20"
+                  />
+                </div>
+                <div>
+                  <FieldLabel>Ano</FieldLabel>
+                  <input
+                    type="text"
+                    inputMode="numeric"
+                    value={ano}
+                    onChange={(e) => setAno(e.target.value.replace(/\D/g, "").slice(0, 4))}
+                    placeholder="Ex.: 2024"
+                    className="h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-900 focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/20"
+                  />
+                </div>
+                <div>
+                  <FieldLabel>Recebida no órgão</FieldLabel>
+                  <SearchableSelect
+                    value={recebidaNoOrgao}
+                    onValueChange={setRecebidaNoOrgao}
+                    options={orgaos.map((o) => ({ value: o, label: o }))}
+                    placeholder="Todos os órgãos"
+                    searchPlaceholder="Buscar órgão..."
+                    className="bg-white"
+                  />
+                </div>
+                <div>
+                  <FieldLabel>Data de apresentação</FieldLabel>
+                  <DateRangePicker
+                    from={presentedFrom}
+                    to={presentedTo}
+                    onFromChange={setPresentedFrom}
+                    onToChange={setPresentedTo}
+                  />
+                </div>
+                <div>
+                  <FieldLabel>Última movimentação</FieldLabel>
+                  <DateRangePicker
+                    from={lastMovementFrom}
+                    to={lastMovementTo}
+                    onFromChange={setLastMovementFrom}
+                    onToChange={setLastMovementTo}
+                  />
+                </div>
+              </div>
+            </Card>
+
+            {/* SITUAÇÃO */}
+            <Card className="border-gray-100 p-5 shadow-sm">
+              <BlockTitle>Situação</BlockTitle>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+                <div>
+                  <FieldLabel>Em tramitação</FieldLabel>
+                  <RadioGroup<Tramitacao>
+                    value={inTramitacao}
+                    onValueChange={setInTramitacao}
+                    options={TRAMITACAO_OPTIONS}
+                  />
+                </div>
+                <div>
+                  <FieldLabel>Situação atual</FieldLabel>
+                  <SearchableSelect
+                    value={situationId}
+                    onValueChange={setSituationId}
+                    options={situations.map((s) => ({ value: s.id, label: s.name }))}
+                    placeholder="Todas as situações"
+                    searchPlaceholder="Buscar situação..."
+                    className="bg-white"
+                  />
+                </div>
+                <div>
+                  <FieldLabel>No órgão</FieldLabel>
+                  <SearchableSelect
+                    value={noOrgaoAtual}
+                    onValueChange={setNoOrgaoAtual}
+                    options={orgaos.map((o) => ({ value: o, label: o }))}
+                    placeholder="Todos os órgãos"
+                    searchPlaceholder="Buscar órgão..."
+                    className="bg-white"
+                  />
+                </div>
+                <div>
+                  <FieldLabel>Regime</FieldLabel>
+                  <SearchableSelect
+                    value={regime}
+                    onValueChange={setRegime}
+                    options={regimes.map((r) => ({ value: r, label: r }))}
+                    placeholder="Todos os regimes"
+                    searchPlaceholder="Buscar regime..."
+                    className="bg-white"
+                  />
+                </div>
+                <div>
+                  <FieldLabel>Apreciação</FieldLabel>
+                  <SearchableSelect
+                    value={apreciacao}
+                    onValueChange={setApreciacao}
+                    options={apreciacoes}
+                    placeholder="Todas as apreciações"
+                    searchPlaceholder="Buscar apreciação..."
+                    className="bg-white"
+                  />
+                </div>
+                <div>
+                  <FieldLabel>Tramitação conjunta</FieldLabel>
+                  <RadioGroup<TramitConjunto>
+                    value={tramitandoEmConjunto}
+                    onValueChange={setTramitandoEmConjunto}
+                    options={[
+                      { value: "", label: "Todas" },
+                      { value: "principal", label: "Principal" },
+                      { value: "apensada", label: "Apensada" },
+                      { value: "independente", label: "Independente" },
+                    ]}
+                  />
+                </div>
+              </div>
+            </Card>
+
+            {/* ASSUNTO (busca textual avançada) */}
+            <Card className="border-gray-100 p-5 shadow-sm">
+              <BlockTitle>Assunto</BlockTitle>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <FieldLabel>Todas estas palavras</FieldLabel>
+                  <input
+                    type="text"
+                    value={allWords}
+                    onChange={(e) => setAllWords(e.target.value)}
+                    placeholder="palavra1 palavra2 ..."
+                    className="h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-900 focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/20"
+                  />
+                </div>
+                <div>
+                  <FieldLabel>Exatamente esta palavra ou expressão</FieldLabel>
+                  <input
+                    type="text"
+                    value={exactPhrase}
+                    onChange={(e) => setExactPhrase(e.target.value)}
+                    placeholder="frase exata"
+                    className="h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-900 focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/20"
+                  />
+                </div>
+                <div>
+                  <FieldLabel>Qualquer uma destas palavras</FieldLabel>
+                  <input
+                    type="text"
+                    value={anyWord}
+                    onChange={(e) => setAnyWord(e.target.value)}
+                    placeholder="palavra1 palavra2 ..."
+                    className="h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-900 focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/20"
+                  />
+                </div>
+                <div>
+                  <FieldLabel>Nenhuma destas palavras</FieldLabel>
+                  <input
+                    type="text"
+                    value={noneOfWords}
+                    onChange={(e) => setNoneOfWords(e.target.value)}
+                    placeholder="palavra1 palavra2 ..."
+                    className="h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-900 focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/20"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <FieldLabel>Onde procurar?</FieldLabel>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <CheckPill
+                      label="Ementa"
+                      checked={searchIn.includes("ementa")}
+                      onToggle={() => toggleSearchIn(searchIn, "ementa", setSearchIn)}
+                    />
+                    <CheckPill
+                      label="Indexação"
+                      checked={searchIn.includes("indexacao")}
+                      onToggle={() => toggleSearchIn(searchIn, "indexacao", setSearchIn)}
+                    />
+                  </div>
+                </div>
+              </div>
+            </Card>
+
+            {/* AUTOR */}
+            <Card className="border-gray-100 p-5 shadow-sm">
+              <BlockTitle>Autor</BlockTitle>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+                <div>
+                  <FieldLabel>Tipo</FieldLabel>
+                  <SearchableSelect
+                    value={authorTypeId}
+                    onValueChange={setAuthorTypeId}
+                    options={authorTypes.map((a) => ({ value: a.id, label: a.name }))}
+                    placeholder="Todos os tipos"
+                    searchPlaceholder="Buscar tipo..."
+                    className="bg-white"
+                  />
+                </div>
+                <div>
+                  <FieldLabel>Autor</FieldLabel>
+                  <input
+                    type="text"
+                    value={authorName}
+                    onChange={(e) => setAuthorName(e.target.value)}
+                    placeholder="Nome do autor"
+                    className="h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-900 focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/20"
+                  />
+                </div>
+                <div>
+                  <FieldLabel>
+                    Partido do autor
+                    {!isDeputadoAuthorType && (
+                      <span className="ml-1 text-[10px] font-normal text-gray-400">(só p/ deputados)</span>
+                    )}
+                  </FieldLabel>
                   <SearchableSelect
                     value={partyAcronym}
                     onValueChange={setPartyAcronym}
@@ -655,10 +1105,11 @@ export default function PropositionsListPage() {
                     placeholder="Todos os partidos"
                     searchPlaceholder="Buscar partido..."
                     className="bg-white"
+                    disabled={!isDeputadoAuthorType}
                   />
                 </div>
                 <div>
-                  <label className="mb-1 block text-[11px] font-medium text-gray-500">UF</label>
+                  <FieldLabel>UF do autor</FieldLabel>
                   <SearchableSelect
                     value={uf}
                     onValueChange={setUf}
@@ -668,82 +1119,215 @@ export default function PropositionsListPage() {
                     className="bg-white"
                   />
                 </div>
+              </div>
+            </Card>
+
+            {/* RELATOR */}
+            <Card className="border-gray-100 p-5 shadow-sm">
+              <BlockTitle>Relator</BlockTitle>
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <div>
-                  <label className="mb-1 block text-[11px] font-medium text-gray-500">
-                    Tipo de autor
-                  </label>
+                  <FieldLabel>Nome do relator</FieldLabel>
+                  <input
+                    type="text"
+                    value={relatorName}
+                    onChange={(e) => setRelatorName(e.target.value)}
+                    placeholder="Nome do relator"
+                    className="h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-900 focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/20"
+                  />
+                </div>
+                <div>
+                  <FieldLabel>Partido do relator</FieldLabel>
                   <SearchableSelect
-                    value={authorTypeId}
-                    onValueChange={setAuthorTypeId}
-                    options={authorTypes.map((at) => ({ value: at.id, label: at.name }))}
-                    placeholder="Todos os tipos"
-                    searchPlaceholder="Buscar tipo..."
+                    value={relatorParty}
+                    onValueChange={setRelatorParty}
+                    options={parties.map((p) => ({ value: p, label: p }))}
+                    placeholder="Todos os partidos"
+                    searchPlaceholder="Buscar partido..."
                     className="bg-white"
                   />
                 </div>
+                <div>
+                  <FieldLabel>UF do relator</FieldLabel>
+                  <SearchableSelect
+                    value={relatorUf}
+                    onValueChange={setRelatorUf}
+                    options={ufs.map((u) => ({ value: u, label: u }))}
+                    placeholder="Todas as UFs"
+                    searchPlaceholder="Buscar UF..."
+                    className="bg-white"
+                  />
+                </div>
+                <div>
+                  <FieldLabel>No órgão</FieldLabel>
+                  <SearchableSelect
+                    value={relatorOrgao}
+                    onValueChange={setRelatorOrgao}
+                    options={orgaos.map((o) => ({ value: o, label: o }))}
+                    placeholder="Todos os órgãos"
+                    searchPlaceholder="Buscar órgão..."
+                    className="bg-white"
+                  />
+                </div>
+                <div className="md:col-span-2 lg:col-span-4">
+                  <FieldLabel>Período</FieldLabel>
+                  <DateRangePicker
+                    from={relatorFrom}
+                    to={relatorTo}
+                    onFromChange={setRelatorFrom}
+                    onToChange={setRelatorTo}
+                  />
+                </div>
               </div>
-            </div>
+            </Card>
 
-            {/* Bloco — Tramitação (booleans) */}
-            <div className="border-t border-gray-100 pt-4">
-              <p className="mb-2 text-[11px] font-bold uppercase tracking-wide text-gray-500">
-                Tramitação
-              </p>
-              <div className="flex flex-wrap gap-2">
-                <BoolPill label="Tem despacho" checked={hasDispatch} onToggle={() => setHasDispatch(!hasDispatch)} />
-                <BoolPill label="Tem apensados" checked={hasAttached} onToggle={() => setHasAttached(!hasAttached)} />
-                <BoolPill label="Tem emendas" checked={hasAmendment} onToggle={() => setHasAmendment(!hasAmendment)} />
-                <BoolPill label="Tem parecer" checked={hasOpinion} onToggle={() => setHasOpinion(!hasOpinion)} />
-                <BoolPill label="Tem requerimento" checked={hasRequirement} onToggle={() => setHasRequirement(!hasRequirement)} />
+            {/* TRAMITAÇÃO */}
+            <Card className="border-gray-100 p-5 shadow-sm">
+              <BlockTitle>Tramitação</BlockTitle>
+              <div className="grid gap-4 md:grid-cols-2">
+                <div>
+                  <FieldLabel>Expressão textual</FieldLabel>
+                  <input
+                    type="text"
+                    value={tramitacaoExpression}
+                    onChange={(e) => setTramitacaoExpression(e.target.value)}
+                    placeholder="Texto na descrição da tramitação"
+                    className="h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-900 focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/20"
+                  />
+                </div>
+                <div>
+                  <FieldLabel>No órgão</FieldLabel>
+                  <SearchableSelect
+                    value={tramitacaoOrgao}
+                    onValueChange={setTramitacaoOrgao}
+                    options={orgaos.map((o) => ({ value: o, label: o }))}
+                    placeholder="Todos os órgãos"
+                    searchPlaceholder="Buscar órgão..."
+                    className="bg-white"
+                  />
+                </div>
+                <div className="md:col-span-2">
+                  <FieldLabel>Período</FieldLabel>
+                  <DateRangePicker
+                    from={tramitacaoFrom}
+                    to={tramitacaoTo}
+                    onFromChange={setTramitacaoFrom}
+                    onToChange={setTramitacaoTo}
+                  />
+                </div>
               </div>
-            </div>
-          </div>
-        )}
+            </Card>
 
-        {/* Chips de filtros ativos */}
-        {hasActiveFilters && (
-          <div className="mt-3 flex flex-wrap items-center gap-2">
-            {debouncedSearch && (
-              <FilterChip label={`"${debouncedSearch}"`} onRemove={() => setSearchTerm("")} />
-            )}
-            {activeTypeName && <FilterChip label={activeTypeName} onRemove={() => setTypeId("")} />}
-            {activeThemeName && <FilterChip label={activeThemeName} onRemove={() => setThemeId("")} />}
-            {activeSituationName && (
-              <FilterChip label={activeSituationName} onRemove={() => setSituationId("")} />
-            )}
-            {regime && <FilterChip label={`Regime: ${regime}`} onRemove={() => setRegime("")} />}
-            {(presentedFrom || presentedTo) && (
-              <FilterChip
-                label={`Período: ${presentedFrom || "…"} → ${presentedTo || "…"}`}
-                onRemove={() => {
-                  setPresentedFrom("");
-                  setPresentedTo("");
-                }}
-              />
-            )}
-            {partyAcronym && <FilterChip label={`Partido: ${partyAcronym}`} onRemove={() => setPartyAcronym("")} />}
-            {uf && <FilterChip label={`UF: ${uf}`} onRemove={() => setUf("")} />}
-            {authorTypeId && (
-              <FilterChip
-                label={`Tipo autor: ${authorTypes.find((a) => a.id === authorTypeId)?.name ?? authorTypeId}`}
-                onRemove={() => setAuthorTypeId("")}
-              />
-            )}
-            {hasDispatch && <FilterChip label="Tem despacho" onRemove={() => setHasDispatch(false)} />}
-            {hasAttached && <FilterChip label="Tem apensados" onRemove={() => setHasAttached(false)} />}
-            {hasAmendment && <FilterChip label="Tem emendas" onRemove={() => setHasAmendment(false)} />}
-            {hasOpinion && <FilterChip label="Tem parecer" onRemove={() => setHasOpinion(false)} />}
-            {hasRequirement && <FilterChip label="Tem requerimento" onRemove={() => setHasRequirement(false)} />}
+            <ValidationHint canSearch={canSearch} mode="advanced" />
           </div>
-        )}
-      </div>
+        </TabsContent>
+      </Tabs>
+
+      {/* ── CHIPS de filtros ativos ── */}
+      <FilterChips
+        chips={buildChips({
+          mode,
+          searchTerm: debouncedSearch,
+          typeIds,
+          typeAcronymById,
+          themeId,
+          themeName: themes.find((t) => t.id === themeId)?.name,
+          situationId,
+          situationName: situations.find((s) => s.id === situationId)?.name,
+          presentedFrom,
+          presentedTo,
+          partyAcronym,
+          uf,
+          authorTypeId,
+          authorTypeName: authorTypes.find((a) => a.id === authorTypeId)?.name,
+          hasAttached,
+          hasAmendment,
+          hasOpinion,
+          hasRequirement,
+          hasDispatch,
+          numero: debouncedNumero,
+          ano: debouncedAno,
+          authorName: debouncedAuthorName,
+          inTramitacao,
+          recebidaNoOrgao,
+          noOrgaoAtual,
+          allWords: debouncedAllWords,
+          exactPhrase: debouncedExactPhrase,
+          anyWord: debouncedAnyWord,
+          noneOfWords: debouncedNoneOfWords,
+          relatorName: debouncedRelatorName,
+          relatorParty,
+          relatorUf,
+          relatorOrgao,
+          relatorFrom,
+          relatorTo,
+          tramitacaoExpression: debouncedTramitacaoExpression,
+          tramitacaoOrgao,
+          tramitacaoFrom,
+          tramitacaoTo,
+          lastMovementFrom,
+          lastMovementTo,
+          regime,
+          apreciacao,
+          apreciacaoLabel: apreciacoes.find((a) => a.value === apreciacao)?.label,
+          tramitandoEmConjunto,
+        })}
+        onClear={{
+          q: () => setSearchTerm(""),
+          typeId: (id) => setTypeIds(typeIds.filter((t) => t !== id)),
+          themeId: () => setThemeId(""),
+          situationId: () => setSituationId(""),
+          dates: () => {
+            setPresentedFrom("");
+            setPresentedTo("");
+          },
+          partyAcronym: () => setPartyAcronym(""),
+          uf: () => setUf(""),
+          authorTypeId: () => setAuthorTypeId(""),
+          hasAttached: () => setHasAttached(false),
+          hasAmendment: () => setHasAmendment(false),
+          hasOpinion: () => setHasOpinion(false),
+          hasRequirement: () => setHasRequirement(false),
+          hasDispatch: () => setHasDispatch(false),
+          numero: () => setNumero(""),
+          ano: () => setAno(""),
+          authorName: () => setAuthorName(""),
+          inTramitacao: () => setInTramitacao(""),
+          recebidaNoOrgao: () => setRecebidaNoOrgao(""),
+          noOrgaoAtual: () => setNoOrgaoAtual(""),
+          allWords: () => setAllWords(""),
+          exactPhrase: () => setExactPhrase(""),
+          anyWord: () => setAnyWord(""),
+          noneOfWords: () => setNoneOfWords(""),
+          relatorName: () => setRelatorName(""),
+          relatorParty: () => setRelatorParty(""),
+          relatorUf: () => setRelatorUf(""),
+          relatorOrgao: () => setRelatorOrgao(""),
+          relatorPeriod: () => {
+            setRelatorFrom("");
+            setRelatorTo("");
+          },
+          tramitacaoExpression: () => setTramitacaoExpression(""),
+          tramitacaoOrgao: () => setTramitacaoOrgao(""),
+          tramitacaoPeriod: () => {
+            setTramitacaoFrom("");
+            setTramitacaoTo("");
+          },
+          lastMovementPeriod: () => {
+            setLastMovementFrom("");
+            setLastMovementTo("");
+          },
+          regime: () => setRegime(""),
+          apreciacao: () => setApreciacao(""),
+          tramitandoEmConjunto: () => setTramitandoEmConjunto(""),
+        }}
+      />
 
       {/* ── HEADER DE RESULTADOS ── */}
-      {!loading && filteredPropositions.length > 0 && (
-        <div className="mb-5 flex items-center justify-between">
+      {!loading && propositions.length > 0 && (
+        <div className="mb-5 mt-6 flex items-center justify-between">
           <p className="text-sm text-gray-500">
-            <span className="font-semibold text-[#1a1d1f]">{filteredPropositions.length}</span>{" "}
-            proposições listadas
+            <span className="font-semibold text-[#1a1d1f]">{propositions.length}</span> proposições listadas
             {pages > 1 && (
               <span>
                 {" · Página "}
@@ -756,9 +1340,21 @@ export default function PropositionsListPage() {
         </div>
       )}
 
-      {/* ── LISTA DE CARDS ── */}
-      {loading || loadingRefs ? (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+      {/* ── LISTA ── */}
+      {!canSearch ? (
+        <div className="mt-6">
+          <EmptyState
+            variant="no-source"
+            title="Preencha pelo menos um filtro"
+            message={
+              mode === "basic"
+                ? "Use a pesquisa básica acima para começar a buscar proposições."
+                : "Use a pesquisa avançada acima para começar a buscar proposições."
+            }
+          />
+        </div>
+      ) : loading || loadingRefs ? (
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="animate-pulse rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
               <div className="flex items-start gap-4">
@@ -775,23 +1371,19 @@ export default function PropositionsListPage() {
             </div>
           ))}
         </div>
-      ) : filteredPropositions.length > 0 ? (
-        <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
-          {filteredPropositions.map((prop) => (
+      ) : propositions.length > 0 ? (
+        <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
+          {propositions.map((prop) => (
             <PropositionCard key={prop.id} prop={prop} onClick={() => handlePropositionClick(prop.id)} />
           ))}
         </div>
       ) : (
-        <EmptyState
-          variant={hasActiveFilters ? "no-occurrence" : "no-source"}
-          title={hasActiveFilters ? "Nenhuma proposição para esses filtros" : "Nenhuma proposição encontrada"}
-          message={
-            hasActiveFilters
-              ? "Tente afrouxar os filtros ou limpar a busca para ver mais matérias."
-              : "Aguardando ingestão de novas matérias."
-          }
-          action={
-            hasActiveFilters ? (
+        <div className="mt-6">
+          <EmptyState
+            variant="no-occurrence"
+            title="Nenhuma proposição para esses filtros"
+            message="Tente afrouxar os filtros ou alterar os termos."
+            action={
               <button
                 type="button"
                 onClick={clearAllFilters}
@@ -799,13 +1391,13 @@ export default function PropositionsListPage() {
               >
                 <X size={13} /> Limpar filtros
               </button>
-            ) : null
-          }
-        />
+            }
+          />
+        </div>
       )}
 
       {/* ── PAGINAÇÃO ── */}
-      {pages > 1 && !loading && filteredPropositions.length > 0 && (
+      {pages > 1 && !loading && propositions.length > 0 && (
         <div className="mt-8 flex justify-center pb-12">
           <CustomPagination pages={pages} currentPage={page} setCurrentPage={setPage} />
         </div>
@@ -816,24 +1408,83 @@ export default function PropositionsListPage() {
 
 /* ─────────────────────────────────────── */
 
+function toggleSearchIn(
+  current: SearchInField[],
+  field: SearchInField,
+  setter: (v: SearchInField[]) => void
+) {
+  if (current.includes(field)) {
+    const next = current.filter((f) => f !== field);
+    // Não permitir lista vazia — exige pelo menos um campo
+    if (next.length === 0) return;
+    setter(next);
+  } else {
+    setter([...current, field]);
+  }
+}
+
 function buildSearchLabel(args: {
-  typeName?: string;
+  typeNames?: string[];
   themeName?: string;
   situationName?: string;
-  regime?: string;
   partyAcronym?: string;
   uf?: string;
   query?: string;
 }) {
   const parts: string[] = [];
   if (args.query) parts.push(`"${args.query}"`);
-  if (args.typeName) parts.push(args.typeName);
+  if (args.typeNames && args.typeNames.length) parts.push(args.typeNames.join("/"));
   if (args.themeName) parts.push(args.themeName);
   if (args.situationName) parts.push(args.situationName);
-  if (args.regime) parts.push(args.regime);
   if (args.partyAcronym) parts.push(args.partyAcronym);
   if (args.uf) parts.push(args.uf);
   return parts.length ? parts.join(" · ") : "Minha pesquisa";
+}
+
+function FieldLabel({ children }: { children: React.ReactNode }) {
+  return <label className="mb-1 block text-[11px] font-semibold text-gray-600">{children}</label>;
+}
+
+function BlockTitle({ children }: { children: React.ReactNode }) {
+  return (
+    <p className="mb-4 text-[11px] font-bold uppercase tracking-wide text-gray-500">{children}</p>
+  );
+}
+
+function ValidationHint({ canSearch, mode }: { canSearch: boolean; mode: Mode }) {
+  if (canSearch) return null;
+  return (
+    <p className="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-[11px] font-medium text-amber-700">
+      Preencha pelo menos um campo para iniciar a {mode === "basic" ? "pesquisa básica" : "pesquisa avançada"}.
+    </p>
+  );
+}
+
+function CheckPill({
+  label,
+  checked,
+  onToggle,
+}: {
+  label: string;
+  checked: boolean;
+  onToggle: () => void;
+}) {
+  return (
+    <button
+      type="button"
+      onClick={onToggle}
+      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
+        checked
+          ? "border-secondary/30 bg-secondary/10 text-secondary"
+          : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
+      }`}
+    >
+      <span
+        className={`h-2 w-2 rounded-full ${checked ? "bg-secondary" : "bg-gray-300"}`}
+      />
+      {label}
+    </button>
+  );
 }
 
 function CounterRow({ counters }: { counters: Counters }) {
@@ -860,45 +1511,349 @@ function CounterRow({ counters }: { counters: Counters }) {
   );
 }
 
-function BoolPill({
-  label,
-  checked,
-  onToggle,
+function buildChips(args: {
+  mode: Mode;
+  searchTerm: string;
+  typeIds: string[];
+  typeAcronymById: Map<string, string>;
+  themeId: string;
+  themeName?: string;
+  situationId: string;
+  situationName?: string;
+  presentedFrom: string;
+  presentedTo: string;
+  partyAcronym: string;
+  uf: string;
+  authorTypeId: string;
+  authorTypeName?: string;
+  hasAttached: boolean;
+  hasAmendment: boolean;
+  hasOpinion: boolean;
+  hasRequirement: boolean;
+  hasDispatch: boolean;
+  numero: string;
+  ano: string;
+  authorName: string;
+  inTramitacao: Tramitacao;
+  recebidaNoOrgao: string;
+  noOrgaoAtual: string;
+  allWords: string;
+  exactPhrase: string;
+  anyWord: string;
+  noneOfWords: string;
+  relatorName: string;
+  relatorParty: string;
+  relatorUf: string;
+  relatorOrgao: string;
+  relatorFrom: string;
+  relatorTo: string;
+  tramitacaoExpression: string;
+  tramitacaoOrgao: string;
+  tramitacaoFrom: string;
+  tramitacaoTo: string;
+  lastMovementFrom: string;
+  lastMovementTo: string;
+  regime: string;
+  apreciacao: string;
+  apreciacaoLabel?: string;
+  tramitandoEmConjunto: "" | "principal" | "apensada" | "independente";
+}): { label: string; key: string; section: string }[] {
+  const chips: { label: string; key: string; section: string }[] = [];
+  if (args.searchTerm && args.mode === "basic")
+    chips.push({ section: "q", key: "q", label: `"${args.searchTerm}"` });
+  args.typeIds.forEach((id) => {
+    chips.push({
+      section: "typeId",
+      key: `typeId:${id}`,
+      label: args.typeAcronymById.get(id) ?? id,
+    });
+  });
+  if (args.numero) chips.push({ section: "numero", key: "numero", label: `Nº ${args.numero}` });
+  if (args.ano) chips.push({ section: "ano", key: "ano", label: `Ano ${args.ano}` });
+  if (args.authorName)
+    chips.push({ section: "authorName", key: "authorName", label: `Autor: ${args.authorName}` });
+  if (args.uf) chips.push({ section: "uf", key: "uf", label: `UF: ${args.uf}` });
+  if (args.inTramitacao)
+    chips.push({
+      section: "inTramitacao",
+      key: "inTramitacao",
+      label: `Em tramitação: ${args.inTramitacao === "sim" ? "Sim" : "Não"}`,
+    });
+
+  if (args.mode === "advanced") {
+    if (args.themeName) chips.push({ section: "themeId", key: "themeId", label: args.themeName });
+    if (args.situationName)
+      chips.push({ section: "situationId", key: "situationId", label: args.situationName });
+    if (args.presentedFrom || args.presentedTo)
+      chips.push({
+        section: "dates",
+        key: "dates",
+        label: `Apresentação: ${args.presentedFrom || "…"} → ${args.presentedTo || "…"}`,
+      });
+    if (args.recebidaNoOrgao)
+      chips.push({
+        section: "recebidaNoOrgao",
+        key: "recebidaNoOrgao",
+        label: `Recebida em: ${args.recebidaNoOrgao}`,
+      });
+    if (args.noOrgaoAtual)
+      chips.push({
+        section: "noOrgaoAtual",
+        key: "noOrgaoAtual",
+        label: `No órgão: ${args.noOrgaoAtual}`,
+      });
+    if (args.allWords)
+      chips.push({ section: "allWords", key: "allWords", label: `Todas: ${args.allWords}` });
+    if (args.exactPhrase)
+      chips.push({ section: "exactPhrase", key: "exactPhrase", label: `Exato: "${args.exactPhrase}"` });
+    if (args.anyWord)
+      chips.push({ section: "anyWord", key: "anyWord", label: `Qualquer: ${args.anyWord}` });
+    if (args.noneOfWords)
+      chips.push({ section: "noneOfWords", key: "noneOfWords", label: `Sem: ${args.noneOfWords}` });
+    if (args.authorTypeName)
+      chips.push({
+        section: "authorTypeId",
+        key: "authorTypeId",
+        label: `Tipo autor: ${args.authorTypeName}`,
+      });
+    if (args.partyAcronym)
+      chips.push({ section: "partyAcronym", key: "partyAcronym", label: `Partido: ${args.partyAcronym}` });
+    if (args.relatorName)
+      chips.push({ section: "relatorName", key: "relatorName", label: `Relator: ${args.relatorName}` });
+    if (args.relatorParty)
+      chips.push({ section: "relatorParty", key: "relatorParty", label: `Partido relator: ${args.relatorParty}` });
+    if (args.relatorUf)
+      chips.push({ section: "relatorUf", key: "relatorUf", label: `UF relator: ${args.relatorUf}` });
+    if (args.relatorOrgao)
+      chips.push({
+        section: "relatorOrgao",
+        key: "relatorOrgao",
+        label: `Órgão relator: ${args.relatorOrgao}`,
+      });
+    if (args.relatorFrom || args.relatorTo)
+      chips.push({
+        section: "relatorPeriod",
+        key: "relatorPeriod",
+        label: `Período relator: ${args.relatorFrom || "…"} → ${args.relatorTo || "…"}`,
+      });
+    if (args.tramitacaoExpression)
+      chips.push({
+        section: "tramitacaoExpression",
+        key: "tramitacaoExpression",
+        label: `Tramitação: ${args.tramitacaoExpression}`,
+      });
+    if (args.tramitacaoOrgao)
+      chips.push({
+        section: "tramitacaoOrgao",
+        key: "tramitacaoOrgao",
+        label: `Órgão tramitação: ${args.tramitacaoOrgao}`,
+      });
+    if (args.tramitacaoFrom || args.tramitacaoTo)
+      chips.push({
+        section: "tramitacaoPeriod",
+        key: "tramitacaoPeriod",
+        label: `Período tramitação: ${args.tramitacaoFrom || "…"} → ${args.tramitacaoTo || "…"}`,
+      });
+    if (args.lastMovementFrom || args.lastMovementTo)
+      chips.push({
+        section: "lastMovementPeriod",
+        key: "lastMovementPeriod",
+        label: `Última mov.: ${args.lastMovementFrom || "…"} → ${args.lastMovementTo || "…"}`,
+      });
+    if (args.regime)
+      chips.push({ section: "regime", key: "regime", label: `Regime: ${args.regime}` });
+    if (args.apreciacao)
+      chips.push({
+        section: "apreciacao",
+        key: "apreciacao",
+        label: `Apreciação: ${args.apreciacaoLabel ?? args.apreciacao}`,
+      });
+    if (args.tramitandoEmConjunto)
+      chips.push({
+        section: "tramitandoEmConjunto",
+        key: "tramitandoEmConjunto",
+        label: `Tramitação: ${args.tramitandoEmConjunto}`,
+      });
+    if (args.hasDispatch) chips.push({ section: "hasDispatch", key: "hasDispatch", label: "Tem despacho" });
+    if (args.hasAttached) chips.push({ section: "hasAttached", key: "hasAttached", label: "Tem apensados" });
+    if (args.hasAmendment) chips.push({ section: "hasAmendment", key: "hasAmendment", label: "Tem emendas" });
+    if (args.hasOpinion) chips.push({ section: "hasOpinion", key: "hasOpinion", label: "Tem parecer" });
+    if (args.hasRequirement)
+      chips.push({ section: "hasRequirement", key: "hasRequirement", label: "Tem requerimento" });
+  }
+  return chips;
+}
+
+function FilterChips({
+  chips,
+  onClear,
 }: {
-  label: string;
-  checked: boolean;
-  onToggle: () => void;
+  chips: { label: string; key: string; section: string }[];
+  onClear: Record<string, ((id?: string) => void) | undefined>;
 }) {
+  if (chips.length === 0) return null;
   return (
-    <button
-      type="button"
-      onClick={onToggle}
-      className={`inline-flex items-center gap-1.5 rounded-full border px-3 py-1 text-xs font-medium transition-colors ${
-        checked
-          ? "border-secondary/30 bg-secondary/10 text-secondary"
-          : "border-gray-200 bg-white text-gray-600 hover:bg-gray-50"
-      }`}
-    >
-      <span
-        className={`h-2 w-2 rounded-full ${
-          checked ? "bg-secondary" : "bg-gray-300"
-        }`}
-      />
-      {label}
-    </button>
+    <div className="mt-4 flex flex-wrap items-center gap-2">
+      {chips.map((c) => {
+        const idMatch = c.key.match(/^typeId:(.+)$/);
+        const handler =
+          idMatch && onClear.typeId
+            ? () => onClear.typeId!(idMatch[1])
+            : onClear[c.section];
+        return (
+          <button
+            key={c.key}
+            type="button"
+            onClick={() => handler?.()}
+            className="inline-flex items-center gap-1 rounded-full bg-secondary/10 px-2.5 py-0.5 text-xs font-medium text-secondary transition-colors hover:bg-secondary/20"
+          >
+            {c.label}
+            <X size={11} />
+          </button>
+        );
+      })}
+    </div>
   );
 }
 
-function FilterChip({ label, onRemove }: { label: string; onRemove: () => void }) {
+function ActionBar({
+  canSearch,
+  dirty,
+  loading,
+  hasResults,
+  copied,
+  savedSearches,
+  showSaved,
+  onSearch,
+  onToggleSaved,
+  onApplySaved,
+  onDeleteSaved,
+  onClearAll,
+  onShare,
+  onExportCsv,
+  onSave,
+}: {
+  canSearch: boolean;
+  dirty: boolean;
+  loading: boolean;
+  hasResults: boolean;
+  copied: boolean;
+  savedSearches: SavedSearch[];
+  showSaved: boolean;
+  onSearch: () => void;
+  onToggleSaved: () => void;
+  onApplySaved: (s: SavedSearch) => void;
+  onDeleteSaved: (id: string) => void;
+  onClearAll: () => void;
+  onShare: () => void;
+  onExportCsv: () => void;
+  onSave: () => void;
+}) {
+  const searchDisabled = !canSearch || !dirty || loading;
   return (
-    <button
-      type="button"
-      onClick={onRemove}
-      className="inline-flex items-center gap-1 rounded-full bg-secondary/10 px-2.5 py-0.5 text-xs font-medium text-secondary transition-colors hover:bg-secondary/20"
-    >
-      {label}
-      <X size={11} />
-    </button>
+    <div className="flex flex-wrap items-center gap-2">
+      <button
+        type="button"
+        onClick={onSearch}
+        disabled={searchDisabled}
+        title={
+          !canSearch
+            ? "Defina ao menos um filtro para buscar"
+            : !dirty
+              ? "Nenhuma alteração desde a última busca"
+              : "Aplicar filtros e buscar"
+        }
+        className="inline-flex h-9 items-center gap-1.5 rounded-lg bg-secondary px-4 text-xs font-semibold text-white transition-colors hover:bg-secondary/90 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        <Search size={13} />
+        {loading ? "Buscando…" : "Buscar"}
+      </button>
+      <button
+        type="button"
+        onClick={onClearAll}
+        disabled={!canSearch}
+        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+      >
+        <X size={13} />
+        Limpar filtros
+      </button>
+      <button
+        type="button"
+        onClick={onShare}
+        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50"
+        title="Copia a URL com filtros aplicados"
+      >
+        <Share2 size={13} />
+        {copied ? "Copiado!" : "Compartilhar"}
+      </button>
+      <button
+        type="button"
+        onClick={onExportCsv}
+        disabled={!hasResults}
+        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+        title="Exporta a página atual em CSV"
+      >
+        <Download size={13} />
+        Exportar CSV
+      </button>
+      <button
+        type="button"
+        onClick={onSave}
+        disabled={!canSearch}
+        className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+        title="Salva os filtros atuais neste dispositivo"
+      >
+        <BookmarkPlus size={13} />
+        Salvar
+      </button>
+      <div className="relative">
+        <button
+          type="button"
+          onClick={onToggleSaved}
+          disabled={!savedSearches.length}
+          className="inline-flex h-9 items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 text-xs font-medium text-gray-600 transition-colors hover:bg-gray-50 disabled:cursor-not-allowed disabled:opacity-50"
+        >
+          <Bookmark size={13} />
+          Salvas
+          {savedSearches.length > 0 && (
+            <span className="rounded-full bg-secondary/10 px-1.5 text-[10px] font-bold text-secondary">
+              {savedSearches.length}
+            </span>
+          )}
+        </button>
+        {showSaved && savedSearches.length > 0 && (
+          <div className="absolute right-0 z-30 mt-2 max-h-80 w-72 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-lg">
+            <p className="px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-gray-500">
+              Pesquisas neste dispositivo
+            </p>
+            {savedSearches.map((s) => (
+              <div
+                key={s.id}
+                className="group flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-gray-50"
+              >
+                <Star size={12} className="shrink-0 text-amber-400" />
+                <button
+                  type="button"
+                  onClick={() => onApplySaved(s)}
+                  className="min-w-0 flex-1 truncate text-left text-xs font-medium text-gray-800"
+                  title={s.name}
+                >
+                  {s.name}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => onDeleteSaved(s.id)}
+                  className="opacity-0 transition-opacity group-hover:opacity-100"
+                  title="Excluir"
+                >
+                  <Trash2 size={12} className="text-gray-400 hover:text-red-500" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+    </div>
   );
 }
 
@@ -918,7 +1873,6 @@ function PropositionCard({ prop, onClick }: { prop: Proposition; onClick: () => 
     >
       <div className="bg-secondary absolute left-0 top-0 bottom-0 w-1 rounded-l-2xl opacity-0 transition-opacity duration-200 group-hover:opacity-100" />
 
-      {/* Faixa 1 — identificação */}
       <div className="flex items-start gap-4">
         <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-secondary/10 text-secondary transition-colors group-hover:bg-secondary/20">
           <FileText size={20} />
@@ -954,7 +1908,6 @@ function PropositionCard({ prop, onClick }: { prop: Proposition; onClick: () => 
             )}
           </div>
 
-          {/* Faixa 2 — síntese */}
           <p
             className="mt-3 line-clamp-2 text-xs leading-relaxed text-gray-600"
             title={prop.description}
@@ -962,7 +1915,6 @@ function PropositionCard({ prop, onClick }: { prop: Proposition; onClick: () => 
             {prop.description || "Sem ementa integrada."}
           </p>
 
-          {/* Faixa 3 — metadados processuais */}
           <div className="mt-3 grid gap-1.5 text-[11px] text-gray-500">
             {author && (
               <div className="flex min-w-0 items-center gap-1.5">
@@ -993,12 +1945,8 @@ function PropositionCard({ prop, onClick }: { prop: Proposition; onClick: () => 
         </div>
       </div>
 
-      {/* Faixa 4 — contadores (só não-zero, evita poluição) */}
-      {prop.counters && (
-        <CounterRow counters={prop.counters} />
-      )}
+      {prop.counters && <CounterRow counters={prop.counters} />}
 
-      {/* Faixa 5 — ações */}
       <div className="mt-4 flex items-center justify-end gap-1.5 border-t border-gray-50 pt-3">
         {prop.fullPropositionUrl && (
           <a

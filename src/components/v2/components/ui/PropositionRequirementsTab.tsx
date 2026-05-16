@@ -4,6 +4,7 @@ import { Card } from "@/components/v2/components/ui/Card";
 import { EmptyState } from "@/components/v2/components/ui/EmptyState";
 import { QualityBadge } from "@/components/v2/components/ui/QualityBadge";
 import { useApiContext } from "@/context/ApiContext";
+import { formatBrazilDate } from "@/lib/utils";
 import {
   AlertTriangle,
   ArrowDown,
@@ -272,7 +273,7 @@ export function PropositionRequirementsTab({ propositionId }: { propositionId: s
                               <span className="font-medium text-gray-800">{h.agency}</span>
                               <span className="text-gray-400">
                                 <Calendar className="mr-0.5 inline h-3 w-3" />
-                                {new Date(h.date).toLocaleDateString("pt-BR")}
+                                {formatBrazilDate(h.date)}
                               </span>
                             </div>
                             <p className="mt-1 italic text-gray-600">"{h.excerpt}"</p>
@@ -375,7 +376,7 @@ function ItemRow({ item }: { item: Item }) {
             {p.presentationDate && (
               <span className="inline-flex items-center gap-1">
                 <Calendar className="h-3 w-3" />
-                {new Date(p.presentationDate).toLocaleDateString("pt-BR")}
+                {formatBrazilDate(p.presentationDate)}
               </span>
             )}
             {p.situationDescription && (

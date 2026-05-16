@@ -4,6 +4,7 @@ import { Card } from "@/components/v2/components/ui/Card";
 import { EmptyState } from "@/components/v2/components/ui/EmptyState";
 import { QualityBadge } from "@/components/v2/components/ui/QualityBadge";
 import { useApiContext } from "@/context/ApiContext";
+import { formatBrazilDate } from "@/lib/utils";
 import { ExternalLink, FileText, Folder, Gavel, GitBranch } from "lucide-react";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
@@ -257,7 +258,7 @@ function DocRow({ doc }: { doc: DerivedDoc }) {
         <div className="mt-1 flex items-center gap-2 text-[11px] text-gray-400">
           {doc.agency && <span>{doc.agency}</span>}
           {doc.date && (
-            <span>{new Date(doc.date).toLocaleDateString("pt-BR")}</span>
+            <span>{formatBrazilDate(doc.date)}</span>
           )}
         </div>
       </div>

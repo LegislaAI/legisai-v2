@@ -3,6 +3,7 @@
 import { Card } from "@/components/v2/components/ui/Card";
 import { EmptyState } from "@/components/v2/components/ui/EmptyState";
 import { QualityBadge } from "@/components/v2/components/ui/QualityBadge";
+import { formatBrazilDate } from "@/lib/utils";
 import { Building2, Calendar, Gavel, UserCheck } from "lucide-react";
 
 type Process = {
@@ -109,7 +110,7 @@ export function PropositionCommissionsTab({
                   </div>
                   <p className="mt-2 flex items-center gap-1 text-[11px] text-gray-500">
                     <Calendar className="h-3 w-3" />
-                    Última: {new Date(latest.date).toLocaleDateString("pt-BR")}
+                    Última: {formatBrazilDate(latest.date)}
                   </p>
                   {latest.processingDescription && (
                     <p className="mt-1 text-xs text-gray-700">{latest.processingDescription}</p>
@@ -166,7 +167,7 @@ export function PropositionCommissionsTab({
                 <div className="flex items-center justify-between gap-2">
                   <span className="font-semibold text-gray-800">{p.agencyAcronym}</span>
                   <span className="text-gray-400">
-                    {new Date(p.date).toLocaleDateString("pt-BR")}
+                    {formatBrazilDate(p.date)}
                   </span>
                 </div>
                 {p.processingDescription && (

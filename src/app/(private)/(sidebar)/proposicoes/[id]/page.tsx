@@ -29,6 +29,7 @@ import {
   BellRing,
   Building2,
   Calendar,
+  CheckCircle2,
   Clock,
   Download,
   FileText,
@@ -54,7 +55,31 @@ import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { useCallback, useEffect, useMemo, useState } from "react";
 
-type Author = { id: string; name: string; politicianId?: string; proponente?: boolean };
+type Author = {
+  id: string;
+  name: string;
+  politicianId?: string;
+  proponente?: boolean;
+  politician?: { politicalPartyAcronym?: string | null; state?: string | null } | null;
+};
+
+type LawResult =
+  | { detected: false }
+  | {
+      detected: true;
+      lawNumber: string | null;
+      lawDate: string | null;
+      sourceText: string | null;
+    };
+
+/**
+ * Extrai partido/UF de strings do Senado no formato fixo
+ * "Senado Federal - Senador X - PARTIDO/UF". Sem casamento → null.
+ */
+function parseSenateAuthorName(name: string): { party: string; uf: string } | null {
+  const m = name.match(/-\s*([A-Z]{2,8})\s*\/\s*([A-Z]{2})\s*$/);
+  return m ? { party: m[1], uf: m[2] } : null;
+}
 type Theme = { id: string; name: string };
 
 type Process = {
@@ -130,7 +155,27 @@ type PropositionDetail = {
     relatoria: QualityFlag;
     nextStep: QualityFlag;
   }>;
+  dataFreshness?: {
+    lastSyncedAt: string | null;
+    votingsLastSyncedAt: string | null;
+    lastSyncStatus: "complete" | "partial" | "failed" | null;
+    refreshMode: "cache-hit" | "await-shallow" | "background-only";
+  };
+  lawResult?: LawResult;
 };
+
+function formatFreshness(iso: string | null | undefined): string {
+  if (!iso) return "nunca sincronizado";
+  const diffMs = Date.now() - new Date(iso).getTime();
+  if (diffMs < 0) return "agora";
+  const min = Math.floor(diffMs / 60000);
+  if (min < 1) return "agora";
+  if (min < 60) return `há ${min} min`;
+  const h = Math.floor(min / 60);
+  if (h < 24) return `há ${h} h`;
+  const d = Math.floor(h / 24);
+  return `há ${d} dia${d === 1 ? "" : "s"}`;
+}
 
 function regimeTone(regime?: string) {
   if (!regime) return "bg-gray-100 text-gray-600";
@@ -309,6 +354,29 @@ Detalhe o resumo do texto, matérias correlatas, todo o histórico de tramitaç�
     <div className="animate-in fade-in slide-in-from-bottom-4 space-y-6 pb-20 duration-500">
       <BackButton />
 
+      {/* ── BANNER: Transformada em Norma Jurídica ── */}
+      {proposition.lawResult?.detected && (
+        <div className="flex items-start gap-3 rounded-2xl border border-emerald-200 bg-emerald-50 p-4 shadow-sm">
+          <CheckCircle2 className="mt-0.5 h-5 w-5 shrink-0 text-emerald-700" />
+          <div className="text-sm leading-relaxed text-emerald-900">
+            {proposition.lawResult.lawNumber ? (
+              <>
+                Esta proposição foi <strong>transformada na Lei nº {proposition.lawResult.lawNumber}</strong>
+                {proposition.lawResult.lawDate && (
+                  <> (publicada em {formatBrazilDate(proposition.lawResult.lawDate)})</>
+                )}
+                .
+              </>
+            ) : (
+              <>Esta proposição foi <strong>transformada em norma jurídica</strong>.</>
+            )}
+            <p className="mt-1 text-xs text-emerald-700/80">
+              A tramitação na Câmara foi concluída. Etapas exibidas abaixo são históricas.
+            </p>
+          </div>
+        </div>
+      )}
+
       {/* ── HEADER ── */}
       <header>
         <div className="relative overflow-hidden rounded-2xl shadow-lg">
@@ -355,6 +423,28 @@ Detalhe o resumo do texto, matérias correlatas, todo o histórico de tramitaç�
                         )}
                       >
                         {proposition.regime}
+                      </span>
+                    )}
+                    {proposition.dataFreshness && (
+                      <span
+                        className={cn(
+                          "inline-flex items-center gap-1 rounded-full border px-3 py-1 text-[11px] font-medium",
+                          proposition.dataFreshness.lastSyncStatus === "failed"
+                            ? "border-red-200 bg-red-50 text-red-700"
+                            : proposition.dataFreshness.lastSyncStatus === "partial"
+                              ? "border-amber-200 bg-amber-50 text-amber-700"
+                              : "border-gray-200 bg-gray-50 text-gray-600"
+                        )}
+                        title={
+                          proposition.dataFreshness.lastSyncStatus === "partial"
+                            ? "Alguns dados podem estar desatualizados (sync parcial)"
+                            : proposition.dataFreshness.lastSyncStatus === "failed"
+                              ? "Falha ao sincronizar com a Câmara — exibindo dados em cache"
+                              : "Dados sincronizados com a API da Câmara"
+                        }
+                      >
+                        <Clock className="h-3 w-3" />
+                        Atualizado {formatFreshness(proposition.dataFreshness.lastSyncedAt)}
                       </span>
                     )}
                   </div>
@@ -549,15 +639,38 @@ Detalhe o resumo do texto, matérias correlatas, todo o histórico de tramitaç�
                       {proposition.authors.length} autor(es) identificado(s)
                     </p>
                     <div className="flex flex-wrap gap-2">
-                      {proposition.authors.map((a) =>
-                        a.politicianId ? (
+                      {proposition.authors.map((a) => {
+                        // Partido/UF: priorizar dado estruturado do Politician;
+                        // fallback pra parser do padrão Senado quando ausente.
+                        const party = a.politician?.politicalPartyAcronym ?? null;
+                        const uf = a.politician?.state ?? null;
+                        const senateMatch =
+                          !party && !uf ? parseSenateAuthorName(a.name) : null;
+                        const finalParty = party ?? senateMatch?.party ?? null;
+                        const finalUf = uf ?? senateMatch?.uf ?? null;
+                        // Nome limpo: se parseamos "- PL/MT" do final, removemos do display.
+                        const displayName = senateMatch
+                          ? a.name.replace(/\s*-\s*[A-Z]{2,8}\s*\/\s*[A-Z]{2}\s*$/, "")
+                          : a.name;
+                        const partyChip = finalParty && finalUf && (
+                          <Link
+                            href={`/proposicoes?partyAcronym=${encodeURIComponent(finalParty)}&uf=${encodeURIComponent(finalUf)}`}
+                            onClick={(e) => e.stopPropagation()}
+                            className="ml-1 rounded border border-gray-200 bg-white px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-gray-600 hover:border-secondary hover:text-secondary"
+                            title={`Filtrar proposições por ${finalParty}/${finalUf}`}
+                          >
+                            {finalParty} · {finalUf}
+                          </Link>
+                        );
+                        return a.politicianId ? (
                           <Link
                             key={a.id}
                             href={`/deputados/${a.politicianId}`}
                             className="inline-flex items-center gap-1.5 rounded-lg border border-gray-200 bg-white px-3 py-1.5 text-sm font-medium text-gray-800 shadow-sm transition-colors hover:border-secondary hover:text-secondary"
                           >
                             <User className="h-4 w-4 text-gray-400" />
-                            {a.name}
+                            {displayName}
+                            {partyChip}
                             {a.proponente && (
                               <span className="ml-1 rounded bg-secondary/10 px-1.5 py-0.5 text-[9px] font-bold uppercase tracking-wider text-secondary">
                                 Proponente
@@ -570,10 +683,11 @@ Detalhe o resumo do texto, matérias correlatas, todo o histórico de tramitaç�
                             className="inline-flex items-center gap-1.5 rounded-lg border border-gray-100 bg-gray-50 px-3 py-1.5 text-sm text-gray-600"
                           >
                             <User className="h-4 w-4 text-gray-400" />
-                            {a.name}
+                            {displayName}
+                            {partyChip}
                           </span>
-                        )
-                      )}
+                        );
+                      })}
                     </div>
                   </>
                 ) : (

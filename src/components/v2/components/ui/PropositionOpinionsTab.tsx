@@ -3,6 +3,7 @@
 import { Card } from "@/components/v2/components/ui/Card";
 import { EmptyState } from "@/components/v2/components/ui/EmptyState";
 import { QualityBadge } from "@/components/v2/components/ui/QualityBadge";
+import { formatBrazilDate } from "@/lib/utils";
 import { Building2, Calendar, FileText, History, UserCheck } from "lucide-react";
 import Link from "next/link";
 
@@ -85,7 +86,7 @@ export function PropositionOpinionsTab({ events }: { events?: EventItem[] }) {
             <Field label="Comissão" value={current.agency} />
             <Field
               label="Designação (primeiro evento)"
-              value={new Date(current.from).toLocaleDateString("pt-BR")}
+              value={formatBrazilDate(current.from)}
             />
             <Field
               label="Situação da relatoria"
@@ -149,9 +150,9 @@ export function PropositionOpinionsTab({ events }: { events?: EventItem[] }) {
                     </td>
                     <td className="py-2 pr-2 text-gray-600">{r.agency || "—"}</td>
                     <td className="py-2 pr-2 text-gray-600">
-                      {new Date(r.from).toLocaleDateString("pt-BR")}
+                      {formatBrazilDate(r.from)}
                       {r.to && r.to !== r.from && (
-                        <> → {new Date(r.to).toLocaleDateString("pt-BR")}</>
+                        <> → {formatBrazilDate(r.to)}</>
                       )}
                     </td>
                     <td className="py-2 pr-2 text-right text-gray-600">{r.count}</td>
@@ -198,7 +199,7 @@ export function PropositionOpinionsTab({ events }: { events?: EventItem[] }) {
                   </div>
                   <span className="inline-flex items-center gap-1 text-[11px] text-gray-500">
                     <Calendar className="h-3 w-3" />
-                    {new Date(e.event.startDate).toLocaleDateString("pt-BR")}
+                    {formatBrazilDate(e.event.startDate)}
                   </span>
                 </div>
                 {e.title && (
