@@ -1,5 +1,6 @@
 "use client";
 
+import Link from "next/link";
 import { Card } from "@/components/v2/components/ui/Card";
 import { CustomPagination } from "@/components/ui/CustomPagination";
 import { cn } from "@/lib/utils";
@@ -77,17 +78,13 @@ function PropositionRow({ p }: { p: ProposicaoDeputado }) {
       <div className="col-span-2 flex items-center justify-end gap-2 text-xs text-gray-500 tabular-nums">
         <Calendar className="h-3 w-3" />
         {new Date(p.dt_apresentacao).toLocaleDateString("pt-BR")}
-        {p.uri_proposicao && (
-          <a
-            href={p.uri_proposicao}
-            target="_blank"
-            rel="noreferrer"
-            className="text-[#749c5b] hover:underline"
-            title="Ver na Câmara"
-          >
-            <ExternalLink className="h-3 w-3" />
-          </a>
-        )}
+        <Link
+          href={`/proposicoes/${p.id}`}
+          className="text-[#749c5b] hover:underline"
+          title="Ver detalhes da proposição"
+        >
+          <ExternalLink className="h-3 w-3" />
+        </Link>
       </div>
     </div>
   );
