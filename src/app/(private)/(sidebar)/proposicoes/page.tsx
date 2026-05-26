@@ -45,9 +45,15 @@ type SavedSearch = {
   name: string;
   query: string;
   createdAt: string;
+  /** Última execução pelo usuário — Gap #12. NULL se nunca foi aplicada. */
+  lastExecutedAt?: string | null;
+  /** Total da última execução. NULL se nunca rodou ou se a chamada falhou. */
+  lastResultCount?: number | null;
 };
 
-const SAVED_KEY = "legisai:proposicoes:savedSearches";
+/** Chave do localStorage do MVP antigo. Mantida só para migrar para o backend
+ *  na primeira carga do usuário com pesquisas legadas. */
+const LEGACY_SAVED_KEY = "legisai:proposicoes:savedSearches";
 
 type Counters = {
   tramitacoes: number;
@@ -131,7 +137,7 @@ function fromCsv(value: string | null | undefined): string[] {
 export default function PropositionsListPage() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { GetAPI } = useApiContext();
+  const { GetAPI, PostAPI, DeleteAPI } = useApiContext();
 
   // ── References ──
   const [tiposPrincipais, setTiposPrincipais] = useState<Ref[]>([]);
@@ -615,6 +621,45 @@ export default function PropositionsListPage() {
         if (res.status === 200 && res.body) {
           setPropositions(res.body.propositions ?? []);
           setPages(res.body.pages ?? 0);
+
+          // Pesquisa salva aplicada na carga anterior? Registra execução agora
+          // que sabemos o total real. sessionStorage sobrevive ao full reload
+          // do `window.location.assign` usado em handleApplySaved.
+          try {
+            const pendingId = window.sessionStorage.getItem(
+              "legisai:pendingExecuteSavedId"
+            );
+            if (pendingId) {
+              window.sessionStorage.removeItem("legisai:pendingExecuteSavedId");
+              const total: number | undefined =
+                typeof res.body.total === "number" ? res.body.total : undefined;
+              // Fire-and-forget — falha silenciosa. Atualiza state local para
+              // refletir lastExecutedAt na lista sem nova chamada de listagem.
+              void PostAPI(
+                `/saved-search/${pendingId}/execute`,
+                { resultCount: total },
+                true
+              ).then((r) => {
+                if (r.status === 200 || r.status === 201) {
+                  setSavedSearches((prev) =>
+                    prev.map((s) =>
+                      s.id === pendingId
+                        ? {
+                            ...s,
+                            lastExecutedAt:
+                              (r.body && r.body.lastExecutedAt) ||
+                              new Date().toISOString(),
+                            lastResultCount: total ?? null,
+                          }
+                        : s
+                    )
+                  );
+                }
+              });
+            }
+          } catch {
+            /* sessionStorage indisponível — ignora */
+          }
         }
       } catch {
         if (!aborted) {
@@ -641,7 +686,7 @@ export default function PropositionsListPage() {
     return () => {
       aborted = true;
     };
-  }, [appliedQs, page, GetAPI]);
+  }, [appliedQs, page, GetAPI, PostAPI]);
 
   // Marca filtros como "sujos" quando o usuário edita algo após o último Buscar.
   // Usa ref para pular o render inicial (URL já carrega o estado aplicado).
@@ -724,27 +769,63 @@ export default function PropositionsListPage() {
     router.replace(`/proposicoes${next ? `?${next}` : ""}`, { scroll: false });
   }, [appliedQs, page, router]);
 
-  // Carrega pesquisas salvas do localStorage uma vez na montagem
+  // Carrega pesquisas salvas do backend. Na primeira carga, migra entradas
+  // legadas que ainda estão no localStorage para o servidor (compatibilidade
+  // com usuários do MVP anterior) e limpa a chave antiga.
   useEffect(() => {
-    try {
-      const raw = window.localStorage.getItem(SAVED_KEY);
-      if (raw) {
-        const parsed = JSON.parse(raw) as SavedSearch[];
-        if (Array.isArray(parsed)) setSavedSearches(parsed);
-      }
-    } catch {
-      /* ignora storage indisponível */
-    }
-  }, []);
+    let aborted = false;
+    (async () => {
+      try {
+        const res = await GetAPI("/saved-search", true);
+        if (aborted) return;
+        const fromServer: SavedSearch[] = res.status === 200 && Array.isArray(res.body) ? res.body : [];
 
-  const persistSaved = (next: SavedSearch[]) => {
-    setSavedSearches(next);
-    try {
-      window.localStorage.setItem(SAVED_KEY, JSON.stringify(next));
-    } catch {
-      /* ignora quota */
-    }
-  };
+        // Migração legada: se o usuário tem pesquisas em localStorage e nada
+        // no servidor, sobe pro backend. Faz uma vez só.
+        let legacy: SavedSearch[] = [];
+        try {
+          const raw = window.localStorage.getItem(LEGACY_SAVED_KEY);
+          if (raw) {
+            const parsed = JSON.parse(raw);
+            if (Array.isArray(parsed)) legacy = parsed as SavedSearch[];
+          }
+        } catch {
+          /* ignora storage indisponível */
+        }
+
+        if (legacy.length > 0 && fromServer.length === 0) {
+          const migrated: SavedSearch[] = [];
+          for (const s of legacy) {
+            try {
+              const r = await PostAPI(
+                "/saved-search",
+                { name: s.name, query: s.query },
+                true
+              );
+              if (r.status === 201 || r.status === 200) {
+                migrated.push(r.body as SavedSearch);
+              }
+            } catch {
+              /* segue tentando os outros */
+            }
+          }
+          if (!aborted) setSavedSearches(migrated);
+          try {
+            window.localStorage.removeItem(LEGACY_SAVED_KEY);
+          } catch {
+            /* ignora */
+          }
+        } else {
+          if (!aborted) setSavedSearches(fromServer);
+        }
+      } catch {
+        if (!aborted) setSavedSearches([]);
+      }
+    })();
+    return () => {
+      aborted = true;
+    };
+  }, [GetAPI, PostAPI]);
 
   const handlePropositionClick = (id: string) => {
     router.push(`/proposicoes/${id}`);
@@ -803,7 +884,7 @@ export default function PropositionsListPage() {
     }
   };
 
-  const handleSaveSearch = () => {
+  const handleSaveSearch = async () => {
     if (!canSearch) return;
     const suggested = buildSearchLabel({
       typeNames: typeIds
@@ -818,23 +899,49 @@ export default function PropositionsListPage() {
     const name = window.prompt("Nome da pesquisa:", suggested);
     if (!name) return;
     const query = window.location.search.replace(/^\?/, "");
-    const id = `${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`;
-    const next: SavedSearch[] = [
-      { id, name: name.trim(), query, createdAt: new Date().toISOString() },
-      ...savedSearches,
-    ].slice(0, 30);
-    persistSaved(next);
+    try {
+      const res = await PostAPI(
+        "/saved-search",
+        { name: name.trim(), query },
+        true
+      );
+      if (res.status === 201 || res.status === 200) {
+        setSavedSearches((prev) => [res.body as SavedSearch, ...prev]);
+      } else {
+        // Backend retorna 400 com mensagem quando limite atingido.
+        const msg = (res.body && (res.body.message as string)) || "Não foi possível salvar a pesquisa.";
+        window.alert(msg);
+      }
+    } catch {
+      window.alert("Erro de rede ao salvar pesquisa.");
+    }
   };
 
+  /**
+   * Aplica pesquisa salva: marca a intenção via sessionStorage (sobrevive ao
+   * full reload da URL) para que, no próximo fetch concluído, o front dispare
+   * `/saved-search/:id/execute` com o `total` real. Sem isso, perderíamos
+   * `lastExecutedAt`/`lastResultCount` da spec do Leo §14.5.
+   */
   const handleApplySaved = (s: SavedSearch) => {
     setShowSaved(false);
     if (typeof window !== "undefined") {
+      try {
+        window.sessionStorage.setItem("legisai:pendingExecuteSavedId", s.id);
+      } catch {
+        /* ignora */
+      }
       window.location.assign(`/proposicoes${s.query ? `?${s.query}` : ""}`);
     }
   };
 
-  const handleDeleteSaved = (id: string) => {
-    persistSaved(savedSearches.filter((s) => s.id !== id));
+  const handleDeleteSaved = async (id: string) => {
+    try {
+      await DeleteAPI(`/saved-search/${id}`, true);
+    } catch {
+      /* mesmo se falhar no servidor, tira da UI — usuário pode tentar de novo */
+    }
+    setSavedSearches((prev) => prev.filter((s) => s.id !== id));
   };
 
   const handleExportCsv = () => {
@@ -1708,6 +1815,34 @@ function buildSearchLabel(args: {
   return parts.length ? parts.join(" · ") : "Minha pesquisa";
 }
 
+/**
+ * Resume `lastExecutedAt` + `lastResultCount` em uma linha curta pro dropdown
+ * de pesquisas salvas. Exemplos:
+ *   "Executada há 3 dias · 47 resultados"
+ *   "Executada hoje · 1.000+ resultados"  (quando capped)
+ *   "Nunca executada"  (lastExecutedAt vazio)
+ */
+function formatLastExecution(
+  iso: string | null | undefined,
+  count: number | null | undefined
+): string {
+  if (!iso) return "Nunca executada";
+  const when = new Date(iso);
+  const diffMs = Date.now() - when.getTime();
+  const day = 24 * 60 * 60 * 1000;
+  let prefix: string;
+  if (diffMs < day) prefix = "Executada hoje";
+  else if (diffMs < 2 * day) prefix = "Executada ontem";
+  else {
+    const days = Math.floor(diffMs / day);
+    prefix = `Executada há ${days} dias`;
+  }
+  if (count == null) return prefix;
+  // O backend cappa em 1000; quando bate o cap, sinaliza com "+".
+  const countLabel = count >= 1000 ? "1.000+" : String(count);
+  return `${prefix} · ${countLabel} resultado${count === 1 ? "" : "s"}`;
+}
+
 function DateRangeError({ error }: { error: string | null }) {
   if (!error) return null;
   return <p className="mt-1 text-[10px] text-red-600">{error}</p>;
@@ -2158,23 +2293,30 @@ function ActionBar({
           )}
         </button>
         {showSaved && savedSearches.length > 0 && (
-          <div className="absolute right-0 z-30 mt-2 max-h-80 w-72 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-lg">
+          <div className="absolute right-0 z-30 mt-2 max-h-80 w-80 overflow-y-auto rounded-xl border border-gray-200 bg-white p-2 shadow-lg">
             <p className="px-2 py-1 text-[10px] font-bold uppercase tracking-wide text-gray-500">
-              Pesquisas neste dispositivo
+              Minhas pesquisas salvas
             </p>
             {savedSearches.map((s) => (
               <div
                 key={s.id}
-                className="group flex items-center gap-2 rounded-lg px-2 py-2 hover:bg-gray-50"
+                className="group flex items-start gap-2 rounded-lg px-2 py-2 hover:bg-gray-50"
               >
-                <Star size={12} className="shrink-0 text-amber-400" />
+                <Star size={12} className="mt-1 shrink-0 text-amber-400" />
                 <button
                   type="button"
                   onClick={() => onApplySaved(s)}
-                  className="min-w-0 flex-1 truncate text-left text-xs font-medium text-gray-800"
+                  className="min-w-0 flex-1 text-left"
                   title={s.name}
                 >
-                  {s.name}
+                  <div className="truncate text-xs font-medium text-gray-800">
+                    {s.name}
+                  </div>
+                  {(s.lastExecutedAt || s.lastResultCount != null) && (
+                    <div className="mt-0.5 truncate text-[10px] text-gray-500">
+                      {formatLastExecution(s.lastExecutedAt, s.lastResultCount)}
+                    </div>
+                  )}
                 </button>
                 <button
                   type="button"
@@ -2182,7 +2324,7 @@ function ActionBar({
                   className="opacity-0 transition-opacity group-hover:opacity-100"
                   title="Excluir"
                 >
-                  <Trash2 size={12} className="text-gray-400 hover:text-red-500" />
+                  <Trash2 size={12} className="mt-1 text-gray-400 hover:text-red-500" />
                 </button>
               </div>
             ))}
