@@ -872,6 +872,12 @@ export default function PropositionsListPage() {
     setRegime("");
     setApreciacao("");
     setTramitandoEmConjunto("");
+    // Limpa também o snapshot aplicado — senão chips, URL e lista de resultados
+    // continuam refletindo os filtros antigos, e como `canSearch` exige pelo
+    // menos um filtro, o usuário ficaria sem como aplicar o "vazio".
+    setAppliedQs(new URLSearchParams());
+    setPage(1);
+    setDirty(false);
   };
 
   const handleShare = async () => {
