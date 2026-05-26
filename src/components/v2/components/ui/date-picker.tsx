@@ -69,7 +69,11 @@ export function DatePicker({
       </PopoverTrigger>
       <PopoverContent
         align="start"
-        className="w-auto border border-gray-200 bg-white p-3 shadow-md"
+        side="bottom"
+        sideOffset={6}
+        collisionPadding={16}
+        avoidCollisions
+        className="z-[1000] max-h-[var(--radix-popover-content-available-height)] w-auto overflow-y-auto border border-gray-200 bg-white p-3 shadow-md"
       >
         <Calendar
           mode="single"

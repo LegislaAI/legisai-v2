@@ -1,6 +1,7 @@
 "use client";
 
 import { PixPaymentResponse, SignaturePlan } from "@/@types/signature";
+import { CouponField, type CouponResolved } from "@/components/CouponField";
 import { Button } from "@/components/v2/components/ui/Button";
 import { Card } from "@/components/v2/components/ui/Card";
 import { Input } from "@/components/v2/components/ui/Input";
@@ -67,6 +68,7 @@ function CheckoutContent() {
   const [installments, setInstallments] = useState(1);
   const [pixPayload, setPixPayload] = useState<PixPaymentResponse | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [coupon, setCoupon] = useState<CouponResolved | null>(null);
 
   const cardForm = useForm<z.infer<typeof cardSchema>>({
     resolver: zodResolver(cardSchema),
@@ -103,10 +105,31 @@ function CheckoutContent() {
     }
   }, [planId, plans, router]);
 
-  // Polling: verifica se o pagamento PIX foi confirmado (webhook) e redireciona para a home
+  // Polling: confirma pagamento PIX (webhook do Asaas) e redireciona.
+  // - Se houver authorizationId (Pix Automático), consulta /signature/pix/status com o ID
+  //   (mais preciso enquanto a autorização não vira ACTIVATED).
+  // - Caso contrário, cai no /signature/active genérico (Pix one-shot ou Subscription Pix).
   const pollIntervalRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const checkPaymentConfirmed = useCallback(async () => {
     try {
+      const authId = pixPayload?.authorizationId;
+      if (authId) {
+        const res = await GetAPI(
+          `/signature/pix/status?authorizationId=${encodeURIComponent(authId)}`,
+          true,
+        );
+        if (res.status === 200 && res.body?.signatureActive) {
+          if (pollIntervalRef.current) {
+            clearInterval(pollIntervalRef.current);
+            pollIntervalRef.current = null;
+          }
+          await checkSubscription();
+          toast.success("Pagamento confirmado!");
+          router.push("/");
+        }
+        return;
+      }
+
       const res = await GetAPI("/signature/active", true);
       if (res.status === 200 && res.body?.signature?.status === "active") {
         if (pollIntervalRef.current) {
@@ -120,7 +143,7 @@ function CheckoutContent() {
     } catch {
       // Ignora erro (ex.: sem assinatura ainda)
     }
-  }, [GetAPI, checkSubscription, router]);
+  }, [GetAPI, checkSubscription, router, pixPayload?.authorizationId]);
 
   useEffect(() => {
     if (!pixPayload?.payment) return;
@@ -180,6 +203,7 @@ function CheckoutContent() {
       planId: plan.id,
       yearly: isYearly,
       installmentCount: isYearly ? installments : 1,
+      partnerCode: coupon?.code,
       creditCard: {
         holderName: cardData.holderName,
         number: cardData.number.replace(/\s/g, ""),
@@ -227,7 +251,7 @@ function CheckoutContent() {
     try {
       const response = await PostAPI(
         `/signature/pix/${plan.id}`,
-        { yearly: isYearly },
+        { yearly: isYearly, partnerCode: coupon?.code },
         true,
       );
 
@@ -273,14 +297,26 @@ function CheckoutContent() {
               <span>Anual</span>
             </div>
           )}
+          {coupon && (
+            <div className="mb-2 flex items-center justify-between text-sm text-emerald-700">
+              <span>Cupom {coupon.code}</span>
+              <span>−{coupon.discount}%</span>
+            </div>
+          )}
           <div className="text-secondary my-4 flex items-center justify-between border-t border-gray-100 pt-4 text-lg font-bold">
             <span>Total</span>
             <span>
               R${" "}
-              {pricing.total.toLocaleString("pt-BR", {
+              {(coupon
+                ? pricing.total * (1 - coupon.discount / 100)
+                : pricing.total
+              ).toLocaleString("pt-BR", {
                 minimumFractionDigits: 2,
               })}
             </span>
+          </div>
+          <div className="mt-4">
+            <CouponField value={coupon} onChange={setCoupon} />
           </div>
           <ul className="mt-4 space-y-2 text-sm text-gray-500">
             <li>• Cobrança {isYearly ? "anual" : "mensal"}</li>

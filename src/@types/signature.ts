@@ -49,6 +49,7 @@ export interface CreditCardHolderInfoDto {
 
 export interface SignatureWithPixDto {
   yearly: boolean;
+  partnerCode?: string;
 }
 
 export interface SignatureWithNewCreditCardDto {
@@ -57,13 +58,16 @@ export interface SignatureWithNewCreditCardDto {
   creditCardHolderInfo: CreditCardHolderInfoDto;
   installmentCount?: number;
   yearly: boolean;
+  partnerCode?: string;
 }
 
 export interface PixPaymentResponse {
   payment: {
-    encodedImage: string;
+    encodedImage: string | null;
     payload: string;
     expirationDate?: string;
   };
   subscriptionId?: string;
+  /** Pix Automático: id da autorização, usado para polling em /signature/pix/status. */
+  authorizationId?: string;
 }

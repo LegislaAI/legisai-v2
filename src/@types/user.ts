@@ -9,6 +9,7 @@ export interface User {
   cpfCnpj?: string | null;
   postalCode?: string | null;
   addressNumber?: string | null;
+  role?: "USER" | "ADMIN";
 }
 
 export type ProfileProps = User;

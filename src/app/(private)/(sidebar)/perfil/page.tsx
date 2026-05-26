@@ -18,6 +18,7 @@ import { Button } from "@/components/v2/components/ui/Button";
 import { Card } from "@/components/v2/components/ui/Card";
 import { Input } from "@/components/v2/components/ui/Input";
 import { Label } from "@/components/v2/components/ui/label";
+import { SupportBlock } from "@/components/SupportBlock";
 import { useApiContext } from "@/context/ApiContext";
 import { useUserContext } from "@/context/UserContext";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -29,10 +30,14 @@ import {
   Mail,
   Phone,
   Save,
+  Settings,
   User,
 } from "lucide-react";
+import Link from "next/link";
 import { useEffect, useState } from "react";
-import { useForm } from "react-hook-form";
+import { Controller, useForm } from "react-hook-form";
+
+import { maskPhone } from "@/lib/masks";
 import toast from "react-hot-toast";
 import * as z from "zod";
 
@@ -72,7 +77,7 @@ export default function ProfilePage() {
     resolver: zodResolver(profileSchema),
     defaultValues: {
       name: user?.name || "",
-      phone: user?.phone || "",
+      phone: user?.phone ? maskPhone(user.phone) : "",
       profession: user?.profession || "",
       birthDate: user?.birthDate || "",
     },
@@ -83,7 +88,7 @@ export default function ProfilePage() {
     if (user) {
       profileForm.reset({
         name: user.name,
-        phone: user.phone,
+        phone: user.phone ? maskPhone(user.phone) : "",
         profession: user.profession || "",
         birthDate: user.birthDate || "",
       });
@@ -98,7 +103,7 @@ export default function ProfilePage() {
         `/user/profile/${user.id}`,
         {
           name: data.name,
-          phone: data.phone,
+          phone: data.phone.replace(/\D+/g, ""),
           profession: data.profession,
           birthDate: data.birthDate,
         },
@@ -224,26 +229,21 @@ export default function ProfilePage() {
               </Badge>
             </Card>
 
-            {/* Support Card */}
-            <Card className="relative overflow-hidden border-gray-100 bg-[#1a1d1f] p-6 text-white shadow-sm">
-              <div className="relative z-10">
-                <h3 className="mb-2 text-lg font-bold">Precisa de Ajuda?</h3>
-                <p className="mb-4 text-sm text-gray-400">
-                  Entre em contato com nosso suporte especializado.
-                </p>
-                <Button
-                  variant="outline"
-                  className="w-full border-white/20 bg-white/10 text-white hover:bg-white/20"
-                  onClick={() =>
-                    window.open("https://wa.me/556195900545", "_blank")
-                  }
-                >
-                  Falar no WhatsApp
-                </Button>
-              </div>
-              {/* Abstract background shape */}
-              <div className="absolute top-0 right-0 -mt-8 -mr-8 h-32 w-32 rounded-full bg-[#749c5b] opacity-20 blur-2xl"></div>
-            </Card>
+            {/* Painel admin (somente para role=ADMIN) */}
+            {user?.role === "ADMIN" && (
+              <Link
+                href="/admin"
+                className="flex items-center justify-between rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm font-medium text-amber-900 hover:bg-amber-100"
+              >
+                <span className="flex items-center gap-2">
+                  <Settings size={16} /> Painel administrativo
+                </span>
+                <span className="text-xs text-amber-700">/admin</span>
+              </Link>
+            )}
+
+            {/* Support Card (dinâmico via SystemConfig) */}
+            <SupportBlock />
           </div>
 
           {/* Right Column: Edit Form & Plan */}
@@ -306,10 +306,20 @@ export default function ProfilePage() {
                         size={16}
                         className="absolute top-1/2 left-3 -translate-y-1/2 text-gray-400"
                       />
-                      <Input
-                        className="pl-9"
-                        disabled={!isEditing}
-                        {...profileForm.register("phone")}
+                      <Controller
+                        control={profileForm.control}
+                        name="phone"
+                        render={({ field }) => (
+                          <Input
+                            className="pl-9"
+                            disabled={!isEditing}
+                            placeholder="(00) 00000-0000"
+                            value={field.value ?? ""}
+                            onChange={(e) =>
+                              field.onChange(maskPhone(e.target.value))
+                            }
+                          />
+                        )}
                       />
                     </div>
                     {profileForm.formState.errors.phone && (
