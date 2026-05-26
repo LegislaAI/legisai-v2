@@ -333,6 +333,27 @@ export default function PropositionsListPage() {
     return null;
   })();
 
+  // ── Validation de períodos (spec do Leo §4.6, §10.4) ──
+  // Mensagem padrão idêntica à spec. Helper local pra não duplicar a regra
+  // entre os 4 ranges (apresentação, última movimentação, parecer relator,
+  // tramitação).
+  const validateDateRange = (from: string, to: string): string | null => {
+    if (!from || !to) return null;
+    if (new Date(from) > new Date(to))
+      return "A data inicial não pode ser posterior à data final.";
+    return null;
+  };
+  const presentedDateError = validateDateRange(presentedFrom, presentedTo);
+  const lastMovementDateError = validateDateRange(lastMovementFrom, lastMovementTo);
+  const relatorDateError = validateDateRange(relatorFrom, relatorTo);
+  const tramitacaoDateError = validateDateRange(tramitacaoFrom, tramitacaoTo);
+  const hasDateError = !!(
+    presentedDateError ||
+    lastMovementDateError ||
+    relatorDateError ||
+    tramitacaoDateError
+  );
+
   // ── Validation ──
   const hasBasicFilters = !!(
     debouncedSearch ||
@@ -380,10 +401,12 @@ export default function PropositionsListPage() {
     apreciacao ||
     tramitandoEmConjunto
   );
-  // Ano inválido bloqueia a busca — evita query furada (ex.: ano 1900 retorna
-  // vazio silenciosamente, dando impressão de bug).
+  // Erros de input bloqueiam a busca — evita query furada (ex.: ano 1900 ou
+  // intervalo invertido retornam vazio silenciosamente, dando impressão de bug).
   const canSearch =
-    !anoError && (mode === "basic" ? hasBasicFilters : hasAdvancedFilters);
+    !anoError &&
+    !hasDateError &&
+    (mode === "basic" ? hasBasicFilters : hasAdvancedFilters);
 
   // ── Author type "deputado" detection (habilita Partido/UF condicional) ──
   const selectedAuthorType = authorTypes.find((a) => a.id === authorTypeId);
@@ -1044,6 +1067,7 @@ export default function PropositionsListPage() {
                     onFromChange={setPresentedFrom}
                     onToChange={setPresentedTo}
                   />
+                  <DateRangeError error={presentedDateError} />
                 </div>
                 <div>
                   <FieldLabel>Última movimentação</FieldLabel>
@@ -1053,6 +1077,7 @@ export default function PropositionsListPage() {
                     onFromChange={setLastMovementFrom}
                     onToChange={setLastMovementTo}
                   />
+                  <DateRangeError error={lastMovementDateError} />
                 </div>
               </div>
             </Card>
@@ -1311,6 +1336,7 @@ export default function PropositionsListPage() {
                     onFromChange={setRelatorFrom}
                     onToChange={setRelatorTo}
                   />
+                  <DateRangeError error={relatorDateError} />
                 </div>
               </div>
             </Card>
@@ -1354,6 +1380,7 @@ export default function PropositionsListPage() {
                     onFromChange={setTramitacaoFrom}
                     onToChange={setTramitacaoTo}
                   />
+                  <DateRangeError error={tramitacaoDateError} />
                 </div>
               </div>
             </Card>
@@ -1627,6 +1654,11 @@ function buildSearchLabel(args: {
   if (args.partyAcronym) parts.push(args.partyAcronym);
   if (args.uf) parts.push(args.uf);
   return parts.length ? parts.join(" · ") : "Minha pesquisa";
+}
+
+function DateRangeError({ error }: { error: string | null }) {
+  if (!error) return null;
+  return <p className="mt-1 text-[10px] text-red-600">{error}</p>;
 }
 
 function AnoInput({
