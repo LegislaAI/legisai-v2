@@ -1057,7 +1057,9 @@ export default function PropositionsListPage() {
                   <AnoInput value={ano} onChange={setAno} error={anoError} />
                 </div>
                 <div>
-                  <FieldLabel>Recebida no órgão</FieldLabel>
+                  <FieldLabel hint="Órgão de origem/numeração da proposição. Útil para tipos numerados por comissão (ex.: REQ 10/2024 da CCJC). Diferente do órgão atual.">
+                    Recebida no órgão
+                  </FieldLabel>
                   <SearchableSelect
                     value={recebidaNoOrgao}
                     onValueChange={setRecebidaNoOrgao}
@@ -1103,7 +1105,9 @@ export default function PropositionsListPage() {
                   />
                 </div>
                 <div>
-                  <FieldLabel>Situação atual</FieldLabel>
+                  <FieldLabel hint="Estágio processual atual da proposição (ex.: Pronta para Pauta, Aguardando Parecer, Arquivada). Diferente de 'Em tramitação', que é apenas binário.">
+                    Situação atual
+                  </FieldLabel>
                   <SearchableSelect
                     value={situationId}
                     onValueChange={setSituationId}
@@ -1125,7 +1129,9 @@ export default function PropositionsListPage() {
                   />
                 </div>
                 <div>
-                  <FieldLabel>Regime</FieldLabel>
+                  <FieldLabel hint="Velocidade da tramitação: Ordinário, Prioridade ou Urgência. Define prazos da comissão.">
+                    Regime
+                  </FieldLabel>
                   <SearchableSelect
                     value={regime}
                     onValueChange={setRegime}
@@ -1136,7 +1142,9 @@ export default function PropositionsListPage() {
                   />
                 </div>
                 <div>
-                  <FieldLabel>Apreciação</FieldLabel>
+                  <FieldLabel hint="Forma de deliberação: pelo Plenário ou Conclusiva pelas Comissões. Diferente do Regime (que é velocidade da tramitação).">
+                    Apreciação
+                  </FieldLabel>
                   <SearchableSelect
                     value={apreciacao}
                     onValueChange={setApreciacao}
@@ -1147,7 +1155,9 @@ export default function PropositionsListPage() {
                   />
                 </div>
                 <div>
-                  <FieldLabel>Tramitação conjunta</FieldLabel>
+                  <FieldLabel hint="Posição em relação a outras proposições: Principal (lidera um conjunto de apensadas), Apensada (vinculada a uma principal) ou Independente (sem apensação).">
+                    Tramitação conjunta
+                  </FieldLabel>
                   <RadioGroup<TramitConjunto>
                     value={tramitandoEmConjunto}
                     onValueChange={setTramitandoEmConjunto}
@@ -1295,7 +1305,9 @@ export default function PropositionsListPage() {
               <BlockTitle>Relator</BlockTitle>
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <div>
-                  <FieldLabel>Nome do relator</FieldLabel>
+                  <FieldLabel hint="Busca pelo relator que já apresentou parecer (não apenas designado). Diferente de Autor — relator é quem analisa, autor é quem propõe.">
+                    Nome do relator
+                  </FieldLabel>
                   <PoliticianAutocomplete
                     value={relator}
                     onChange={setRelator}
