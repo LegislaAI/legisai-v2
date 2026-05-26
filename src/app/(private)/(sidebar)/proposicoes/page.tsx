@@ -1,6 +1,7 @@
 "use client";
 
 import { CustomPagination } from "@/components/ui/CustomPagination";
+import { AuthorAutocomplete, AuthorValue } from "@/components/v2/components/ui/AuthorAutocomplete";
 import { Card } from "@/components/v2/components/ui/Card";
 import { EmptyState } from "@/components/v2/components/ui/EmptyState";
 import { DateRangePicker } from "@/components/v2/components/ui/date-range-picker";
@@ -153,7 +154,13 @@ export default function PropositionsListPage() {
   );
   const [numero, setNumero] = useState<string>(searchParams.get("numero") ?? "");
   const [ano, setAno] = useState<string>(searchParams.get("ano") ?? "");
-  const [authorName, setAuthorName] = useState<string>(searchParams.get("authorName") ?? "");
+  // Autor: objeto com id opcional (vem do autocomplete) + name (texto digitado).
+  // URL: ?politicianId=… (selecionado) OU ?authorName=… (texto livre).
+  const [author, setAuthor] = useState<AuthorValue>(() => {
+    const id = searchParams.get("politicianId");
+    const name = searchParams.get("authorName") ?? "";
+    return { id: id || undefined, name };
+  });
   const [inTramitacao, setInTramitacao] = useState<Tramitacao>(
     (searchParams.get("inTramitacao") as Tramitacao) ?? ""
   );
@@ -215,7 +222,12 @@ export default function PropositionsListPage() {
   const [dirty, setDirty] = useState(false);
 
   const debouncedSearch = useDebounce(searchTerm, 400);
-  const debouncedAuthorName = useDebounce(authorName, 400);
+  // Debounce só o texto digitado. Quando o usuário seleciona uma sugestão,
+  // `author.id` é setado imediatamente — não esperamos debounce pra isso.
+  const debouncedAuthorName = useDebounce(author.name, 400);
+  const effectiveAuthor: AuthorValue = author.id
+    ? { id: author.id, name: author.name }
+    : { name: debouncedAuthorName };
   const debouncedAllWords = useDebounce(allWords, 400);
   const debouncedExactPhrase = useDebounce(exactPhrase, 400);
   const debouncedAnyWord = useDebounce(anyWord, 400);
@@ -231,7 +243,8 @@ export default function PropositionsListPage() {
     typeIds.length ||
     debouncedNumero ||
     debouncedAno ||
-    debouncedAuthorName ||
+    effectiveAuthor.id ||
+    effectiveAuthor.name ||
     uf ||
     inTramitacao
   );
@@ -250,7 +263,8 @@ export default function PropositionsListPage() {
     debouncedAnyWord ||
     debouncedNoneOfWords ||
     authorTypeId ||
-    debouncedAuthorName ||
+    effectiveAuthor.id ||
+    effectiveAuthor.name ||
     partyAcronym ||
     uf ||
     debouncedRelatorName ||
@@ -322,7 +336,10 @@ export default function PropositionsListPage() {
     if (typeIds.length) qs.set("typeIds", csv(typeIds));
     if (debouncedNumero) qs.set("numero", debouncedNumero);
     if (debouncedAno) qs.set("ano", debouncedAno);
-    if (debouncedAuthorName) qs.set("authorName", debouncedAuthorName);
+    // Autor: se há ID selecionado via autocomplete, usa politicianId (match exato);
+    // senão cai no authorName livre (ILIKE) — cobre autores institucionais.
+    if (effectiveAuthor.id) qs.set("politicianId", effectiveAuthor.id);
+    else if (effectiveAuthor.name) qs.set("authorName", effectiveAuthor.name);
     if (inTramitacao) qs.set("inTramitacao", inTramitacao);
     if (uf) qs.set("uf", uf);
     // Advanced only
@@ -376,7 +393,8 @@ export default function PropositionsListPage() {
     typeIds,
     debouncedNumero,
     debouncedAno,
-    debouncedAuthorName,
+    effectiveAuthor.id,
+    effectiveAuthor.name,
     inTramitacao,
     uf,
     themeId,
@@ -464,7 +482,8 @@ export default function PropositionsListPage() {
     typeIds,
     debouncedNumero,
     debouncedAno,
-    debouncedAuthorName,
+    effectiveAuthor.id,
+    effectiveAuthor.name,
     inTramitacao,
     uf,
     themeId,
@@ -571,7 +590,7 @@ export default function PropositionsListPage() {
     setHasDispatch(false);
     setNumero("");
     setAno("");
-    setAuthorName("");
+    setAuthor({ id: undefined, name: "" });
     setInTramitacao("");
     setRecebidaNoOrgao("");
     setNoOrgaoAtual("");
@@ -814,13 +833,7 @@ export default function PropositionsListPage() {
 
               <div>
                 <FieldLabel>Autor</FieldLabel>
-                <input
-                  type="text"
-                  value={authorName}
-                  onChange={(e) => setAuthorName(e.target.value)}
-                  placeholder="Nome do autor (deputado ou não)"
-                  className="h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-900 focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/20"
-                />
+                <AuthorAutocomplete value={author} onChange={setAuthor} />
               </div>
               <div>
                 <FieldLabel>UF</FieldLabel>
@@ -1093,13 +1106,7 @@ export default function PropositionsListPage() {
                 </div>
                 <div>
                   <FieldLabel>Autor</FieldLabel>
-                  <input
-                    type="text"
-                    value={authorName}
-                    onChange={(e) => setAuthorName(e.target.value)}
-                    placeholder="Nome do autor"
-                    className="h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-900 focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/20"
-                  />
+                  <AuthorAutocomplete value={author} onChange={setAuthor} placeholder="Nome do autor" />
                 </div>
                 <div>
                   <FieldLabel>
@@ -1257,7 +1264,7 @@ export default function PropositionsListPage() {
           hasDispatch,
           numero: debouncedNumero,
           ano: debouncedAno,
-          authorName: debouncedAuthorName,
+          author: effectiveAuthor,
           inTramitacao,
           recebidaNoOrgao,
           noOrgaoAtual,
@@ -1301,7 +1308,7 @@ export default function PropositionsListPage() {
           hasDispatch: () => setHasDispatch(false),
           numero: () => setNumero(""),
           ano: () => setAno(""),
-          authorName: () => setAuthorName(""),
+          authorName: () => setAuthor({ id: undefined, name: "" }),
           inTramitacao: () => setInTramitacao(""),
           recebidaNoOrgao: () => setRecebidaNoOrgao(""),
           noOrgaoAtual: () => setNoOrgaoAtual(""),
@@ -1531,7 +1538,7 @@ function buildChips(args: {
   hasDispatch: boolean;
   numero: string;
   ano: string;
-  authorName: string;
+  author: AuthorValue;
   inTramitacao: Tramitacao;
   recebidaNoOrgao: string;
   noOrgaoAtual: string;
@@ -1568,8 +1575,13 @@ function buildChips(args: {
   });
   if (args.numero) chips.push({ section: "numero", key: "numero", label: `Nº ${args.numero}` });
   if (args.ano) chips.push({ section: "ano", key: "ano", label: `Ano ${args.ano}` });
-  if (args.authorName)
-    chips.push({ section: "authorName", key: "authorName", label: `Autor: ${args.authorName}` });
+  if (args.author.id || args.author.name)
+    chips.push({
+      section: "authorName",
+      key: "authorName",
+      // ID selecionado mostra só o nome (já é exato); texto livre mostra o que digitou.
+      label: `Autor: ${args.author.name || "selecionado"}`,
+    });
   if (args.uf) chips.push({ section: "uf", key: "uf", label: `UF: ${args.uf}` });
   if (args.inTramitacao)
     chips.push({
