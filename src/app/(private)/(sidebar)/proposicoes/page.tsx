@@ -12,6 +12,12 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/v2/compon
 import { useApiContext } from "@/context/ApiContext";
 import { useDebounce } from "@/hooks/useDebounce";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/v2/components/ui/tooltip";
+import {
   ArrowUpRight,
   Bookmark,
   BookmarkPlus,
@@ -20,6 +26,7 @@ import {
   Clock,
   Download,
   FileText,
+  HelpCircle,
   Link2,
   Search,
   Share2,
@@ -864,6 +871,7 @@ export default function PropositionsListPage() {
   // RENDER
   // ─────────────────────────────────────────────────────────────────────────
   return (
+    <TooltipProvider>
     <div className="min-h-screen w-full font-sans text-[#1a1d1f] pb-20">
       {/* ── HERO ── */}
       <div className="relative mb-6 overflow-hidden rounded-2xl bg-gradient-to-br from-[#5a8a42] via-secondary to-[#8bb574] p-8 text-white shadow-xl md:p-10">
@@ -1106,7 +1114,7 @@ export default function PropositionsListPage() {
                   />
                 </div>
                 <div>
-                  <FieldLabel>No órgão</FieldLabel>
+                  <FieldLabel hint="Órgão onde a proposição está atualmente.">No órgão</FieldLabel>
                   <SearchableSelect
                     value={noOrgaoAtual}
                     onValueChange={setNoOrgaoAtual}
@@ -1318,7 +1326,7 @@ export default function PropositionsListPage() {
                   />
                 </div>
                 <div>
-                  <FieldLabel>No órgão</FieldLabel>
+                  <FieldLabel hint="Órgão onde o parecer foi apresentado.">No órgão</FieldLabel>
                   <SearchableSelect
                     value={relatorOrgao}
                     onValueChange={setRelatorOrgao}
@@ -1362,7 +1370,7 @@ export default function PropositionsListPage() {
                   </p>
                 </div>
                 <div>
-                  <FieldLabel>No órgão</FieldLabel>
+                  <FieldLabel hint="Órgão em que houve lançamento de tramitação, em qualquer momento do processo.">No órgão</FieldLabel>
                   <SearchableSelect
                     value={tramitacaoOrgao}
                     onValueChange={setTramitacaoOrgao}
@@ -1618,6 +1626,7 @@ export default function PropositionsListPage() {
         </div>
       )}
     </div>
+    </TooltipProvider>
   );
 }
 
@@ -1690,8 +1699,38 @@ function AnoInput({
   );
 }
 
-function FieldLabel({ children }: { children: React.ReactNode }) {
-  return <label className="mb-1 block text-[11px] font-semibold text-gray-600">{children}</label>;
+function FieldLabel({
+  children,
+  hint,
+}: {
+  children: React.ReactNode;
+  /** Microtexto explicativo opcional — renderiza um `?` ao lado do label
+   *  com tooltip no hover. Útil para campos com nomes ambíguos (vários
+   *  "No órgão") ou jargão técnico do processo legislativo. */
+  hint?: string;
+}) {
+  if (!hint) {
+    return <label className="mb-1 block text-[11px] font-semibold text-gray-600">{children}</label>;
+  }
+  return (
+    <div className="mb-1 flex items-center gap-1">
+      <label className="text-[11px] font-semibold text-gray-600">{children}</label>
+      <Tooltip delayDuration={150}>
+        <TooltipTrigger asChild>
+          <button
+            type="button"
+            aria-label="Ajuda"
+            className="text-gray-400 transition-colors hover:text-secondary focus:text-secondary focus:outline-none"
+          >
+            <HelpCircle size={11} />
+          </button>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="max-w-xs text-[11px]">
+          {hint}
+        </TooltipContent>
+      </Tooltip>
+    </div>
+  );
 }
 
 function BlockTitle({ children }: { children: React.ReactNode }) {
