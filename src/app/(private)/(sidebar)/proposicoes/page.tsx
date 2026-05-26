@@ -1226,9 +1226,15 @@ export default function PropositionsListPage() {
                     type="text"
                     value={tramitacaoExpression}
                     onChange={(e) => setTramitacaoExpression(e.target.value)}
-                    placeholder="Texto na descrição da tramitação"
+                    placeholder='ex.: arquivad* and 105, "veto total" or "veto parcial"'
                     className="h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-900 focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/20"
                   />
+                  <p className="mt-1 text-[10px] text-gray-500">
+                    Use <code className="rounded bg-gray-100 px-1 font-mono">and</code>,{" "}
+                    <code className="rounded bg-gray-100 px-1 font-mono">or</code>,{" "}
+                    <code className="rounded bg-gray-100 px-1 font-mono">not</code> para combinar termos,{" "}
+                    <code className="rounded bg-gray-100 px-1 font-mono">*</code> para prefixo e aspas para frase exata.
+                  </p>
                 </div>
                 <div>
                   <FieldLabel>No órgão</FieldLabel>
