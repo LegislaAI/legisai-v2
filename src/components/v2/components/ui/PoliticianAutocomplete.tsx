@@ -12,7 +12,7 @@ import {
   useState,
 } from "react";
 
-export type AuthorValue = {
+export type PoliticianRef = {
   /** politicianId quando o usuário selecionou uma sugestão. Vazio = busca por texto livre. */
   id?: string;
   name: string;
@@ -26,32 +26,36 @@ type Suggestion = {
   state: string | null;
 };
 
-interface AuthorAutocompleteProps {
-  value: AuthorValue;
-  onChange: (value: AuthorValue) => void;
+interface PoliticianAutocompleteProps {
+  value: PoliticianRef;
+  onChange: (value: PoliticianRef) => void;
   placeholder?: string;
   className?: string;
+  /** Texto exibido quando não há sugestão. Default fala em "Senado Federal / Poder Executivo" (caso de autor). */
+  noSuggestionsHint?: string;
 }
 
 /**
- * Autocomplete do campo "Autor" da Pesquisa de Proposições.
+ * Autocomplete para campos de deputado (Autor e Relator) na Pesquisa de Proposições.
  *
- * Spec do Leo (Básica §6.2-6.3 / Avançada §7.2): se o autor for deputado, o
- * campo deve sugerir nomes da base; ao selecionar, a busca usa o ID interno
- * (preciso). Texto livre fica disponível para autores institucionais ("Senado
- * Federal", "Poder Executivo") que não estão em `politicians`.
+ * Spec do Leo (Básica §6.2-6.3 / Avançada §7.2 para Autor; §8.1 para Relator):
+ * o campo deve sugerir nomes cadastrados e, ao selecionar, usar o ID interno
+ * (preciso, sem ambiguidade de homônimo / mudança de partido). Texto livre fica
+ * disponível como fallback — para Autor cobre instituições (Senado Federal,
+ * Poder Executivo); para Relator é apenas uma busca por nome aproximada.
  *
  * Contrato com o pai:
- * - `value.id` preenchido = sugestão foi selecionada; query usa `politicianId`.
- * - `value.id` vazio com `value.name` = texto livre; query usa `authorName` ILIKE.
+ * - `value.id` preenchido = sugestão foi selecionada; query usa o ID exato.
+ * - `value.id` vazio com `value.name` = texto livre; query usa ILIKE no nome.
  * - Editar o texto após selecionar limpa o `id` (evita ID antigo com nome novo).
  */
-export function AuthorAutocomplete({
+export function PoliticianAutocomplete({
   value,
   onChange,
-  placeholder = "Nome do autor (deputado ou não)",
+  placeholder = "Nome",
   className,
-}: AuthorAutocompleteProps) {
+  noSuggestionsHint,
+}: PoliticianAutocompleteProps) {
   const { GetAPI } = useApiContext();
   const inputId = useId();
   const [input, setInput] = useState(value.name ?? "");
@@ -241,8 +245,8 @@ export function AuthorAutocomplete({
           )}
           {!loading && suggestions.length === 0 && debounced.trim().length >= 2 && (
             <div className="px-3 py-2 text-xs text-gray-500">
-              Nenhum deputado encontrado. Pode digitar livremente — busca por texto ainda funciona
-              (ex.: &quot;Senado Federal&quot;, &quot;Poder Executivo&quot;).
+              {noSuggestionsHint ??
+                'Nenhum deputado encontrado. Pode digitar livremente — busca por texto ainda funciona (ex.: "Senado Federal", "Poder Executivo").'}
             </div>
           )}
           {suggestions.length > 0 && <div className="py-1">{dropdownItems}</div>}

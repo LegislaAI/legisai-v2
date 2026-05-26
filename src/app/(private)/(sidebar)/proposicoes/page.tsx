@@ -1,7 +1,7 @@
 "use client";
 
 import { CustomPagination } from "@/components/ui/CustomPagination";
-import { AuthorAutocomplete, AuthorValue } from "@/components/v2/components/ui/AuthorAutocomplete";
+import { PoliticianAutocomplete, PoliticianRef } from "@/components/v2/components/ui/PoliticianAutocomplete";
 import { Card } from "@/components/v2/components/ui/Card";
 import { EmptyState } from "@/components/v2/components/ui/EmptyState";
 import { DateRangePicker } from "@/components/v2/components/ui/date-range-picker";
@@ -156,7 +156,7 @@ export default function PropositionsListPage() {
   const [ano, setAno] = useState<string>(searchParams.get("ano") ?? "");
   // Autor: objeto com id opcional (vem do autocomplete) + name (texto digitado).
   // URL: ?politicianId=… (selecionado) OU ?authorName=… (texto livre).
-  const [author, setAuthor] = useState<AuthorValue>(() => {
+  const [author, setAuthor] = useState<PoliticianRef>(() => {
     const id = searchParams.get("politicianId");
     const name = searchParams.get("authorName") ?? "";
     return { id: id || undefined, name };
@@ -179,7 +179,12 @@ export default function PropositionsListPage() {
         s === "ementa" || s === "indexacao" || s === "inteiroTeor"
     );
   });
-  const [relatorName, setRelatorName] = useState<string>(searchParams.get("relatorName") ?? "");
+  // Relator: mesma estrutura do autor. URL: ?reporterId=… (selecionado) ou ?relatorName=… (livre).
+  const [relator, setRelator] = useState<PoliticianRef>(() => {
+    const id = searchParams.get("reporterId");
+    const name = searchParams.get("relatorName") ?? "";
+    return { id: id || undefined, name };
+  });
   const [relatorParty, setRelatorParty] = useState<string>(searchParams.get("relatorParty") ?? "");
   const [relatorUf, setRelatorUf] = useState<string>(searchParams.get("relatorUf") ?? "");
   const [relatorOrgao, setRelatorOrgao] = useState<string>(searchParams.get("relatorOrgao") ?? "");
@@ -225,14 +230,17 @@ export default function PropositionsListPage() {
   // Debounce só o texto digitado. Quando o usuário seleciona uma sugestão,
   // `author.id` é setado imediatamente — não esperamos debounce pra isso.
   const debouncedAuthorName = useDebounce(author.name, 400);
-  const effectiveAuthor: AuthorValue = author.id
+  const effectiveAuthor: PoliticianRef = author.id
     ? { id: author.id, name: author.name }
     : { name: debouncedAuthorName };
   const debouncedAllWords = useDebounce(allWords, 400);
   const debouncedExactPhrase = useDebounce(exactPhrase, 400);
   const debouncedAnyWord = useDebounce(anyWord, 400);
   const debouncedNoneOfWords = useDebounce(noneOfWords, 400);
-  const debouncedRelatorName = useDebounce(relatorName, 400);
+  const debouncedRelatorName = useDebounce(relator.name, 400);
+  const effectiveRelator: PoliticianRef = relator.id
+    ? { id: relator.id, name: relator.name }
+    : { name: debouncedRelatorName };
   const debouncedTramitacaoExpression = useDebounce(tramitacaoExpression, 400);
   const debouncedNumero = useDebounce(numero, 400);
   const debouncedAno = useDebounce(ano, 400);
@@ -267,7 +275,8 @@ export default function PropositionsListPage() {
     effectiveAuthor.name ||
     partyAcronym ||
     uf ||
-    debouncedRelatorName ||
+    effectiveRelator.id ||
+    effectiveRelator.name ||
     relatorParty ||
     relatorUf ||
     relatorOrgao ||
@@ -364,7 +373,9 @@ export default function PropositionsListPage() {
       if (isDeputadoAuthorType) {
         if (partyAcronym) qs.set("partyAcronym", partyAcronym);
       }
-      if (debouncedRelatorName) qs.set("relatorName", debouncedRelatorName);
+      // Relator: mesma lógica do autor — ID exato quando selecionado.
+      if (effectiveRelator.id) qs.set("reporterId", effectiveRelator.id);
+      else if (effectiveRelator.name) qs.set("relatorName", effectiveRelator.name);
       if (relatorParty) qs.set("relatorParty", relatorParty);
       if (relatorUf) qs.set("relatorUf", relatorUf);
       if (relatorOrgao) qs.set("relatorOrgao", relatorOrgao);
@@ -411,7 +422,8 @@ export default function PropositionsListPage() {
     authorTypeId,
     isDeputadoAuthorType,
     partyAcronym,
-    debouncedRelatorName,
+    effectiveRelator.id,
+    effectiveRelator.name,
     relatorParty,
     relatorUf,
     relatorOrgao,
@@ -499,7 +511,8 @@ export default function PropositionsListPage() {
     searchIn,
     authorTypeId,
     partyAcronym,
-    debouncedRelatorName,
+    effectiveRelator.id,
+    effectiveRelator.name,
     relatorParty,
     relatorUf,
     relatorOrgao,
@@ -599,7 +612,7 @@ export default function PropositionsListPage() {
     setAnyWord("");
     setNoneOfWords("");
     setSearchIn(["ementa", "indexacao"]);
-    setRelatorName("");
+    setRelator({ id: undefined, name: "" });
     setRelatorParty("");
     setRelatorUf("");
     setRelatorOrgao("");
@@ -833,7 +846,7 @@ export default function PropositionsListPage() {
 
               <div>
                 <FieldLabel>Autor</FieldLabel>
-                <AuthorAutocomplete value={author} onChange={setAuthor} />
+                <PoliticianAutocomplete value={author} onChange={setAuthor} />
               </div>
               <div>
                 <FieldLabel>UF</FieldLabel>
@@ -1106,7 +1119,7 @@ export default function PropositionsListPage() {
                 </div>
                 <div>
                   <FieldLabel>Autor</FieldLabel>
-                  <AuthorAutocomplete value={author} onChange={setAuthor} placeholder="Nome do autor" />
+                  <PoliticianAutocomplete value={author} onChange={setAuthor} placeholder="Nome do autor" />
                 </div>
                 <div>
                   <FieldLabel>
@@ -1145,12 +1158,11 @@ export default function PropositionsListPage() {
               <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
                 <div>
                   <FieldLabel>Nome do relator</FieldLabel>
-                  <input
-                    type="text"
-                    value={relatorName}
-                    onChange={(e) => setRelatorName(e.target.value)}
+                  <PoliticianAutocomplete
+                    value={relator}
+                    onChange={setRelator}
                     placeholder="Nome do relator"
-                    className="h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-900 focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/20"
+                    noSuggestionsHint="Nenhum deputado encontrado. Pode digitar livremente para busca por nome."
                   />
                 </div>
                 <div>
@@ -1272,7 +1284,7 @@ export default function PropositionsListPage() {
           exactPhrase: debouncedExactPhrase,
           anyWord: debouncedAnyWord,
           noneOfWords: debouncedNoneOfWords,
-          relatorName: debouncedRelatorName,
+          relator: effectiveRelator,
           relatorParty,
           relatorUf,
           relatorOrgao,
@@ -1316,7 +1328,7 @@ export default function PropositionsListPage() {
           exactPhrase: () => setExactPhrase(""),
           anyWord: () => setAnyWord(""),
           noneOfWords: () => setNoneOfWords(""),
-          relatorName: () => setRelatorName(""),
+          relatorName: () => setRelator({ id: undefined, name: "" }),
           relatorParty: () => setRelatorParty(""),
           relatorUf: () => setRelatorUf(""),
           relatorOrgao: () => setRelatorOrgao(""),
@@ -1538,7 +1550,7 @@ function buildChips(args: {
   hasDispatch: boolean;
   numero: string;
   ano: string;
-  author: AuthorValue;
+  author: PoliticianRef;
   inTramitacao: Tramitacao;
   recebidaNoOrgao: string;
   noOrgaoAtual: string;
@@ -1546,7 +1558,7 @@ function buildChips(args: {
   exactPhrase: string;
   anyWord: string;
   noneOfWords: string;
-  relatorName: string;
+  relator: PoliticianRef;
   relatorParty: string;
   relatorUf: string;
   relatorOrgao: string;
@@ -1628,8 +1640,12 @@ function buildChips(args: {
       });
     if (args.partyAcronym)
       chips.push({ section: "partyAcronym", key: "partyAcronym", label: `Partido: ${args.partyAcronym}` });
-    if (args.relatorName)
-      chips.push({ section: "relatorName", key: "relatorName", label: `Relator: ${args.relatorName}` });
+    if (args.relator.id || args.relator.name)
+      chips.push({
+        section: "relatorName",
+        key: "relatorName",
+        label: `Relator: ${args.relator.name || "selecionado"}`,
+      });
     if (args.relatorParty)
       chips.push({ section: "relatorParty", key: "relatorParty", label: `Partido relator: ${args.relatorParty}` });
     if (args.relatorUf)
