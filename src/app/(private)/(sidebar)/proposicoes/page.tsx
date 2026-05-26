@@ -67,11 +67,13 @@ type Proposition = {
   situation: Ref | null;
   authors?: { id: string; name: string }[];
   counters?: Counters;
+  foundIn?: FoundInField[];
 };
 
 type Mode = "basic" | "advanced";
 type Tramitacao = "" | "sim" | "nao";
-type SearchInField = "ementa" | "indexacao";
+type SearchInField = "ementa" | "indexacao" | "inteiroTeor";
+type FoundInField = "ementa" | "indexacao" | "inteiroTeor";
 
 const TRAMITACAO_OPTIONS: { value: Tramitacao; label: string }[] = [
   { value: "", label: "Todas" },
@@ -166,7 +168,8 @@ export default function PropositionsListPage() {
   const [searchIn, setSearchIn] = useState<SearchInField[]>(() => {
     const arr = fromCsv(searchParams.get("searchIn"));
     return (arr.length ? arr : ["ementa", "indexacao"]).filter(
-      (s): s is SearchInField => s === "ementa" || s === "indexacao"
+      (s): s is SearchInField =>
+        s === "ementa" || s === "indexacao" || s === "inteiroTeor"
     );
   });
   const [relatorName, setRelatorName] = useState<string>(searchParams.get("relatorName") ?? "");
@@ -334,7 +337,12 @@ export default function PropositionsListPage() {
       if (debouncedExactPhrase) qs.set("exactPhrase", debouncedExactPhrase);
       if (debouncedAnyWord) qs.set("anyWord", debouncedAnyWord);
       if (debouncedNoneOfWords) qs.set("noneOfWords", debouncedNoneOfWords);
-      if (searchIn.length && searchIn.length < 2) qs.set("searchIn", csv(searchIn));
+      // Default no backend é ['ementa','indexacao']. Só envia quando diferente.
+      const isDefaultSearchIn =
+        searchIn.length === 2 &&
+        searchIn.includes("ementa") &&
+        searchIn.includes("indexacao");
+      if (searchIn.length && !isDefaultSearchIn) qs.set("searchIn", csv(searchIn));
       if (authorTypeId) qs.set("authorTypeId", authorTypeId);
       if (isDeputadoAuthorType) {
         if (partyAcronym) qs.set("partyAcronym", partyAcronym);
@@ -411,17 +419,9 @@ export default function PropositionsListPage() {
     fetchReferences();
   }, [fetchReferences]);
 
-  // Fetch dispara apenas quando o snapshot aplicado muda (Buscar) ou ao paginar.
-  // Filtros em draft não disparam request — ficam pendentes até o usuário aplicar.
+  // Fetch dispara quando o snapshot aplicado muda (Buscar) ou ao paginar.
+  // Sem filtros, devolve as proposições mais recentes (ordem cronológica decrescente do backend).
   useEffect(() => {
-    const hasFilters = Array.from(appliedQs.keys()).some(
-      (k) => k !== "mode" && appliedQs.get(k)
-    );
-    if (!hasFilters) {
-      setPropositions([]);
-      setPages(0);
-      return;
-    }
     let aborted = false;
     const run = async () => {
       setLoading(true);
@@ -1061,7 +1061,17 @@ export default function PropositionsListPage() {
                       checked={searchIn.includes("indexacao")}
                       onToggle={() => toggleSearchIn(searchIn, "indexacao", setSearchIn)}
                     />
+                    <CheckPill
+                      label="Inteiro teor"
+                      checked={searchIn.includes("inteiroTeor")}
+                      onToggle={() => toggleSearchIn(searchIn, "inteiroTeor", setSearchIn)}
+                    />
                   </div>
+                  <p className="mt-1 text-[10px] text-gray-500">
+                    Inteiro teor cobre apenas proposições cujo PDF já foi
+                    processado (texto pesquisável). Algumas proposições antigas
+                    ou de autoria externa podem não estar indexadas.
+                  </p>
                 </div>
               </div>
             </Card>
@@ -1341,19 +1351,7 @@ export default function PropositionsListPage() {
       )}
 
       {/* ── LISTA ── */}
-      {!canSearch ? (
-        <div className="mt-6">
-          <EmptyState
-            variant="no-source"
-            title="Preencha pelo menos um filtro"
-            message={
-              mode === "basic"
-                ? "Use a pesquisa básica acima para começar a buscar proposições."
-                : "Use a pesquisa avançada acima para começar a buscar proposições."
-            }
-          />
-        </div>
-      ) : loading || loadingRefs ? (
+      {loading || loadingRefs ? (
         <div className="mt-6 grid gap-4 sm:grid-cols-2 xl:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => (
             <div key={i} className="animate-pulse rounded-2xl border border-gray-100 bg-white p-6 shadow-sm">
@@ -1382,7 +1380,11 @@ export default function PropositionsListPage() {
           <EmptyState
             variant="no-occurrence"
             title="Nenhuma proposição para esses filtros"
-            message="Tente afrouxar os filtros ou alterar os termos."
+            message={
+              searchIn.includes("inteiroTeor")
+                ? "Tente afrouxar os filtros ou alterar os termos. Algumas proposições antigas ou de autoria externa podem não ter inteiro teor pesquisável."
+                : "Tente afrouxar os filtros ou alterar os termos."
+            }
             action={
               <button
                 type="button"
@@ -1451,13 +1453,9 @@ function BlockTitle({ children }: { children: React.ReactNode }) {
   );
 }
 
-function ValidationHint({ canSearch, mode }: { canSearch: boolean; mode: Mode }) {
-  if (canSearch) return null;
-  return (
-    <p className="mt-4 rounded-lg bg-amber-50 px-3 py-2 text-[11px] font-medium text-amber-700">
-      Preencha pelo menos um campo para iniciar a {mode === "basic" ? "pesquisa básica" : "pesquisa avançada"}.
-    </p>
-  );
+function ValidationHint(_props: { canSearch: boolean; mode: Mode }) {
+  // Mantido só para preservar a assinatura — sem filtros agora carregamos as proposições mais recentes.
+  return null;
 }
 
 function CheckPill({
@@ -1946,6 +1944,26 @@ function PropositionCard({ prop, onClick }: { prop: Proposition; onClick: () => 
       </div>
 
       {prop.counters && <CounterRow counters={prop.counters} />}
+
+      {prop.foundIn && prop.foundIn.length > 0 && (
+        <div className="mt-2 flex flex-wrap items-center gap-1.5">
+          <span className="text-[10px] uppercase tracking-wide text-gray-400">
+            Encontrado em:
+          </span>
+          {prop.foundIn.map((f) => (
+            <span
+              key={f}
+              className="rounded-md border border-secondary/20 bg-secondary/5 px-1.5 py-0.5 text-[10px] font-medium text-secondary"
+            >
+              {f === "ementa"
+                ? "Ementa"
+                : f === "indexacao"
+                  ? "Indexação"
+                  : "Inteiro teor"}
+            </span>
+          ))}
+        </div>
+      )}
 
       <div className="mt-4 flex items-center justify-end gap-1.5 border-t border-gray-50 pt-3">
         {prop.fullPropositionUrl && (

@@ -1,5 +1,14 @@
 import { PoliticianProps } from "./politician";
 
+export type SearchableContentStatus =
+  | "pending"
+  | "extracted"
+  | "unavailable"
+  | "image_only"
+  | "failed";
+
+export type FoundInField = "ementa" | "indexacao" | "inteiroTeor";
+
 export interface PropositionProps {
   createdAt: string;
   description: string;
@@ -15,6 +24,7 @@ export interface PropositionProps {
   updatedAt: string;
   url: string;
   year: number;
+  foundIn?: FoundInField[];
 }
 
 export interface EventPropositionProps {
@@ -77,6 +87,8 @@ export interface PropositionDetailsProps {
   updatedAt: string;
   url: string;
   year: number;
+  searchableContentStatus?: SearchableContentStatus | null;
+  searchableContentAt?: string | null;
 }
 
 export interface VotesProps {

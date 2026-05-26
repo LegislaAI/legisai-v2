@@ -162,6 +162,14 @@ type PropositionDetail = {
     refreshMode: "cache-hit" | "await-shallow" | "background-only";
   };
   lawResult?: LawResult;
+  searchableContentStatus?:
+    | "pending"
+    | "extracted"
+    | "unavailable"
+    | "image_only"
+    | "failed"
+    | null;
+  searchableContentAt?: string | null;
 };
 
 function formatFreshness(iso: string | null | undefined): string {
@@ -187,11 +195,71 @@ function regimeTone(regime?: string) {
 
 const FOLLOW_KEY = "legisai:proposicoes:followed";
 
+function SearchableContentBadge({
+  status,
+  onRetry,
+}: {
+  status:
+    | "pending"
+    | "extracted"
+    | "unavailable"
+    | "image_only"
+    | "failed"
+    | null;
+  onRetry: () => void;
+}) {
+  if (!status || status === "unavailable") return null;
+  if (status === "pending") {
+    return (
+      <span
+        className="inline-flex items-center gap-2 rounded-xl border border-blue-200 bg-blue-50 px-3 py-2 text-xs font-medium text-blue-700"
+        title="Estamos baixando e processando o PDF do inteiro teor para que ele entre nas buscas por assunto."
+      >
+        <span className="h-2 w-2 animate-pulse rounded-full bg-blue-500" />
+        Preparando inteiro teor para busca…
+      </span>
+    );
+  }
+  if (status === "extracted") {
+    return (
+      <span
+        className="inline-flex items-center gap-2 rounded-xl border border-emerald-200 bg-emerald-50 px-3 py-2 text-xs font-medium text-emerald-700"
+        title="O texto integral desta proposição está indexado e aparece nas buscas por assunto quando o usuário escolhe 'Inteiro teor'."
+      >
+        <CheckCircle2 className="h-3.5 w-3.5" /> Inteiro teor pesquisável
+      </span>
+    );
+  }
+  if (status === "image_only") {
+    return (
+      <span
+        className="inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-xs font-medium text-slate-600"
+        title="Este PDF parece ser uma imagem (sem texto pesquisável). A busca por assunto continua funcionando em ementa e indexação."
+      >
+        <FileSearch className="h-3.5 w-3.5" /> Inteiro teor não pesquisável (PDF imagem)
+      </span>
+    );
+  }
+  if (status === "failed") {
+    return (
+      <button
+        type="button"
+        onClick={onRetry}
+        className="inline-flex items-center gap-2 rounded-xl border border-rose-200 bg-rose-50 px-3 py-2 text-xs font-medium text-rose-700 transition-colors hover:bg-rose-100"
+        title="Houve falha ao processar o PDF. Clique para tentar novamente."
+      >
+        <FileSearch className="h-3.5 w-3.5" /> Falha — tentar novamente
+      </button>
+    );
+  }
+  return null;
+}
+
 export default function PropositionDetailPage() {
   const params = useParams();
   const router = useRouter();
   const id = params?.id as string;
-  const { GetAPI } = useApiContext();
+  const { GetAPI, PostAPI } = useApiContext();
   const { activeSignature } = useSignatureContext();
   const planLevel: PlanLevel = activeSignature?.signaturePlan?.level ?? 4;
   const [proposition, setProposition] = useState<PropositionDetail | null>(null);
@@ -255,6 +323,49 @@ export default function PropositionDetailPage() {
   useEffect(() => {
     fetchDetail();
   }, [fetchDetail]);
+
+  // —— Polling do status do inteiro teor enquanto está pending ——
+  // Limita a 6 tentativas a cada 10s. Pára ao sair do `pending`.
+  useEffect(() => {
+    if (!id) return;
+    if (proposition?.searchableContentStatus !== "pending") return;
+    let attempts = 0;
+    let cancelled = false;
+    const tick = async () => {
+      if (cancelled) return;
+      attempts += 1;
+      try {
+        const res = await GetAPI(`/proposition/${id}`, true);
+        if (res.status === 200 && res.body) {
+          const data = (res.body as { proposition?: PropositionDetail }).proposition ?? res.body;
+          if (!cancelled) setProposition(data as PropositionDetail);
+        }
+      } catch {
+        /* mantém */
+      }
+      if (attempts < 6 && !cancelled) window.setTimeout(tick, 10_000);
+    };
+    const t = window.setTimeout(tick, 10_000);
+    return () => {
+      cancelled = true;
+      window.clearTimeout(t);
+    };
+  }, [id, proposition?.searchableContentStatus, GetAPI]);
+
+  const handleRetryExtraction = useCallback(async () => {
+    if (!id) return;
+    try {
+      const res = await PostAPI(`/proposition/${id}/extract-text`, {}, true);
+      if (res.status === 200 || res.status === 201) {
+        // Reflete imediatamente o pending na UI
+        setProposition((prev) =>
+          prev ? { ...prev, searchableContentStatus: "pending" } : prev
+        );
+      }
+    } catch {
+      /* noop */
+    }
+  }, [id, PostAPI]);
 
   const themesNormalized = useMemo<Theme[]>(() => {
     if (!proposition?.themes) return [];
@@ -473,6 +584,10 @@ Detalhe o resumo do texto, matérias correlatas, todo o histórico de tramitaç�
                     Inteiro teor <Link2 className="h-4 w-4" />
                   </a>
                 )}
+                <SearchableContentBadge
+                  status={proposition.searchableContentStatus ?? null}
+                  onRetry={handleRetryExtraction}
+                />
                 <button
                   type="button"
                   onClick={handleShare}
