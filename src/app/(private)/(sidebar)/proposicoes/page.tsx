@@ -1033,6 +1033,12 @@ export default function PropositionsListPage() {
             {/* ASSUNTO (busca textual avançada) */}
             <Card className="border-gray-100 p-5 shadow-sm">
               <BlockTitle>Assunto</BlockTitle>
+              <p className="mb-3 text-[11px] text-gray-500">
+                Use <code className="rounded bg-gray-100 px-1 font-mono">*</code> para prefixo (ex.:{" "}
+                <code className="rounded bg-gray-100 px-1 font-mono">deficie*</code> acha deficiência, deficiente, deficientes) e
+                aspas para frase exata (ex.:{" "}
+                <code className="rounded bg-gray-100 px-1 font-mono">&quot;pessoa com deficiência&quot;</code>).
+              </p>
               <div className="grid gap-4 md:grid-cols-2">
                 <div>
                   <FieldLabel>Todas estas palavras</FieldLabel>
