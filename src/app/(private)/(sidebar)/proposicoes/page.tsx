@@ -174,7 +174,9 @@ export default function PropositionsListPage() {
   const [noneOfWords, setNoneOfWords] = useState<string>(searchParams.get("noneOfWords") ?? "");
   const [searchIn, setSearchIn] = useState<SearchInField[]>(() => {
     const arr = fromCsv(searchParams.get("searchIn"));
-    return (arr.length ? arr : ["ementa", "indexacao"]).filter(
+    // Default cobre os 3 campos (spec do Leo, Básica §2.1 e §2.4). Alinhado
+    // com o default do backend — desmarcar é ação consciente do usuário.
+    return (arr.length ? arr : ["ementa", "indexacao", "inteiroTeor"]).filter(
       (s): s is SearchInField =>
         s === "ementa" || s === "indexacao" || s === "inteiroTeor"
     );
@@ -363,11 +365,13 @@ export default function PropositionsListPage() {
       if (debouncedExactPhrase) qs.set("exactPhrase", debouncedExactPhrase);
       if (debouncedAnyWord) qs.set("anyWord", debouncedAnyWord);
       if (debouncedNoneOfWords) qs.set("noneOfWords", debouncedNoneOfWords);
-      // Default no backend é ['ementa','indexacao']. Só envia quando diferente.
+      // Default no backend cobre os 3 campos. Só envia `searchIn` quando o
+      // usuário desmarcou algum checkbox — economiza ruído na URL/share.
       const isDefaultSearchIn =
-        searchIn.length === 2 &&
+        searchIn.length === 3 &&
         searchIn.includes("ementa") &&
-        searchIn.includes("indexacao");
+        searchIn.includes("indexacao") &&
+        searchIn.includes("inteiroTeor");
       if (searchIn.length && !isDefaultSearchIn) qs.set("searchIn", csv(searchIn));
       if (authorTypeId) qs.set("authorTypeId", authorTypeId);
       if (isDeputadoAuthorType) {
@@ -631,7 +635,7 @@ export default function PropositionsListPage() {
     setExactPhrase("");
     setAnyWord("");
     setNoneOfWords("");
-    setSearchIn(["ementa", "indexacao"]);
+    setSearchIn(["ementa", "indexacao", "inteiroTeor"]);
     setRelator({ id: undefined, name: "" });
     setRelatorParty("");
     setRelatorUf("");
