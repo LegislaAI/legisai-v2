@@ -449,12 +449,20 @@ export default function PropositionsListPage() {
     fetchReferences();
   }, [fetchReferences]);
 
+  // Ancora da lista. Usada para fazer smooth-scroll após o usuário clicar
+  // "Buscar" ou paginar — evita ter que rolar a tela manualmente. Não dispara
+  // no fetch inicial (URL compartilhada ou primeira visita) para não confundir
+  // quem chegou na página querendo ler o formulário primeiro.
+  const resultsRef = useRef<HTMLDivElement>(null);
+  const isInitialFetchRef = useRef(true);
+
   // Fetch dispara quando o snapshot aplicado muda (Buscar) ou ao paginar.
   // Sem filtros, devolve as proposições mais recentes (ordem cronológica decrescente do backend).
   useEffect(() => {
     let aborted = false;
     const run = async () => {
       setLoading(true);
+      const wasInitial = isInitialFetchRef.current;
       try {
         const params = new URLSearchParams(appliedQs);
         params.set("page", String(page));
@@ -470,7 +478,19 @@ export default function PropositionsListPage() {
           setPages(0);
         }
       } finally {
-        if (!aborted) setLoading(false);
+        if (!aborted) {
+          setLoading(false);
+          isInitialFetchRef.current = false;
+          // Espera o DOM atualizar com a nova lista antes de rolar.
+          if (!wasInitial) {
+            requestAnimationFrame(() => {
+              resultsRef.current?.scrollIntoView({
+                behavior: 'smooth',
+                block: 'start',
+              });
+            });
+          }
+        }
       }
     };
     run();
@@ -1260,6 +1280,28 @@ export default function PropositionsListPage() {
             </Card>
 
             <ValidationHint canSearch={canSearch} mode="advanced" />
+
+            {/* Cópia da barra de ações no rodapé do form — evita scroll de volta
+                ao topo após preencher filtros longos da Pesquisa Avançada. */}
+            <Card className="border-gray-100 p-4 shadow-sm">
+              <ActionBar
+                canSearch={canSearch}
+                dirty={dirty}
+                loading={loading}
+                hasResults={propositions.length > 0}
+                copied={copied}
+                savedSearches={savedSearches}
+                showSaved={showSaved}
+                onSearch={handleSearch}
+                onToggleSaved={() => setShowSaved((v) => !v)}
+                onApplySaved={handleApplySaved}
+                onDeleteSaved={handleDeleteSaved}
+                onClearAll={clearAllFilters}
+                onShare={handleShare}
+                onExportCsv={handleExportCsv}
+                onSave={handleSaveSearch}
+              />
+            </Card>
           </div>
         </TabsContent>
       </Tabs>
@@ -1365,6 +1407,9 @@ export default function PropositionsListPage() {
       />
 
       {/* ── HEADER DE RESULTADOS ── */}
+      {/* Ancora para o smooth-scroll após Buscar/paginar — fica fora do
+          conditional render para existir mesmo durante o loading. */}
+      <div ref={resultsRef} aria-hidden className="scroll-mt-4" />
       {!loading && propositions.length > 0 && (
         <div className="mb-5 mt-6 flex items-center justify-between">
           <p className="text-sm text-gray-500">
