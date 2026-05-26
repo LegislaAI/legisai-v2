@@ -221,12 +221,25 @@ export default function PropositionsListPage() {
   // aplicados no último clique em "Buscar" (ou a URL inicial). Pagination usa
   // este snapshot, então editar filtros em draft sem aplicar não afeta a página
   // que será buscada. `dirty` reativa o botão quando há mudanças não aplicadas.
+  // As chips de filtros ativos também leem deste snapshot — só aparecem após
+  // confirmação da busca, não enquanto o usuário digita.
   const [appliedQs, setAppliedQs] = useState<URLSearchParams>(() => {
     const qs = new URLSearchParams(searchParams.toString());
     qs.delete("page");
     return qs;
   });
   const [dirty, setDirty] = useState(false);
+
+  /** Remove uma ou mais keys do snapshot aplicado e volta pra página 1. Usado
+   *  pelos handlers de X de chip — efeito imediato sem precisar clicar Buscar. */
+  const removeFromApplied = useCallback((keys: string[]) => {
+    setAppliedQs((prev) => {
+      const next = new URLSearchParams(prev);
+      keys.forEach((k) => next.delete(k));
+      return next;
+    });
+    setPage(1);
+  }, []);
 
   const debouncedSearch = useDebounce(searchTerm, 400);
   // Debounce só o texto digitado. Quando o usuário seleciona uma sugestão,
@@ -246,6 +259,67 @@ export default function PropositionsListPage() {
   const debouncedTramitacaoExpression = useDebounce(tramitacaoExpression, 400);
   const debouncedNumero = useDebounce(numero, 400);
   const debouncedAno = useDebounce(ano, 400);
+
+  // Snapshot do que está EFETIVAMENTE aplicado (depois de Buscar). Usado pra
+  // renderizar as chips — não devem aparecer enquanto o usuário ainda digita.
+  const appliedSnapshot = useMemo(() => {
+    const q = appliedQs;
+    const get = (k: string) => q.get(k) ?? "";
+    const typeIdsApplied = (() => {
+      const csv = q.get("typeIds");
+      if (csv) return fromCsv(csv);
+      const single = q.get("typeId");
+      return single ? [single] : [];
+    })();
+    return {
+      mode: (q.get("mode") === "advanced" ? "advanced" : "basic") as Mode,
+      q: get("q"),
+      typeIds: typeIdsApplied,
+      themeId: get("themeId"),
+      situationId: get("situationId"),
+      presentedFrom: get("presentedFrom"),
+      presentedTo: get("presentedTo"),
+      partyAcronym: get("partyAcronym"),
+      uf: get("uf"),
+      authorTypeId: get("authorTypeId"),
+      numero: get("numero"),
+      ano: get("ano"),
+      author: {
+        id: q.get("politicianId") || undefined,
+        name: get("authorName"),
+      },
+      inTramitacao: get("inTramitacao") as Tramitacao,
+      recebidaNoOrgao: get("recebidaNoOrgao"),
+      noOrgaoAtual: get("noOrgaoAtual"),
+      allWords: get("allWords"),
+      exactPhrase: get("exactPhrase"),
+      anyWord: get("anyWord"),
+      noneOfWords: get("noneOfWords"),
+      relator: {
+        id: q.get("reporterId") || undefined,
+        name: get("relatorName"),
+      },
+      relatorParty: get("relatorParty"),
+      relatorUf: get("relatorUf"),
+      relatorOrgao: get("relatorOrgao"),
+      relatorFrom: get("relatorFrom"),
+      relatorTo: get("relatorTo"),
+      tramitacaoExpression: get("tramitacaoExpression"),
+      tramitacaoOrgao: get("tramitacaoOrgao"),
+      tramitacaoFrom: get("tramitacaoFrom"),
+      tramitacaoTo: get("tramitacaoTo"),
+      lastMovementFrom: get("lastMovementFrom"),
+      lastMovementTo: get("lastMovementTo"),
+      regime: get("regime"),
+      apreciacao: get("apreciacao"),
+      tramitandoEmConjunto: get("tramitandoEmConjunto") as TramitConjunto,
+      hasAttached: q.get("hasAttached") === "true",
+      hasAmendment: q.get("hasAmendment") === "true",
+      hasOpinion: q.get("hasOpinion") === "true",
+      hasRequirement: q.get("hasRequirement") === "true",
+      hasDispatch: q.get("hasDispatch") === "true",
+    };
+  }, [appliedQs]);
 
   // ── Validation do ano (spec do Leo, Básica §5 / Avançada §4.4) ──
   // 4 dígitos exatos e a partir de 1946. Sem debounce na mensagem — o
@@ -1314,100 +1388,131 @@ export default function PropositionsListPage() {
       {/* ── CHIPS de filtros ativos ── */}
       <FilterChips
         chips={buildChips({
-          mode,
-          searchTerm: debouncedSearch,
-          typeIds,
+          mode: appliedSnapshot.mode,
+          searchTerm: appliedSnapshot.q,
+          typeIds: appliedSnapshot.typeIds,
           typeAcronymById,
-          themeId,
-          themeName: themes.find((t) => t.id === themeId)?.name,
-          situationId,
-          situationName: situations.find((s) => s.id === situationId)?.name,
-          presentedFrom,
-          presentedTo,
-          partyAcronym,
-          uf,
-          authorTypeId,
-          authorTypeName: authorTypes.find((a) => a.id === authorTypeId)?.name,
-          hasAttached,
-          hasAmendment,
-          hasOpinion,
-          hasRequirement,
-          hasDispatch,
-          numero: debouncedNumero,
-          ano: debouncedAno,
-          author: effectiveAuthor,
-          inTramitacao,
-          recebidaNoOrgao,
-          noOrgaoAtual,
-          allWords: debouncedAllWords,
-          exactPhrase: debouncedExactPhrase,
-          anyWord: debouncedAnyWord,
-          noneOfWords: debouncedNoneOfWords,
-          relator: effectiveRelator,
-          relatorParty,
-          relatorUf,
-          relatorOrgao,
-          relatorFrom,
-          relatorTo,
-          tramitacaoExpression: debouncedTramitacaoExpression,
-          tramitacaoOrgao,
-          tramitacaoFrom,
-          tramitacaoTo,
-          lastMovementFrom,
-          lastMovementTo,
-          regime,
-          apreciacao,
-          apreciacaoLabel: apreciacoes.find((a) => a.value === apreciacao)?.label,
-          tramitandoEmConjunto,
+          themeId: appliedSnapshot.themeId,
+          themeName: themes.find((t) => t.id === appliedSnapshot.themeId)?.name,
+          situationId: appliedSnapshot.situationId,
+          situationName: situations.find((s) => s.id === appliedSnapshot.situationId)?.name,
+          presentedFrom: appliedSnapshot.presentedFrom,
+          presentedTo: appliedSnapshot.presentedTo,
+          partyAcronym: appliedSnapshot.partyAcronym,
+          uf: appliedSnapshot.uf,
+          authorTypeId: appliedSnapshot.authorTypeId,
+          authorTypeName: authorTypes.find((a) => a.id === appliedSnapshot.authorTypeId)?.name,
+          hasAttached: appliedSnapshot.hasAttached,
+          hasAmendment: appliedSnapshot.hasAmendment,
+          hasOpinion: appliedSnapshot.hasOpinion,
+          hasRequirement: appliedSnapshot.hasRequirement,
+          hasDispatch: appliedSnapshot.hasDispatch,
+          numero: appliedSnapshot.numero,
+          ano: appliedSnapshot.ano,
+          author: appliedSnapshot.author,
+          inTramitacao: appliedSnapshot.inTramitacao,
+          recebidaNoOrgao: appliedSnapshot.recebidaNoOrgao,
+          noOrgaoAtual: appliedSnapshot.noOrgaoAtual,
+          allWords: appliedSnapshot.allWords,
+          exactPhrase: appliedSnapshot.exactPhrase,
+          anyWord: appliedSnapshot.anyWord,
+          noneOfWords: appliedSnapshot.noneOfWords,
+          relator: appliedSnapshot.relator,
+          relatorParty: appliedSnapshot.relatorParty,
+          relatorUf: appliedSnapshot.relatorUf,
+          relatorOrgao: appliedSnapshot.relatorOrgao,
+          relatorFrom: appliedSnapshot.relatorFrom,
+          relatorTo: appliedSnapshot.relatorTo,
+          tramitacaoExpression: appliedSnapshot.tramitacaoExpression,
+          tramitacaoOrgao: appliedSnapshot.tramitacaoOrgao,
+          tramitacaoFrom: appliedSnapshot.tramitacaoFrom,
+          tramitacaoTo: appliedSnapshot.tramitacaoTo,
+          lastMovementFrom: appliedSnapshot.lastMovementFrom,
+          lastMovementTo: appliedSnapshot.lastMovementTo,
+          regime: appliedSnapshot.regime,
+          apreciacao: appliedSnapshot.apreciacao,
+          apreciacaoLabel: apreciacoes.find((a) => a.value === appliedSnapshot.apreciacao)?.label,
+          tramitandoEmConjunto: appliedSnapshot.tramitandoEmConjunto,
         })}
         onClear={{
-          q: () => setSearchTerm(""),
-          typeId: (id) => setTypeIds(typeIds.filter((t) => t !== id)),
-          themeId: () => setThemeId(""),
-          situationId: () => setSituationId(""),
+          // Cada handler reseta o estado de edição E remove do snapshot
+          // aplicado — assim a chip some imediatamente e a próxima busca
+          // (disparada pelo efeito do appliedQs) já vem sem aquele filtro.
+          q: () => { setSearchTerm(""); removeFromApplied(["q"]); },
+          typeId: (id) => {
+            const next = typeIds.filter((t) => t !== id);
+            setTypeIds(next);
+            const appliedIds = appliedSnapshot.typeIds.filter((t) => t !== id);
+            setAppliedQs((prev) => {
+              const q = new URLSearchParams(prev);
+              q.delete("typeId");
+              if (appliedIds.length > 0) q.set("typeIds", appliedIds.join(","));
+              else q.delete("typeIds");
+              return q;
+            });
+            setPage(1);
+          },
+          themeId: () => { setThemeId(""); removeFromApplied(["themeId"]); },
+          situationId: () => { setSituationId(""); removeFromApplied(["situationId"]); },
           dates: () => {
             setPresentedFrom("");
             setPresentedTo("");
+            removeFromApplied(["presentedFrom", "presentedTo"]);
           },
-          partyAcronym: () => setPartyAcronym(""),
-          uf: () => setUf(""),
-          authorTypeId: () => setAuthorTypeId(""),
-          hasAttached: () => setHasAttached(false),
-          hasAmendment: () => setHasAmendment(false),
-          hasOpinion: () => setHasOpinion(false),
-          hasRequirement: () => setHasRequirement(false),
-          hasDispatch: () => setHasDispatch(false),
-          numero: () => setNumero(""),
-          ano: () => setAno(""),
-          authorName: () => setAuthor({ id: undefined, name: "" }),
-          inTramitacao: () => setInTramitacao(""),
-          recebidaNoOrgao: () => setRecebidaNoOrgao(""),
-          noOrgaoAtual: () => setNoOrgaoAtual(""),
-          allWords: () => setAllWords(""),
-          exactPhrase: () => setExactPhrase(""),
-          anyWord: () => setAnyWord(""),
-          noneOfWords: () => setNoneOfWords(""),
-          relatorName: () => setRelator({ id: undefined, name: "" }),
-          relatorParty: () => setRelatorParty(""),
-          relatorUf: () => setRelatorUf(""),
-          relatorOrgao: () => setRelatorOrgao(""),
+          partyAcronym: () => { setPartyAcronym(""); removeFromApplied(["partyAcronym"]); },
+          uf: () => { setUf(""); removeFromApplied(["uf"]); },
+          authorTypeId: () => { setAuthorTypeId(""); removeFromApplied(["authorTypeId"]); },
+          hasAttached: () => { setHasAttached(false); removeFromApplied(["hasAttached"]); },
+          hasAmendment: () => { setHasAmendment(false); removeFromApplied(["hasAmendment"]); },
+          hasOpinion: () => { setHasOpinion(false); removeFromApplied(["hasOpinion"]); },
+          hasRequirement: () => { setHasRequirement(false); removeFromApplied(["hasRequirement"]); },
+          hasDispatch: () => { setHasDispatch(false); removeFromApplied(["hasDispatch"]); },
+          numero: () => { setNumero(""); removeFromApplied(["numero"]); },
+          ano: () => { setAno(""); removeFromApplied(["ano"]); },
+          authorName: () => {
+            setAuthor({ id: undefined, name: "" });
+            removeFromApplied(["politicianId", "authorName"]);
+          },
+          inTramitacao: () => { setInTramitacao(""); removeFromApplied(["inTramitacao"]); },
+          recebidaNoOrgao: () => { setRecebidaNoOrgao(""); removeFromApplied(["recebidaNoOrgao"]); },
+          noOrgaoAtual: () => { setNoOrgaoAtual(""); removeFromApplied(["noOrgaoAtual"]); },
+          allWords: () => { setAllWords(""); removeFromApplied(["allWords"]); },
+          exactPhrase: () => { setExactPhrase(""); removeFromApplied(["exactPhrase"]); },
+          anyWord: () => { setAnyWord(""); removeFromApplied(["anyWord"]); },
+          noneOfWords: () => { setNoneOfWords(""); removeFromApplied(["noneOfWords"]); },
+          relatorName: () => {
+            setRelator({ id: undefined, name: "" });
+            removeFromApplied(["reporterId", "relatorName"]);
+          },
+          relatorParty: () => { setRelatorParty(""); removeFromApplied(["relatorParty"]); },
+          relatorUf: () => { setRelatorUf(""); removeFromApplied(["relatorUf"]); },
+          relatorOrgao: () => { setRelatorOrgao(""); removeFromApplied(["relatorOrgao"]); },
           relatorPeriod: () => {
             setRelatorFrom("");
             setRelatorTo("");
+            removeFromApplied(["relatorFrom", "relatorTo"]);
           },
-          tramitacaoExpression: () => setTramitacaoExpression(""),
-          tramitacaoOrgao: () => setTramitacaoOrgao(""),
+          tramitacaoExpression: () => {
+            setTramitacaoExpression("");
+            removeFromApplied(["tramitacaoExpression"]);
+          },
+          tramitacaoOrgao: () => { setTramitacaoOrgao(""); removeFromApplied(["tramitacaoOrgao"]); },
           tramitacaoPeriod: () => {
             setTramitacaoFrom("");
             setTramitacaoTo("");
+            removeFromApplied(["tramitacaoFrom", "tramitacaoTo"]);
           },
           lastMovementPeriod: () => {
             setLastMovementFrom("");
             setLastMovementTo("");
+            removeFromApplied(["lastMovementFrom", "lastMovementTo"]);
           },
-          regime: () => setRegime(""),
-          apreciacao: () => setApreciacao(""),
-          tramitandoEmConjunto: () => setTramitandoEmConjunto(""),
+          regime: () => { setRegime(""); removeFromApplied(["regime"]); },
+          apreciacao: () => { setApreciacao(""); removeFromApplied(["apreciacao"]); },
+          tramitandoEmConjunto: () => {
+            setTramitandoEmConjunto("");
+            removeFromApplied(["tramitandoEmConjunto"]);
+          },
         }}
       />
 
