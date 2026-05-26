@@ -247,6 +247,18 @@ export default function PropositionsListPage() {
   const debouncedNumero = useDebounce(numero, 400);
   const debouncedAno = useDebounce(ano, 400);
 
+  // ── Validation do ano (spec do Leo, Básica §5 / Avançada §4.4) ──
+  // 4 dígitos exatos e a partir de 1946. Sem debounce na mensagem — o
+  // feedback é imediato; só a busca é debounced.
+  const anoError: string | null = (() => {
+    if (!ano) return null;
+    if (ano.length < 4) return "Informe um ano válido com quatro dígitos.";
+    const anoNum = parseInt(ano, 10);
+    if (Number.isNaN(anoNum) || anoNum < 1946)
+      return "Informe um ano a partir de 1946.";
+    return null;
+  })();
+
   // ── Validation ──
   const hasBasicFilters = !!(
     debouncedSearch ||
@@ -294,7 +306,10 @@ export default function PropositionsListPage() {
     apreciacao ||
     tramitandoEmConjunto
   );
-  const canSearch = mode === "basic" ? hasBasicFilters : hasAdvancedFilters;
+  // Ano inválido bloqueia a busca — evita query furada (ex.: ano 1900 retorna
+  // vazio silenciosamente, dando impressão de bug).
+  const canSearch =
+    !anoError && (mode === "basic" ? hasBasicFilters : hasAdvancedFilters);
 
   // ── Author type "deputado" detection (habilita Partido/UF condicional) ──
   const selectedAuthorType = authorTypes.find((a) => a.id === authorTypeId);
@@ -858,14 +873,7 @@ export default function PropositionsListPage() {
               </div>
               <div>
                 <FieldLabel>Ano</FieldLabel>
-                <input
-                  type="text"
-                  inputMode="numeric"
-                  value={ano}
-                  onChange={(e) => setAno(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                  placeholder="Ex.: 2024"
-                  className="h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-900 focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/20"
-                />
+                <AnoInput value={ano} onChange={setAno} error={anoError} />
               </div>
 
               <div>
@@ -941,14 +949,7 @@ export default function PropositionsListPage() {
                 </div>
                 <div>
                   <FieldLabel>Ano</FieldLabel>
-                  <input
-                    type="text"
-                    inputMode="numeric"
-                    value={ano}
-                    onChange={(e) => setAno(e.target.value.replace(/\D/g, "").slice(0, 4))}
-                    placeholder="Ex.: 2024"
-                    className="h-9 w-full rounded-lg border border-gray-200 bg-white px-3 text-xs text-gray-900 focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/20"
-                  />
+                  <AnoInput value={ano} onChange={setAno} error={anoError} />
                 </div>
                 <div>
                   <FieldLabel>Recebida no órgão</FieldLabel>
@@ -1521,6 +1522,35 @@ function buildSearchLabel(args: {
   if (args.partyAcronym) parts.push(args.partyAcronym);
   if (args.uf) parts.push(args.uf);
   return parts.length ? parts.join(" · ") : "Minha pesquisa";
+}
+
+function AnoInput({
+  value,
+  onChange,
+  error,
+}: {
+  value: string;
+  onChange: (v: string) => void;
+  error: string | null;
+}) {
+  return (
+    <>
+      <input
+        type="text"
+        inputMode="numeric"
+        value={value}
+        onChange={(e) => onChange(e.target.value.replace(/\D/g, "").slice(0, 4))}
+        placeholder="Ex.: 2024"
+        aria-invalid={error ? true : undefined}
+        className={`h-9 w-full rounded-lg border bg-white px-3 text-xs text-gray-900 focus:outline-none focus:ring-2 ${
+          error
+            ? "border-red-300 focus:border-red-400 focus:ring-red-100"
+            : "border-gray-200 focus:border-secondary focus:ring-secondary/20"
+        }`}
+      />
+      {error && <p className="mt-1 text-[10px] text-red-600">{error}</p>}
+    </>
+  );
 }
 
 function FieldLabel({ children }: { children: React.ReactNode }) {
