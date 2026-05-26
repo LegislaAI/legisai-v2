@@ -43,7 +43,13 @@ function Calendar({
         months: "w-full  space-y-4 sm:space-x-4 sm:space-y-0",
         month: "space-y-4",
         caption: "flex justify-center pt-1 relative items-center",
-        caption_label: "text-sm font-medium",
+        // Com captionLayout='dropdown-buttons', os próprios dropdowns mostram
+        // mês/ano. O caption_label deve ficar apenas para leitores de tela
+        // (sr-only), senão aparece duplicado abaixo dos dropdowns.
+        caption_label:
+          captionLayout === "buttons"
+            ? "text-sm font-medium"
+            : "sr-only",
         caption_dropdowns: "flex items-center gap-1.5",
         dropdown:
           "appearance-none rounded-md border border-gray-200 bg-white px-2 py-1 pr-6 text-xs font-medium text-gray-800 hover:border-secondary/60 focus:border-secondary focus:outline-none focus:ring-2 focus:ring-secondary/20 cursor-pointer",
