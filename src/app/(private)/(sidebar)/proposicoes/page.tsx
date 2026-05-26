@@ -87,7 +87,22 @@ type Proposition = {
 type Mode = "basic" | "advanced";
 type Tramitacao = "" | "sim" | "nao";
 type SearchInField = "ementa" | "indexacao" | "inteiroTeor";
-type FoundInField = "ementa" | "indexacao" | "inteiroTeor";
+type FoundInField =
+  | "ementa"
+  | "indexacao"
+  | "inteiroTeor"
+  | "tramitacao"
+  | "autor"
+  | "relator";
+
+const FOUND_IN_LABELS: Record<FoundInField, string> = {
+  ementa: "Ementa",
+  indexacao: "Indexação",
+  inteiroTeor: "Inteiro teor",
+  tramitacao: "Tramitação",
+  autor: "Autor",
+  relator: "Relator",
+};
 
 const TRAMITACAO_OPTIONS: { value: Tramitacao; label: string }[] = [
   { value: "", label: "Todas" },
@@ -2309,11 +2324,7 @@ function PropositionCard({ prop, onClick }: { prop: Proposition; onClick: () => 
               key={f}
               className="rounded-md border border-secondary/20 bg-secondary/5 px-1.5 py-0.5 text-[10px] font-medium text-secondary"
             >
-              {f === "ementa"
-                ? "Ementa"
-                : f === "indexacao"
-                  ? "Indexação"
-                  : "Inteiro teor"}
+              {FOUND_IN_LABELS[f] ?? f}
             </span>
           ))}
         </div>
