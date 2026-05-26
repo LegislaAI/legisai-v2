@@ -66,10 +66,14 @@ type Proposition = {
   number: number;
   year: number;
   presentationDate: string;
+  /** URL da ficha de tramitação na Câmara. */
+  url?: string;
+  /** URL do PDF do inteiro teor. */
   fullPropositionUrl?: string;
   regime?: string;
   appreciation?: string | null;
   orgaoAtual?: string | null;
+  inTramitacao?: boolean;
   situationDescription?: string;
   movementDescription?: string;
   lastMovementDate?: string;
@@ -820,18 +824,24 @@ export default function PropositionsListPage() {
 
   const handleExportCsv = () => {
     if (!propositions.length) return;
+    // Colunas seguem a spec do Leo §14.4. Mantemos "Identificador" como coluna
+    // extra inicial (`PL 5490/2020`) pra facilitar busca rápida no Excel.
     const header = [
       "Identificador",
       "Tipo",
       "Número",
       "Ano",
-      "Apresentação",
-      "Situação",
-      "Regime",
-      "Última ação",
-      "Autor principal",
       "Ementa",
-      "URL",
+      "Autor principal",
+      "Data de apresentação",
+      "Situação atual",
+      "Órgão atual",
+      "Regime",
+      "Forma de apreciação",
+      "Em tramitação",
+      "Última movimentação",
+      "URL Câmara",
+      "URL inteiro teor",
     ];
     const escape = (v: unknown) => {
       const s = v == null ? "" : String(v).replace(/\r?\n/g, " ").replace(/"/g, '""');
@@ -842,12 +852,16 @@ export default function PropositionsListPage() {
       p.type?.name,
       p.number,
       p.year,
+      p.description ?? "",
+      p.authors?.[0]?.name ?? "",
       p.presentationDate ? new Date(p.presentationDate).toLocaleDateString("pt-BR") : "",
       p.situation?.name ?? p.situationDescription ?? "",
+      p.orgaoAtual ?? "",
       p.regime ?? "",
+      p.appreciation ?? "",
+      p.inTramitacao === undefined ? "" : p.inTramitacao ? "Sim" : "Não",
       p.lastMovementDate ? new Date(p.lastMovementDate).toLocaleDateString("pt-BR") : "",
-      p.authors?.[0]?.name ?? "",
-      p.description ?? "",
+      p.url ?? "",
       p.fullPropositionUrl ?? "",
     ]);
     const csvStr = [header, ...rows].map((r) => r.map(escape).join(";")).join("\r\n");
