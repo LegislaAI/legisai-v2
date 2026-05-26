@@ -68,6 +68,8 @@ type Proposition = {
   presentationDate: string;
   fullPropositionUrl?: string;
   regime?: string;
+  appreciation?: string | null;
+  orgaoAtual?: string | null;
   situationDescription?: string;
   movementDescription?: string;
   lastMovementDate?: string;
@@ -2162,6 +2164,20 @@ function ActionBar({
   );
 }
 
+/**
+ * Encurta o texto longo da Câmara para a forma de apreciação. Originais:
+ *   "Proposição Sujeita à Apreciação do Plenário"
+ *   "Proposição Sujeita à Apreciação Conclusiva pelas Comissões - Art. 24 II"
+ * Saídas: "Plenário", "Conclusiva", "Indefinida"… Quando o prefixo não casa,
+ * mostra o texto inteiro (truncado pelo CSS via `truncate`).
+ */
+function shortAppreciation(raw?: string | null): string | null {
+  if (!raw) return null;
+  const m = raw.match(/Apreciação\s+(?:do\s+|pelo\s+)?(Plenário|Conclusiva|.+?)(?:\s+pelas|\s+do|\s*-|$)/i);
+  if (m && m[1]) return m[1];
+  return raw;
+}
+
 function PropositionCard({ prop, onClick }: { prop: Proposition; onClick: () => void }) {
   const author = prop.authors?.[0]?.name;
   const presentation = new Date(prop.presentationDate).toLocaleDateString("pt-BR");
@@ -2170,6 +2186,7 @@ function PropositionCard({ prop, onClick }: { prop: Proposition; onClick: () => 
     : null;
   const regimeTone = getRegimeTone(prop.regime);
   const situation = prop.situation?.name || prop.situationDescription;
+  const apreciacao = shortAppreciation(prop.appreciation);
 
   return (
     <Card
@@ -2209,6 +2226,22 @@ function PropositionCard({ prop, onClick }: { prop: Proposition; onClick: () => 
                 title={prop.regime}
               >
                 {prop.regime}
+              </span>
+            )}
+            {apreciacao && apreciacao.toLowerCase() !== "indefinida" && (
+              <span
+                className="inline-flex max-w-full items-center truncate rounded-md bg-blue-50 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-blue-700"
+                title={prop.appreciation ?? undefined}
+              >
+                {apreciacao}
+              </span>
+            )}
+            {prop.orgaoAtual && (
+              <span
+                className="inline-flex max-w-full items-center truncate rounded-md bg-slate-100 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-slate-700"
+                title={`Órgão atual: ${prop.orgaoAtual}`}
+              >
+                {prop.orgaoAtual}
               </span>
             )}
           </div>
