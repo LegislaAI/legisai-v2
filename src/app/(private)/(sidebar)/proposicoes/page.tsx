@@ -1151,6 +1151,19 @@ export default function PropositionsListPage() {
               </div>
             </div>
             <ValidationHint canSearch={canSearch} mode="basic" />
+            {/* Direcionamento para Avançada — spec do Leo, Básica §11.5. */}
+            <p className="mt-3 text-[11px] text-gray-500">
+              Para combinações mais específicas (relator, órgão de tramitação,
+              regime, apreciação, expressões textuais) utilize a{" "}
+              <button
+                type="button"
+                onClick={() => setMode("advanced")}
+                className="font-semibold text-secondary underline-offset-2 hover:underline"
+              >
+                Pesquisa Avançada
+              </button>
+              .
+            </p>
           </Card>
         </TabsContent>
 
