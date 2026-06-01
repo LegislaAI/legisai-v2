@@ -6,12 +6,17 @@ const CARDS = [
   {
     href: "/admin/users",
     title: "Usuários",
-    desc: "Listar contas, buscar e alterar o nível de permissão.",
+    desc: "Listar contas, criar novos usuários e alterar o nível de permissão.",
   },
   {
     href: "/admin/signatures",
     title: "Assinaturas",
-    desc: "Visualizar, ativar ou cancelar manualmente assinaturas.",
+    desc: "Criar manualmente, ativar, ajustar prazo ou cancelar assinaturas.",
+  },
+  {
+    href: "/admin/signature-plans",
+    title: "Planos de assinatura",
+    desc: "Criar, editar preços e gerenciar o catálogo de planos.",
   },
   {
     href: "/admin/custom-plans",
@@ -22,6 +27,16 @@ const CARDS = [
     href: "/admin/partners",
     title: "Parceiros",
     desc: "Cadastrar cupons, descontos e comissão por parceiro.",
+  },
+  {
+    href: "/admin/webhooks",
+    title: "Webhooks de pagamento",
+    desc: "Acompanhar eventos do Asaas e reprocessar quando necessário.",
+  },
+  {
+    href: "/admin/audit",
+    title: "Auditoria",
+    desc: "Histórico de quem fez o quê — todas as ações administrativas.",
   },
   {
     href: "/admin/config",

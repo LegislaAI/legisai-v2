@@ -12,6 +12,7 @@ import {
   SelectValue,
 } from "@/components/v2/components/ui/select";
 
+import { UserCombobox } from "../_components/UserCombobox";
 import { Paginated, useAdminApi } from "../_lib/admin-api";
 
 type SignatureStatus = "active" | "inactive" | "expired" | "overdue";
@@ -53,13 +54,14 @@ const PAYMENT_TYPE_LABEL: Record<Signature["paymentType"], string> = {
 const PAGE_SIZE_OPTIONS = [25, 50, 100];
 
 export default function AdminSignaturesPage() {
-  const { list } = useAdminApi();
+  const { list, post } = useAdminApi();
   const [data, setData] = useState<Paginated<Signature> | null>(null);
   const [statusFilter, setStatusFilter] = useState<SignatureStatus | "">("");
   const [page, setPage] = useState(1);
   const [pageSize, setPageSize] = useState(50);
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<Signature | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
 
   const fetchPage = useCallback(async () => {
     setLoading(true);
@@ -95,7 +97,15 @@ export default function AdminSignaturesPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold">Assinaturas</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">Assinaturas</h1>
+        <button
+          onClick={() => setShowCreate(true)}
+          className="rounded bg-zinc-900 px-4 py-2 text-sm text-white"
+        >
+          Nova assinatura manual
+        </button>
+      </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-3">
         <div className="w-44">
@@ -236,6 +246,165 @@ export default function AdminSignaturesPage() {
           onUpdated={applyLocalUpdate}
         />
       )}
+
+      {showCreate && (
+        <CreateSignatureModal
+          post={post}
+          list={list}
+          onClose={() => setShowCreate(false)}
+          onCreated={() => {
+            setShowCreate(false);
+            fetchPage();
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+type PostFn = <T,>(path: string, body: unknown) => Promise<T>;
+type ListFn = <T,>(
+  path: string,
+  query?: Record<string, string | undefined>,
+) => Promise<T>;
+
+type PlanLite = {
+  id: string;
+  name: string;
+  level: number;
+  isInternal: boolean;
+};
+
+function CreateSignatureModal({
+  post,
+  list,
+  onClose,
+  onCreated,
+}: {
+  post: PostFn;
+  list: ListFn;
+  onClose: () => void;
+  onCreated: () => void;
+}) {
+  const [user, setUser] = useState<{
+    id: string;
+    name: string;
+    email: string;
+  } | null>(null);
+  const [planId, setPlanId] = useState("");
+  const [plans, setPlans] = useState<PlanLite[]>([]);
+  const [expirationDate, setExpirationDate] = useState(
+    new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10),
+  );
+  const [yearly, setYearly] = useState(false);
+  const [saving, setSaving] = useState(false);
+
+  useEffect(() => {
+    list<{ plans: PlanLite[] }>("/admin/signature-plans")
+      .then((r) => setPlans(r.plans))
+      .catch((e: unknown) => toast.error((e as Error).message));
+  }, [list]);
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!user) return toast.error("Selecione um usuário.");
+    if (!planId) return toast.error("Escolha um plano.");
+    setSaving(true);
+    try {
+      await post("/admin/signatures", {
+        userId: user.id,
+        planId,
+        expirationDate: new Date(expirationDate + "T23:59:59").toISOString(),
+        yearly,
+      });
+      toast.success("Assinatura criada manualmente.");
+      onCreated();
+    } catch (e: unknown) {
+      toast.error((e as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="flex max-h-[90vh] w-full max-w-xl flex-col rounded-lg bg-white shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex shrink-0 items-start justify-between border-b border-zinc-200 px-5 py-4">
+          <div>
+            <div className="text-lg font-semibold">Nova assinatura manual</div>
+            <div className="text-xs text-zinc-500">
+              Concede acesso sem cobrança (cortesia, reembolso compensatório,
+              testes). A ação é registrada na auditoria.
+            </div>
+          </div>
+          <button onClick={onClose} className="text-zinc-500 hover:text-zinc-900">
+            ✕
+          </button>
+        </div>
+
+        <form
+          onSubmit={submit}
+          className="flex-1 space-y-4 overflow-y-auto px-5 py-5"
+        >
+          <div>
+            <label className="text-sm font-medium">Usuário</label>
+            <div className="mt-1">
+              <UserCombobox value={user} onChange={setUser} />
+            </div>
+          </div>
+          <div>
+            <label className="text-sm font-medium">Plano</label>
+            <div className="mt-1">
+              <Select value={planId} onValueChange={setPlanId}>
+                <SelectTrigger className="h-9">
+                  <SelectValue placeholder="Selecione…" />
+                </SelectTrigger>
+                <SelectContent>
+                  {plans.map((p) => (
+                    <SelectItem key={p.id} value={p.id}>
+                      {p.name} (Nível {p.level})
+                      {p.isInternal ? " · interno" : ""}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <div>
+            <label className="text-sm font-medium">Data de expiração</label>
+            <div className="mt-1 max-w-xs">
+              <DatePicker
+                value={expirationDate}
+                onValueChange={setExpirationDate}
+              />
+            </div>
+          </div>
+          <label className="flex items-center gap-2 text-sm">
+            <input
+              type="checkbox"
+              checked={yearly}
+              onChange={(e) => setYearly(e.target.checked)}
+            />
+            Marcar como assinatura anual (afeta exibição; sem efeito em
+            cobrança)
+          </label>
+          <div className="flex justify-end">
+            <button
+              type="submit"
+              disabled={saving}
+              className="rounded bg-zinc-900 px-4 py-2 text-sm text-white disabled:opacity-50"
+            >
+              {saving ? "Criando…" : "Criar assinatura"}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

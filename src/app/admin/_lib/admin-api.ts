@@ -12,7 +12,7 @@ export type Paginated<T> = {
 };
 
 export function useAdminApi() {
-  const { GetAPI, PostAPI, PatchAPI } = useApiContext();
+  const { GetAPI, PostAPI, PatchAPI, DeleteAPI } = useApiContext();
 
   const list = useCallback(
     async <T,>(path: string, query?: Record<string, string | undefined>) => {
@@ -50,5 +50,16 @@ export function useAdminApi() {
     [PatchAPI],
   );
 
-  return { list, post, patch };
+  const del = useCallback(
+    async <T,>(path: string) => {
+      const res = await DeleteAPI(path, true);
+      if (res.status !== 200 && res.status !== 204) {
+        throw new Error(res.body?.message ?? "Falha na requisição.");
+      }
+      return res.body as T;
+    },
+    [DeleteAPI],
+  );
+
+  return { list, post, patch, del };
 }

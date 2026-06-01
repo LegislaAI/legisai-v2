@@ -449,6 +449,10 @@ export default function AdminCustomPlansPage() {
             await cancel(actionTarget.id);
             setActionTarget(null);
           }}
+          onUpdated={() => {
+            fetchPage();
+            setActionTarget(null);
+          }}
         />
       )}
     </div>
@@ -459,13 +463,53 @@ function CustomPlanActionsModal({
   customPlan,
   onClose,
   onCancel,
+  onUpdated,
 }: {
   customPlan: CustomPlan;
   onClose: () => void;
   onCancel: () => Promise<void> | void;
+  onUpdated: () => void;
 }) {
+  const { patch } = useAdminApi();
   const cp = customPlan;
   const isActive = cp.status === "ACTIVE";
+  const [editing, setEditing] = useState(false);
+  const [pixM, setPixM] = useState(
+    cp.pixMonthlyPrice == null ? "" : String(cp.pixMonthlyPrice),
+  );
+  const [pixY, setPixY] = useState(
+    cp.pixYearlyPrice == null ? "" : String(cp.pixYearlyPrice),
+  );
+  const [creM, setCreM] = useState(
+    cp.creditMonthlyPrice == null ? "" : String(cp.creditMonthlyPrice),
+  );
+  const [creY, setCreY] = useState(
+    cp.creditYearlyPrice == null ? "" : String(cp.creditYearlyPrice),
+  );
+  const [saving, setSaving] = useState(false);
+
+  async function saveEdit() {
+    setSaving(true);
+    try {
+      const body = {
+        pixMonthlyPrice: pixM ? Number(pixM) : null,
+        pixYearlyPrice: pixY ? Number(pixY) : null,
+        creditMonthlyPrice: creM ? Number(creM) : null,
+        creditYearlyPrice: creY ? Number(creY) : null,
+        pixMonthlyEnabled: !!pixM,
+        pixYearlyEnabled: !!pixY,
+        creditMonthlyEnabled: !!creM,
+        creditYearlyEnabled: !!creY,
+      };
+      await patch(`/admin/custom-plans/${cp.id}`, body);
+      toast.success("Plano sob medida atualizado.");
+      onUpdated();
+    } catch (e: unknown) {
+      toast.error((e as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  }
 
   return (
     <div
@@ -544,6 +588,87 @@ function CustomPlanActionsModal({
               ))}
             </div>
           </section>
+
+          {isActive && (
+            <section>
+              <div className="flex items-center justify-between">
+                <h2 className="text-sm font-semibold uppercase tracking-wide text-zinc-500">
+                  Editar preços e métodos
+                </h2>
+                {!editing && (
+                  <button
+                    onClick={() => setEditing(true)}
+                    className="rounded border border-zinc-300 px-3 py-1 text-xs hover:bg-zinc-50"
+                  >
+                    Editar
+                  </button>
+                )}
+              </div>
+              <p className="mt-1 text-xs text-zinc-600">
+                Deixe vazio para desativar a opção. Ao menos uma combinação
+                método/frequência precisa ficar habilitada.
+              </p>
+              {editing ? (
+                <div className="mt-3 grid grid-cols-1 gap-3 md:grid-cols-2">
+                  <label className="text-sm">
+                    PIX mensal (R$)
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={pixM}
+                      onChange={(e) => setPixM(e.target.value)}
+                      className="mt-1 w-full rounded border border-zinc-300 px-2 py-1 text-sm"
+                    />
+                  </label>
+                  <label className="text-sm">
+                    PIX anual (R$)
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={pixY}
+                      onChange={(e) => setPixY(e.target.value)}
+                      className="mt-1 w-full rounded border border-zinc-300 px-2 py-1 text-sm"
+                    />
+                  </label>
+                  <label className="text-sm">
+                    Cartão mensal (R$)
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={creM}
+                      onChange={(e) => setCreM(e.target.value)}
+                      className="mt-1 w-full rounded border border-zinc-300 px-2 py-1 text-sm"
+                    />
+                  </label>
+                  <label className="text-sm">
+                    Cartão anual (R$)
+                    <input
+                      type="number"
+                      step="0.01"
+                      value={creY}
+                      onChange={(e) => setCreY(e.target.value)}
+                      className="mt-1 w-full rounded border border-zinc-300 px-2 py-1 text-sm"
+                    />
+                  </label>
+                  <div className="md:col-span-2 flex justify-end gap-2">
+                    <button
+                      onClick={() => setEditing(false)}
+                      className="rounded border border-zinc-300 px-3 py-1 text-xs hover:bg-zinc-50"
+                    >
+                      Cancelar
+                    </button>
+                    <button
+                      onClick={saveEdit}
+                      disabled={saving}
+                      className="rounded bg-zinc-900 px-3 py-1 text-xs text-white disabled:opacity-50"
+                    >
+                      {saving ? "Salvando…" : "Salvar alterações"}
+                    </button>
+                  </div>
+                </div>
+              ) : null}
+            </section>
+          )}
 
           {isActive && (
             <section>

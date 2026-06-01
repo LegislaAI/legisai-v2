@@ -67,7 +67,7 @@ type SignaturePlanLite = {
 };
 
 export default function AdminConfigPage() {
-  const { list, patch } = useAdminApi();
+  const { list, patch, del } = useAdminApi();
   const [config, setConfig] = useState<Record<string, string>>({});
   const [draft, setDraft] = useState<Record<string, string>>({});
   const [loading, setLoading] = useState(false);
@@ -111,6 +111,31 @@ export default function AdminConfigPage() {
       // Otimização: atualiza local em vez de refetch completo.
       setConfig((c) => ({ ...c, [key]: value }));
       setDraft((d) => ({ ...d, [key]: value }));
+    } catch (e: unknown) {
+      toast.error((e as Error).message);
+    }
+  }
+
+  async function remove(key: string) {
+    if (
+      !window.confirm(
+        `Excluir a configuração "${key}"? Esta chave deixa de existir no sistema.`,
+      )
+    )
+      return;
+    try {
+      await del(`/admin/config/${encodeURIComponent(key)}`);
+      toast.success("Configuração excluída.");
+      setConfig((c) => {
+        const next = { ...c };
+        delete next[key];
+        return next;
+      });
+      setDraft((d) => {
+        const next = { ...d };
+        delete next[key];
+        return next;
+      });
     } catch (e: unknown) {
       toast.error((e as Error).message);
     }
@@ -181,6 +206,9 @@ export default function AdminConfigPage() {
                   onSave={() => save(field.key)}
                   onToggle={() =>
                     save(field.key, (config[field.key] ?? "").toLowerCase() === "true" ? "false" : "true")
+                  }
+                  onRemove={
+                    field.group === "Outros" ? () => remove(field.key) : undefined
                   }
                 />
               ))}
@@ -328,6 +356,7 @@ function GenericField({
   onDraftChange,
   onSave,
   onToggle,
+  onRemove,
 }: {
   field: FieldDef;
   current: string;
@@ -335,6 +364,7 @@ function GenericField({
   onDraftChange: (v: string) => void;
   onSave: () => void;
   onToggle: () => void;
+  onRemove?: () => void;
 }) {
   if (field.kind === "boolean") {
     const isOn = current.toLowerCase() === "true";
@@ -345,15 +375,27 @@ function GenericField({
             <div className="text-sm font-medium">{field.label}</div>
             <div className="mt-1 text-xs text-zinc-600">{field.description}</div>
           </div>
-          <button
-            type="button"
-            onClick={onToggle}
-            className={`shrink-0 rounded-full px-4 py-1 text-xs font-medium ${
-              isOn ? "bg-emerald-100 text-emerald-800" : "bg-zinc-200 text-zinc-700"
-            }`}
-          >
-            {isOn ? "Ativado" : "Desativado"}
-          </button>
+          <div className="flex shrink-0 items-center gap-2">
+            <button
+              type="button"
+              onClick={onToggle}
+              className={`rounded-full px-4 py-1 text-xs font-medium ${
+                isOn ? "bg-emerald-100 text-emerald-800" : "bg-zinc-200 text-zinc-700"
+              }`}
+            >
+              {isOn ? "Ativado" : "Desativado"}
+            </button>
+            {onRemove && (
+              <button
+                type="button"
+                onClick={onRemove}
+                title="Excluir esta configuração"
+                className="rounded border border-red-300 px-2 py-1 text-xs text-red-700 hover:bg-red-50"
+              >
+                Excluir
+              </button>
+            )}
+          </div>
         </div>
       </div>
     );
@@ -381,6 +423,15 @@ function GenericField({
           >
             Salvar
           </button>
+          {onRemove && (
+            <button
+              type="button"
+              onClick={onRemove}
+              className="rounded border border-red-300 px-2 py-1 text-xs text-red-700 hover:bg-red-50"
+            >
+              Excluir
+            </button>
+          )}
         </div>
       </div>
     );
@@ -404,6 +455,15 @@ function GenericField({
         >
           Salvar
         </button>
+        {onRemove && (
+          <button
+            type="button"
+            onClick={onRemove}
+            className="shrink-0 rounded border border-red-300 px-2 py-1 text-xs text-red-700 hover:bg-red-50"
+          >
+            Excluir
+          </button>
+        )}
       </div>
     </div>
   );

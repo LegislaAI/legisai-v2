@@ -33,7 +33,7 @@ type User = {
 const PAGE_SIZE_OPTIONS = [25, 50, 100];
 
 export default function AdminUsersPage() {
-  const { list, patch } = useAdminApi();
+  const { list, patch, post } = useAdminApi();
   const [data, setData] = useState<Paginated<User> | null>(null);
   const [q, setQ] = useState("");
   const [debouncedQ, setDebouncedQ] = useState("");
@@ -41,6 +41,7 @@ export default function AdminUsersPage() {
   const [pageSize, setPageSize] = useState(50);
   const [loading, setLoading] = useState(false);
   const [selected, setSelected] = useState<User | null>(null);
+  const [showCreate, setShowCreate] = useState(false);
 
   // Debounce de 400ms: só dispara fetch após o usuário parar de digitar.
   useEffect(() => {
@@ -85,7 +86,15 @@ export default function AdminUsersPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-semibold">Usuários</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-2xl font-semibold">Usuários</h1>
+        <button
+          onClick={() => setShowCreate(true)}
+          className="rounded bg-zinc-900 px-4 py-2 text-sm text-white"
+        >
+          Novo usuário
+        </button>
+      </div>
 
       <div className="mt-4 flex flex-wrap items-center gap-2">
         <div className="relative flex-1 max-w-sm">
@@ -224,6 +233,183 @@ export default function AdminUsersPage() {
           onUpdated={reloadKeepingSelection}
         />
       )}
+
+      {showCreate && (
+        <CreateUserModal
+          post={post}
+          onClose={() => setShowCreate(false)}
+          onCreated={() => {
+            setShowCreate(false);
+            fetchPage();
+          }}
+        />
+      )}
+    </div>
+  );
+}
+
+type PostFn = <T,>(path: string, body: unknown) => Promise<T>;
+
+function CreateUserModal({
+  post,
+  onClose,
+  onCreated,
+}: {
+  post: PostFn;
+  onClose: () => void;
+  onCreated: () => void;
+}) {
+  const [form, setForm] = useState({
+    name: "",
+    email: "",
+    phone: "",
+    cpfCnpj: "",
+    password: "",
+    birthDate: "",
+    profession: "",
+    postalCode: "",
+    addressNumber: "",
+    role: "USER" as "USER" | "ADMIN",
+  });
+  const [saving, setSaving] = useState(false);
+
+  function setField<K extends keyof typeof form>(key: K, value: (typeof form)[K]) {
+    setForm((f) => ({ ...f, [key]: value }));
+  }
+
+  async function submit(e: React.FormEvent) {
+    e.preventDefault();
+    if (form.password.length < 6) {
+      toast.error("A senha precisa ter ao menos 6 caracteres.");
+      return;
+    }
+    setSaving(true);
+    try {
+      await post("/admin/users", {
+        name: form.name,
+        email: form.email,
+        phone: digits(form.phone),
+        cpfCnpj: digits(form.cpfCnpj),
+        password: form.password,
+        birthDate: form.birthDate,
+        profession: form.profession,
+        postalCode: form.postalCode ? digits(form.postalCode) : undefined,
+        addressNumber: form.addressNumber || undefined,
+        role: form.role,
+      });
+      toast.success("Usuário criado.");
+      onCreated();
+    } catch (e: unknown) {
+      toast.error((e as Error).message);
+    } finally {
+      setSaving(false);
+    }
+  }
+
+  return (
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 p-4"
+      onClick={onClose}
+    >
+      <div
+        className="flex max-h-[90vh] w-full max-w-2xl flex-col rounded-lg bg-white shadow-xl"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <div className="flex shrink-0 items-start justify-between border-b border-zinc-200 px-5 py-4">
+          <div>
+            <div className="text-lg font-semibold">Novo usuário</div>
+            <div className="text-xs text-zinc-500">
+              Conta criada com a senha definida abaixo. O usuário recebe e-mail
+              de boas-vindas e (se o trial estiver ativo) assinatura gratuita.
+            </div>
+          </div>
+          <button onClick={onClose} className="text-zinc-500 hover:text-zinc-900">
+            ✕
+          </button>
+        </div>
+
+        <form
+          onSubmit={submit}
+          className="grid flex-1 grid-cols-1 gap-3 overflow-y-auto px-5 py-5 md:grid-cols-2"
+        >
+          <Field
+            label="Nome completo"
+            value={form.name}
+            onChange={(v) => setField("name", v)}
+            wide
+          />
+          <Field
+            label="Email"
+            type="email"
+            value={form.email}
+            onChange={(v) => setField("email", v)}
+          />
+          <Field
+            label="Telefone (com DDD)"
+            value={form.phone}
+            onChange={(v) => setField("phone", maskPhone(v))}
+            placeholder="(00) 00000-0000"
+          />
+          <Field
+            label="CPF ou CNPJ"
+            value={form.cpfCnpj}
+            onChange={(v) => setField("cpfCnpj", maskCpfCnpj(v))}
+            placeholder="000.000.000-00"
+          />
+          <Field
+            label="Profissão"
+            value={form.profession}
+            onChange={(v) => setField("profession", v)}
+          />
+          <Field
+            label="Data de nascimento"
+            type="date"
+            value={form.birthDate}
+            onChange={(v) => setField("birthDate", v)}
+          />
+          <Field
+            label="Senha inicial (mín. 6 caracteres)"
+            type="password"
+            value={form.password}
+            onChange={(v) => setField("password", v)}
+          />
+          <Field
+            label="CEP (opcional)"
+            value={form.postalCode}
+            onChange={(v) => setField("postalCode", maskCep(v))}
+            placeholder="00000-000"
+          />
+          <Field
+            label="Número do endereço (opcional)"
+            value={form.addressNumber}
+            onChange={(v) => setField("addressNumber", v)}
+          />
+          <label className="text-sm md:col-span-2">
+            Permissão
+            <Select
+              value={form.role}
+              onValueChange={(v) => setField("role", v as "USER" | "ADMIN")}
+            >
+              <SelectTrigger className="mt-1 h-9">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="USER">Usuário</SelectItem>
+                <SelectItem value="ADMIN">Administrador</SelectItem>
+              </SelectContent>
+            </Select>
+          </label>
+          <div className="md:col-span-2 flex justify-end">
+            <button
+              type="submit"
+              disabled={saving}
+              className="rounded bg-zinc-900 px-4 py-2 text-sm text-white disabled:opacity-50"
+            >
+              {saving ? "Criando…" : "Criar usuário"}
+            </button>
+          </div>
+        </form>
+      </div>
     </div>
   );
 }

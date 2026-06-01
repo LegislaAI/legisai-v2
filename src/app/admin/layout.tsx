@@ -5,8 +5,11 @@ const NAV = [
   { href: "/admin", label: "Visão geral" },
   { href: "/admin/users", label: "Usuários" },
   { href: "/admin/signatures", label: "Assinaturas" },
+  { href: "/admin/signature-plans", label: "Planos de assinatura" },
   { href: "/admin/custom-plans", label: "Planos sob medida" },
   { href: "/admin/partners", label: "Parceiros" },
+  { href: "/admin/webhooks", label: "Webhooks" },
+  { href: "/admin/audit", label: "Auditoria" },
   { href: "/admin/config", label: "Configurações" },
 ];
 
