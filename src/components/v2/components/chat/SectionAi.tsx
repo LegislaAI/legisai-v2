@@ -72,7 +72,11 @@ export function SectionAi({
     shouldCreateChat: true,
     shouldSaveMessage: true,
     shouldSaveFile: true,
-    shouldUseFunctions: true,
+    // Busca de proposições (vectorSearch/fetchAuthors/propositionDetails) é
+    // exclusiva da tela de Pesquisa Legislativa (/tramitacoes). No chat geral
+    // (/ai) as tools ficam desligadas — evita o fluxo de function-calling
+    // (e o balão vazio) numa tela que é só conversa/resumo.
+    shouldUseFunctions: false,
     type: "ai",
   });
 

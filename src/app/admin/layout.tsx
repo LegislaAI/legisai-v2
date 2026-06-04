@@ -7,6 +7,7 @@ const NAV = [
   { href: "/admin/signatures", label: "Assinaturas" },
   { href: "/admin/signature-plans", label: "Planos de assinatura" },
   { href: "/admin/custom-plans", label: "Planos sob medida" },
+  { href: "/admin/prompts", label: "Prompts de IA" },
   { href: "/admin/partners", label: "Parceiros" },
   { href: "/admin/webhooks", label: "Webhooks" },
   { href: "/admin/audit", label: "Auditoria" },
